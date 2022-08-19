@@ -21,11 +21,27 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [QuickLava's fork of the P+ EX code menu](https://github.com/QuickLava/PowerPC-Assembly-Functions). You will want to ensure this is installed in your build's root folder (should be in the same directory as the /pf/ folder). **This is necessary if you want your character added to the code menu.**
 - **(OPTIONAL)** The latest version of [QuickLava's Sawnd porting utility](https://github.com/QuickLava/lavaSawndPortingUtility). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
 - **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
+- If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#template-packages).
 
 ## Setup
 For initial installation, you should download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder. After initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
 
 **NOTE:** It is **_strongly recommended_** that you back up your build's files before installing mods with these plugins. While the plugins try to do everything without creating issues in your build, I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control.
+
+# Character Packages
+
+The Install Character plugin works by extracting files from a "Character Package", a .zip file containing the fighter's files, cosmetics, etc. with a particular directory structure.
+
+If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#template-packages)) or by using the [Package Character](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#package-character) plugin in this suite.
+
+Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
+
+## Template Packages
+**DOWNLOAD:** [Rockman X (by CaliKingz01) Example Package](https://www.mediafire.com/file/qnx8p14ivsb3rxo/RockmanX_by_CaliKingz01.zip/file)
+
+**DOWNLOAD:** [Empty Template Package](https://www.mediafire.com/file/xd1212mwl5aq6tk/Template.zip/file)
+
+These sample packages give an example of what a proper character package should look like. In both examples, every folder contains text files with additional instructions on how they should be used.
 
 # Plugins
 
