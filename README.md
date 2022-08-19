@@ -90,6 +90,13 @@ If the user has Kirby hat files to package with the fighter, they will be prompt
 
 After the user has selected all files, they will be prompted to select an output directory and to enter a name for the file. The character package will be output to the directory chosen by the user as "{name}.zip", where {name} is the name the user entered. They will then receive a message indicated successful package creation, and this .zip can be used with the "Install Character" plugin to install the character to a build.
 
+## Output Fighter Info To Text
+**Usage:** Plugins menu > BrawlInstaller Plugins > Output Fighter Info To Text
+
+This plugin will iterate through all of the EX configs in your build and print the fighter ID, name, cosmetic ID, franchise icon ID, soundbank ID, and victory theme ID of each fighter found to a fighter_info.txt file located in your `/BrawlAPI/BrawlInstaller Resources/` directory in the BrawlCrate root folder. This can be useful if you need a reference for what IDs are available.
+
+All IDs printed are in decimal format.
+
 # settings.ini
 
 After [configuring settings](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#configure-settings), a settings.ini file is generated that the BrawlInstaller plugins use to determine various behaviors.
