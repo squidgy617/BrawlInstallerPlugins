@@ -11,6 +11,8 @@ This tool was made possible by:
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
 - The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
+Currently this plugin performs all the necessary installation to get an EX character fully working in Versus mode. Characters will most likely work in other modes such as Classic, All-Star, etc. but may have broken cosmetics. Full support for modes outside of Versus Mode will be implemented in a future update.
+
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
 # Installation
