@@ -55,7 +55,7 @@ If the fighter has the same internal name as an existing fighter, the user will 
 
 If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd porting utility and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these, tools, you may only choose to overwrite, or else installation will be aborted.
 
-After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat.
+After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat. Cosmetic files such as stock icons and CSPs are imported in alphabetical order, so mod authors should ensure their files are named appropriately.
 
 If the user has QuickLava's Kirby Hat manager installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_KirbyHats.txt file and run the Kirby Hat manager.
 
@@ -82,6 +82,8 @@ After the fighter is successfully uninstalled, the user will receive a message i
 This plugin allows you to package a character into a .zip file with the correct directory structure to be installed via the "Install Character" plugin. When run, the plugin will give the user various prompts to browse their computer for files for their character such as cosmetics, EX configs, and other character files. If the user does not have the files requested, they can simply select "Cancel" instead of choosing a file, but users should bear in mind that some files, such as EX configs and fighter files, are essential and not supplying them will make the character package not work properly.
 
 All images packaged with the character should be the size they are expected to be in-game, with the exception of franchise icons which will be resized upon character installation.
+
+When selecting multiple files, they will be read into the plugin in the order that you select them in. The plugin will automatically rename cosmetic files such as stock icons, battle portraits, and CSPs to ensure they are in alphabetical order so the installer plugins will order them correctly.
 
 While the character installer plugin attempts to modify files as needed, users should ensure their .pac files are named using the same name as what is listed in the fighter's FighterConfig file.
 
