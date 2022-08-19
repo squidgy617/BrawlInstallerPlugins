@@ -23,7 +23,7 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [QuickLava's fork of the P+ EX code menu](https://github.com/QuickLava/PowerPC-Assembly-Functions). You will want to ensure this is installed in your build's root folder (should be in the same directory as the /pf/ folder). **This is necessary if you want your character added to the code menu.**
 - **(OPTIONAL)** The latest version of [QuickLava's Sawnd porting utility](https://github.com/QuickLava/lavaSawndPortingUtility). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
 - **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
-- If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#template-packages).
+- If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages).
 
 ## Setup
 For initial installation, you should download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder. After initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
@@ -34,7 +34,8 @@ For initial installation, you should download the release manually and extract t
 
 The Install Character plugin works by extracting files from a "Character Package", a .zip file containing the fighter's files, cosmetics, etc. with a particular directory structure.
 
-If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#template-packages)) or by using the [Package Character](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#package-character) plugin in this suite.
+If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages)) or by using the [Package Character](
+https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in this suite.
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
 
@@ -49,14 +50,14 @@ These sample packages give an example of what a proper character package should 
 
 Each plugin can be accessed from the Plugins menu in BrawlCrate by hovering over the "BrawlInstaller Plugins" option. Plugins may prompt the user for input. When plugins prompt the user to enter IDs such as fighter IDs or cosmetic IDs, these IDs can almost always be entered as either a hex value (e.g. "0x21") or an integer value (e.g. "33") - the plugins will convert them as needed.
 
-On first run of any plugin, the user will be prompted to [configure their settings](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#configure-settings) if they have not done so already.
+On first run of any plugin, the user will be prompted to [configure their settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings) if they have not done so already.
 
 ## Configure Settings
 **Usage:** Plugins menu > BrawlInstaller Plugins > Configure Settings
 
 This plugin prompts the user for input on various settings that are used by all of the plugins in this suite. Users should respond to prompts to the best of their knowledge. If the user is tasked with entering an ID, typically they may enter it in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. After setting configuration is complete, a settings.ini file will be created in the "BrawlInstaller Resources" folder in the BrawlCrate directory.
 
-For a detailed breakdown of the settings configured by this plugin, see the section on the [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#settingsini) file.
+For a detailed breakdown of the settings configured by this plugin, see the section on the [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins#settingsini) file.
 
 ## Install Character
 **Usage:** Plugins menu > BrawlInstaller Plugins > Install Character
@@ -73,7 +74,7 @@ If the fighter has the same internal name as an existing fighter, the user will 
 
 If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd porting utility and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these, tools, you may only choose to overwrite, or else installation will be aborted.
 
-After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat. Cosmetic files such as stock icons and CSPs are imported in alphabetical order, so mod authors should ensure their files are named appropriately.
+After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat. Cosmetic files such as stock icons and CSPs are imported in alphabetical order, so mod authors should ensure their files are named appropriately.
 
 If the user has QuickLava's Kirby Hat manager installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_KirbyHats.txt file and run the Kirby Hat manager.
 
@@ -120,7 +121,7 @@ All IDs printed are in decimal format.
 
 # settings.ini
 
-After [configuring settings](https://github.com/squidgy617/BrawlInstallerPlugins/edit/master/README.md#configure-settings), a settings.ini file is generated that the BrawlInstaller plugins use to determine various behaviors.
+After [configuring settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings), a settings.ini file is generated that the BrawlInstaller plugins use to determine various behaviors.
 
 The settings currently supported by the BrawlInstaller plugins are as follows:
 - **rspLoading** - [*Values: true, false*] : Whether or not the build uses RSP (result-screen portrait) loading. If this is set to `true`, character select portraits will not be installed to the build's `sc_selcharacter.pac`, and will instead only be installed as result-screen portraits in `/pf/menu/common/char_bust_tex/`.
