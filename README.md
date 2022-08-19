@@ -7,6 +7,7 @@ This tool was made possible by:
 - Kapedani and Hatyaro, for helping with some coding challenges.
 - QuickLava and codes, for the various tools they created that these plugins are able to interact with.
 - CaliKingz01, who provided the PSA for X to use as an example character package.
+- Shy, who created the cosmetics used for X.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
 - The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
