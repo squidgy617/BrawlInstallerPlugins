@@ -32,6 +32,12 @@ For initial installation, you should download the release manually and extract t
 
 **NOTE:** It is **_strongly recommended_** that you back up your build's files before installing mods with these plugins. While the plugins try to do everything without creating issues in your build, I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control.
 
+# Quick Start Guide
+
+**LINK**: [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
+
+If you're just looking to get started in using these plugins to package and install character mods, you can use this guide to get started. It's designed to hopefully get both newbies to modding, as well as people who are just new to the plugins, get started with creating and installing character packages.
+
 # Character Packages
 
 The Install Character plugin works by extracting files from a "Character Package", a .zip file containing the fighter's files, cosmetics, etc. with a particular directory structure.
