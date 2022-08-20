@@ -350,6 +350,22 @@ def copyFile(sourcePath, destinationPath):
 		Directory.CreateDirectory(destinationPath)
 		File.Copy(sourcePath, destinationPath + '/' + FileInfo(sourcePath).Name)
 
+# Helper method to create a backup of the provided file with correct folder structure
+def createBackup(sourcePath):
+		fullPath = AppPath + '/backup/' + sourcePath.replace(MainForm.BuildPath, '')
+		path = fullPath.replace(FileInfo(sourcePath).Name, '')
+		Directory.CreateDirectory(path)
+		File.Copy(sourcePath, fullPath)
+
+# Helper method to check if a file is open, and if it is not, open it and create a backup
+def openFile(filePath):
+		nodeName = FileInfo(filePath).Name.split('.')[0]
+		fileOpened = checkOpenFile(nodeName)
+		if fileOpened == 0:
+			createBackup(filePath)
+			fileOpened = BrawlAPI.OpenFile(filePath)
+		return fileOpened
+
 # Helper method to more easily copy and rename files
 def copyRenameFile(sourcePath, newName, destinationPath):
 		Directory.CreateDirectory(destinationPath)
@@ -370,9 +386,7 @@ def boolText(boolVal):
 # Import CSPs
 def importCSPs(cosmeticId, directory, rspLoading="false"):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Find char_bust_tex_lz77
 			arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
@@ -852,9 +866,7 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 
 # Remove imported CSPs and RSPs for specified cosmetic ID
 def removeCSPs(cosmeticId):
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Find char_bust_tex_lz77
 			arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
