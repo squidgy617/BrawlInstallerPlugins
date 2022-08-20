@@ -19,7 +19,9 @@ def main():
 		# CSPs
 		cspFiles = []
 		while True:
-			cspFiles.append(BrawlAPI.OpenMultiFileDialog("Select fighter CSP files (if multiple, images will be color smashed)", "PNG files|*.png"))
+			cspsToAdd = BrawlAPI.OpenMultiFileDialog("Select fighter CSP files (if multiple, images will be color smashed)", "PNG files|*.png")
+			if cspsToAdd:
+				cspFiles.append(cspsToAdd)
 			continueCSP = BrawlAPI.ShowYesNoPrompt("Do you have additional costumes to import?", title)
 			if continueCSP:
 				continue
@@ -49,7 +51,9 @@ def main():
 		BrawlAPI.ShowMessage("You will be prompted to select your fighter's stock icon files. When you select multiple files, they will be color smashed.\n\nYou will receive the prompt multiple times, so you can have multiple sets of stocks that are not all color smashed together.", title)
 		stockIcons = []
 		while True:
-			stockIcons.append(BrawlAPI.OpenMultiFileDialog("Select fighter stock icon files (if multiple, images will be color smashed)", "PNG files|*.png"))
+			stockIconsToAdd = BrawlAPI.OpenMultiFileDialog("Select fighter stock icon files (if multiple, images will be color smashed)", "PNG files|*.png")
+			if stockIconsToAdd:
+				stockIcons.append(stockIconsToAdd)
 			continueStockIcons = BrawlAPI.ShowYesNoPrompt("Do you have additional costumes to import?", title)
 			if continueStockIcons:
 				continue
@@ -104,13 +108,11 @@ def main():
 
 		if moduleFile:
 			copyFile(moduleFile, AppPath + '/temp/Module')
-
-		if cspFiles:
+		if cspFiles != []:
 			i = 1
 			for fileSet in cspFiles:
 				j = 1
 				for file in fileSet:
-					#copyFile(file, AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
 					copyRenameFile(file, addLeadingZeros(str(j), 4) + '.png', AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
 					j += 1
 				i += 1
@@ -118,14 +120,12 @@ def main():
 		if bpFiles:
 			i = 1
 			for file in bpFiles:
-				#copyFile(file, AppPath + '/temp/BPs/vBrawl')
 				copyRenameFile(file, addLeadingZeros(str(i), 4) + '.png', AppPath + '/temp/BPs/vBrawl')
 				i += 1
 
 		if remixBpFiles:
 			i = 1
 			for file in remixBpFiles:
-				#copyFile(file, AppPath + '/temp/BPs/REMIX')
 				copyRenameFile(file, addLeadingZeros(str(i), 4) + '.png', AppPath + '/temp/BPs/REMIX')
 				i += 1
 
@@ -154,12 +154,11 @@ def main():
 		if replayIcon:
 			copyFile(replayIcon, AppPath + '/temp/ReplayIcon')
 
-		if stockIcons:
+		if stockIcons != []:
 			i = 1
 			for fileSet in stockIcons:
 				j = 1
 				for file in fileSet:
-					#copyFile(file, AppPath + '/temp/StockIcons/' + str(i))
 					copyRenameFile(file, addLeadingZeros(str(j), 4) + '.png', AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
 					j += 1
 				i += 1
