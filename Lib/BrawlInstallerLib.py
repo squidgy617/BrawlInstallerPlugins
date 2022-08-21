@@ -28,6 +28,8 @@ from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 
 RESOURCE_PATH = AppPath + '/BrawlAPI/BrawlInstaller Resources'
 
+BACKUP_PATH = AppPath + '/backup'
+
 FIGHTER_IDS = {
 	0 : "Mario",
 	1 : "Donkey",
@@ -352,7 +354,7 @@ def copyFile(sourcePath, destinationPath):
 
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
-		fullPath = AppPath + '/backup/' + sourcePath.replace(MainForm.BuildPath, '')
+		fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
 		path = fullPath.replace(FileInfo(sourcePath).Name, '')
 		Directory.CreateDirectory(path)
 		if File.Exists(sourcePath) and not File.Exists(fullPath):
@@ -416,6 +418,8 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 				i += 1
 			# Export RSP while we're at it
 			newNode.Compression = "None"
+			# Back up RSP if it exists
+			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
 			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
@@ -905,6 +909,8 @@ def removeCSPs(cosmeticId):
 		# Get RSP file and delete if it exists
 		rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 3) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'))
 		if rspFile:
+			# Back up first
+			createBackup(rspFile.FullName)
 			rspFile.Delete()
 
 # Delete BPs for specified cosmetic ID
