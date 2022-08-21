@@ -28,6 +28,10 @@ from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 
 RESOURCE_PATH = AppPath + '/BrawlAPI/BrawlInstaller Resources'
 
+BASE_BACKUP_PATH = AppPath + '\\Backups'
+
+BACKUP_PATH = BASE_BACKUP_PATH + '\\backup'
+
 FIGHTER_IDS = {
 	0 : "Mario",
 	1 : "Donkey",
@@ -176,10 +180,14 @@ def sortChildrenByFrameIndex(parentNode):
 
 # Helper function that gets files from a directory by their name
 def getFileByName(name, directory):
-		for file in directory.GetFiles():
-			if file.Name == name:
-				return file
-		return 0
+		files = Directory.GetFiles(directory.FullName, name)
+		if files:
+			return FileInfo(files[0])
+		#for file in directory.GetFiles():
+		#	if file.Name == name:
+		#		return file
+		else:
+			return 0
 
 # Helper function that gets a directory from a base directory by specified name
 def getDirectoryByName(name, baseDirectory):
@@ -350,6 +358,23 @@ def copyFile(sourcePath, destinationPath):
 		Directory.CreateDirectory(destinationPath)
 		File.Copy(sourcePath, destinationPath + '/' + FileInfo(sourcePath).Name)
 
+# Helper method to create a backup of the provided file with correct folder structure
+def createBackup(sourcePath):
+		fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
+		path = fullPath.replace(FileInfo(sourcePath).Name, '')
+		Directory.CreateDirectory(path)
+		if File.Exists(sourcePath) and not File.Exists(fullPath):
+			File.Copy(sourcePath, fullPath)
+
+# Helper method to check if a file is open, and if it is not, open it and create a backup
+def openFile(filePath):
+		nodeName = FileInfo(filePath).Name.split('.')[0]
+		fileOpened = checkOpenFile(nodeName)
+		if fileOpened == 0:
+			createBackup(filePath)
+			fileOpened = BrawlAPI.OpenFile(filePath)
+		return fileOpened
+
 # Helper method to more easily copy and rename files
 def copyRenameFile(sourcePath, newName, destinationPath):
 		Directory.CreateDirectory(destinationPath)
@@ -370,9 +395,7 @@ def boolText(boolVal):
 # Import CSPs
 def importCSPs(cosmeticId, directory, rspLoading="false"):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Find char_bust_tex_lz77
 			arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
@@ -401,6 +424,8 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 				i += 1
 			# Export RSP while we're at it
 			newNode.Compression = "None"
+			# Back up RSP if it exists
+			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
 			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
@@ -412,10 +437,7 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
 		# If info.pac is not already opened, open it
 		# Check this out: https://github.com/soopercool101/BrawlCrate/blob/b089bf32f0cfb2b5f1e6d729b95da4dd169903f2/BrawlCrate/NodeWrappers/Graphics/TEX0Wrapper.cs#L231
-		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
@@ -474,6 +496,8 @@ def createBPs(cosmeticId, images, fiftyCC="true"):
 		# Create a BP file for each texture
 		for image in images:
 			outputPath = MainForm.BuildPath + '/pf/info/portrite/InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + '.brres'
+			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
+			createBackup(outputPath)
 			BrawlAPI.New[BRRESNode]()
 			importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
 			BrawlAPI.SaveFileAs(outputPath)
@@ -491,6 +515,8 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 				BrawlAPI.RootNode.CosmeticID = cosmeticId
 				if franchiseIconId != -1:
 					BrawlAPI.RootNode.FranchiseIconID = franchiseIconId - 1
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + fighterId + ".dat"))
 			# Rename FighterConfig 
 			if file.Name.lower().StartsWith("fighter"):
@@ -514,23 +540,27 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 				BrawlAPI.RootNode.KirbyPacName = 'kirby/FitKirby' + fighterName.upper() + '.pac'
 				BrawlAPI.RootNode.ModuleName = 'ft_' + fighterName.lower() + '.rel'
 				BrawlAPI.RootNode.InternalFighterName = fighterName.upper()
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/' + file.Name.replace(file.Name, "Fighter" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/' + file.Name.replace(file.Name, "Fighter" + fighterId + ".dat"))
 			# Rename CSSSlotConfig 
 			if file.Name.lower().StartsWith("cssslot"):
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
 			# Rename SlotConfig
 			if file.Name.lower().StartsWith("slot"):
 				if victoryThemeId:
 					BrawlAPI.RootNode.VictoryTheme = victoryThemeId
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
 			BrawlAPI.ForceCloseFile()
 
 # Import CSS icon
 def importCSSIcon(cosmeticId, iconImagePath, format):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Import icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -548,9 +578,7 @@ def importCSSIcon(cosmeticId, iconImagePath, format):
 # Import replay icon
 def importReplayIcon(cosmeticId, replayIconImagePath):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("Replay.brres")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
 		if fileOpened:
 			# Import icon texture
 			newNode = importTexture(BrawlAPI.RootNode, replayIconImagePath, WiiPixelFormat.CI8)
@@ -563,9 +591,7 @@ def importReplayIcon(cosmeticId, replayIconImagePath):
 # Import CSS icon name
 def importCSSIconName(cosmeticId, nameImagePath):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Import icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -583,9 +609,7 @@ def importCSSIconName(cosmeticId, nameImagePath):
 # Import name for character select portrait
 def importPortraitName(cosmeticId, file):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Import name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -598,9 +622,7 @@ def importPortraitName(cosmeticId, file):
 # Import franchise icon into CSS or info
 def importFranchiseIcon(franchiseIconId, image, filePath, size):
 		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Import icon
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -619,9 +641,7 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 
 # Add franchise icon to result screen
 def importFranchiseIconResult(franchiseIconId, image):
-		fileOpened = checkOpenFile("STGRESULT")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Import icon
 			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
@@ -671,6 +691,8 @@ def updateModule(file, directory, fighterId, fighterName):
 		with open(file.FullName, mode='r+b') as moduleFile:
 			moduleFile.seek(0)
 			moduleFile.write(updatedData)
+		# Back up if already exists
+		createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
 		File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
 
 # Move fighter files to fighter folder
@@ -682,6 +704,8 @@ def moveFighterFiles(files, fighterName, originalFighterName=""):
 				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
 			else:
 				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + file.Name
+			# Back up if already exists
+			createBackup(path)
 			FileInfo(path).Directory.Create()
 			File.Copy(file.FullName, path, 1)
 
@@ -716,14 +740,14 @@ def moveSoundbank(file, newSoundBankId=""):
 		else:
 			fileName = newSoundBankId.upper() + '.sawnd'
 		path = MainForm.BuildPath + '/pf/sfx/' + fileName
+		# If the soundbank already exists, back it up
+		createBackup(path)
 		File.Copy(file.FullName, path, 1)
 
 # Add character to CSSRoster.dat
 def addToRoster(fighterId):
-		fileOpened = checkOpenFile("CSSRoster")
 		changesMade = False
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
 		if fileOpened:
 			# Add character to character select
 			folder = getChildByName(BrawlAPI.RootNode, "Character Select")
@@ -745,8 +769,19 @@ def addToRoster(fighterId):
 
 # Add Kirby hat fixes
 # Check kirby soundbanks here: http://opensa.dantarion.com/wiki/Soundbanks_(Brawl)
-def addKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kirbyHatExe):
+def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		kirbyHatPath = FileInfo(kirbyHatExe).DirectoryName
+		# Start back up all kirby files
+		createBackup(kirbyHatPath + '/codeset.txt')
+		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
+		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
+		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
+		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		#End back up kirby files
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
 		matchFound = False
@@ -784,6 +819,8 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 			else:
 				path = MainForm.BuildPath + '/pf/fighter/kirby/' + file.Name
 			FileInfo(path).Directory.Create()
+			# Back up if it exists already
+			createBackup(path)
 			File.Copy(file.FullName, path, 1)
 
 # Add character victory theme
@@ -791,9 +828,13 @@ def addVictoryTheme(file):
 		# Move to strm directory
 		file = FileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/Victory!/' + file.Name
+		# Back up file if it already exists
+		createBackup(path)
 		FileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		# Back up tracklist
+		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
 		# Check if song is already installed
 		for song in BrawlAPI.RootNode.Children:
 			if song.SongFileName == 'Victory!/' + file.Name.split('.')[0]:
@@ -819,6 +860,17 @@ def addVictoryTheme(file):
 # Add fighter to code menu
 def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		assemblyFunctionsPath = FileInfo(assemblyFunctionExe).DirectoryName
+		# Start back up
+		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
+		createBackup(assemblyFunctionsPath + '/codeset.txt')
+		createBackup(MainForm.BuildPath + '/Source/Project+/CodeMenu.asm')
+		createBackup(MainForm.BuildPath + '/pf/menu3/data.cmnu')
+		createBackup(MainForm.BuildPath + '/pf/menu3/dnet.cmnu')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		# End back up
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
 		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
 		matchFound = False
@@ -852,9 +904,7 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 
 # Remove imported CSPs and RSPs for specified cosmetic ID
 def removeCSPs(cosmeticId):
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Find char_bust_tex_lz77
 			arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
@@ -865,6 +915,8 @@ def removeCSPs(cosmeticId):
 		# Get RSP file and delete if it exists
 		rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 3) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'))
 		if rspFile:
+			# Back up first
+			createBackup(rspFile.FullName)
 			rspFile.Delete()
 
 # Delete BPs for specified cosmetic ID
@@ -876,6 +928,8 @@ def deleteBPs(cosmeticId, fiftyCC="true"):
 		while newId <= (cosmeticId * 50) + 50:
 			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
 			if bpFile:
+				# Back it up first
+				createBackup(bpFile.FullName)
 				bpFile.Delete()
 			else:
 				# If no matching file exists, just exit
@@ -885,9 +939,7 @@ def deleteBPs(cosmeticId, fiftyCC="true"):
 # Remove CSS icon
 def removeCSSIcon(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Remove icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -907,9 +959,7 @@ def removeCSSIcon(cosmeticId):
 # Remove replay icon
 def removeReplayIcon(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("Replay.brres")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
 		if fileOpened:
 			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
 			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
@@ -924,9 +974,7 @@ def removeReplayIcon(cosmeticId):
 # Remove CSS icon name
 def removeCSSIconName(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Remove icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -946,9 +994,7 @@ def removeCSSIconName(cosmeticId):
 # Remove portrait name
 def removePortraitName(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Remove name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -963,9 +1009,7 @@ def removePortraitName(cosmeticId):
 # Remove franchise icon from CSS or info
 def removeFranchiseIcon(franchiseIconId, filePath):
 		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Remove icon
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -984,9 +1028,7 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 
 # Remove franchise icon from result screen
 def removeFranchiseIconResult(franchiseIconId):
-		fileOpened = checkOpenFile("STGRESULT")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Remove icon
 			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
@@ -1008,10 +1050,7 @@ def removeFranchiseIconResult(franchiseIconId):
 # Remove stock icons
 def removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
 		# If info.pac is not already opened, open it
-		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
@@ -1056,6 +1095,7 @@ def deleteModule(internalName):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/module')
 		moduleFile = getFileByName("ft_" + internalName.lower() + ".rel", directory)
 		if moduleFile:
+			createBackup(moduleFile.FullName)
 			moduleFile.Delete()
 
 # Delete fighter files for specified fighter
@@ -1063,6 +1103,9 @@ def deleteFighterFiles(internalName):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/fighter')
 		fighterDirectory = Directory.GetDirectories(directory.FullName, internalName.lower())
 		if fighterDirectory:
+			# First back everything up
+			for file in Directory.GetFiles(fighterDirectory[0]):
+				createBackup(file)
 			Directory.Delete(fighterDirectory[0], True)
 
 # Delete kirby hat files for specified fighter
@@ -1072,6 +1115,8 @@ def deleteKirbyHatFiles(internalName):
 		if kirbyHatFiles:
 			i = 0
 			while i < len(kirbyHatFiles):
+				# Back up file first
+				createBackup(kirbyHatFiles[i])
 				FileInfo(kirbyHatFiles[i]).Delete()
 				i += 1
 
@@ -1080,6 +1125,7 @@ def deleteSoundbank(soundBankId):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
 		soundBank = getFileByName(str(soundBankId).upper() + ".sawnd", directory)
 		if soundBank:
+			createBackup(soundBank.FullName)
 			soundBank.Delete()
 
 # Delete EX configs for specified fighter ID
@@ -1088,13 +1134,12 @@ def deleteExConfigs(fighterId):
 		for folder in Directory.GetDirectories(directory.FullName):
 			exConfig = getFileByName(DirectoryInfo(folder).Name.split("Config")[0] + str(fighterId) + ".dat", DirectoryInfo(folder))
 			if exConfig:
+				createBackup(exConfig.FullName)
 				exConfig.Delete()
 
 # Remove character from CSSRoster.dat
 def removeFromRoster(fighterId):
-		fileOpened = checkOpenFile("CSSRoster")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
 		if fileOpened:
 			# Remove character from character select
 			folder = getChildByName(BrawlAPI.RootNode, "Character Select")
@@ -1112,6 +1157,8 @@ def removeFromRoster(fighterId):
 # Remove character victory theme
 def removeVictoryTheme(songID):
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		# Back up tracklist file
+		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
 		# Remove from tracklist file
 		node = BrawlAPI.RootNode
 		if node.Children:
@@ -1123,6 +1170,8 @@ def removeVictoryTheme(songID):
 		path = MainForm.BuildPath + '/pf/sound/strm/Victory!'
 		directory = Directory.CreateDirectory(path)
 		brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+		# Back up song file
+		createBackup(brstmFile.FullName)
 		# Remove from tracklist
 		if childNode:
 			childNode.Remove()
@@ -1135,6 +1184,17 @@ def removeVictoryTheme(songID):
 # Remove kirby hat
 def removeKirbyHat(fighterId, kirbyHatExe):
 		kirbyHatPath = FileInfo(kirbyHatExe).DirectoryName
+		# Start back up all kirby files
+		createBackup(kirbyHatPath + '/codeset.txt')
+		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
+		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
+		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
+		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		#End back up kirby files
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
 		matchFound = False
@@ -1169,6 +1229,17 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 # Remove fighter from code menu
 def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 		assemblyFunctionsPath = FileInfo(assemblyFunctionExe).DirectoryName
+		# Start back up
+		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
+		createBackup(assemblyFunctionsPath + '/codeset.txt')
+		createBackup(MainForm.BuildPath + '/Source/Project+/CodeMenu.asm')
+		createBackup(MainForm.BuildPath + '/pf/menu3/data.cmnu')
+		createBackup(MainForm.BuildPath + '/pf/menu3/dnet.cmnu')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		# End back up
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
 		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
 		matchFound = False
@@ -1274,7 +1345,7 @@ def installToRoster(fighterId):
 # Install Kirby hat
 def installKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kirbyHatExe, files, oldFighterName="", newFighterName=""):
 		deleteKirbyHatFiles(fighterName)
-		addKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kirbyHatExe)
+		addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe)
 		moveKirbyHatFiles(files, oldFighterName, newFighterName)
 
 #endregion INSTALLER FUNCTIONS
@@ -1328,6 +1399,46 @@ def franchiseIconIdUsed(franchiseIconId):
 				return franchiseIcon
 			else:
 				return 0
+
+# Restore backup
+def restoreBackup(selectedBackup=""):
+		if selectedBackup:
+			backupPath = selectedBackup
+		else:
+			backupPath = BACKUP_PATH
+		if Directory.Exists(backupPath):
+			backupFiles = Directory.GetFiles(backupPath, "*", SearchOption.AllDirectories)
+			for file in backupFiles:
+				Directory.CreateDirectory(file.replace(backupPath, MainForm.BuildPath).replace(FileInfo(file).Name, ''))
+				File.Copy(file, file.replace(backupPath, MainForm.BuildPath), True)
+			BrawlAPI.ShowMessage("Backup restored.", "Success")
+
+# Archive backup
+def archiveBackup():
+		if Directory.Exists(BACKUP_PATH):
+			# If we have >= 9 backups, find the oldest one and delete it
+			if len(Directory.GetDirectories(BASE_BACKUP_PATH)) >= 9:
+				oldestDir = BACKUP_PATH
+				for backup in Directory.GetDirectories(BASE_BACKUP_PATH):
+					if Directory.GetCreationTimeUtc(backup) < Directory.GetCreationTimeUtc(oldestDir):
+						oldestDir = backup
+				Directory.Delete(oldestDir, True)
+			# Get current timestamp
+			timestamp = str(Directory.GetCreationTimeUtc(BACKUP_PATH)).replace(':', '.').replace('/', '-').replace('\\', '-')
+			Directory.CreateDirectory(BACKUP_PATH + ' - ' + timestamp)
+			# Copy everything to a new directory with the timestamp
+			backupFiles = Directory.GetFiles(BACKUP_PATH, "*", SearchOption.AllDirectories)
+			for file in backupFiles:
+				Directory.CreateDirectory(file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp).replace(FileInfo(file).Name, ''))
+				File.Copy(file, file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp), True)
+			# Delete the old directory
+			Directory.Delete(BACKUP_PATH, True)
+
+# Check if backup folder already exists, and if it does, delete it - should never get here, but on the off chance somehow we do
+def backupCheck():
+		if Directory.Exists(BACKUP_PATH):
+			Directory.Delete(BACKUP_PATH, True)
+				
 
 #endregion GENERAL FUNCTIONS
 
