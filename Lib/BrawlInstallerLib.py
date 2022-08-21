@@ -355,7 +355,8 @@ def createBackup(sourcePath):
 		fullPath = AppPath + '/backup/' + sourcePath.replace(MainForm.BuildPath, '')
 		path = fullPath.replace(FileInfo(sourcePath).Name, '')
 		Directory.CreateDirectory(path)
-		File.Copy(sourcePath, fullPath, True)
+		if File.Exists(sourcePath) and not File.Exists(fullPath):
+			File.Copy(sourcePath, fullPath)
 
 # Helper method to check if a file is open, and if it is not, open it and create a backup
 def openFile(filePath):
