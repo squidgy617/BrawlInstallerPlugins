@@ -429,6 +429,8 @@ def main():
 						kirbyHatFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/fighter/kirby', "FitKirby" + kirbyHatFighterName + "*.pac")
 						# Rename them appropriately
 						for kirbyHatFile in kirbyHatFiles:
+							# Back up Kirby hat files if they already exist
+							createBackup(FileInfo(kirbyHatFile).FullName.replace(kirbyHatFighterName, fighterInfo.fighterName))
 							File.Copy(kirbyHatFile, AppPath + '/temp/KirbyHats/' + FileInfo(kirbyHatFile).Name.replace(kirbyHatFighterName, fighterInfo.fighterName), 1)
 					# Install Kirby hat
 					if settings.defaultKirbyHat != "none":

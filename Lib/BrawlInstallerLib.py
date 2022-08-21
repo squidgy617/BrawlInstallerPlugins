@@ -486,6 +486,8 @@ def createBPs(cosmeticId, images, fiftyCC="true"):
 		# Create a BP file for each texture
 		for image in images:
 			outputPath = MainForm.BuildPath + '/pf/info/portrite/InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + '.brres'
+			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
+			createBackup(outputPath)
 			BrawlAPI.New[BRRESNode]()
 			importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
 			BrawlAPI.SaveFileAs(outputPath)
@@ -503,6 +505,8 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 				BrawlAPI.RootNode.CosmeticID = cosmeticId
 				if franchiseIconId != -1:
 					BrawlAPI.RootNode.FranchiseIconID = franchiseIconId - 1
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + fighterId + ".dat"))
 			# Rename FighterConfig 
 			if file.Name.lower().StartsWith("fighter"):
@@ -526,14 +530,20 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 				BrawlAPI.RootNode.KirbyPacName = 'kirby/FitKirby' + fighterName.upper() + '.pac'
 				BrawlAPI.RootNode.ModuleName = 'ft_' + fighterName.lower() + '.rel'
 				BrawlAPI.RootNode.InternalFighterName = fighterName.upper()
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/' + file.Name.replace(file.Name, "Fighter" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/' + file.Name.replace(file.Name, "Fighter" + fighterId + ".dat"))
 			# Rename CSSSlotConfig 
 			if file.Name.lower().StartsWith("cssslot"):
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
 			# Rename SlotConfig
 			if file.Name.lower().StartsWith("slot"):
 				if victoryThemeId:
 					BrawlAPI.RootNode.VictoryTheme = victoryThemeId
+				# Back up first
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
 			BrawlAPI.ForceCloseFile()
 
@@ -671,6 +681,8 @@ def updateModule(file, directory, fighterId, fighterName):
 		with open(file.FullName, mode='r+b') as moduleFile:
 			moduleFile.seek(0)
 			moduleFile.write(updatedData)
+		# Back up if already exists
+		createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
 		File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
 
 # Move fighter files to fighter folder
@@ -682,6 +694,8 @@ def moveFighterFiles(files, fighterName, originalFighterName=""):
 				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
 			else:
 				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + file.Name
+			# Back up if already exists
+			createBackup(path)
 			FileInfo(path).Directory.Create()
 			File.Copy(file.FullName, path, 1)
 
@@ -716,6 +730,8 @@ def moveSoundbank(file, newSoundBankId=""):
 		else:
 			fileName = newSoundBankId.upper() + '.sawnd'
 		path = MainForm.BuildPath + '/pf/sfx/' + fileName
+		# If the soundbank already exists, back it up
+		createBackup(path)
 		File.Copy(file.FullName, path, 1)
 
 # Add character to CSSRoster.dat
@@ -743,8 +759,19 @@ def addToRoster(fighterId):
 
 # Add Kirby hat fixes
 # Check kirby soundbanks here: http://opensa.dantarion.com/wiki/Soundbanks_(Brawl)
-def addKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kirbyHatExe):
+def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		kirbyHatPath = FileInfo(kirbyHatExe).DirectoryName
+		# Start back up all kirby files
+		createBackup(kirbyHatPath + '/codeset.txt')
+		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
+		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
+		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
+		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		#End back up kirby files
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
 		matchFound = False
@@ -782,6 +809,8 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 			else:
 				path = MainForm.BuildPath + '/pf/fighter/kirby/' + file.Name
 			FileInfo(path).Directory.Create()
+			# Back up if it exists already
+			createBackup(path)
 			File.Copy(file.FullName, path, 1)
 
 # Add character victory theme
@@ -789,9 +818,13 @@ def addVictoryTheme(file):
 		# Move to strm directory
 		file = FileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/Victory!/' + file.Name
+		# Back up file if it already exists
+		createBackup(path)
 		FileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		# Back up tracklist
+		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
 		# Check if song is already installed
 		for song in BrawlAPI.RootNode.Children:
 			if song.SongFileName == 'Victory!/' + file.Name.split('.')[0]:
@@ -817,6 +850,17 @@ def addVictoryTheme(file):
 # Add fighter to code menu
 def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		assemblyFunctionsPath = FileInfo(assemblyFunctionExe).DirectoryName
+		# Start back up
+		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
+		createBackup(assemblyFunctionsPath + '/codeset.txt')
+		createBackup(MainForm.BuildPath + '/Source/Project+/CodeMenu.asm')
+		createBackup(MainForm.BuildPath + '/pf/menu3/data.cmnu')
+		createBackup(MainForm.BuildPath + '/pf/menu3/dnet.cmnu')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		# End back up
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
 		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
 		matchFound = False
@@ -872,6 +916,8 @@ def deleteBPs(cosmeticId, fiftyCC="true"):
 		while newId <= (cosmeticId * 50) + 50:
 			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
 			if bpFile:
+				# Back it up first
+				createBackup(bpFile.FullName)
 				bpFile.Delete()
 			else:
 				# If no matching file exists, just exit
@@ -1037,6 +1083,7 @@ def deleteModule(internalName):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/module')
 		moduleFile = getFileByName("ft_" + internalName.lower() + ".rel", directory)
 		if moduleFile:
+			createBackup(moduleFile.FullName)
 			moduleFile.Delete()
 
 # Delete fighter files for specified fighter
@@ -1044,6 +1091,9 @@ def deleteFighterFiles(internalName):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/fighter')
 		fighterDirectory = Directory.GetDirectories(directory.FullName, internalName.lower())
 		if fighterDirectory:
+			# First back everything up
+			for file in Directory.GetFiles(fighterDirectory[0]):
+				createBackup(file)
 			Directory.Delete(fighterDirectory[0], True)
 
 # Delete kirby hat files for specified fighter
@@ -1053,6 +1103,8 @@ def deleteKirbyHatFiles(internalName):
 		if kirbyHatFiles:
 			i = 0
 			while i < len(kirbyHatFiles):
+				# Back up file first
+				createBackup(kirbyHatFiles[i])
 				FileInfo(kirbyHatFiles[i]).Delete()
 				i += 1
 
@@ -1061,6 +1113,7 @@ def deleteSoundbank(soundBankId):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
 		soundBank = getFileByName(str(soundBankId).upper() + ".sawnd", directory)
 		if soundBank:
+			createBackup(soundBank.FullName)
 			soundBank.Delete()
 
 # Delete EX configs for specified fighter ID
@@ -1069,6 +1122,7 @@ def deleteExConfigs(fighterId):
 		for folder in Directory.GetDirectories(directory.FullName):
 			exConfig = getFileByName(DirectoryInfo(folder).Name.split("Config")[0] + str(fighterId) + ".dat", DirectoryInfo(folder))
 			if exConfig:
+				createBackup(exConfig.FullName)
 				exConfig.Delete()
 
 # Remove character from CSSRoster.dat
@@ -1091,6 +1145,8 @@ def removeFromRoster(fighterId):
 # Remove character victory theme
 def removeVictoryTheme(songID):
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		# Back up tracklist file
+		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
 		# Remove from tracklist file
 		node = BrawlAPI.RootNode
 		if node.Children:
@@ -1102,6 +1158,8 @@ def removeVictoryTheme(songID):
 		path = MainForm.BuildPath + '/pf/sound/strm/Victory!'
 		directory = Directory.CreateDirectory(path)
 		brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+		# Back up song file
+		createBackup(brstmFile.FullName)
 		# Remove from tracklist
 		if childNode:
 			childNode.Remove()
@@ -1114,6 +1172,17 @@ def removeVictoryTheme(songID):
 # Remove kirby hat
 def removeKirbyHat(fighterId, kirbyHatExe):
 		kirbyHatPath = FileInfo(kirbyHatExe).DirectoryName
+		# Start back up all kirby files
+		createBackup(kirbyHatPath + '/codeset.txt')
+		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
+		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
+		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
+		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		#End back up kirby files
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
 		matchFound = False
@@ -1148,6 +1217,17 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 # Remove fighter from code menu
 def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 		assemblyFunctionsPath = FileInfo(assemblyFunctionExe).DirectoryName
+		# Start back up
+		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
+		createBackup(assemblyFunctionsPath + '/codeset.txt')
+		createBackup(MainForm.BuildPath + '/Source/Project+/CodeMenu.asm')
+		createBackup(MainForm.BuildPath + '/pf/menu3/data.cmnu')
+		createBackup(MainForm.BuildPath + '/pf/menu3/dnet.cmnu')
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		# End back up
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
 		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
 		matchFound = False
@@ -1253,7 +1333,7 @@ def installToRoster(fighterId):
 # Install Kirby hat
 def installKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kirbyHatExe, files, oldFighterName="", newFighterName=""):
 		deleteKirbyHatFiles(fighterName)
-		addKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kirbyHatExe)
+		addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe)
 		moveKirbyHatFiles(files, oldFighterName, newFighterName)
 
 #endregion INSTALLER FUNCTIONS
