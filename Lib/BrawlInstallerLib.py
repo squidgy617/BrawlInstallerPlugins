@@ -180,17 +180,14 @@ def sortChildrenByFrameIndex(parentNode):
 
 # Helper function that gets files from a directory by their name
 def getFileByName(name, directory):
-		for file in directory.GetFiles():
-			if file.Name == name:
-				return file
-		return 0
-
-# Helper function that gets a directory from a base directory by specified name
-def getDirectoryByName(name, baseDirectory):
-		for directory in baseDirectory:
-			if directory.Name == name:
-				return directory
-		return 0
+		files = Directory.GetFiles(directory.FullName, name)
+		if files:
+			return FileInfo(files[0])
+		#for file in directory.GetFiles():
+		#	if file.Name == name:
+		#		return file
+		else:
+			return 0
 
 # Helper function that gets names of all files in the provided directory
 def getFileNames(directory):
