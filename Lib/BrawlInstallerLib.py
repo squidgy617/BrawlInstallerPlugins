@@ -28,7 +28,9 @@ from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 
 RESOURCE_PATH = AppPath + '/BrawlAPI/BrawlInstaller Resources'
 
-BACKUP_PATH = AppPath + '/backup'
+BASE_BACKUP_PATH = AppPath + '\\Backups'
+
+BACKUP_PATH = BASE_BACKUP_PATH + '\\backup'
 
 FIGHTER_IDS = {
 	0 : "Mario",
@@ -1393,6 +1395,46 @@ def franchiseIconIdUsed(franchiseIconId):
 				return franchiseIcon
 			else:
 				return 0
+
+# Restore backup
+def restoreBackup(selectedBackup=""):
+		if selectedBackup:
+			backupPath = selectedBackup
+		else:
+			backupPath = BACKUP_PATH
+		if Directory.Exists(backupPath):
+			backupFiles = Directory.GetFiles(backupPath, "*", SearchOption.AllDirectories)
+			for file in backupFiles:
+				Directory.CreateDirectory(file.replace(backupPath, MainForm.BuildPath).replace(FileInfo(file).Name, ''))
+				File.Copy(file, file.replace(backupPath, MainForm.BuildPath), True)
+			BrawlAPI.ShowMessage("Backup restored.", "Success")
+
+# Archive backup
+def archiveBackup():
+		if Directory.Exists(BACKUP_PATH):
+			# If we have >= 9 backups, find the oldest one and delete it
+			if len(Directory.GetDirectories(BASE_BACKUP_PATH)) >= 9:
+				oldestDir = BACKUP_PATH
+				for backup in Directory.GetDirectories(BASE_BACKUP_PATH):
+					if Directory.GetCreationTimeUtc(backup) < Directory.GetCreationTimeUtc(oldestDir):
+						oldestDir = backup
+				Directory.Delete(oldestDir, True)
+			# Get current timestamp
+			timestamp = str(Directory.GetCreationTimeUtc(BACKUP_PATH)).replace(':', '.').replace('/', '-').replace('\\', '-')
+			Directory.CreateDirectory(BACKUP_PATH + ' - ' + timestamp)
+			# Copy everything to a new directory with the timestamp
+			backupFiles = Directory.GetFiles(BACKUP_PATH, "*", SearchOption.AllDirectories)
+			for file in backupFiles:
+				Directory.CreateDirectory(file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp).replace(FileInfo(file).Name, ''))
+				File.Copy(file, file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp), True)
+			# Delete the old directory
+			Directory.Delete(BACKUP_PATH, True)
+
+# Check if backup folder already exists, and if it does, delete it - should never get here, but on the off chance somehow we do
+def backupCheck():
+		if Directory.Exists(BACKUP_PATH):
+			Directory.Delete(BACKUP_PATH, True)
+				
 
 #endregion GENERAL FUNCTIONS
 
