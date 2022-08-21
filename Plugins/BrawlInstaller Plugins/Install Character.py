@@ -62,7 +62,7 @@ def main():
 						fighterId = BrawlAPI.UserStringInput("Enter your desired fighter ID")
 						# Ensure fighter ID is just the hex digits
 						if fighterId.startswith('0x'):
-							fighterId = fighterId.split('0x')[1]
+							fighterId = fighterId.split('0x')[1].upper()
 							break
 						elif fighterId.isnumeric():
 							fighterId = str(hex(int(fighterId))).split('0x')[1].upper()
