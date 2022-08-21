@@ -133,7 +133,7 @@ All IDs printed are in decimal format.
 
 ## Restore Backup
 
-This plugin allows you to restore backups created when running the other plugins, such as installing or uninstalling characters. The plugins attempt to create backups of any file they modify, delete, or replace during execution, and these backups can be found in the `/Backups/` folder in your BrawlCrate root directory.
+This plugin allows you to restore backups created when running the other plugins, such as installing or uninstalling characters. The plugins attempt to create backups of any file they modify, delete, or replace during execution, and these backups can be found in the `/Backups/` folder in your BrawlCrate root directory. The last nine backups are stored - older backups are deleted when one of the plugins attempt to back something up.
 
 When this plulgin is run, it will first check if any backups exist. If they do not, it simply displays a message and ends execution. If backups are found, the user will be displayed a list of options and prompted to enter a number associated with one of the backups in the list. Whichever backup the user will be restored to the user's build by copying every file within to it's respective directory in the build. Once execution completes, a message will be displayed indicating such.
 
