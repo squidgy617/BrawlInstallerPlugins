@@ -189,6 +189,13 @@ def getFileByName(name, directory):
 		else:
 			return 0
 
+# Helper function that gets a directory from a base directory by specified name
+def getDirectoryByName(name, baseDirectory):
+		for directory in baseDirectory:
+			if directory.Name == name:
+				return directory
+		return 0
+
 # Helper function that gets names of all files in the provided directory
 def getFileNames(directory):
 		files = directory.GetFiles()
