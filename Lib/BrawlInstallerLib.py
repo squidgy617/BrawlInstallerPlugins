@@ -355,7 +355,7 @@ def createBackup(sourcePath):
 		fullPath = AppPath + '/backup/' + sourcePath.replace(MainForm.BuildPath, '')
 		path = fullPath.replace(FileInfo(sourcePath).Name, '')
 		Directory.CreateDirectory(path)
-		File.Copy(sourcePath, fullPath)
+		File.Copy(sourcePath, fullPath, True)
 
 # Helper method to check if a file is open, and if it is not, open it and create a backup
 def openFile(filePath):
@@ -426,10 +426,7 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
 		# If info.pac is not already opened, open it
 		# Check this out: https://github.com/soopercool101/BrawlCrate/blob/b089bf32f0cfb2b5f1e6d729b95da4dd169903f2/BrawlCrate/NodeWrappers/Graphics/TEX0Wrapper.cs#L231
-		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
@@ -542,9 +539,7 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 # Import CSS icon
 def importCSSIcon(cosmeticId, iconImagePath, format):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Import icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -562,9 +557,7 @@ def importCSSIcon(cosmeticId, iconImagePath, format):
 # Import replay icon
 def importReplayIcon(cosmeticId, replayIconImagePath):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("Replay.brres")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
 		if fileOpened:
 			# Import icon texture
 			newNode = importTexture(BrawlAPI.RootNode, replayIconImagePath, WiiPixelFormat.CI8)
@@ -577,9 +570,7 @@ def importReplayIcon(cosmeticId, replayIconImagePath):
 # Import CSS icon name
 def importCSSIconName(cosmeticId, nameImagePath):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Import icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -597,9 +588,7 @@ def importCSSIconName(cosmeticId, nameImagePath):
 # Import name for character select portrait
 def importPortraitName(cosmeticId, file):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Import name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -612,9 +601,7 @@ def importPortraitName(cosmeticId, file):
 # Import franchise icon into CSS or info
 def importFranchiseIcon(franchiseIconId, image, filePath, size):
 		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Import icon
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -633,9 +620,7 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 
 # Add franchise icon to result screen
 def importFranchiseIconResult(franchiseIconId, image):
-		fileOpened = checkOpenFile("STGRESULT")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Import icon
 			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
@@ -734,10 +719,8 @@ def moveSoundbank(file, newSoundBankId=""):
 
 # Add character to CSSRoster.dat
 def addToRoster(fighterId):
-		fileOpened = checkOpenFile("CSSRoster")
 		changesMade = False
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
 		if fileOpened:
 			# Add character to character select
 			folder = getChildByName(BrawlAPI.RootNode, "Character Select")
@@ -897,9 +880,7 @@ def deleteBPs(cosmeticId, fiftyCC="true"):
 # Remove CSS icon
 def removeCSSIcon(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Remove icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -919,9 +900,7 @@ def removeCSSIcon(cosmeticId):
 # Remove replay icon
 def removeReplayIcon(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("Replay.brres")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
 		if fileOpened:
 			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
 			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
@@ -936,9 +915,7 @@ def removeReplayIcon(cosmeticId):
 # Remove CSS icon name
 def removeCSSIconName(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Remove icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
@@ -958,9 +935,7 @@ def removeCSSIconName(cosmeticId):
 # Remove portrait name
 def removePortraitName(cosmeticId):
 		# If sc_selcharacter is not already opened, open it
-		fileOpened = checkOpenFile("sc_selcharacter")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		if fileOpened:
 			# Remove name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -975,9 +950,7 @@ def removePortraitName(cosmeticId):
 # Remove franchise icon from CSS or info
 def removeFranchiseIcon(franchiseIconId, filePath):
 		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Remove icon
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
@@ -996,9 +969,7 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 
 # Remove franchise icon from result screen
 def removeFranchiseIconResult(franchiseIconId):
-		fileOpened = checkOpenFile("STGRESULT")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Remove icon
 			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
@@ -1020,10 +991,7 @@ def removeFranchiseIconResult(franchiseIconId):
 # Remove stock icons
 def removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
 		# If info.pac is not already opened, open it
-		fileNodeName = filePath.split('.')[0].split('/')[-1]
-		fileOpened = checkOpenFile(fileNodeName)
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
@@ -1104,9 +1072,7 @@ def deleteExConfigs(fighterId):
 
 # Remove character from CSSRoster.dat
 def removeFromRoster(fighterId):
-		fileOpened = checkOpenFile("CSSRoster")
-		if fileOpened == 0:
-			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
 		if fileOpened:
 			# Remove character from character select
 			folder = getChildByName(BrawlAPI.RootNode, "Character Select")
