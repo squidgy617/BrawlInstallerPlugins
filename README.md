@@ -30,7 +30,7 @@ In order for these plugins to function correctly, you will need a few things:
 ## Setup
 For initial installation, you should download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder. After initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
 
-**NOTE:** It is **_strongly recommended_** that you back up your build's files before installing mods with these plugins. While the plugins try to do everything without creating issues in your build, I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control.
+**NOTE:** While the plugins create backups of your files during execution, I do recommend that you back up your build's files before installing mods with these plugins. While the plugins try to do everything without creating issues in your build, they do not clean up loose files added and I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. With the automatic backup functionality, this is less necessary, but still a good idea.
 
 # Quick Start Guide
 
@@ -90,6 +90,8 @@ If the user has QuickLava's Code Menu fork installed, the plugin will add an ent
 
 Once fighter installation has completed, the user will receive a message indicating a successful installation, and then they may use their updated build as they please.
 
+The plugin attempts to back up any files in your build before modifying, replacing, or deleting them, and these backups are then stored in the `/Backups/` directory in your BrawlCrate root folder. If an error occurs during execution, an error message is displayed and the backups are restored automatically. However, any files that were *added* to the build during execution are not cleaned up, so keep that in mind.
+
 ## Uninstall Character
 **Usage:** Plugins menu > BrawlInstaller Plugins > Uninstall Character
 
@@ -102,6 +104,8 @@ If the user has QuickLava's Kirby Hat manager installed, the plugin will remove 
 If the user has QuickLava's Code Menu fork installed, the plugin will remove any existing entry from EX_Characters.txt and then run the code menu .exe.
 
 After the fighter is successfully uninstalled, the user will receive a message indicating such, and then they may use their updated build as they please.
+
+The plugin attempts to back up any files in your build before modifying, replacing, or deleting them, and these backups are then stored in the `/Backups/` directory in your BrawlCrate root folder. If an error occurs during execution, an error message is displayed and the backups are restored automatically. However, any files that were *added* to the build during execution are not cleaned up, so keep that in mind.
 
 ## Package Character
 **Usage:** Plugins menu > BrawlInstaller Plugins > Package Character
@@ -126,6 +130,12 @@ After the user has selected all files, they will be prompted to select an output
 This plugin will iterate through all of the EX configs in your build and print the fighter ID, name, cosmetic ID, franchise icon ID, soundbank ID, and victory theme ID of each fighter found to a fighter_info.txt file located in your `/BrawlAPI/BrawlInstaller Resources/` directory in the BrawlCrate root folder. This can be useful if you need a reference for what IDs are available.
 
 All IDs printed are in decimal format.
+
+## Restore Backup
+
+This plugin allows you to restore backups created when running the other plugins, such as installing or uninstalling characters. The plugins attempt to create backups of any file they modify, delete, or replace during execution, and these backups can be found in the `/Backups/` folder in your BrawlCrate root directory.
+
+When this plulgin is run, it will first check if any backups exist. If they do not, it simply displays a message and ends execution. If backups are found, the user will be displayed a list of options and prompted to enter a number associated with one of the backups in the list. Whichever backup the user will be restored to the user's build by copying every file within to it's respective directory in the build. Once execution completes, a message will be displayed indicating such.
 
 # settings.ini
 
