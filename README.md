@@ -1,4 +1,7 @@
 # BrawlInstaller Plugins
+
+[**DEMO VIDEO**](https://youtu.be/V6-cjuVhC80) (from an older version)
+
 A BrawlCrate plugin suite for easy installation of Brawl mods into BrawlEX builds. Currently supports automatic installation of entire characters, including their cosmetics, as long as they are packaged in a .zip file with the correct structure.
 
 This tool was made possible by:
