@@ -268,11 +268,11 @@ def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameInd
 		if palette != "":
 			pat0texEntryNode = getChildByName(pat0texNode, name)
 			pat0texEntryNode.Palette = palette
+		sortChildrenByFrameIndex(pat0texNode)
 		if overrideFrameCount > pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset:
 			pat0Node.FrameCount = overrideFrameCount
 		elif frameCountOffset != 0:
 			pat0Node.FrameCount = pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset
-		sortChildrenByFrameIndex(pat0texNode)
 
 # Helper function to remove pat0TexEntry from specified pat0
 def removeFromPat0(parentNode, pat0NodeName, pat0texNodeName, name, frameCountOffset=0, overrideFrameCount=0, tex0Override=""):
