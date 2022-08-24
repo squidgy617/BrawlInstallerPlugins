@@ -179,3 +179,4 @@ These are some features that are planned for eventual implementation in the plug
 - Support for Subspace Emissary EX
 - Costume Installer plugin
 - Stage Installer plugin
+- Plugin to extract character packages from an existing build
