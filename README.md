@@ -167,3 +167,14 @@ The settings currently supported by the BrawlInstaller plugins are as follows:
 - **addSevenToSoundBankIds** - [*Values : true, false*] : Whether 7 should be added to SFX IDs within soundbanks when converting them using QuickLava and Codes' tools. If this is set to `true`, soundbank IDs passed to QuickLava's tool will have 7 added to them. If this is set to `false`, soundbank IDs will be passed to QuickLava's tool unmodified.
 - **installVictoryThemes** - [*Values : true, false*] : Whether victory themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory themes will not be installed.
 - **useCssRoster** - [*Values : true, false*] : Whether or not the build uses CSSRoster.dat to determine the roster available on the character select screen. If this is set to `true`, CSSRoster.dat will be updated to display newly installed character packages. If set to `false`, characters will not be added to the CSS.
+
+# Planned Features
+These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
+- Importing necessary files for single player modes such as Classic, All-Star, Home Run Contest, etc.
+- Automatic updating of P+ EX codes that require character IDs
+- Handling conflicts between Effect.pac IDs
+- Support for non-EX modules used by some characters
+- Automatic HD texture renaming and importing for Dolphin (hopefully)
+- Support for Subspace Emissary EX
+- Costume Installer plugin
+- Stage Installer plugin
