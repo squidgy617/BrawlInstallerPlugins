@@ -254,11 +254,10 @@ def getChildrenByPrefix(parentNode, prefix):
 		return matches
 
 # Helper function to add a new pat0TexEntry to specified pat0
-def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameIndex, palette="", frameCountOffset=0, overrideFrameCount=0, tex0Override=""):
+def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameIndex, palette="", frameCountOffset=0, overrideFrameCount=0):
 		pat0Node = getChildByName(getChildByName(parentNode, "AnmTexPat(NW4R)"), pat0NodeName)
 		# Add to pat0texNode
-		tex0 = "Texture0" if tex0Override == "" else tex0Override
-		pat0texNode = getChildByName(getChildByName(pat0Node, pat0texNodeName), tex0)
+		pat0texNode = getChildByName(pat0Node, pat0texNodeName).Children[0]
 		pat0texEntryNode = PAT0TextureEntryNode()
 		pat0texEntryNode.FrameIndex = frameIndex
 		pat0texEntryNode.Name = name
@@ -275,11 +274,10 @@ def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameInd
 			pat0Node.FrameCount = pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset
 
 # Helper function to remove pat0TexEntry from specified pat0
-def removeFromPat0(parentNode, pat0NodeName, pat0texNodeName, name, frameCountOffset=0, overrideFrameCount=0, tex0Override=""):
+def removeFromPat0(parentNode, pat0NodeName, pat0texNodeName, name, frameCountOffset=0, overrideFrameCount=0):
 		pat0Node = getChildByName(getChildByName(parentNode, "AnmTexPat(NW4R)"), pat0NodeName)
 		# Remove from pat0texNode
-		tex0 = "Texture0" if tex0Override == "" else tex0Override
-		pat0texNode = getChildByName(getChildByName(pat0Node, pat0texNodeName), tex0)
+		pat0texNode = getChildByName(pat0Node, pat0texNodeName).Children[0]
 		pat0texEntryNode = getChildByName(pat0texNode, name)
 		if pat0texEntryNode:
 			pat0texEntryNode.Remove()
@@ -586,7 +584,7 @@ def importReplayIcon(cosmeticId, replayIconImagePath):
 			# Add replay icon to pat0
 			anmTexPat = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
 			pat0Node = getChildByName(anmTexPat, "MenReplayPreview2_TopN__0")
-			addToPat0(BrawlAPI.RootNode, pat0Node.Name, "lambert78", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), palette=newNode.Name, frameCountOffset=10, tex0Override="Texture1")
+			addToPat0(BrawlAPI.RootNode, pat0Node.Name, "lambert78", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), palette=newNode.Name, frameCountOffset=10)
 
 # Import CSS icon name
 def importCSSIconName(cosmeticId, nameImagePath):
@@ -969,7 +967,7 @@ def removeReplayIcon(cosmeticId):
 			# Remove from pat0
 			anmTexPat = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
 			pat0Node = getChildByName(anmTexPat, "MenReplayPreview2_TopN__0")
-			removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "lambert78", nodeName, frameCountOffset=10, tex0Override="Texture1")
+			removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "lambert78", nodeName, frameCountOffset=10)
 
 # Remove CSS icon name
 def removeCSSIconName(cosmeticId):
