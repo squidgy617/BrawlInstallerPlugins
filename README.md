@@ -173,6 +173,7 @@ These are some features that are planned for eventual implementation in the plug
 - Importing necessary files for single player modes such as Classic, All-Star, Home Run Contest, etc.
 - Automatic updating of P+ EX codes that require character IDs
 - Handling conflicts between Effect.pac IDs
+- Allow redirection of EX config IDs
 - Support for non-EX modules used by some characters
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
 - Support for Subspace Emissary EX
