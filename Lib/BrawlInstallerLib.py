@@ -511,6 +511,8 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 			# Update CosmeticID field and rename CosmeticConfig
 			if file.Name.lower().StartsWith("cosmetic"):
 				BrawlAPI.RootNode.CosmeticID = cosmeticId
+				# TODO: Allow users to choose redirects
+				BrawlAPI.RootNode.HasSecondary = False
 				if franchiseIconId != -1:
 					BrawlAPI.RootNode.FranchiseIconID = franchiseIconId - 1
 				# Back up first
@@ -543,6 +545,9 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/' + file.Name.replace(file.Name, "Fighter" + fighterId + ".dat"))
 			# Rename CSSSlotConfig 
 			if file.Name.lower().StartsWith("cssslot"):
+				# TODO: Allow users to choose redirects
+				BrawlAPI.RootNode.SetPrimarySecondary = False
+				BrawlAPI.RootNode.SetCosmeticSlot = False
 				# Back up first
 				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
@@ -550,6 +555,8 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 			if file.Name.lower().StartsWith("slot"):
 				if victoryThemeId:
 					BrawlAPI.RootNode.VictoryTheme = victoryThemeId
+				# TODO: Allow users to choose redirects
+				BrawlAPI.RootNode.SetSlot = False
 				# Back up first
 				createBackup(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
@@ -668,24 +675,75 @@ def updateModule(file, directory, fighterId, fighterName):
 		BrawlAPI.OpenFile(file.FullName)
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [8]")
-		node.Export(directory.FullName + "/Section [8]")
+		if node:
+			node.Export(directory.FullName + "/Section [8]")
+			BrawlAPI.ForceCloseFile()
+			# Get the exported section 8 file
+			sectionFile = directory.FullName + "/Section [8]"
+			# Read the section 8 file and write to it
+			with open(sectionFile, mode='r+b') as editFile:
+				section8 = editFile.read()
+				editFile.seek(3)
+				editFile.write(binascii.unhexlify(fighterId))
+				editFile.seek(0)
+				section8Modified = editFile.read()
+				editFile.close()
+			# Read the module file
+			with open(file.FullName,  mode='r+b') as moduleFile:
+				data = str(moduleFile.read())
+				moduleFile.close()
+			# Where the module file matches section 8, replace it with our modified section 8 values
+			updatedData = data.replace(section8, section8Modified)
+			with open(file.FullName, mode='r+b') as moduleFile:
+				moduleFile.seek(0)
+				moduleFile.write(updatedData)
+			# Back up if already exists
+			createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
+			File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
+		elif BrawlAPI.RootNode.Name == 'ft_pit':
+			updateModulePit(file.FullName, directory, fighterId, fighterName)
+
+def updateModulePit(file, directory, fighterId, fighterName):
+		file = FileInfo(file)
+		BrawlAPI.OpenFile(file.FullName)
+		# Get section 8 and export it
+		node = getChildByName(BrawlAPI.RootNode, "Section [1]")
+		node.Export(directory.FullName + "/Section [1]")
 		BrawlAPI.ForceCloseFile()
 		# Get the exported section 8 file
-		sectionFile = directory.FullName + "/Section [8]"
+		sectionFile = directory.FullName + "/Section [1]"
 		# Read the section 8 file and write to it
 		with open(sectionFile, mode='r+b') as editFile:
-			section8 = editFile.read()
-			editFile.seek(3)
+			section1 = editFile.read()
+			editFile.seek(int(0xA0) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0x168) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0x1804) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0x8E4C) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0x8F3C) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0xDAE8) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0xDB50) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0xDBAC) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0x15A90) + 3)
+			editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(int(0x16CC8) + 3)
 			editFile.write(binascii.unhexlify(fighterId))
 			editFile.seek(0)
-			section8Modified = editFile.read()
+			section1Modified = editFile.read()
 			editFile.close()
 		# Read the module file
 		with open(file.FullName,  mode='r+b') as moduleFile:
 			data = str(moduleFile.read())
 			moduleFile.close()
 		# Where the module file matches section 8, replace it with our modified section 8 values
-		updatedData = data.replace(section8, section8Modified)
+		updatedData = data.replace(section1, section1Modified)
 		with open(file.FullName, mode='r+b') as moduleFile:
 			moduleFile.seek(0)
 			moduleFile.write(updatedData)
