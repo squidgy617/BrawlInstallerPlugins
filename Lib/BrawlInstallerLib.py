@@ -1413,7 +1413,7 @@ def installKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kir
 
 # Unzip fighter zip file and store contents in temporary directory
 def unzipFile(filePath):
-       ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, "temp"))
+		ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, "temp"))
 
 # Get info from supplied fighter and cosmetic IDs
 def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
