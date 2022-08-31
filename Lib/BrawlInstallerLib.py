@@ -5,6 +5,7 @@
 import binascii
 import clr
 clr.AddReference("System.Drawing")
+clr.AddReference("System.IO.Compression.FileSystem")
 from BrawlCrate.API import BrawlAPI
 from BrawlCrate.API.BrawlAPI import AppPath
 from BrawlCrate.UI import *
@@ -21,6 +22,7 @@ from System.Diagnostics import Process
 from System.Drawing import Size
 from System.Collections.Generic import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
+from System.IO.Compression import ZipFile
 
 # TODO: Rename files when importing for most things
 
@@ -1411,10 +1413,7 @@ def installKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kir
 
 # Unzip fighter zip file and store contents in temporary directory
 def unzipFile(filePath):
-		args = 'x -y -bsp0 -bso0 -bd "' + filePath + '" -o"' + AppPath + '/temp"'
-		p = Process.Start(RESOURCE_PATH + '/7za.exe', args)
-		p.WaitForExit()
-		p.Dispose()
+       ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, "temp"))
 
 # Get info from supplied fighter and cosmetic IDs
 def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
