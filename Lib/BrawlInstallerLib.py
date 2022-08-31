@@ -28,7 +28,7 @@ from System.IO.Compression import ZipFile
 
 #region CONSTANTS
 
-RESOURCE_PATH = AppPath + '/BrawlAPI/BrawlInstaller Resources'
+RESOURCE_PATH = AppPath + '/BrawlAPI/Resources/BrawlInstaller'
 
 BASE_BACKUP_PATH = AppPath + '\\Backups'
 
