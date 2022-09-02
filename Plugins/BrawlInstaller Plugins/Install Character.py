@@ -145,7 +145,7 @@ def main():
 							if existingSlotConfig:
 								oldVictoryThemeName = getVictoryThemeByFighterId(fighterId)
 								if oldVictoryThemeName:
-									victoryThemeName = FileInfo(Directory.GetFiles(folder + '/VictoryTheme', "*.brstm")[0]).Name
+									victoryThemeName = getFileInfo(Directory.GetFiles(folder + '/VictoryTheme', "*.brstm")[0]).Name
 									if oldVictoryThemeName != victoryThemeName.split('.brstm')[0]:
 										uninstallVictoryTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a victory theme with a different name. Do you want to remove it?", "Remove existing victory theme?")
 						
@@ -385,7 +385,7 @@ def main():
 
 					# Update soundbank ID if user set to do that
 					if newSoundbankId:
-						updateSoundbankId(FileInfo(Directory.GetFiles(fighterFolder.FullName, "Fit" + fighterInfo.fighterName + ".pac")[0]), FileInfo(settings.sawndReplaceExe), FileInfo(settings.sfxChangeExe), str("%x" % fighterInfo.soundbankId).upper(), newSoundbankId, settings.addSevenToSoundbankIds)
+						updateSoundbankId(getFileInfo(Directory.GetFiles(fighterFolder.FullName, "Fit" + fighterInfo.fighterName + ".pac")[0]), getFileInfo(settings.sawndReplaceExe), getFileInfo(settings.sfxChangeExe), str("%x" % fighterInfo.soundbankId).upper(), newSoundbankId, settings.addSevenToSoundbankIds)
 
 					# Move soundbank
 					if soundbankFolder:
@@ -397,7 +397,7 @@ def main():
 							newSoundbankId = str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper()
 						else:
 							newSoundbankId = str(int(newSoundbankId, 16) + modifier)
-						moveSoundbank(FileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
+						moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -432,8 +432,8 @@ def main():
 							# Rename them appropriately
 							for kirbyHatFile in kirbyHatFiles:
 								# Back up Kirby hat files if they already exist
-								createBackup(FileInfo(kirbyHatFile).FullName.replace(kirbyHatFighterName, fighterInfo.fighterName))
-								File.Copy(kirbyHatFile, AppPath + '/temp/KirbyHats/' + FileInfo(kirbyHatFile).Name.replace(kirbyHatFighterName, fighterInfo.fighterName), 1)
+								createBackup(getFileInfo(kirbyHatFile).FullName.replace(kirbyHatFighterName, fighterInfo.fighterName))
+								File.Copy(kirbyHatFile, AppPath + '/temp/KirbyHats/' + getFileInfo(kirbyHatFile).Name.replace(kirbyHatFighterName, fighterInfo.fighterName), 1)
 						# Install Kirby hat
 						if settings.defaultKirbyHat != "none":
 							if existingFighterName and overwriteFighterName:
@@ -511,6 +511,7 @@ def main():
 				archiveBackup()
 				BrawlAPI.ShowMessage("Character successfully installed.", "Success")
 		except Exception as e:
+			progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
 			restoreBackup()
