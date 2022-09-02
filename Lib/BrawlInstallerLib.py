@@ -184,10 +184,7 @@ def sortChildrenByFrameIndex(parentNode):
 def getFileByName(name, directory):
 		files = Directory.GetFiles(directory.FullName, name)
 		if files:
-			return FileInfo(files[0])
-		#for file in directory.GetFiles():
-		#	if file.Name == name:
-		#		return file
+			return getFileInfo(files[0])
 		else:
 			return 0
 
@@ -197,6 +194,14 @@ def getDirectoryByName(name, baseDirectory):
 			if directory.Name == name:
 				return directory
 		return 0
+
+# Helper function to get FileInfo object for file and return an error if invalid
+def getFileInfo(filePath):
+		try:
+			return FileInfo(filePath)
+		except Exception as e:
+			BrawlAPI.ShowMessage("Error occurred trying to process filepath " + filePath + ", please check that the default build path and all paths in settings.ini are formatted correctly.", "Filepath Error")
+			raise e
 
 # Helper function that gets names of all files in the provided directory
 def getFileNames(directory):
@@ -295,7 +300,7 @@ def readValueFromKey(settings, key):
 			if line.StartsWith(';') or len(line) == 0:
 				continue
 			if line.split(' = ')[0] == key:
-				return line.split(' = ')[1]
+				return str(line.split(' = ')[1]).strip()
 		return 0
 
 # Check if fighter ID is already in use
@@ -356,19 +361,19 @@ def getVictoryThemeIDByFighterId(fighterId):
 # Helper method to more easily copy files
 def copyFile(sourcePath, destinationPath):
 		Directory.CreateDirectory(destinationPath)
-		File.Copy(sourcePath, destinationPath + '/' + FileInfo(sourcePath).Name)
+		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name)
 
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
 		fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
-		path = fullPath.replace(FileInfo(sourcePath).Name, '')
+		path = fullPath.replace(getFileInfo(sourcePath).Name, '')
 		Directory.CreateDirectory(path)
 		if File.Exists(sourcePath) and not File.Exists(fullPath):
 			File.Copy(sourcePath, fullPath)
 
 # Helper method to check if a file is open, and if it is not, open it and create a backup
 def openFile(filePath):
-		nodeName = FileInfo(filePath).Name.split('.')[0]
+		nodeName = getFileInfo(filePath).Name.split('.')[0]
 		fileOpened = checkOpenFile(nodeName)
 		if fileOpened == 0:
 			createBackup(filePath)
@@ -508,7 +513,7 @@ def createBPs(cosmeticId, images, fiftyCC="true"):
 def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-1, useKirbyHat=False, newSoundBankId="", victoryThemeId=0, kirbyHatFighterId=-1):
 		# Iterate through each file
 		for file in files:
-			file = FileInfo(file)
+			file = getFileInfo(file)
 			BrawlAPI.OpenFile(file.FullName)
 			# Update CosmeticID field and rename CosmeticConfig
 			if file.Name.lower().StartsWith("cosmetic"):
@@ -673,7 +678,7 @@ def importFranchiseIconResult(franchiseIconId, image):
 
 # Update the module file with fighter ID
 def updateModule(file, directory, fighterId, fighterName):
-		file = FileInfo(file)
+		file = getFileInfo(file)
 		BrawlAPI.OpenFile(file.FullName)
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [8]")
@@ -706,7 +711,7 @@ def updateModule(file, directory, fighterId, fighterName):
 			updateModulePit(file.FullName, directory, fighterId, fighterName)
 
 def updateModulePit(file, directory, fighterId, fighterName):
-		file = FileInfo(file)
+		file = getFileInfo(file)
 		BrawlAPI.OpenFile(file.FullName)
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [1]")
@@ -756,7 +761,7 @@ def updateModulePit(file, directory, fighterId, fighterName):
 # Move fighter files to fighter folder
 def moveFighterFiles(files, fighterName, originalFighterName=""):
 		for file in files:
-			file = FileInfo(file)
+			file = getFileInfo(file)
 			# TODO: rename files based on fighter name?
 			if originalFighterName != "":
 				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
@@ -764,7 +769,7 @@ def moveFighterFiles(files, fighterName, originalFighterName=""):
 				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + file.Name
 			# Back up if already exists
 			createBackup(path)
-			FileInfo(path).Directory.Create()
+			getFileInfo(path).Directory.Create()
 			File.Copy(file.FullName, path, 1)
 
 # Soundbank IDs are between 331 and 586, or 14B and 24A in hex
@@ -828,7 +833,7 @@ def addToRoster(fighterId):
 # Add Kirby hat fixes
 # Check kirby soundbanks here: http://opensa.dantarion.com/wiki/Soundbanks_(Brawl)
 def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
-		kirbyHatPath = FileInfo(kirbyHatExe).DirectoryName
+		kirbyHatPath = getFileInfo(kirbyHatExe).DirectoryName
 		# Start back up all kirby files
 		createBackup(kirbyHatPath + '/codeset.txt')
 		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
@@ -871,12 +876,12 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 		for file in files:
 			# TODO: rename files based on fighter name?
-			file = FileInfo(file)
+			file = getFileInfo(file)
 			if oldFighterName != "" and newFighterName != "":
 				path = MainForm.BuildPath + '/pf/fighter/kirby/' + file.Name.replace(oldFighterName, newFighterName)
 			else:
 				path = MainForm.BuildPath + '/pf/fighter/kirby/' + file.Name
-			FileInfo(path).Directory.Create()
+			getFileInfo(path).Directory.Create()
 			# Back up if it exists already
 			createBackup(path)
 			File.Copy(file.FullName, path, 1)
@@ -884,11 +889,11 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 # Add character victory theme
 def addVictoryTheme(file):
 		# Move to strm directory
-		file = FileInfo(file)
+		file = getFileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/Victory!/' + file.Name
 		# Back up file if it already exists
 		createBackup(path)
-		FileInfo(path).Directory.Create()
+		getFileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
 		# Back up tracklist
@@ -917,7 +922,7 @@ def addVictoryTheme(file):
 
 # Add fighter to code menu
 def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
-		assemblyFunctionsPath = FileInfo(assemblyFunctionExe).DirectoryName
+		assemblyFunctionsPath = getFileInfo(assemblyFunctionExe).DirectoryName
 		# Start back up
 		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
 		createBackup(assemblyFunctionsPath + '/codeset.txt')
@@ -1175,7 +1180,7 @@ def deleteKirbyHatFiles(internalName):
 			while i < len(kirbyHatFiles):
 				# Back up file first
 				createBackup(kirbyHatFiles[i])
-				FileInfo(kirbyHatFiles[i]).Delete()
+				getFileInfo(kirbyHatFiles[i]).Delete()
 				i += 1
 
 # Delete the specified soundbank
@@ -1241,7 +1246,7 @@ def removeVictoryTheme(songID):
 
 # Remove kirby hat
 def removeKirbyHat(fighterId, kirbyHatExe):
-		kirbyHatPath = FileInfo(kirbyHatExe).DirectoryName
+		kirbyHatPath = getFileInfo(kirbyHatExe).DirectoryName
 		# Start back up all kirby files
 		createBackup(kirbyHatPath + '/codeset.txt')
 		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
@@ -1286,7 +1291,7 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 
 # Remove fighter from code menu
 def removeFromCodeMenu(fighterId, assemblyFunctionExe):
-		assemblyFunctionsPath = FileInfo(assemblyFunctionExe).DirectoryName
+		assemblyFunctionsPath = getFileInfo(assemblyFunctionExe).DirectoryName
 		# Start back up
 		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
 		createBackup(assemblyFunctionsPath + '/codeset.txt')
@@ -1464,7 +1469,7 @@ def restoreBackup(selectedBackup=""):
 		if Directory.Exists(backupPath):
 			backupFiles = Directory.GetFiles(backupPath, "*", SearchOption.AllDirectories)
 			for file in backupFiles:
-				Directory.CreateDirectory(file.replace(backupPath, MainForm.BuildPath).replace(FileInfo(file).Name, ''))
+				Directory.CreateDirectory(file.replace(backupPath, MainForm.BuildPath).replace(getFileInfo(file).Name, ''))
 				File.Copy(file, file.replace(backupPath, MainForm.BuildPath), True)
 			BrawlAPI.ShowMessage("Backup restored.", "Success")
 
@@ -1484,7 +1489,7 @@ def archiveBackup():
 			# Copy everything to a new directory with the timestamp
 			backupFiles = Directory.GetFiles(BACKUP_PATH, "*", SearchOption.AllDirectories)
 			for file in backupFiles:
-				Directory.CreateDirectory(file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp).replace(FileInfo(file).Name, ''))
+				Directory.CreateDirectory(file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp).replace(getFileInfo(file).Name, ''))
 				File.Copy(file, file.replace(BACKUP_PATH, BACKUP_PATH + ' - ' + timestamp), True)
 			# Delete the old directory
 			Directory.Delete(BACKUP_PATH, True)
