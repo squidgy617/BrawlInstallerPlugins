@@ -66,7 +66,7 @@ On first run of any plugin, the user will be prompted to [configure their settin
 ## Configure Settings
 **Usage:** Plugins menu > BrawlInstaller Plugins > Configure Settings
 
-This plugin prompts the user for input on various settings that are used by all of the plugins in this suite. Users should respond to prompts to the best of their knowledge. If the user is tasked with entering an ID, typically they may enter it in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. After setting configuration is complete, a settings.ini file will be created in the "BrawlInstaller Resources" folder in the BrawlCrate directory.
+This plugin prompts the user for input on various settings that are used by all of the plugins in this suite. Users should respond to prompts to the best of their knowledge. If the user is tasked with entering an ID, typically they may enter it in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. After setting configuration is complete, a settings.ini file will be created in the "Resources/BrawlInstaller" folder in the BrawlCrate directory.
 
 For a detailed breakdown of the settings configured by this plugin, see the section on the [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins#settingsini) file.
 
@@ -130,7 +130,7 @@ After the user has selected all files, they will be prompted to select an output
 ## Output Fighter Info To Text
 **Usage:** Plugins menu > BrawlInstaller Plugins > Output Fighter Info To Text
 
-This plugin will iterate through all of the EX configs in your build and print the fighter ID, name, cosmetic ID, franchise icon ID, soundbank ID, and victory theme ID of each fighter found to a fighter_info.txt file located in your `/BrawlAPI/BrawlInstaller Resources/` directory in the BrawlCrate root folder. This can be useful if you need a reference for what IDs are available.
+This plugin will iterate through all of the EX configs in your build and print the fighter ID, name, cosmetic ID, franchise icon ID, soundbank ID, and victory theme ID of each fighter found to a fighter_info.txt file located in your `/BrawlAPI/Resources/BrawlInstaller/` directory in the BrawlCrate root folder. This can be useful if you need a reference for what IDs are available.
 
 All IDs printed are in decimal format.
 
