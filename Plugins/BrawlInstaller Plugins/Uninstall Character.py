@@ -209,6 +209,7 @@ def main():
 			archiveBackup()
 			BrawlAPI.ShowMessage("Character successfully uninstalled.", "Success")
 		except Exception as e:
+			progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically.", "An Error Has Occurred")
 			restoreBackup()
