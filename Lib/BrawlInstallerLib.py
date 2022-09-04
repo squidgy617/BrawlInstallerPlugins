@@ -687,14 +687,26 @@ def updateModule(file, directory, fighterId, fighterName):
 			# Get the exported section 8 file
 			sectionFile = directory.FullName + "/Section [8]"
 			editModule(fighterId, file, sectionFile, [0x00])
-		elif BrawlAPI.RootNode.Name == 'ft_pit':
+		else:
 			# Export section 1 instead
 			node = getChildByName(BrawlAPI.RootNode, "Section [1]")
 			node.Export(directory.FullName + "/Section [1]")
+			rootNode = BrawlAPI.RootNode.Name
 			BrawlAPI.ForceCloseFile()
 			# Get the exported section 1 file
 			sectionFile = directory.FullName + "/Section [1]"
-			editModule(fighterId, file, sectionFile, [0xA0, 0x168, 0x1804, 0x8E4C, 0x8F3C, 0xDAE8, 0xDB50, 0xDBAC, 0x15A90, 0x16CC8])
+			# Handle Pit module
+			if rootNode == 'ft_pit':
+				editModule(fighterId, file, sectionFile, [0xA0, 0x168, 0x1804, 0x8E4C, 0x8F3C, 0xDAE8, 0xDB50, 0xDBAC, 0x15A90, 0x16CC8])
+			# Handle Marth module
+			if rootNode == 'ft_marth':
+				editModule(fighterId, file, sectionFile, [0x98, 0x160, 0x17D8, 0x5724, 0xA430, 0xA498, 0xA4F4])
+			# Handle Lucario module
+			if rootNode == 'ft_lucario':
+				editModule(fighterId, file, sectionFile, [0x98, 0x160, 0x1804, 0x83F8, 0x8510, 0x963C, 0x9794, 0xD2D0, 0xD338, 0xD394])
+			# Handle Sonic module
+			if rootNode == 'ft_sonic':
+				editModule(fighterId, file, sectionFile, [0x98, 0x160, 0x1818, 0x8598, 0xEDB8, 0xEE20, 0xEE7C])
 		# Back up if already exists
 		createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
 		File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
