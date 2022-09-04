@@ -676,7 +676,6 @@ def importFranchiseIconResult(franchiseIconId, image):
 			colorFolder.AddChild(clr0Node)
 			clr0Node.Replace(RESOURCE_PATH + '/InfResultMark01_TopN.clr0')
 
-# Update the module file with fighter ID
 def updateModule(file, directory, fighterId, fighterName):
 		file = getFileInfo(file)
 		BrawlAPI.OpenFile(file.FullName)
@@ -687,76 +686,38 @@ def updateModule(file, directory, fighterId, fighterName):
 			BrawlAPI.ForceCloseFile()
 			# Get the exported section 8 file
 			sectionFile = directory.FullName + "/Section [8]"
-			# Read the section 8 file and write to it
-			with open(sectionFile, mode='r+b') as editFile:
-				section8 = editFile.read()
-				editFile.seek(3)
-				editFile.write(binascii.unhexlify(fighterId))
-				editFile.seek(0)
-				section8Modified = editFile.read()
-				editFile.close()
-			# Read the module file
-			with open(file.FullName,  mode='r+b') as moduleFile:
-				data = str(moduleFile.read())
-				moduleFile.close()
-			# Where the module file matches section 8, replace it with our modified section 8 values
-			updatedData = data.replace(section8, section8Modified)
-			with open(file.FullName, mode='r+b') as moduleFile:
-				moduleFile.seek(0)
-				moduleFile.write(updatedData)
-			# Back up if already exists
-			createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
-			File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
+			editModule(fighterId, file, sectionFile, [0x00])
 		elif BrawlAPI.RootNode.Name == 'ft_pit':
-			updateModulePit(file.FullName, directory, fighterId, fighterName)
-
-def updateModulePit(file, directory, fighterId, fighterName):
-		file = getFileInfo(file)
-		BrawlAPI.OpenFile(file.FullName)
-		# Get section 8 and export it
-		node = getChildByName(BrawlAPI.RootNode, "Section [1]")
-		node.Export(directory.FullName + "/Section [1]")
-		BrawlAPI.ForceCloseFile()
-		# Get the exported section 8 file
-		sectionFile = directory.FullName + "/Section [1]"
-		# Read the section 8 file and write to it
-		with open(sectionFile, mode='r+b') as editFile:
-			section1 = editFile.read()
-			editFile.seek(int(0xA0) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0x168) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0x1804) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0x8E4C) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0x8F3C) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0xDAE8) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0xDB50) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0xDBAC) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0x15A90) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(int(0x16CC8) + 3)
-			editFile.write(binascii.unhexlify(fighterId))
-			editFile.seek(0)
-			section1Modified = editFile.read()
-			editFile.close()
-		# Read the module file
-		with open(file.FullName,  mode='r+b') as moduleFile:
-			data = str(moduleFile.read())
-			moduleFile.close()
-		# Where the module file matches section 8, replace it with our modified section 8 values
-		updatedData = data.replace(section1, section1Modified)
-		with open(file.FullName, mode='r+b') as moduleFile:
-			moduleFile.seek(0)
-			moduleFile.write(updatedData)
+			# Export section 1 instead
+			node = getChildByName(BrawlAPI.RootNode, "Section [1]")
+			node.Export(directory.FullName + "/Section [1]")
+			BrawlAPI.ForceCloseFile()
+			# Get the exported section 1 file
+			sectionFile = directory.FullName + "/Section [1]"
+			editModule(fighterId, file, sectionFile, [0xA0, 0x168, 0x1804, 0x8E4C, 0x8F3C, 0xDAE8, 0xDB50, 0xDBAC, 0x15A90, 0x16CC8])
 		# Back up if already exists
 		createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
 		File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
+
+def editModule(fighterId, moduleFile, sectionFile, offsets):
+		# Read the section file and write to it
+		with open(sectionFile, mode='r+b') as editFile:
+			section = editFile.read()
+			for offset in offsets:
+				editFile.seek(int(offset) + 3)
+				editFile.write(binascii.unhexlify(fighterId))
+			editFile.seek(0)
+			sectionModified = editFile.read()
+			editFile.close()
+		# Read the module file
+		with open(moduleFile.FullName,  mode='r+b') as file:
+			data = str(file.read())
+			file.close()
+		# Where the module file matches the section, replace it with our modified section values
+		updatedData = data.replace(section, sectionModified)
+		with open(moduleFile.FullName, mode='r+b') as file:
+			file.seek(0)
+			file.write(updatedData)
 
 # Move fighter files to fighter folder
 def moveFighterFiles(files, fighterName, originalFighterName=""):
