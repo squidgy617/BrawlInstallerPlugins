@@ -41,9 +41,47 @@ def main():
 				uninstallVictoryTheme = False
 
 			# Get fighter info
+
+			# Set up progressbar
+			progressCounter = 0
+			progressBar = ProgressWindow(MainForm.Instance, "Redirect Check...", "Checking for Ex Config redirects", False)
+			progressBar.Begin(0, 3, progressCounter)
+
 			fighterConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "Fighter" + fighterId + ".dat")[0]
-			cosmeticConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
-			slotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot" + fighterId + ".dat")[0]
+			# Slot configs
+			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot*.dat"):
+				BrawlAPI.OpenFile(config)
+				if BrawlAPI.RootNode.SetSlot == True and BrawlAPI.RootNode.CharSlot1 == int(fighterId, 16):
+					slotConfig = config
+					slotId = str(getFileInfo(config).Name.split('Slot')[1]).replace('.dat', '')
+				BrawlAPI.ForceCloseFile()
+			if 'slotConfig' not in locals():
+				slotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot" + fighterId + ".dat")[0]
+				slotId = str(fighterId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			# Cosmetic configs
+			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic*.dat"):
+				BrawlAPI.OpenFile(config)
+				if BrawlAPI.RootNode.HasSecondary == True and BrawlAPI.RootNode.CharSlot1 == int(slotId, 16):
+					cosmeticConfig = config
+					cosmeticConfigId = str(getFileInfo(config).Name.split('Cosmetic')[1]).replace('.dat', '')
+				BrawlAPI.ForceCloseFile()
+			if 'cosmeticConfig' not in locals():
+				cosmeticConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
+				cosmeticConfigId = str(fighterId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			# CSS Slot configs
+			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', 'CSSSlot*.dat'):
+				BrawlAPI.OpenFile(config)
+				if (BrawlAPI.RootNode.SetPrimarySecondary == True and BrawlAPI.RootNode.CharSlot1 == int(slotId, 16)) or (BrawlAPI.RootNode.SetCosmeticSlot == True and BrawlAPI.RootNode.CosmeticSlot == int(cosmeticConfigId, 16)):
+					cssSlotConfig = config
+					cssSlotConfigId = str(getFileInfo(config).Name.split('CSSSlot')[1]).replace('.dat', '')
+			if 'cssSlotConfig' not in locals():
+				cssSlotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
+				cssSlotConfigId = str(fighterId)
+			progressBar.Finish()
 			fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
 
 			cosmeticId = fighterInfo.cosmeticId
@@ -147,7 +185,7 @@ def main():
 
 			# Remove victory theme
 			if uninstallVictoryTheme:
-				removeSongId = getVictoryThemeIDByFighterId(fighterId)
+				removeSongId = getVictoryThemeIDByFighterId(slotId)
 				removeVictoryTheme(removeSongId)
 
 			progressCounter += 1
@@ -187,7 +225,7 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# Delete EX configs
-			deleteExConfigs(fighterId)
+			deleteExConfigs(fighterId, slotConfigId=slotId, cosmeticConfigId=cosmeticConfigId, cssSlotConfigId=cssSlotConfigId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
@@ -209,7 +247,8 @@ def main():
 			archiveBackup()
 			BrawlAPI.ShowMessage("Character successfully uninstalled.", "Success")
 		except Exception as e:
-			progressBar.Finish()
+			if 'progressBar' in locals():
+				progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically.", "An Error Has Occurred")
 			restoreBackup()
