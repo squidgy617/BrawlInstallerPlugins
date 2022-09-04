@@ -349,8 +349,8 @@ def getVictoryThemeByFighterId(fighterId):
 		return 0
 
 # Get the victory theme ID of a fighter by their ID
-def getVictoryThemeIDByFighterId(fighterId):
-		slotConfig = getSlotConfig(fighterId)
+def getVictoryThemeIDByFighterId(slotId):
+		slotConfig = getSlotConfig(slotId)
 		if slotConfig:
 			BrawlAPI.OpenFile(slotConfig)
 			songId = BrawlAPI.RootNode.VictoryTheme
@@ -1165,10 +1165,18 @@ def deleteSoundbank(soundBankId):
 			soundBank.Delete()
 
 # Delete EX configs for specified fighter ID
-def deleteExConfigs(fighterId):
+def deleteExConfigs(fighterId, slotConfigId = "", cosmeticConfigId = "", cssSlotConfigId = ""):
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/BrawlEx')
 		for folder in Directory.GetDirectories(directory.FullName):
-			exConfig = getFileByName(DirectoryInfo(folder).Name.split("Config")[0] + str(fighterId) + ".dat", DirectoryInfo(folder))
+			if DirectoryInfo(folder).Name == "SlotConfig" and slotConfigId:
+				id = slotConfigId
+			elif DirectoryInfo(folder).Name == "CosmeticConfig" and cosmeticConfigId:
+				id = cosmeticConfigId
+			elif DirectoryInfo(folder).Name == "CSSSlotConfig" and cssSlotConfigId:
+				id = cssSlotConfigId
+			else:
+				id = fighterId
+			exConfig = getFileByName(DirectoryInfo(folder).Name.split("Config")[0] + str(id) + ".dat", DirectoryInfo(folder))
 			if exConfig:
 				createBackup(exConfig.FullName)
 				exConfig.Delete()
@@ -1202,18 +1210,19 @@ def removeVictoryTheme(songID):
 				if child.SongID == songID:
 					childNode = child
 					break
-		# Get filename
-		path = MainForm.BuildPath + '/pf/sound/strm/Victory!'
-		directory = Directory.CreateDirectory(path)
-		brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
-		# Back up song file
-		createBackup(brstmFile.FullName)
-		# Remove from tracklist
-		if childNode:
-			childNode.Remove()
-		# Delete from directory
-		if brstmFile:
-			brstmFile.Delete()
+		if 'childNode' in locals():
+			# Get filename
+			path = MainForm.BuildPath + '/pf/sound/strm/Victory!'
+			directory = Directory.CreateDirectory(path)
+			brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+			# Back up song file
+			createBackup(brstmFile.FullName)
+			# Remove from tracklist
+			if childNode:
+				childNode.Remove()
+			# Delete from directory
+			if brstmFile:
+				brstmFile.Delete()
 		BrawlAPI.SaveFile()
 		BrawlAPI.ForceCloseFile()
 

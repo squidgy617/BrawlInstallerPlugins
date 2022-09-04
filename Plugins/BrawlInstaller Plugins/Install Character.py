@@ -511,7 +511,8 @@ def main():
 				archiveBackup()
 				BrawlAPI.ShowMessage("Character successfully installed.", "Success")
 		except Exception as e:
-			progressBar.Finish()
+			if 'progressBar' in locals():
+				progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
 			restoreBackup()
