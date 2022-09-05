@@ -5,6 +5,7 @@ from BrawlInstallerLib import *
 
 def main():
 		# Check our backups
+		createLogFile()
 		backupCheck()
 		backups = Directory.GetDirectories(BASE_BACKUP_PATH)
 		if len(backups) <= 0:
