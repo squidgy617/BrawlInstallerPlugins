@@ -183,11 +183,8 @@ def main():
 
 		outputDirectory = BrawlAPI.OpenFolderDialog("Select output directory")
 		fileName = BrawlAPI.UserStringInput("Enter a file name")
-
-		args = 'a -y -bsp0 -bso0 -bd "' + outputDirectory + '/' + fileName + '.zip" "' + AppPath + '/temp/*"'
-		p = Process.Start(RESOURCE_PATH + '/7za.exe', args)
-		p.WaitForExit()
-		p.Dispose()
+		
+		ZipFile.CreateFromDirectory(AppPath + '/temp', outputDirectory + '/' + fileName + '.zip')
 
 		BrawlAPI.ShowMessage("Fighter package created at " + outputDirectory + '\\' + fileName + '.zip', title)
 
