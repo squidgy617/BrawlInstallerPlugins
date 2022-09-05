@@ -63,6 +63,8 @@ Each plugin can be accessed from the Plugins menu in BrawlCrate by hovering over
 
 On first run of any plugin, the user will be prompted to [configure their settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings) if they have not done so already.
 
+All plugins attempt to create backups of files that they modify, replace, or delete. These backups are stored in `/Backups/` in the BrawlCrate root directory. The plugins will also create a log of the work they are doing. The most recent log file created by one of the plugins can be found in `/Logs/log.txt` in the BrawlCrate root folder.
+
 ## Configure Settings
 **Usage:** Plugins menu > BrawlInstaller Plugins > Configure Settings
 
@@ -77,15 +79,19 @@ This plugin allows you to select the files for a Brawl character packaged in a .
 
 When used, the plugin will first prompt you to select a .zip file of your character package. It will then prompt you to enter a fighter ID followed by a cosmetic ID. If the fighter comes with a franchise icon, it will also ask if you wish to install it and prompt you for a franchise icon ID if you elect to do so. If the user elects not to install a franchise icon, they may enter an alternate franchise icon ID for the fighter to use instead. If the fighter comes with a victory theme, it will also ask if you wish to install it and, if you elect not to, it will ask if you wish to enter an alternative victory theme ID. All IDs can be entered in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format.
 
-If an existing fighter ID is input, the user will be prompted to either overwrite the existing fighter files or enter another fighter ID. If existing fighter files are overwritten, the plugin will attempt to remove files associated with that fighter ID before installing, though it will not remove existing cosmetics. This should only be used when reinstalling the same character over a specific ID - if you are trying to remove another character and replace them, you should use the "Uninstall Character" plugin first instead.
+If an existing fighter ID is input, the user will be prompted to either overwrite the existing fighter files or enter another fighter ID. If existing fighter files are overwritten, the plugin will attempt to remove files associated with that fighter ID before installing, though it will not remove existing cosmetics. This should only be used when reinstalling the same character over a specific ID - if you are trying to remove another character and replace them, you should use the "Uninstall Character" plugin first instead. Overwriting an existing character will not account for any redirects in their config files.
 
 If an existing cosmetic ID is input, the user will be prompted to either overwrite the existing cosmetics or enter another cosmetic ID. If existing cosmetics are overwritten, the plugin will attempt to remove all cosmetics associated with that ID before installing.
 
 If the fighter has the same internal name as an existing fighter, the user will be prompted to either overwrite the files or input a different fighter name. If files are overwritten, the plugin will remove the old files and replace them with the contents of the character package.
 
-If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd ID Replace Assist and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these, tools, you may only choose to overwrite, or else installation will be aborted.
+If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd ID Replace Assist and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these tools, you may only choose to overwrite, or else installation will be aborted.
+
+If the fighter has the same Effect.pac ID as one that already exists in the build and you have Codes' porting tools, you will be prompted to change the Effect.pac ID for the fighter, in which case you will want to enter the Effect.pac ID as it would appear in the fighter's moveset (e.g. "0x2A" as it would appear in "ef_custom2A"). If you elect not to do this, the old Effect.pac ID will continue to be used, which could create conflicts unless you are just reinstalling an existing character. If you do not have these tools, this part of the process will be skipped and the old Effect.pac ID will always be used.
 
 After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat. Cosmetic files such as stock icons and CSPs are imported in alphabetical order, so mod authors should ensure their files are named appropriately.
+
+The installer primarily supports Ex modules currently, but also supports a few other modules, including: Lucario's module, Marth's module, Sonic's module, and Pit's patched Project M module.
 
 If the user has QuickLava's Kirby Hat manager installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_KirbyHats.txt file and run the Kirby Hat manager.
 
@@ -167,14 +173,13 @@ The settings currently supported by the BrawlInstaller plugins are as follows:
 - **addSevenToSoundBankIds** - [*Values : true, false*] : Whether 7 should be added to SFX IDs within soundbanks when converting them using QuickLava and Codes' tools. If this is set to `true`, soundbank IDs passed to QuickLava's tool will have 7 added to them. If this is set to `false`, soundbank IDs will be passed to QuickLava's tool unmodified.
 - **installVictoryThemes** - [*Values : true, false*] : Whether victory themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory themes will not be installed.
 - **useCssRoster** - [*Values : true, false*] : Whether or not the build uses CSSRoster.dat to determine the roster available on the character select screen. If this is set to `true`, CSSRoster.dat will be updated to display newly installed character packages. If set to `false`, characters will not be added to the CSS.
+- **gfxChangeExe** - [*Values : a .exe path*] : The direct path to the .exe file for Codes' gfxchange.exe tool to run when changing Effect.pac IDs. This should be in the same directory as Codes' tracechange.exe, which will also be run in the event of Effect.pac ID conflicts.
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Importing necessary files for single player modes such as Classic, All-Star, Home Run Contest, etc.
 - Automatic updating of P+ EX codes that require character IDs
-- Handling conflicts between Effect.pac IDs
 - Allow redirection of EX config IDs
-- Support for non-EX modules used by some characters
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
 - Support for Subspace Emissary EX
 - Costume Installer plugin
