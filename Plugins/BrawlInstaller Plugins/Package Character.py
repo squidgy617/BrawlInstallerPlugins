@@ -7,7 +7,7 @@ def main():
 		# If temporary directory already exists, delete it to prevent duplicate files
 		if Directory.Exists(AppPath + '/temp'):
 			Directory.Delete(AppPath + '/temp', 1)
-
+		createLogFile()
 		title = "Character Packaging Tool"
 		# EX Configs
 		exConfigs = BrawlAPI.OpenMultiFileDialog("Select fighter EX config files", "DAT files|*.dat")

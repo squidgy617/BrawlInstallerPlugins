@@ -10,6 +10,7 @@ def main():
 			if not MainForm.BuildPath:
 				BrawlAPI.ShowMessage("Build path must be set. This can be done by navigating to Tools > Settings > General and setting the 'Default Build Path' to the path to your build's root folder.", "Build Path Not Set")
 				return
+			createLogFile()
 			backupCheck()
 			# Get user settings
 			if File.Exists(RESOURCE_PATH + '/settings.ini'):
@@ -247,6 +248,7 @@ def main():
 			archiveBackup()
 			BrawlAPI.ShowMessage("Character successfully uninstalled.", "Success")
 		except Exception as e:
+			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():
 				progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")

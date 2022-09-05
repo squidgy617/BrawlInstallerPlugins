@@ -9,6 +9,7 @@ def main():
 		if not MainForm.BuildPath:
 			BrawlAPI.ShowMessage("Build path must be set. This can be done by navigating to Tools > Settings > General and setting the 'Default Build Path' to the path to your build's root folder.", "Build Path Not Set")
 			return
+		createLogFile()
 		infoLines = []
 		firstLine = 'FighterID Name CosmeticID FranchiseID Soundbank EffectID SongID'
 		formattedFirstLine = "{: <9} {: <20} {: <10} {: <11} {: <10} {: <8} {: <6}".format(*firstLine.split(' '))
