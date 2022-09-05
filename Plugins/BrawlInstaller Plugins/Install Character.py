@@ -53,6 +53,8 @@ def main():
 					franchiseIconId = -1
 					victoryThemeId = 0
 					overwriteFighterName = ""
+					changeEffectId = False
+					oldEffectId = ""
 
 					#region USER INPUT/PRELIMINARY CHECKS
 
@@ -193,6 +195,43 @@ def main():
 							if overwriteSoundbank == False:
 								BrawlAPI.ShowMessage("Fighter installation will abort.", "Aborting Installation")
 								return
+					# Check if Effect.pac ID is already in use
+					if settings.gfxChangeExe != "":
+						effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
+						oldEffectId = effectId
+						if effectId:
+							while True:
+								matchFound = False
+								directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
+								progressCounter = 0
+								progressBar = ProgressWindow(MainForm.Instance, "Conflict Check...", "Checking for Effect.pac ID conflicts", False)
+								progressBar.Begin(0, len(directories), progressCounter)
+								for directory in directories:
+									progressCounter += 1
+									progressBar.Update(progressCounter)
+									foundEffectId = getEffectId(DirectoryInfo(directory).Name)
+									if effectId == foundEffectId:
+										matchFound = True
+										changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+										if changeEffectId:
+											idEntered = False
+											while idEntered != True:
+												effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
+												# Ensure effect ID is just the hex digits
+												if effectId.startswith('0x'):
+													effectId = effectId.split('0x')[1].upper()
+													break
+												elif effectId.isnumeric():
+													effectId = str(hex(int(effectId))).split('0x')[1].upper()
+													break
+												else:
+													BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
+													continue
+										progressBar.Finish()
+										break
+								if matchFound == False:
+									progressBar.Finish()
+									break
 					# Franchise icon install prompt
 					if franchiseIconFolder:
 						doInstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("This character comes with a franchise icon. Would you like to install it?", "Install Franchise Icon")
@@ -238,7 +277,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 14, progressCounter)
+					progressBar.Begin(0, 15, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -402,6 +441,13 @@ def main():
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 					#endregion Soundbank
+
+					#region Effect ID
+
+					# Update effect ID if user opted to earlier
+					if changeEffectId and oldEffectId:
+						updateEffectId(getFileInfo(Directory.GetFiles(fighterFolder.FullName, "Fit" + fighterInfo.fighterName + ".pac")[0]), getFileInfo(settings.gfxChangeExe), oldEffectId, effectId)
+					#endregion Effect ID
 
 					#region Kirby Hats
 

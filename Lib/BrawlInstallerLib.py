@@ -157,19 +157,19 @@ KIRBY_SOUNDBANKS = {
 
 # Get child node by name; similar to markyMawwk's function, but didn't want to make it a dependency
 def getChildByName(node, name):
-	if node.Children:
-		for child in node.Children:
-			if child.Name == str(name):
-				return child
-	return 0
+		if node.Children:
+			for child in node.Children:
+				if child.Name == str(name):
+					return child
+		return 0
 
 # Get child node by FighterID
 def getChildByFighterID(node, fighterId):
-	if node.Children:
-		for child in node.Children:
-			if child.FighterID == int(fighterId, 16):
-				return child
-	return 0
+		if node.Children:
+			for child in node.Children:
+				if child.FighterID == int(fighterId, 16):
+					return child
+		return 0
 
 # Helper function to sort PAT0Entry nodes by FrameIndex
 def sortChildrenByFrameIndex(parentNode):
@@ -301,7 +301,7 @@ def readValueFromKey(settings, key):
 				continue
 			if line.split(' = ')[0] == key:
 				return str(line.split(' = ')[1]).strip()
-		return 0
+		return ""
 
 # Check if fighter ID is already in use
 def getFighterConfig(fighterId):
@@ -326,6 +326,25 @@ def getSlotConfig(fighterId):
 			return slotConfigs[0]
 		else:
 			return 0
+
+# Get Effect.pac ID for specified fighter name
+def getEffectId(fighterName, rootDir=""):
+		if rootDir == "":
+			dir = MainForm.BuildPath + '/pf/fighter/' + fighterName
+		else:
+			dir = rootDir
+		if Directory.Exists(dir):
+			fighterFiles = Directory.GetFiles(dir, 'Fit' + fighterName + '.pac')
+			if fighterFiles:
+				BrawlAPI.OpenFile(fighterFiles[0])
+				if BrawlAPI.RootNode.Children:
+					for node in BrawlAPI.RootNode.Children:
+						if node.Name.StartsWith("ef_custom"):
+							effectId = node.Name.split('ef_custom')[1]
+							BrawlAPI.ForceCloseFile()
+							return effectId
+		BrawlAPI.ForceCloseFile()
+		return 0
 
 # Get song name from Results.tlst by song ID
 def getSongNameById(songId):
@@ -676,6 +695,7 @@ def importFranchiseIconResult(franchiseIconId, image):
 			colorFolder.AddChild(clr0Node)
 			clr0Node.Replace(RESOURCE_PATH + '/InfResultMark01_TopN.clr0')
 
+# Update the fighter module file
 def updateModule(file, directory, fighterId, fighterName):
 		file = getFileInfo(file)
 		BrawlAPI.OpenFile(file.FullName)
@@ -711,6 +731,7 @@ def updateModule(file, directory, fighterId, fighterName):
 		createBackup(MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel')
 		File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
 
+# Edit module offsets
 def editModule(fighterId, moduleFile, sectionFile, offsets):
 		# Read the section file and write to it
 		with open(sectionFile, mode='r+b') as editFile:
@@ -745,7 +766,50 @@ def moveFighterFiles(files, fighterName, originalFighterName=""):
 			getFileInfo(path).Directory.Create()
 			File.Copy(file.FullName, path, 1)
 
+# Update fighter .pac to use new Effect.pac ID
+def updateEffectId(fighterFile, gfxChangeExe, oldEffectId, newEffectId):
+		BrawlAPI.OpenFile(fighterFile.FullName)
+		# Rename arc node
+		arcNode = getChildByName(BrawlAPI.RootNode, "ef_custom" + oldEffectId)
+		arcNode.Name = "ef_custom" + newEffectId
+		# Find and rename traces
+		traces = []
+		for node in arcNode.Children:
+			if node.Name.StartsWith("Texture Data"):
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				if texFolder:
+					for tex0 in texFolder.Children:
+						if tex0.Name.StartsWith("TexCustom"):
+							tex0.Name = str(tex0.Name.split("Trace")[0]).replace(oldEffectId, newEffectId) + "Trace" + tex0.Name.split("Trace")[1]
+							traces.append(int(tex0.Name.split("Trace0")[1]))
+		# Export fighter moveset
+		moveset = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+		moveset.Export(gfxChangeExe.Directory.FullName + '/moveset.dat')
+		# Create traces.txt
+		traceString = ""
+		i = 0
+		#for trace in traces:
+		while i < 9:
+			traceString = traceString + str(hex(141 + (int(oldEffectId, 16) * 10) + i)).upper().replace('X', 'x') + ' ' + str(hex(141 + (int(newEffectId, 16) * 10) + i)).upper().replace('X', 'x') + "\n"
+			i += 1
+		File.WriteAllText(gfxChangeExe.Directory.FullName + '/traces.txt', traceString)
+		# Run gfxchange.exe and tracechange.exe
+		Directory.SetCurrentDirectory(gfxChangeExe.Directory.FullName)
+		p = Process.Start(gfxChangeExe.FullName, 'moveset.dat ' + str("%x" % (int(oldEffectId, 16) + 311)).upper() + ' ' + str("%x" % (int(newEffectId, 16) + 311)).upper())
+		p.WaitForExit()
+		p.Dispose()
+		p = Process.Start(gfxChangeExe.Directory.FullName + '/tracechange.exe', 'moveset_gfxported.dat traces.txt')
+		p.WaitForExit()
+		p.Dispose()
+		Directory.SetCurrentDirectory(AppPath)
+		moveset.Replace(gfxChangeExe.Directory.FullName + '/moveset_gfxported_traceconverted.dat')
+		# Save and close file
+		BrawlAPI.SaveFile()
+		BrawlAPI.ForceCloseFile()
+					
+
 # Soundbank IDs are between 331 and 586, or 14B and 24A in hex
+# Update soundbank to use new ID
 def updateSoundbankId(fighterFile, sawndReplacerExe, sfxChangeExe, oldSoundbankId, newSoundBankId, addSeven="true"):
 		Directory.SetCurrentDirectory(sawndReplacerExe.Directory.FullName)
 		# Set up should go like this: Are your sound bank IDs usually in hex? (If no) Do you usually need to add 7 when naming your soundbanks?
@@ -1512,6 +1576,7 @@ def getSettings():
 		settings.addSevenToSoundbankName = readValueFromKey(fileText, "addSevenToSoundbankName")
 		settings.installVictoryThemes = readValueFromKey(fileText, "installVictoryThemes")
 		settings.useCssRoster = readValueFromKey(fileText, "useCssRoster")
+		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
 		return settings
 
 def initialSetup():
@@ -1637,6 +1702,13 @@ def initialSetup():
 			settings.sawndReplaceExe = ""
 			settings.sfxChangeExe = ""
 			BrawlAPI.ShowMessage("Soundbank IDs will not be able to be updated in the event of a conflict.", title)
+		# GFX porting tools
+		gfxReplacerTools = BrawlAPI.ShowYesNoPrompt("If you have conflicting Effect.pac IDs in your build, you can use code's porting tools to automatically update Effect.pac IDs.\n\nDo you have code's gfxchange.exe installed?", title)
+		if gfxReplacerTools:
+			settings.gfxChangeExe = BrawlAPI.OpenFileDialog("Select your gfxchange .exe", "Executable files|*.exe")
+		else:
+			settings.gfxChangeExe = ""
+			BrawlAPI.ShowMessage("Effect.pac IDs will not be able to be updated in the event of a conflict.", title)
 		if not defaultSettings:
 			# Soundbanks
 			soundbanksInHex = BrawlAPI.ShowYesNoPrompt("Are your .sawnd files usually named as a hex value? (For modern Project+ builds, the answer is most likely 'Yes'. For older builds, the answer is most likely 'No'.)", title)
@@ -1686,6 +1758,7 @@ class Settings:
 		addSevenToSoundbankName = "false"
 		installVictoryThemes = "true"
 		useCssRoster = "true"
+		gfxChangeExe = ""
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
