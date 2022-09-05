@@ -773,7 +773,6 @@ def updateEffectId(fighterFile, gfxChangeExe, oldEffectId, newEffectId):
 		arcNode = getChildByName(BrawlAPI.RootNode, "ef_custom" + oldEffectId)
 		arcNode.Name = "ef_custom" + newEffectId
 		# Find and rename traces
-		traces = []
 		for node in arcNode.Children:
 			if node.Name.StartsWith("Texture Data"):
 				texFolder = getChildByName(node, "Textures(NW4R)")
@@ -781,7 +780,6 @@ def updateEffectId(fighterFile, gfxChangeExe, oldEffectId, newEffectId):
 					for tex0 in texFolder.Children:
 						if tex0.Name.StartsWith("TexCustom"):
 							tex0.Name = str(tex0.Name.split("Trace")[0]).replace(oldEffectId, newEffectId) + "Trace" + tex0.Name.split("Trace")[1]
-							traces.append(int(tex0.Name.split("Trace0")[1]))
 		# Export fighter moveset
 		moveset = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 		moveset.Export(gfxChangeExe.Directory.FullName + '/moveset.dat')
