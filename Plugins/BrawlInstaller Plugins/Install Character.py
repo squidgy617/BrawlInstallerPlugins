@@ -48,6 +48,7 @@ def main():
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
 					slotConfig = Directory.GetFiles(folder + '/EXConfigs', "Slot*.dat")[0]
 					fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
+					effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
 
 					uninstallVictoryTheme = 0
 					newSoundbankId = ""
@@ -198,7 +199,6 @@ def main():
 								return
 					# Check if Effect.pac ID is already in use
 					if settings.gfxChangeExe != "":
-						effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
 						oldEffectId = effectId
 						if effectId:
 							while True:
@@ -554,7 +554,10 @@ def main():
 					#region Code Edits
 
 					# Attempt to add entry to Clone Engine Corps Stock Fix + BrawlEX Corps Fix v1 + Exception Macro [ds22, Desi]
-					addStockException(fighterInfo.characterName, fighterId)
+
+					addCodeMacro(fighterInfo.characterName, fighterId, "StockException", [ "0x" + str(fighterId), "0x" + str(fighterId) ], 0)
+					addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), "0x" + str(effectId) ], 0)
+					addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFixA", [ "copy", "0x" + str(fighterId), "0x2A" ], 1, True)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)

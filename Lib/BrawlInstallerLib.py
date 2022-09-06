@@ -1124,41 +1124,70 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		Directory.SetCurrentDirectory(AppPath)
 		writeLog("Add to code menu finished.")
 
-# Add StockException entry
-def addStockException(fighterName, fighterId):
-		writeLog("Adding fighter ID " + str(fighterId) + " StockException entry")
+# Helper function to generate a value string for code macros
+def getValueString(values, copiedValue=""):
+		# Get string out of values
+		valueText = ""
+		if "(" in copiedValue:
+			copiedValue = copiedValue.split('(')[1]
+		if ")" in copiedValue:
+			copiedValue = copiedValue.split(')')[0]
+		for value in values:
+			if value == "copy":
+				value = copiedValue
+			if valueText == "":
+				valueText = valueText + str(value)
+			else:
+				valueText = valueText + ", " + str(value)
+		return valueText
+
+# Function to add a code macro to the appropriate code
+def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False):
+		writeLog("Adding ID " + str(id) + " " + macroName + " entry")
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
 			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			# Read CloneEngine.asm
 			writeLog("Reading CloneEngine.asm")
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			matchFound = False
-			foundStockExceptions = False
-			insertLine = 0
+			foundMacros = False
+			endMacroSearch = False
+			insertLines = []
+			copiedValue = ""
 			i = 0
-			# Search for a matching fighter ID and if one is found, replace the line
+			# Search for a matching ID and if one is found, replace the line
 			newText = []
-			writeLog("Searching for StockException entry")
+			writeLog("Searching for macro entry")
 			while i < len(fileText):
 				line = fileText[i]
 				# Get the fighter ID out of the line
-				if str(line).strip().StartsWith('%StockException'):
-					writeLog("Found StockException entries")
-					foundStockExceptions = True
-					foundId = line.split(',')[0]
-					if foundId.EndsWith('0x' + str(fighterId)):
+				if str(line).strip().StartsWith('%' + macroName):
+					writeLog("Found macro entries")
+					foundMacros = True
+					foundId = line.split(',')[position]
+					# If it's a matching entry, replace it
+					if '0x' + str(id) in foundId:
 						writeLog("Found matching entry")
 						matchFound = True
-						newText.append('\t%StockException (0x' + str(fighterId) + ', 0x' + str(fighterId) + ')\t#' + fighterName)
+						# Get string out of values - here, copied value is just whatever it was originally, since we are overwriting an existing entry
+						if "copy" in values:
+							copiedValue = fileText[i].split(',')[values.index("copy")]
+						valueText = getValueString(values, copiedValue)
+						newText.append('\t%' + macroName + '(' + valueText + ')\t#' + fighterName)
 					else:
 						newText.append(line)
 					i += 1
 					continue
-				# If we reach the end of the StockException entries with no match found, set to add one
-				elif foundStockExceptions and not matchFound and not str(line).strip().StartsWith('%StockException'):
+				# If we reach the end of the macro entries with no match found, set to add one
+				elif foundMacros and not endMacroSearch and not matchFound and not str(line).strip().StartsWith('%' + macroName):
 					writeLog("Matching entry not found, will insert new entry")
-					insertLine = i
-					foundStockExceptions = False
+					insertLines.append(i + len(insertLines))
+					if not repeat:
+						endMacroSearch = True
+					else:
+						matchFound = False
+						foundMacros = False
+						endMacroSearch = False
 					newText.append(line)
 					i += 1
 					continue
@@ -1166,14 +1195,19 @@ def addStockException(fighterName, fighterId):
 					newText.append(line)
 					i += 1
 					continue
-			# If we didn't find a match, add the line at the position after the last StockException
-			if insertLine:
+			# If we didn't find a match, add the line at the position after the last macro
+			for insertLine in insertLines:
 				writeLog("Inserting new entry")
-				newText.insert(insertLine, '\t%StockException (0x' + str(fighterId) + ', 0x' + str(fighterId) + ')\t#' + fighterName)
-			writeLog("Writing updates to StockException")
+				# Get string out of values - here, copied value is whatever is one line above
+				if "copy" in values:
+					copiedValue = newText[insertLine - 1].split(',')[values.index("copy")]
+				valueText = getValueString(values, copiedValue)
+				newText.insert(insertLine, '\t%' + macroName + '(' + valueText + ')\t#' + fighterName)
+			writeLog("Writing updates to macro")
 			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newText)
-			writeLog("Added StockException entry")
-		writeLog("StockException entry add finished")
+			writeLog("Added macro entry")
+		writeLog("Macro entry add finished")
+
 			
 
 #endregion IMPORT FUNCTIONS
