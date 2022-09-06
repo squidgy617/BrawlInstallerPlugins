@@ -1124,6 +1124,58 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		Directory.SetCurrentDirectory(AppPath)
 		writeLog("Add to code menu finished.")
 
+# Add StockException entry
+def addStockException(fighterName, fighterId):
+		writeLog("Adding fighter ID " + str(fighterId) + " StockException entry")
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			# Read CloneEngine.asm
+			writeLog("Reading CloneEngine.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			matchFound = False
+			foundStockExceptions = False
+			insertLine = 0
+			i = 0
+			# Search for a matching fighter ID and if one is found, replace the line
+			newText = []
+			writeLog("Searching for StockException entry")
+			while i < len(fileText):
+				line = fileText[i]
+				# Get the fighter ID out of the line
+				if str(line).strip().StartsWith('%StockException'):
+					writeLog("Found StockException entries")
+					foundStockExceptions = True
+					foundId = line.split(',')[0]
+					if foundId.EndsWith('0x' + str(fighterId)):
+						writeLog("Found matching entry")
+						matchFound = True
+						newText.append('\t%StockException (0x' + str(fighterId) + ', 0x' + str(fighterId) + ')\t#' + fighterName)
+					else:
+						newText.append(line)
+					i += 1
+					continue
+				# If we reach the end of the StockException entries with no match found, set to add one
+				elif foundStockExceptions and not matchFound and not str(line).strip().StartsWith('%StockException'):
+					writeLog("Matching entry not found, will insert new entry")
+					insertLine = i
+					foundStockExceptions = False
+					newText.append(line)
+					i += 1
+					continue
+				else:
+					newText.append(line)
+					i += 1
+					continue
+			# If we didn't find a match, add the line at the position after the last StockException
+			if insertLine:
+				writeLog("Inserting new entry")
+				newText.insert(insertLine, '\t%StockException (0x' + str(fighterId) + ', 0x' + str(fighterId) + ')\t#' + fighterName)
+			writeLog("Writing updates to StockException")
+			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newText)
+			writeLog("Added StockException entry")
+		writeLog("StockException entry add finished")
+			
+
 #endregion IMPORT FUNCTIONS
 
 #region REMOVE FUNCTIONS

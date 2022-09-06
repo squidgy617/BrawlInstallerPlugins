@@ -551,6 +551,15 @@ def main():
 					progressBar.Update(progressCounter)
 					#endregion Code Menu
 
+					#region Code Edits
+
+					# Attempt to add entry to Clone Engine Corps Stock Fix + BrawlEX Corps Fix v1 + Exception Macro [ds22, Desi]
+					addStockException(fighterInfo.characterName, fighterId)
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+					#endregion Code Edits
+
 					#region CSSRoster
 
 					# Add fighter to roster
