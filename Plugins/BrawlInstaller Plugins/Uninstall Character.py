@@ -127,6 +127,9 @@ def main():
 			# Uninstall franchise icon from info.pac
 			if uninstallFranchiseIcon:
 				removeFranchiseIcon(fighterInfo.franchiseIconId, '/pf/info2/info.pac')
+			# Uninstall BP name from info.pac
+			if settings.installBPNames == "true":
+				removeBPName(cosmeticId, '/pf/info2/info.pac')
 			fileOpened = checkOpenFile("info")
 			if fileOpened:
 				BrawlAPI.SaveFile()
