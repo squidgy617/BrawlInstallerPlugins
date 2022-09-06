@@ -280,7 +280,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 15, progressCounter)
+					progressBar.Begin(0, 16, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -558,6 +558,7 @@ def main():
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
+
 					#endregion Code Edits
 
 					#region CSSRoster

@@ -91,7 +91,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 14, progressCounter)
+			progressBar.Begin(0, 15, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -237,6 +237,12 @@ def main():
 			# Remove fighter from code menu
 			if settings.assemblyFunctionsExe != "":
 				removeFromCodeMenu(fighterId, settings.assemblyFunctionsExe)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove StockException entry
+			removeStockException(fighterId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

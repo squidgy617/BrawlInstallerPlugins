@@ -1625,6 +1625,50 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 			p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)
 
+# Remove StockException entry
+def removeStockException(fighterId):
+		writeLog("Removing fighter ID " + str(fighterId) + " StockException entry")
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CLoneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			# Read CloneEngine.asm
+			writeLog("Reading CloneEngine.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			matchFound = False
+			foundStockExceptions = False
+			i = 0
+			# Search for a matching fighter ID and if one is found, remove the line
+			while i < len(fileText):
+				line = fileText[i]
+				# Get the fighter ID out of the line
+				if str(line).strip().StartsWith('%StockException'):
+					writeLog("Found StockException entries")
+					foundStockExceptions = True
+					foundId = line.split(',')[0]
+					if foundId.EndsWith('0x' + str(fighterId)):
+						writeLog("Found matching entry")
+						matchFound = True
+						break
+					i += 1
+				# If we reach the end of the StockException entries with no match found, just exit
+				elif foundStockExceptions and not matchFound and not str(line).strip().StartsWith('%StockException'):
+					writeLog("No match found")
+					break
+				else:
+					i += 1
+			# If we found a match, iterate through and write all the lines, skipping the match
+			if matchFound:
+				j = 0
+				newText = []
+				while j < len(fileText):
+					if j != i:
+						newText.append(fileText[j])
+					j += 1
+				writeLog("Writing updates to StockException")
+				File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newText)
+				writeLog("Removed StockException entry")
+		writeLog("Stock exception remove finished")
+
+
 #endregion REMOVE FUNCTIONS
 
 #region INSTALLER FUNCTIONS
