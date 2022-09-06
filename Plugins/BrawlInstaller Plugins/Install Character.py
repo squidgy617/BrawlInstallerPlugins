@@ -338,6 +338,14 @@ def main():
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
+					# Install BP names to info.pac
+					if bpFolder and settings.installBPNames:
+						# Get preferred BP style
+						bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
+						if bpFolders:
+							nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
+							if nameFolders:
+								installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
 					fileOpened = checkOpenFile("info")
 					if fileOpened:
 						BrawlAPI.SaveFile()

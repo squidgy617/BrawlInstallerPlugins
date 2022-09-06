@@ -732,6 +732,21 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 			addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, franchiseIconId, frameCountOffset=1)
 			writeLog("Finished importing franchise icon")
 
+# Import BP name into info
+def importBPName(cosmeticId, image, filePath):
+		writeLog("Importing BP name into " + filePath + " with cosmetic ID " + str(cosmeticId))
+		fileOpened = openFile(MainForm.BuildPath + filePath)
+		if fileOpened:
+			# Import name
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			format = WiiPixelFormat.I4
+			newNode = importTexture(node, image, format)
+			pat0texNodeName = "Character_Name_Mat"
+			pat0NodeName = "InfFace_TopN__0"
+			newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId) + '1', 3)
+			addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1'), frameCountOffset=10)
+		writeLog("Import BP name finished.")
+
 # Add franchise icon to result screen
 def importFranchiseIconResult(franchiseIconId, image):
 		writeLog("Importing franchise icon into STGRESULT.pac with franchise icon ID " + str(franchiseIconId))
@@ -1253,6 +1268,23 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=1)
 		writeLog("Remove franchise icon finished")
 
+# Remove BP name from info
+def removeBPName(cosmeticId, filePath):
+		writeLog("Removing BP name with cosmetic ID " + str(cosmeticId) + " at " + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath)
+		if fileOpened:
+			# Remove BP name
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			nodeName = "MenSelchrChrNmS."+ addLeadingZeros(str(cosmeticId) + '1', 3)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				textureNode.Remove(True)
+			pat0texNodeName = "Character_Name_Mat"
+			pat0NodeName = "InfFace_TopN__0"
+			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=10)
+		writeLog("Remove BP name finished")
+
 # Remove franchise icon from result screen
 def removeFranchiseIconResult(franchiseIconId):
 		writeLog("Remove franchise icon ID " + str(franchiseIconId) + " from STGRESULT.pac")
@@ -1588,6 +1620,11 @@ def installFranchiseIcon(franchiseIconId, image, filePath, size=0):
 		removeFranchiseIcon(franchiseIconId, filePath)
 		importFranchiseIcon(franchiseIconId, image, filePath, size)
 
+# Install BP name into info
+def installBPName(cosmeticId, image, filePath):
+		removeBPName(cosmeticId, filePath)
+		importBPName(cosmeticId, image, filePath)
+
 # Install franchise icon into STGRESULT
 def installFranchiseIconResult(franchiseIconId, image):
 		removeFranchiseIconResult(franchiseIconId)
@@ -1752,6 +1789,7 @@ def getSettings():
 		settings.installVictoryThemes = readValueFromKey(fileText, "installVictoryThemes")
 		settings.useCssRoster = readValueFromKey(fileText, "useCssRoster")
 		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
+		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -1776,6 +1814,7 @@ def initialSetup():
 			settings.addSevenToSoundbankIds = "true"
 			settings.installVictoryThemes = "true"
 			settings.useCssRoster = "true"
+			settings.installBPNames = "false"
 		if not defaultSettings:
 			# RSP Loading
 			settings.rspLoading = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use RSP loading? (For most builds, the answer is 'No'.)", title))
@@ -1808,6 +1847,8 @@ def initialSetup():
 					settings.portraitNameStyle = "vBrawl"
 			else:
 				settings.portraitNameStyle = "vBrawl"
+			# BP Names
+			settings.installBPNames = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use names by the battle portraits during a match? (For most modern builds and Project+ builds, the answer is 'No'. For vBrawl, the answer is probably 'Yes'.)", title))
 			BrawlAPI.ShowMessage("You will be prompted to enter a size for franchise icons used on the character select screen. This will apply to both the height and width of these icons.\n\nFor most builds, the size should be 64. For Project+ builds, the size is usually 128.", title)
 			# Franchise icon size
 			settings.franchiseIconSizeCSS = BrawlAPI.UserIntegerInput(title, "Franchise Icon Size: ", 64, 1, 256)
@@ -1935,6 +1976,7 @@ class Settings:
 		installVictoryThemes = "true"
 		useCssRoster = "true"
 		gfxChangeExe = ""
+		installBPNames = "false"
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
