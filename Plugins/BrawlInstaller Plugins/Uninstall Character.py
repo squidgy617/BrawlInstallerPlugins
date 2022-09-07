@@ -242,7 +242,9 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# Remove StockException entry
-			removeStockException(fighterId)
+			removeCodeMacro(fighterId, "StockException", 0)
+			removeCodeMacro(fighterId, "GFXFix", 0)
+			removeCodeMacro(fighterId, "BoneIDFixA", 1, True)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

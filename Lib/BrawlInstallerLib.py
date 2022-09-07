@@ -1208,8 +1208,6 @@ def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False):
 			writeLog("Added macro entry")
 		writeLog("Macro entry add finished")
 
-			
-
 #endregion IMPORT FUNCTIONS
 
 #region REMOVE FUNCTIONS
@@ -1659,48 +1657,53 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 			p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)
 
-# Remove StockException entry
-def removeStockException(fighterId):
-		writeLog("Removing fighter ID " + str(fighterId) + " StockException entry")
-		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CLoneEngine.asm'):
+# Function to remove a code macro from the appropriate code
+def removeCodeMacro(id, macroName, position=0, repeat=False):
+		writeLog("Removing ID " + str(id) + " " + macroName + " entry")
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
 			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			# Read CloneEngine.asm
 			writeLog("Reading CloneEngine.asm")
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			matchFound = False
-			foundStockExceptions = False
+			foundMacros = False
+			endMacroSearch = False
+			removeLines = []
 			i = 0
-			# Search for a matching fighter ID and if one is found, remove the line
+			# Search for matching ID and if one is found, remove the line
 			while i < len(fileText):
 				line = fileText[i]
-				# Get the fighter ID out of the line
-				if str(line).strip().StartsWith('%StockException'):
-					writeLog("Found StockException entries")
-					foundStockExceptions = True
-					foundId = line.split(',')[0]
-					if foundId.EndsWith('0x' + str(fighterId)):
+				# Get the ID out of the entry
+				if str(line).strip().StartsWith('%' + macroName):
+					writeLog("Found macro entries")
+					foundMacros = True
+					foundId = line.split(',')[position]
+					if '0x' + str(id) in foundId:
 						writeLog("Found matching entry")
 						matchFound = True
-						break
+						removeLines.append(i)
+						if not repeat:
+							break
 					i += 1
-				# If we reach the end of the StockException entries with no match found, just exit
-				elif foundStockExceptions and not matchFound and not str(line).strip().StartsWith('%StockException'):
+				# If we aren't repeating and we hit the end, just exit
+				elif not repeat and foundMacros and not matchFound and not str(line).strip().StartsWith("%" + macroName):
 					writeLog("No match found")
 					break
 				else:
 					i += 1
-			# If we found a match, iterate through and write all the lines, skipping the match
+			# If we found a match, iterate through and write all the lines, skipping the matches
 			if matchFound:
 				j = 0
 				newText = []
 				while j < len(fileText):
-					if j != i:
+					if j not in removeLines:
 						newText.append(fileText[j])
 					j += 1
-				writeLog("Writing updates to StockException")
+				writeLog("Writing updates to code macro")
 				File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newText)
-				writeLog("Removed StockException entry")
-		writeLog("Stock exception remove finished")
+				writeLog("Removed code macro entry")
+		writeLog(macroName + " remove finished")
+
 
 
 #endregion REMOVE FUNCTIONS
