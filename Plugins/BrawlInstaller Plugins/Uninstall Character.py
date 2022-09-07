@@ -245,6 +245,7 @@ def main():
 			removeCodeMacro(fighterId, "StockException", 0)
 			removeCodeMacro(fighterId, "GFXFix", 0)
 			removeCodeMacro(fighterId, "BoneIDFixA", 1, True)
+			removeCodeMacro(fighterId, "GFXFix", 0, preFindText="bne notKirby")
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

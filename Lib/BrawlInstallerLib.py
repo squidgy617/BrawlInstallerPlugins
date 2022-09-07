@@ -1142,7 +1142,7 @@ def getValueString(values, copiedValue=""):
 		return valueText
 
 # Function to add a code macro to the appropriate code
-def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False):
+def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False, preFindText=""):
 		writeLog("Adding ID " + str(id) + " " + macroName + " entry")
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
 			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
@@ -1154,14 +1154,17 @@ def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False):
 			endMacroSearch = False
 			insertLines = []
 			copiedValue = ""
+			foundPreText = False
 			i = 0
 			# Search for a matching ID and if one is found, replace the line
 			newText = []
 			writeLog("Searching for macro entry")
 			while i < len(fileText):
 				line = fileText[i]
+				if preFindText != "" and line.strip() == preFindText:
+					foundPreText = True
 				# Get the fighter ID out of the line
-				if str(line).strip().StartsWith('%' + macroName):
+				if str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
 					writeLog("Found macro entries")
 					foundMacros = True
 					foundId = line.split(',')[position]
@@ -1179,7 +1182,7 @@ def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False):
 					i += 1
 					continue
 				# If we reach the end of the macro entries with no match found, set to add one
-				elif foundMacros and not endMacroSearch and not matchFound and not str(line).strip().StartsWith('%' + macroName):
+				elif foundMacros and not endMacroSearch and not matchFound and not str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
 					writeLog("Matching entry not found, will insert new entry")
 					insertLines.append(i + len(insertLines))
 					if not repeat:
@@ -1658,7 +1661,7 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 		Directory.SetCurrentDirectory(AppPath)
 
 # Function to remove a code macro from the appropriate code
-def removeCodeMacro(id, macroName, position=0, repeat=False):
+def removeCodeMacro(id, macroName, position=0, repeat=False, preFindText=""):
 		writeLog("Removing ID " + str(id) + " " + macroName + " entry")
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
 			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
@@ -1667,14 +1670,16 @@ def removeCodeMacro(id, macroName, position=0, repeat=False):
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			matchFound = False
 			foundMacros = False
-			endMacroSearch = False
+			foundPreText = False
 			removeLines = []
 			i = 0
 			# Search for matching ID and if one is found, remove the line
 			while i < len(fileText):
 				line = fileText[i]
+				if preFindText != "" and line.strip() == preFindText:
+					foundPreText = True
 				# Get the ID out of the entry
-				if str(line).strip().StartsWith('%' + macroName):
+				if str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
 					writeLog("Found macro entries")
 					foundMacros = True
 					foundId = line.split(',')[position]
@@ -1686,7 +1691,7 @@ def removeCodeMacro(id, macroName, position=0, repeat=False):
 							break
 					i += 1
 				# If we aren't repeating and we hit the end, just exit
-				elif not repeat and foundMacros and not matchFound and not str(line).strip().StartsWith("%" + macroName):
+				elif not repeat and foundMacros and not matchFound and not str(line).strip().StartsWith("%" + macroName) and ((not preFindText) or foundPreText):
 					writeLog("No match found")
 					break
 				else:

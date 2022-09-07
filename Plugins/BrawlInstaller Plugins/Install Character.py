@@ -558,6 +558,7 @@ def main():
 					addCodeMacro(fighterInfo.characterName, fighterId, "StockException", [ "0x" + str(fighterId), "0x" + str(fighterId) ], 0)
 					addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), "0x" + str(effectId) ], 0)
 					addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFixA", [ "copy", "0x" + str(fighterId), "0x2A" ], 1, True)
+					addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), "0x" + str(effectId) ], 0, preFindText="bne notKirby")
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
