@@ -585,6 +585,11 @@ def main():
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneGFX", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))), fighterSettings.jigglypuffEFLSId, "copy" ], 0, True)
 						# Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
 						if fighterSettings.jigglypuffSfxIds:
+							if changeSoundbankId:
+								i = 0
+								while i < len(fighterSettings.jigglypuffSfxIds):
+									fighterSettings.jigglypuffSfxIds[i] = getNewSfxId(fighterSettings.jigglypuffSfxIds[i], settings.sfxChangeExe)
+									i += 1
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[0], "copy" ], 0, False, "HOOK @ $80ACAE3C")
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[1], "copy" ], 0, False, "HOOK @ $80ACAE60")
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[2], "copy" ], 0, False, "HOOK @ $80ACF704")

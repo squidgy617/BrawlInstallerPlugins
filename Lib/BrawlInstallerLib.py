@@ -1917,6 +1917,19 @@ def getClonedModuleName(filePath):
 		BrawlAPI.ForceCloseFile()
 		return name
 
+# Get new SFX ID from old SFX ID if we changed soundbanks
+def getNewSfxId(sfxId, sfxChangeExe):
+		writeLog("Getting new SFX ID for SFX ID " + str(sfxId))
+		filePath = getFileInfo(sfxChangeExe).Directory.FullName
+		if filePath:
+			if File.Exists(filePath + '/sound.txt'):
+				fileText = File.ReadAllLines(filePath + '/sound.txt')
+				for line in fileText:
+					if str(line).split(' ')[0] == sfxId:
+						writeLog("Matching SFX ID found at line: " + line + ", new ID is " + str(line).split(' ')[1])
+						return str(line).split(' ')[1]
+		return ""
+
 #endregion GENERAL FUNCTIONS
 
 #region SETUP FUNCTIONS
