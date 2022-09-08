@@ -313,9 +313,9 @@ def readValueFromKey(settings, key):
 		for line in settings:
 			if line.StartsWith(';') or len(line) == 0:
 				continue
-			if line.split(' = ')[0] == key:
-				writeLog("Setting " + key + " found with value " + str(line.split(' = ')[1]).strip())
-				return str(line.split(' = ')[1]).strip()
+			if str(line.split('=')[0]).strip() == key:
+				writeLog("Setting " + key + " found with value " + str(line.split('=')[1]).strip())
+				return str(line.split('=')[1]).strip()
 		writeLog("No value found for setting " + key)
 		return ""
 
@@ -449,6 +449,17 @@ def boolText(boolVal):
 		else:
 			return "false"
 
+# Ensure an ID is hexadecimal whether it was passed in as decimal or hex
+def hexId(id):
+		if str(id).startswith('0x'):
+			id = str(id).upper().replace('0X', '0x')
+			return id
+		elif str(id).isnumeric():
+			id = str(hex(int(id))).upper().replace('0X', '0x')
+			return id
+		else:
+			return ""
+
 #endregion HELPER FUNCTIONS
 
 #region IMPORT FUNCTIONS
@@ -556,6 +567,7 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 					if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
 						frameCount += 100
 					addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+		writeLog("Import stock icons completed")
 
 # Create battle portraits frome images
 def createBPs(cosmeticId, images, fiftyCC="true"):
@@ -1893,7 +1905,13 @@ def archiveBackup():
 def backupCheck():
 		if Directory.Exists(BACKUP_PATH):
 			Directory.Delete(BACKUP_PATH, True)
-				
+
+# Get the name of the module the character's module was cloned from
+def getClonedModuleName(filePath):
+		BrawlAPI.OpenFile(filePath)
+		name = BrawlAPI.RootNode.Name
+		BrawlAPI.ForceCloseFile()
+		return name
 
 #endregion GENERAL FUNCTIONS
 
@@ -1930,6 +1948,22 @@ def getSettings():
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		writeLog("Reading settings complete")
 		return settings
+
+def getFighterSettings():
+		writeLog("Reading fighter settings file")
+		fighterSettings = FighterSettings()
+		if File.Exists(AppPath + '/temp/FighterSettings.txt'):
+			fileText = File.ReadAllLines(AppPath + '/temp/FighterSettings.txt')
+			fighterSettings.lucarioBoneId = hexId(readValueFromKey(fileText, "lucarioBoneId"))
+			fighterSettings.lucarioKirbyEffectId = hexId(readValueFromKey(fileText, "lucarioKirbyEffectId"))
+			fighterSettings.jigglypuffBoneId = hexId(readValueFromKey(fileText, "jigglypuffBoneId"))
+			fighterSettings.jigglypuffEFLSId = hexId(readValueFromKey(fileText, "jigglypuffEFLSId"))
+			jigglypuffSfxIds = readValueFromKey(fileText, "jigglypuffSfxIds").split(',')
+			fighterSettings.jigglypuffSfxIds = []
+			for id in jigglypuffSfxIds:
+				fighterSettings.jigglypuffSfxIds.append(hexId(id))
+		writeLog("Reading fighter settings complete")
+		return fighterSettings
 
 def initialSetup():
 		settings = Settings()
@@ -2115,6 +2149,13 @@ class Settings:
 		useCssRoster = "true"
 		gfxChangeExe = ""
 		installBPNames = "false"
+
+class FighterSettings:
+		lucarioBoneId = ""
+		lucarioKirbyEffectId = ""
+		jigglypuffBoneId = ""
+		jigglypuffEFLSId = ""
+		jigglypuffSfxIds = []
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
