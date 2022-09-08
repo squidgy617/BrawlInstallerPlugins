@@ -249,7 +249,10 @@ def main():
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
-			# Remove code macros
+			# Remove code edits
+
+			# Remove code changes for throw release points
+			updateThrowRelease(fighterId, "EXFighter" + str(fighterId), [ "0.0", "0.0" ])
 
 			# Remove code changes for Lucario clones
 			if clonedModuleName == "ft_lucario":

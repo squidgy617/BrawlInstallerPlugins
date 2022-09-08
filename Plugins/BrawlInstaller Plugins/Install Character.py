@@ -564,6 +564,10 @@ def main():
 
 					#addCodeMacro(fighterInfo.characterName, fighterId, "StockException", [ "0x" + str(fighterId), "0x" + str(fighterId) ], 0)
 
+					# Make code changes to add a throw release point
+					if fighterSettings.throwReleasePoint:
+						updateThrowRelease(fighterId, fighterInfo.characterName, fighterSettings.throwReleasePoint)
+
 					# Make code changes for Lucario clones
 					if clonedModuleName == "ft_lucario":
 						# Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]

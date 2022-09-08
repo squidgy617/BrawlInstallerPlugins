@@ -1227,6 +1227,30 @@ def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False, p
 			writeLog("Added macro entry")
 		writeLog("Macro entry add finished")
 
+# Update an entry of the throw release point code
+def updateThrowRelease(fighterId, fighterName, values):
+		writeLog("Updating throw release point for ID " + str(fighterId))
+		if File.Exists(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm"):
+			createBackup(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm")
+			# Read ThrowRelease.asm
+			writeLog("Reading ThrowRelease.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm")
+			i = 0
+			tableStart = 0
+			endComma = "," if fighterId.upper() != "7F" else ""
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith("ThrowReleaseTable"):
+					writeLog("Found throw release table at line " + str(i))
+					tableStart = i + 2
+				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+					writeLog("Found matching EX fighter at position " + str(i))
+					fileText[i] = "\t" + values[0] + ",\t\t" + values[1] + endComma + "\t| # " + fighterName
+				i += 1
+			writeLog("Writing to ThrowRelease.asm")
+			File.WriteAllLines(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm", fileText)
+		writeLog("Finished updating throw release point")
+
 #endregion IMPORT FUNCTIONS
 
 #region REMOVE FUNCTIONS
@@ -1980,6 +2004,9 @@ def getFighterSettings():
 			for id in jigglypuffSfxIds:
 				fighterSettings.jigglypuffSfxIds.append(hexId(id))
 			fighterSettings.bowserBoneId = hexId(readValueFromKey(fileText, "bowserBoneId"))
+			fighterSettings.throwReleasePoint = []
+			for id in readValueFromKey(fileText, "throwReleasePoint").split(','):
+				fighterSettings.throwReleasePoint.append(id)
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
@@ -2175,6 +2202,7 @@ class FighterSettings:
 		jigglypuffEFLSId = ""
 		jigglypuffSfxIds = []
 		bowserBoneId = ""
+		throwReleasePoint = []
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
