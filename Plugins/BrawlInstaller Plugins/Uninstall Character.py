@@ -84,6 +84,11 @@ def main():
 				cssSlotConfigId = str(fighterId)
 			progressBar.Finish()
 			fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
+			moduleFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/module', 'ft_' + fighterInfo.fighterName + '.rel')
+			# Get the fighter this one is cloned from
+			clonedModuleName = ""
+			if moduleFiles:
+				clonedModuleName = getClonedModuleName(moduleFiles[0])
 
 			cosmeticId = fighterInfo.cosmeticId
 			#endregion USER INPUT/PRELIMINARY CHECKS
@@ -91,7 +96,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 14, progressCounter)
+			progressBar.Begin(0, 15, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -237,6 +242,27 @@ def main():
 			# Remove fighter from code menu
 			if settings.assemblyFunctionsExe != "":
 				removeFromCodeMenu(fighterId, settings.assemblyFunctionsExe)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove code macros
+
+			# Remove code changes for Lucario clones
+			if clonedModuleName == "ft_lucario":
+				removeCodeMacro(fighterId, "GFXFix", 0)
+				removeCodeMacro(fighterId, "GFXFix", 0, preFindText="bne notKirby")
+				removeCodeMacro(fighterId, "BoneIDFixA", 1, True)
+
+			# Remove code changes for Jigglypuff clones
+			if clonedModuleName == "ft_purin":
+				removeCodeMacro(fighterId, "CloneBones", 0, True)
+				removeCodeMacro(fighterId, "CloneGFX", 0, True)
+				removeCodeMacro(fighterId, "CloneSFX", 0, True)
+			
+			# Remove code changes for Dedede clones
+			if clonedModuleName == "ft_dedede":
+				removeCodeMacro(fighterId, "DededeFix", 0, True)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

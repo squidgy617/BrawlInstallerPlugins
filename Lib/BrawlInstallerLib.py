@@ -313,9 +313,9 @@ def readValueFromKey(settings, key):
 		for line in settings:
 			if line.StartsWith(';') or len(line) == 0:
 				continue
-			if line.split(' = ')[0] == key:
-				writeLog("Setting " + key + " found with value " + str(line.split(' = ')[1]).strip())
-				return str(line.split(' = ')[1]).strip()
+			if str(line.split('=')[0]).strip() == key:
+				writeLog("Setting " + key + " found with value " + str(line.split('=')[1]).strip())
+				return str(line.split('=')[1]).strip()
 		writeLog("No value found for setting " + key)
 		return ""
 
@@ -449,6 +449,17 @@ def boolText(boolVal):
 		else:
 			return "false"
 
+# Ensure an ID is hexadecimal whether it was passed in as decimal or hex
+def hexId(id):
+		if str(id).startswith('0x'):
+			id = str(id).upper().replace('0X', '0x')
+			return id
+		elif str(id).isnumeric():
+			id = str(hex(int(id))).upper().replace('0X', '0x')
+			return id
+		else:
+			return ""
+
 #endregion HELPER FUNCTIONS
 
 #region IMPORT FUNCTIONS
@@ -556,6 +567,7 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 					if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
 						frameCount += 100
 					addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+		writeLog("Import stock icons completed")
 
 # Create battle portraits frome images
 def createBPs(cosmeticId, images, fiftyCC="true"):
@@ -1124,6 +1136,93 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		Directory.SetCurrentDirectory(AppPath)
 		writeLog("Add to code menu finished.")
 
+# Helper function to generate a value string for code macros
+def getValueString(values, copiedValue=""):
+		# Get string out of values
+		valueText = ""
+		if "(" in copiedValue:
+			copiedValue = copiedValue.split('(')[1]
+		if ")" in copiedValue:
+			copiedValue = copiedValue.split(')')[0]
+		for value in values:
+			if value == "copy":
+				value = copiedValue
+			if valueText == "":
+				valueText = valueText + str(value)
+			else:
+				valueText = valueText + ", " + str(value)
+		return valueText
+
+# Function to add a code macro to the appropriate code
+def addCodeMacro(fighterName, id, macroName, values, position=0, repeat=False, preFindText=""):
+		writeLog("Adding ID " + str(id) + " " + macroName + " entry")
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			# Read CloneEngine.asm
+			writeLog("Reading CloneEngine.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			matchFound = False
+			foundMacros = False
+			endMacroSearch = False
+			insertLines = []
+			copiedValue = ""
+			foundPreText = False
+			i = 0
+			# Search for a matching ID and if one is found, replace the line
+			newText = []
+			writeLog("Searching for macro entry")
+			while i < len(fileText):
+				line = fileText[i]
+				if preFindText != "" and line.strip() == preFindText:
+					foundPreText = True
+				# Get the fighter ID out of the line
+				if str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
+					writeLog("Found macro entries")
+					foundMacros = True
+					foundId = line.split(',')[position]
+					# If it's a matching entry, replace it
+					if '0x' + str(id) in foundId:
+						writeLog("Found matching entry")
+						matchFound = True
+						# Get string out of values - here, copied value is just whatever it was originally, since we are overwriting an existing entry
+						if "copy" in values:
+							copiedValue = fileText[i].split(',')[values.index("copy")]
+						valueText = getValueString(values, copiedValue)
+						newText.append('\t%' + macroName + '(' + valueText + ')\t#' + fighterName)
+					else:
+						newText.append(line)
+					i += 1
+					continue
+				# If we reach the end of the macro entries with no match found, set to add one
+				elif foundMacros and not endMacroSearch and not matchFound and not str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
+					writeLog("Matching entry not found, will insert new entry")
+					insertLines.append(i + len(insertLines))
+					if not repeat:
+						endMacroSearch = True
+					else:
+						matchFound = False
+						foundMacros = False
+						endMacroSearch = False
+					newText.append(line)
+					i += 1
+					continue
+				else:
+					newText.append(line)
+					i += 1
+					continue
+			# If we didn't find a match, add the line at the position after the last macro
+			for insertLine in insertLines:
+				writeLog("Inserting new entry")
+				# Get string out of values - here, copied value is whatever is one line above
+				if "copy" in values:
+					copiedValue = newText[insertLine - 1].split(',')[values.index("copy")]
+				valueText = getValueString(values, copiedValue)
+				newText.insert(insertLine, '\t%' + macroName + '(' + valueText + ')\t#' + fighterName)
+			writeLog("Writing updates to macro")
+			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newText)
+			writeLog("Added macro entry")
+		writeLog("Macro entry add finished")
+
 #endregion IMPORT FUNCTIONS
 
 #region REMOVE FUNCTIONS
@@ -1573,6 +1672,57 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 			p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)
 
+# Function to remove a code macro from the appropriate code
+def removeCodeMacro(id, macroName, position=0, repeat=False, preFindText=""):
+		writeLog("Removing ID " + str(id) + " " + macroName + " entry")
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			# Read CloneEngine.asm
+			writeLog("Reading CloneEngine.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			matchFound = False
+			foundMacros = False
+			foundPreText = False
+			removeLines = []
+			i = 0
+			# Search for matching ID and if one is found, remove the line
+			while i < len(fileText):
+				line = fileText[i]
+				if preFindText != "" and line.strip() == preFindText:
+					foundPreText = True
+				# Get the ID out of the entry
+				if str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
+					writeLog("Found macro entries")
+					foundMacros = True
+					foundId = line.split(',')[position]
+					if '0x' + str(id) in foundId:
+						writeLog("Found matching entry")
+						matchFound = True
+						removeLines.append(i)
+						if not repeat:
+							break
+					i += 1
+				# If we aren't repeating and we hit the end, just exit
+				elif not repeat and foundMacros and not matchFound and not str(line).strip().StartsWith("%" + macroName) and ((not preFindText) or foundPreText):
+					writeLog("No match found")
+					break
+				else:
+					i += 1
+			# If we found a match, iterate through and write all the lines, skipping the matches
+			if matchFound:
+				j = 0
+				newText = []
+				while j < len(fileText):
+					if j not in removeLines:
+						newText.append(fileText[j])
+					j += 1
+				writeLog("Writing updates to code macro")
+				File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newText)
+				writeLog("Removed code macro entry")
+		writeLog(macroName + " remove finished")
+
+
+
 #endregion REMOVE FUNCTIONS
 
 #region INSTALLER FUNCTIONS
@@ -1755,7 +1905,13 @@ def archiveBackup():
 def backupCheck():
 		if Directory.Exists(BACKUP_PATH):
 			Directory.Delete(BACKUP_PATH, True)
-				
+
+# Get the name of the module the character's module was cloned from
+def getClonedModuleName(filePath):
+		BrawlAPI.OpenFile(filePath)
+		name = BrawlAPI.RootNode.Name
+		BrawlAPI.ForceCloseFile()
+		return name
 
 #endregion GENERAL FUNCTIONS
 
@@ -1792,6 +1948,22 @@ def getSettings():
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		writeLog("Reading settings complete")
 		return settings
+
+def getFighterSettings():
+		writeLog("Reading fighter settings file")
+		fighterSettings = FighterSettings()
+		if File.Exists(AppPath + '/temp/FighterSettings.txt'):
+			fileText = File.ReadAllLines(AppPath + '/temp/FighterSettings.txt')
+			fighterSettings.lucarioBoneId = hexId(readValueFromKey(fileText, "lucarioBoneId"))
+			fighterSettings.lucarioKirbyEffectId = hexId(readValueFromKey(fileText, "lucarioKirbyEffectId"))
+			fighterSettings.jigglypuffBoneId = hexId(readValueFromKey(fileText, "jigglypuffBoneId"))
+			fighterSettings.jigglypuffEFLSId = hexId(readValueFromKey(fileText, "jigglypuffEFLSId"))
+			jigglypuffSfxIds = readValueFromKey(fileText, "jigglypuffSfxIds").split(',')
+			fighterSettings.jigglypuffSfxIds = []
+			for id in jigglypuffSfxIds:
+				fighterSettings.jigglypuffSfxIds.append(hexId(id))
+		writeLog("Reading fighter settings complete")
+		return fighterSettings
 
 def initialSetup():
 		settings = Settings()
@@ -1977,6 +2149,13 @@ class Settings:
 		useCssRoster = "true"
 		gfxChangeExe = ""
 		installBPNames = "false"
+
+class FighterSettings:
+		lucarioBoneId = ""
+		lucarioKirbyEffectId = ""
+		jigglypuffBoneId = ""
+		jigglypuffEFLSId = ""
+		jigglypuffSfxIds = []
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):

@@ -48,6 +48,13 @@ def main():
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
 					slotConfig = Directory.GetFiles(folder + '/EXConfigs', "Slot*.dat")[0]
 					fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
+					effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
+					fighterSettings = getFighterSettings()
+					# Get the fighter this one is cloned from
+					if moduleFolder:
+						clonedModuleName = getClonedModuleName(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0])
+					else:
+						clonedModuleName = ""
 
 					uninstallVictoryTheme = 0
 					newSoundbankId = ""
@@ -198,7 +205,6 @@ def main():
 								return
 					# Check if Effect.pac ID is already in use
 					if settings.gfxChangeExe != "":
-						effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
 						oldEffectId = effectId
 						if effectId:
 							while True:
@@ -280,7 +286,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 15, progressCounter)
+					progressBar.Begin(0, 16, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -550,6 +556,46 @@ def main():
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 					#endregion Code Menu
+
+					#region Code Edits
+
+					#addCodeMacro(fighterInfo.characterName, fighterId, "StockException", [ "0x" + str(fighterId), "0x" + str(fighterId) ], 0)
+
+					# Make code changes for Lucario clones
+					if clonedModuleName == "ft_lucario":
+						# Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
+						addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))) ], 0)
+						# Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
+						if fighterSettings.lucarioKirbyEffectId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), fighterSettings.lucarioKirbyEffectId ], 0, preFindText="bne notKirby")
+						# Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]
+						if fighterSettings.lucarioBoneId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFixA", [ "copy", "0x" + str(fighterId), fighterSettings.lucarioBoneId ], 1, True)
+
+					# Make code changes for Jigglypuff clones
+					if clonedModuleName == "ft_purin":
+						# Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]
+						if fighterSettings.jigglypuffBoneId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneBones", [ "0x" + str(fighterId), fighterSettings.jigglypuffBoneId, "copy" ], 0, True)
+						# Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
+						if fighterSettings.jigglypuffEFLSId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneGFX", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))), fighterSettings.jigglypuffEFLSId, "copy" ], 0, True)
+						# Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
+						if fighterSettings.jigglypuffSfxIds:
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[0], "copy" ], 0, False, "HOOK @ $80ACAE3C")
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[1], "copy" ], 0, False, "HOOK @ $80ACAE60")
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[2], "copy" ], 0, False, "HOOK @ $80ACF704")
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[3], "copy" ], 0, False, "HOOK @ $80ACA09C")
+					
+					# Make code changes for Dedede clones
+					if clonedModuleName == "ft_dedede":
+						# Dedede Clones Fix [MarioDox]
+						addCodeMacro(fighterInfo.characterName, fighterId, "DededeFix", [ "0x" + str(fighterId) ], 0, True)
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Code Edits
 
 					#region CSSRoster
 
