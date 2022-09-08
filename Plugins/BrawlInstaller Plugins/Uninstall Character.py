@@ -267,6 +267,10 @@ def main():
 			if clonedModuleName == "ft_dedede":
 				removeCodeMacro(fighterId, "DededeFix", 0, True)
 
+			# Remove code changes for Bowser clones
+			if clonedModuleName == "ft_bowser":
+				removeCodeMacro(fighterId, "BoneIDFix", 0, False)
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 

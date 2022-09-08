@@ -600,6 +600,12 @@ def main():
 						# Dedede Clones Fix [MarioDox]
 						addCodeMacro(fighterInfo.characterName, fighterId, "DededeFix", [ "0x" + str(fighterId) ], 0, True)
 
+					# Make code changes for Bowser clones
+					if clonedModuleName == "ft_koopa":
+						# Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
+						if fighterSettings.bowserBoneId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFix", [ "0x" + str(fighterId), fighterSettings.bowserBoneId ], 0, False, preFindText=".macro BoneIDFix(<FighterID>, <BoneID>)")
+
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 

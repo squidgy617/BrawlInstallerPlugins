@@ -1979,6 +1979,7 @@ def getFighterSettings():
 			fighterSettings.jigglypuffSfxIds = []
 			for id in jigglypuffSfxIds:
 				fighterSettings.jigglypuffSfxIds.append(hexId(id))
+			fighterSettings.bowserBoneId = hexId(readValueFromKey(fileText, "bowserBoneId"))
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
@@ -2173,6 +2174,7 @@ class FighterSettings:
 		jigglypuffBoneId = ""
 		jigglypuffEFLSId = ""
 		jigglypuffSfxIds = []
+		bowserBoneId = ""
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
