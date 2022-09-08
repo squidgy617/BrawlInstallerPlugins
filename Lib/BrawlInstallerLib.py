@@ -531,9 +531,13 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 				images = Directory.GetFiles(folder, "*.png")
 				# Color smash images in folders with multiple
 				if len(images) > 1:
+					writeLog("Color smashing stock icons")
 					ColorSmashImport(node, images, 256)
+					writeLog("Imported color smashed icons")
 				else:
+					writeLog("Importing standalone icon")
 					importTexture(node, images[0], WiiPixelFormat.CI8, 32, 32)
+					writeLog("Imported standalone icon")
 				for image in images:
 					totalImages.append(image)
 			# Rename the texture nodes
