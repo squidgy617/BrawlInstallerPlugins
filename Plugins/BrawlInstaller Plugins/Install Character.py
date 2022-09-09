@@ -610,6 +610,8 @@ def main():
 						if fighterSettings.bowserBoneId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFix", [ "0x" + str(fighterId), fighterSettings.bowserBoneId ], 0, False, preFindText=".macro BoneIDFix(<FighterID>, <BoneID>)")
 
+					buildGct()
+
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 
