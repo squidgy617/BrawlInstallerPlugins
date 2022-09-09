@@ -263,6 +263,8 @@ def main():
 			if clonedModuleName == "ft_bowser":
 				removeCodeMacro(fighterId, "BoneIDFix", 0, False)
 
+			updateEndingCode(cosmeticConfigId, True)
+
 			buildGct()
 
 			progressCounter += 1

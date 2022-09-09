@@ -46,6 +46,7 @@ def main():
 					kirbyHatFolder = getDirectoryByName("KirbyHats", fighterDir)
 					stockIconFolder = getDirectoryByName("StockIcons", fighterDir)
 					victoryThemeFolder = getDirectoryByName("VictoryTheme", fighterDir)
+					endingFolder = getDirectoryByName("Ending", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -546,6 +547,7 @@ def main():
 
 					# Make code changes to add a throw release point
 					if fighterSettings.throwReleasePoint:
+						BrawlAPI.ShowMessage('"' + str(fighterSettings.throwReleasePoint) + '"', "")
 						updateThrowRelease(fighterId, fighterInfo.characterName, fighterSettings.throwReleasePoint)
 
 					# Make code changes for Lucario clones
@@ -589,6 +591,10 @@ def main():
 						# Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
 						if fighterSettings.bowserBoneId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFix", [ "0x" + str(fighterId), fighterSettings.bowserBoneId ], 0, False, preFindText=".macro BoneIDFix(<FighterID>, <BoneID>)")
+
+					if endingFolder:
+						endingId = updateEndingCode(fighterId)
+						importEndingFiles(Directory.GetFiles(endingFolder.FullName, "*.pac"), endingId)
 
 					buildGct()
 
