@@ -70,19 +70,9 @@ def main():
 					#region USER INPUT/PRELIMINARY CHECKS
 
 					# Prompt user to input fighter ID
-					idEntered = False
-					while idEntered != True:
-						fighterId = BrawlAPI.UserStringInput("Enter your desired fighter ID")
-						# Ensure fighter ID is just the hex digits
-						if fighterId.startswith('0x'):
-							fighterId = fighterId.split('0x')[1].upper()
-							break
-						elif fighterId.isnumeric():
-							fighterId = str(hex(int(fighterId))).split('0x')[1].upper()
-							break
-						else:
-							BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-							continue
+					fighterId = showIdPrompt("Enter your desired fighter ID")
+					fighterId = fighterId.split('0x')[1].upper()
+
 					# Check if fighter ID is already used
 					existingFighterConfig = getFighterConfig(fighterId)
 					if existingFighterConfig:
@@ -114,19 +104,9 @@ def main():
 								else:
 									break
 					# Prompt user to input cosmetic ID
-					idEntered = False
-					while idEntered != True:
-						cosmeticId = BrawlAPI.UserStringInput("Enter your desired cosmetic ID")
-						# Ensure cosmetic ID is the integer format
-						if cosmeticId.startswith('0x'):
-							cosmeticId = int(cosmeticId, 16)
-							break
-						elif cosmeticId.isnumeric():
-							cosmeticId = int(cosmeticId)
-							break
-						else:
-							BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-							continue
+					cosmeticId = showIdPrompt("Enter your desired cosmetic ID")
+					cosmeticId = int(cosmeticId, 16)
+
 					# Check if cosmetic ID is already used
 					existingFile = Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "MenSelchrFaceB" + addLeadingZeros(cosmeticId, 2) + "0.brres")
 					if existingFile:

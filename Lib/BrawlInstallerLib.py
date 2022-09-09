@@ -460,6 +460,17 @@ def hexId(id):
 		else:
 			return ""
 
+# Create a prompt for user to enter a valid ID in hex or dec format
+def showIdPrompt(message):
+		idEntered = False
+		while idEntered != True:
+			id = hexId(BrawlAPI.UserStringInput(message))
+			if id != "":
+				return id
+			else:
+				BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
+				continue
+
 #endregion HELPER FUNCTIONS
 
 #region IMPORT FUNCTIONS
