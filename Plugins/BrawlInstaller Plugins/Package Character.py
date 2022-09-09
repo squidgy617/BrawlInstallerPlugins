@@ -4,6 +4,8 @@ __version__ = "1.0.1"
 from BrawlInstallerLib import *
 
 def main():
+		if str(BrawlAPI.RootNode) != "None":
+			BrawlAPI.CloseFile()
 		# If temporary directory already exists, delete it to prevent duplicate files
 		if Directory.Exists(AppPath + '/temp'):
 			Directory.Delete(AppPath + '/temp', 1)
@@ -180,6 +182,37 @@ def main():
 
 		if victoryTheme:
 			copyFile(victoryTheme, AppPath + '/temp/VictoryTheme')
+
+		fighterSettings = FighterSettings()
+		setThrowRelease = BrawlAPI.ShowYesNoPrompt("Would you like to set a throw release point for your fighter? (This step is optional.)", title)
+		if setThrowRelease:
+			fighterSettings.throwReleasePoint.append(BrawlAPI.UserFloatInput("Enter the first value", "First value in throw release code", 0.0))
+			fighterSettings.throwReleasePoint.append(BrawlAPI.UserFloatInput("Enter the second value", "Second value in throw release code", 0.0))
+
+		if moduleFile:
+			moduleName = getClonedModuleName(moduleFile)
+			if moduleName == 'ft_lucario':
+				setLucarioCodes = BrawlAPI.ShowYesNoPrompt("This character appears to be a Lucario clone. Would you like to set values for the Lucario code fixes used in P+Ex?", title)
+				if setLucarioCodes:
+					fighterSettings.lucarioBoneId = showIdPrompt("Bone ID - Aura Sphere Fix")
+					fighterSettings.lucarioKirbyEffectId = showIdPrompt("Kirby Effect.pac ID - Aura Sphere Fix")
+			if moduleName != 'ft_purin':
+				setJigglypuffCodes = BrawlAPI.ShowYesNoPrompt("This character appears to be a Jigglypuff clone. Would you like to set values for the Jigglypuff code fixes used in P+Ex?", title)
+				if setJigglypuffCodes:
+					fighterSettings.jigglypuffBoneId = showIdPrompt("Bone ID - Rollout Fix")
+					fighterSettings.jigglypuffEFLSId = showIdPrompt("EFLS ID - Rollout Fix")
+					fighterSettings.jigglypuffSfxIds = ""
+					fighterSettings.jigglypuffSfxIds = fighterSettings.jigglypuffSfxIds + "" + showIdPrompt("SFX ID 1 - Rollout Fix")
+					fighterSettings.jigglypuffSfxIds = fighterSettings.jigglypuffSfxIds + "," + showIdPrompt("SFX ID 2 - Rollout Fix")
+					fighterSettings.jigglypuffSfxIds = fighterSettings.jigglypuffSfxIds + "," + showIdPrompt("SFX ID 3 - Rollout Fix")
+					fighterSettings.jigglypuffSfxIds = fighterSettings.jigglypuffSfxIds + "," + showIdPrompt("SFX ID 4 - Rollout Fix")
+			if moduleName == 'ft_koopa':
+				setBowserCodes = BrawlAPI.ShowYesNoPrompt("This character appears to be a Bowser clone. Would you like to set values for the Bowser code fixes used in P+Ex?", title)
+				if setBowserCodes:
+					fighterSettings.bowserBoneId = showIdPrompt("Bone ID - Firebreath Fix")
+
+			attrs = vars(fighterSettings)
+			File.WriteAllText(AppPath + '/temp/FighterSettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
 
 		outputDirectory = BrawlAPI.OpenFolderDialog("Select output directory")
 		fileName = BrawlAPI.UserStringInput("Enter a file name")

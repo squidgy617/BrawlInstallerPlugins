@@ -24,19 +24,8 @@ def main():
 			#region USER INPUT/PRELIMINARY CHECKS
 
 			# Prompt user to input fighter ID
-			idEntered = False
-			while idEntered != True:
-				fighterId = BrawlAPI.UserStringInput("Enter the ID for the fighter you wish to remove")
-				# Ensure fighter ID is just the hex digits
-				if fighterId.startswith('0x'):
-					fighterId = fighterId.split('0x')[1].upper()
-					break
-				elif fighterId.isnumeric():
-					fighterId = str(hex(int(fighterId))).split('0x')[1].upper()
-					break
-				else:
-					BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-					continue
+			fighterId = showIdPrompt("Enter the ID for the fighter you wish to remove")
+			fighterId = fighterId.split('0x')[1].upper()
 
 			uninstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's franchise icon?", "Uninstall franchise icon?")
 			if settings.installVictoryThemes:
