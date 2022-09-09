@@ -1033,7 +1033,7 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 			File.AppendAllText(kirbyHatPath + '/EX_KirbyHats.txt', '\n"' + characterName + '" = 0x' + fighterId + ' : 0x' + kirbyHatFigherId)
 		# Run exe
 		writeLog("Running " + kirbyHatExe)
-		p = Process.Start(kirbyHatExe, '1 1 1 1 1 -q')
+		p = Process.Start(kirbyHatExe, '1 1 1 0 1')
 		p.WaitForExit()
 		p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)
@@ -1134,11 +1134,32 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		else:
 			File.AppendAllText(assemblyFunctionsPath + '/EX_Characters.txt', '\n"' + fighterName + '" = 0x' + fighterId)
 		writeLog("Running " + assemblyFunctionExe)
-		p = Process.Start(assemblyFunctionExe, '1 1 1 1 -q')
+		p = Process.Start(assemblyFunctionExe, '1 1 0 1')
 		p.WaitForExit()
 		p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)
 		writeLog("Add to code menu finished.")
+
+# Function to build GCTs using GCTRealMate
+def buildGct():
+		writeLog("Building GCT files")
+		createBackup(MainForm.BuildPath + '/BOOST.GCT')
+		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
+		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
+		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
+		if File.Exists(MainForm.BuildPath + '/GCTRealMate.exe'):
+			writeLog("Running GCTRealMate.exe")
+			boost = ' "' + MainForm.BuildPath + '\\BOOST.txt" ' if File.Exists(MainForm.BuildPath + '\\BOOST.txt') else ""
+			rsbe = ' "' + MainForm.BuildPath + '\\RSBE01.txt" ' if File.Exists(MainForm.BuildPath + '\\RSBE01.txt') else ""
+			netboost = ' "' + MainForm.BuildPath + '\\NETBOOST.txt" ' if File.Exists(MainForm.BuildPath + '\\NETBOOST.txt') else ""
+			netplay = ' "' + MainForm.BuildPath + '\\NETPLAY.txt" ' if File.Exists(MainForm.BuildPath + '\\NETPLAY.txt') else ""
+			Directory.SetCurrentDirectory(MainForm.BuildPath)
+			p = Process.Start(MainForm.BuildPath + '\\GCTRealMate.exe', '-g -l -q' + boost + rsbe + netboost + netplay)
+			p.WaitForExit()
+			p.Dispose()
+			Directory.SetCurrentDirectory(AppPath)
+			writeLog("Finished running GCTRealMate.exe")
+		writeLog("Finished building GCT files")
 
 # Helper function to generate a value string for code macros
 def getValueString(values, copiedValue=""):
@@ -1646,7 +1667,7 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 			File.WriteAllLines(kirbyHatPath + '/EX_KirbyHats.txt', Array[str](newFileText))
 			# Run exe
 			writeLog("Running " + kirbyHatExe)
-			p = Process.Start(kirbyHatExe, '1 1 1 1 1 -q')
+			p = Process.Start(kirbyHatExe, '1 1 1 0 1')
 			p.WaitForExit()
 			p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)
@@ -1695,7 +1716,7 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 			File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', Array[str](newFileText))
 			# Run the exe
 			writeLog("Running " + assemblyFunctionExe)
-			p = Process.Start(assemblyFunctionExe, '1 1 1 1 -q')
+			p = Process.Start(assemblyFunctionExe, '1 1 0 1')
 			p.WaitForExit()
 			p.Dispose()
 		Directory.SetCurrentDirectory(AppPath)

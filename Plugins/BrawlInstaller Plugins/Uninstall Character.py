@@ -274,6 +274,8 @@ def main():
 			if clonedModuleName == "ft_bowser":
 				removeCodeMacro(fighterId, "BoneIDFix", 0, False)
 
+			buildGct()
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
