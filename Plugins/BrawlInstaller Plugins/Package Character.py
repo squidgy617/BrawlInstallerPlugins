@@ -189,6 +189,10 @@ def main():
 			fighterSettings.throwReleasePoint.append(BrawlAPI.UserFloatInput("Enter the first value", "First value in throw release code", 0.0))
 			fighterSettings.throwReleasePoint.append(BrawlAPI.UserFloatInput("Enter the second value", "Second value in throw release code", 0.0))
 
+		setCreditsThemeId = BrawlAPI.ShowYesNoPrompt("Would you like to set a specific custom credits theme ID for your fighter? (This step is optional. Only do this if you want this fighter to use a specific vanilla credits theme.)", title)
+		if setCreditsThemeId:
+			fighterSettings.creditsThemeId = showIdPrompt("Credits Theme ID")
+
 		if moduleFile:
 			moduleName = getClonedModuleName(moduleFile)
 			if moduleName == 'ft_lucario':
