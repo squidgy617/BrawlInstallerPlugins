@@ -33,6 +33,15 @@ def main():
 			else:
 				uninstallVictoryTheme = False
 
+			if settings.installVictoryThemes:
+				creditsId = updateCreditsCode(fighterId, "", read=True)
+				if creditsId and creditsId != "0x0000":
+					uninstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's credits theme?", "Uninstall credits theme?")
+				else:
+					uninstallCreditsTheme = False
+			else:
+				uninstallCreditsTheme = False
+
 			# Get fighter info
 
 			# Set up progressbar
@@ -187,7 +196,7 @@ def main():
 			# Remove victory theme
 			if uninstallVictoryTheme:
 				removeSongId = getVictoryThemeIDByFighterId(slotId)
-				removeVictoryTheme(removeSongId)
+				removeSong(removeSongId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
@@ -233,6 +242,9 @@ def main():
 
 			# Remove ending files
 			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
+
+			if uninstallCreditsTheme:
+				uninstallCreditsSong(fighterId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

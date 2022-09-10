@@ -47,6 +47,7 @@ def main():
 					stockIconFolder = getDirectoryByName("StockIcons", fighterDir)
 					victoryThemeFolder = getDirectoryByName("VictoryTheme", fighterDir)
 					endingFolder = getDirectoryByName("Ending", fighterDir)
+					creditsFolder = getDirectoryByName("CreditsTheme", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -61,9 +62,11 @@ def main():
 						clonedModuleName = ""
 
 					uninstallVictoryTheme = 0
+					uninstallCreditsTheme = 0
 					newSoundbankId = ""
 					franchiseIconId = -1
 					victoryThemeId = 0
+					creditsThemeId = 0
 					overwriteFighterName = ""
 					changeEffectId = False
 					oldEffectId = ""
@@ -121,18 +124,9 @@ def main():
 						installVictoryTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a victory theme. Would you like to install it?", "Install victory theme?")
 						if installVictoryTheme == False:
 							changeVictoryTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's victory theme ID?", "Change victory theme?")
-							while changeVictoryTheme:
-								victoryThemeId = BrawlAPI.UserStringInput("Enter your desired victory theme ID")
-								# Ensure victory theme ID is in integer format
-								if victoryThemeId.startswith('0x'):
-									victoryThemeId = int(victoryThemeId, 16)
-									break
-								elif victoryThemeId.isnumeric():
-									victoryThemeId = int(victoryThemeId)
-									break
-								else:
-									BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-									continue
+							if changeVictoryTheme:
+								victoryThemeId = showIdPrompt("Enter your desired victory theme ID")
+								victoryThemeId = int(victoryThemeId, 16)
 						# Check if existing fighter has a different victory theme
 						if installVictoryTheme:
 							existingSlotConfig = getSlotConfig(fighterId)
@@ -142,6 +136,24 @@ def main():
 									victoryThemeName = getFileInfo(Directory.GetFiles(folder + '/VictoryTheme', "*.brstm")[0]).Name
 									if oldVictoryThemeName != victoryThemeName.split('.brstm')[0]:
 										uninstallVictoryTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a victory theme with a different name. Do you want to remove it?", "Remove existing victory theme?")
+
+					# Credits theme checks
+					if creditsFolder:
+						# Ask user if they would like to install the included credits theme
+						doInstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a credits theme. Would you like to install it?", "Install credits theme?")
+						if doInstallCreditsTheme == False:
+							changeCreditsTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's credits theme ID?", "Change credits theme?")
+							if changeCreditsTheme:
+								creditsThemeId = showIdPrompt("Enter your desired credits theme ID")
+								creditsThemeId = int(creditsThemeId, 16)
+						# Check if existing fighter has a different credits theme
+						if doInstallCreditsTheme:
+							oldThemeId = updateCreditsCode(fighterId, "", read=True)
+							if oldThemeId and oldThemeId != "0x0000":
+								oldCreditsThemeName = getSongNameById(int(oldThemeId, 16), 'Credits', 'Credits')
+								creditsThemeName = getFileInfo(Directory.GetFiles(folder + '/CreditsTheme', "*.brstm")[0]).Name
+								if oldCreditsThemeName != creditsThemeName.split('.brstm')[0]:
+									uninstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a credits theme with a different name. Do you want to remove it?", "Remove existing credits theme?")
 						
 					# Check if soundbank is already in use
 					if soundbankFolder:
@@ -412,10 +424,10 @@ def main():
 					# If user indicated they want victory theme removed, remove it first
 					if uninstallVictoryTheme:
 						removeSongId = getVictoryThemeIDByFighterId(fighterId)
-						removeVictoryTheme(removeSongId)
+						removeSong(removeSongId)
 					# Add victory theme
 					if victoryThemeFolder and settings.installVictoryThemes == "true" and installVictoryTheme:
-						victoryThemeId = addVictoryTheme(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
+						victoryThemeId = addSong(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -536,6 +548,19 @@ def main():
 					# Install ending files if they exist
 					if endingFolder:
 						installEndingFiles(endingFolder, fighterInfo.fighterName, fighterId)
+
+					# If user indicated they want credits theme removed, remove it first
+					if uninstallCreditsTheme:
+						uninstallCreditsSong(fighterId)
+
+					# Update credits codde if ID is provided
+					if fighterSettings.creditsThemeId:
+						updateCreditsCode(fighterId, fighterSettings.creditsThemeId)
+
+					# Install credits song if one exists
+					if creditsFolder and settings.installVictoryThemes == "true" and doInstallCreditsTheme:
+						if Directory.GetFiles(creditsFolder.FullName, "*.brstm"):
+							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], fighterId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)

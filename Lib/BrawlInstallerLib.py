@@ -366,14 +366,14 @@ def getEffectId(fighterName, rootDir=""):
 		BrawlAPI.ForceCloseFile()
 		return 0
 
-# Get song name from Results.tlst by song ID
-def getSongNameById(songId):
-		writeLog("Getting song name from song ID " + songId)
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+# Get song name from tracklist by song ID
+def getSongNameById(songId, songDirectory='Victory!', tracklist='Results'):
+		writeLog("Getting song name from song ID " + str(songId))
+		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		for song in BrawlAPI.RootNode.Children:
 			if song.SongID == songId:
 				BrawlAPI.ForceCloseFile()
-				return song.SongFileName.split('Victory!/')[1]
+				return song.SongFileName.split(songDirectory + '/')[1]
 		BrawlAPI.ForceCloseFile()
 		return 0
 
@@ -404,7 +404,7 @@ def getVictoryThemeIDByFighterId(slotId):
 def copyFile(sourcePath, destinationPath):
 		writeLog("Copying file " + sourcePath + " to " + destinationPath)
 		Directory.CreateDirectory(destinationPath)
-		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name)
+		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
@@ -440,7 +440,7 @@ def openFile(filePath):
 def copyRenameFile(sourcePath, newName, destinationPath):
 		writeLog("Attempting to copy file " + sourcePath + " to " + destinationPath + '/' + newName)
 		Directory.CreateDirectory(destinationPath)
-		File.Copy(sourcePath, destinationPath + '/' + newName)
+		File.Copy(sourcePath, destinationPath + '/' + newName, True)
 
 # Return the text version of a boolean value
 def boolText(boolVal):
@@ -821,7 +821,7 @@ def updateModule(file, directory, fighterId, fighterName):
 			node = getChildByName(BrawlAPI.RootNode, "Section [1]")
 			node.Export(directory.FullName + "/Section [1]")
 			rootNode = BrawlAPI.RootNode.Name
-			BrawlAPI.ForceCloseFile()
+			closeModule()
 			# Get the exported section 1 file
 			sectionFile = directory.FullName + "/Section [1]"
 			# Handle Pit module
@@ -845,6 +845,17 @@ def updateModule(file, directory, fighterId, fighterName):
 		writeLog("Copying module " + file.FullName)
 		File.Copy(file.FullName, MainForm.BuildPath + '/pf/module/ft_' + fighterName.lower() + '.rel', 1)
 		writeLog("Finished updating module")
+
+# Close module file cleanly
+def closeModule():
+		while True:
+			try:
+				BrawlAPI.ForceCloseFile()
+			except Exception as e:
+				if str(e).strip() == "Collection was modified; enumeration operation may not execute.":
+					continue
+			break
+
 
 # Edit module offsets
 def editModule(fighterId, moduleFile, sectionFile, offsets):
@@ -1066,24 +1077,24 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 			File.Copy(file.FullName, path, 1)
 		writeLog("Move Kirby hat files finished.")
 
-# Add character victory theme
-def addVictoryTheme(file):
+# Add song to tracklist
+def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		writeLog("Adding victory theme file " + file)
 		# Move to strm directory
 		file = getFileInfo(file)
-		path = MainForm.BuildPath + '/pf/sound/strm/Victory!/' + file.Name
+		path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory + '/' + file.Name
 		# Back up file if it already exists
 		createBackup(path)
 		getFileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		writeLog("Opening Results.tlst")
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		# Back up tracklist
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		# Check if song is already installed
 		writeLog("Checking if song already exists")
 		for song in BrawlAPI.RootNode.Children:
-			if song.SongFileName == 'Victory!/' + file.Name.split('.')[0]:
+			if song.SongFileName == songDirectory + '/' + file.Name.split('.')[0]:
 				BrawlAPI.ForceCloseFile()
 				return song.SongID
 		# Calculate song ID
@@ -1093,10 +1104,10 @@ def addVictoryTheme(file):
 		while currentSongId in usedSongIds:
 			currentSongId += 1
 		# Add to tracklist file
-		writeLog("Adding song ID " + str(currentSongId) + " to Results.tlst")
+		writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
 		newNode = TLSTEntryNode()
 		newNode.Name = file.Name.split('.')[0]
-		newNode.SongFileName = 'Victory!/' + file.Name.split('.')[0]
+		newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
 		newNode.Volume = 80
 		newNode.Frequency = 40
 		newNode.SongID = currentSongId
@@ -1395,6 +1406,70 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 			else:
 				returnId = foundId.strip()
 			writeLog("Finished updating ending code")
+			return returnId
+
+# Update an entry of the credits music code
+def updateCreditsCode(slotId, songId, remove=False, read=False):
+		if not read:
+			writeLog("Updating credits code for ID " + str(slotId))
+		else:
+			writeLog("REading credits code for ID " + str(slotId))
+		if File.Exists(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm"):
+			createBackup(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
+			# Read ResultsMusic.asm
+			writeLog("Reading ResultsMusic.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
+			i = 0
+			tableStart = 0
+			tableEndReached = False
+			# Find the credits table
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith("ClassicResultsTable:"):
+					writeLog("Found credits table at line " + str(i))
+					tableStart = i + 2
+					break
+				i += 1
+			# Search for the position to replace
+			i = tableStart
+			tableEndReached = False
+			# Count starts at -1 because the numbers are zero-indexed
+			lineCounter = -1
+			notWritten = True
+			foundId = ""
+			if remove:
+				songId = "0x0000"
+			writeLog("Finding position to write")
+			while i < len(fileText):
+				line = fileText[i]
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				lineCounter = lineCounter + len(splitLine)
+				if notWritten and not tableEndReached and lineCounter >= int(slotId, 16):
+					writeLog("Found write location on line " + str(i))
+					newLine = splitLine
+					# Have to subtract 1 because of zero-indexing
+					foundId = newLine[lineCounter - int(slotId, 16) - 1]
+					if not read:
+						newLine[lineCounter - int(slotId, 16) - 1] = str(songId)
+						newString = "\t\t"
+						for part in newLine:
+							newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
+						newString = newString + '|' + fileText[i].split('|')[1]
+						fileText[i] = newString
+					notWritten = False
+				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
+					tableEndReached = True
+				i += 1
+			if not read:
+				File.WriteAllLines(MainForm.BuildPath + '/Source/Project+/ResultsMusic.asm', fileText)
+			if not remove and not read:
+				returnId = str(songId)
+			else:
+				returnId = foundId.strip()
+			if not read:
+				writeLog("Finished updating credits code")
+			else:
+				writeLog("Finished reading credits code")
 			return returnId
 					
 #endregion IMPORT FUNCTIONS
@@ -1717,11 +1792,11 @@ def removeFromRoster(fighterId):
 		writeLog("Finished removing fighter from CSSRoster.dat")
 
 # Remove character victory theme
-def removeVictoryTheme(songID):
-		writeLog("Removing victory theme with song ID " + str(songID))
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+def removeSong(songID, songDirectory='Victory!', tracklist='Results'):
+		writeLog("Removing theme with song ID " + str(songID))
+		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		# Back up tracklist file
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/Results.tlst')
+		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		# Remove from tracklist file
 		node = BrawlAPI.RootNode
 		if node.Children:
@@ -1731,14 +1806,14 @@ def removeVictoryTheme(songID):
 					break
 		if 'childNode' in locals():
 			# Get filename
-			path = MainForm.BuildPath + '/pf/sound/strm/Victory!'
+			path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory
 			directory = Directory.CreateDirectory(path)
 			brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
 			# Back up song file
 			createBackup(brstmFile.FullName)
 			# Remove from tracklist
 			if childNode:
-				writeLog("Removing from Results.tlst")
+				writeLog("Removing from" + tracklist + ".tlst")
 				childNode.Remove()
 			# Delete from directory
 			if brstmFile:
@@ -1746,7 +1821,7 @@ def removeVictoryTheme(songID):
 				brstmFile.Delete()
 		BrawlAPI.SaveFile()
 		BrawlAPI.ForceCloseFile()
-		writeLog("Finished removing victory theme")
+		writeLog("Finished removing theme")
 
 # Remove kirby hat
 def removeKirbyHat(fighterId, kirbyHatExe):
@@ -1922,6 +1997,11 @@ def uninstallEndingFiles(fighterName, fighterId):
 		deleteEndingFiles(endingId)
 		deleteEndingMovie(fighterName)
 
+# Function to do all the credits remove work
+def uninstallCreditsSong(slotId):
+		songId = updateCreditsCode(slotId, "0x0000", remove=True)
+		removeSong(int(songId, 16), 'Credits', 'Credits')
+
 #endregion REMOVE FUNCTIONS
 
 #region INSTALLER FUNCTIONS
@@ -2011,6 +2091,11 @@ def installEndingFiles(directory, fighterName, fighterId):
 		movieFiles = Directory.GetFiles(directory.FullName, "*.thp")
 		if movieFiles:
 			importEndingMovie(movieFiles[0], fighterName)
+
+# Install credits theme
+def installCreditsTheme(file, slotId):
+		creditsThemeId = hexId(addSong(file, 'Credits', 'Credits'))
+		updateCreditsCode(slotId, creditsThemeId)
 
 #endregion INSTALLER FUNCTIONS
 
@@ -2117,7 +2202,7 @@ def backupCheck():
 def getClonedModuleName(filePath):
 		BrawlAPI.OpenFile(filePath)
 		name = BrawlAPI.RootNode.Name
-		BrawlAPI.ForceCloseFile()
+		closeModule()
 		return name
 
 # Get new SFX ID from old SFX ID if we changed soundbanks
@@ -2189,6 +2274,7 @@ def getFighterSettings():
 				fighterSettings.throwReleasePoint = []
 				for id in throwReleasePoint.split(','):
 					fighterSettings.throwReleasePoint.append(id)
+			fighterSettings.creditsThemeId = hexId(readValueFromKey(fileText, "creditsThemeId"))
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
@@ -2385,6 +2471,7 @@ class FighterSettings:
 		jigglypuffSfxIds = []
 		bowserBoneId = ""
 		throwReleasePoint = []
+		creditsThemeId = ""
 
 class FighterInfo:
 		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
