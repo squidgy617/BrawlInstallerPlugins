@@ -282,7 +282,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 17, progressCounter)
+					progressBar.Begin(0, 18, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -357,6 +357,35 @@ def main():
 					progressBar.Update(progressCounter)
 					
 					#endregion info.pac
+
+					#region Single Player Cosmetics
+
+					# Go through each info .pac file (aside from the standard info.pac) and install stuff
+					if settings.installSingleplayerCosmetics:
+						for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
+							fileName = getFileInfo(file).Name
+							if fileName != "info.pac":
+								# Franchise icons first
+								if franchiseIconFolder and doInstallFranchiseIcon:
+									franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
+									installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
+								# BP names next
+								if bpFolder and settings.installBPNames:
+									# Get preferred BP style
+									bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
+									if bpFolders:
+										nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
+										if nameFolders:
+											installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
+								fileOpened = checkOpenFile(fileName.split('.pac')[0])
+								if fileOpened:
+									BrawlAPI.SaveFile()
+									BrawlAPI.ForceCloseFile()
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Single Player Cosmetics
 
 					#region STGRESULT
 

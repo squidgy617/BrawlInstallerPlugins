@@ -751,7 +751,7 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 				newNode = importTexture(node, image, format, sizeW=size)
 				pat0texNodeName = "Card04"
 				pat0NodeName = "MenSelchrCmark4_TopN__0"
-			if fileNodeName == "info":
+			if fileNodeName.startswith("info"):
 				newNode = importTexture(node, image, WiiPixelFormat.I4, sizeW=48)
 				pat0texNodeName = "lambert110"
 				pat0NodeName = "InfMark_TopN__0"
@@ -1610,7 +1610,7 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 			if fileNodeName == "sc_selcharacter":
 				pat0texNodeName = "Card04"
 				pat0NodeName = "MenSelchrCmark4_TopN__0"
-			if fileNodeName == "info":
+			if fileNodeName.startswith("info"):
 				pat0texNodeName = "lambert110"
 				pat0NodeName = "InfMark_TopN__0"
 			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=1)
@@ -2251,6 +2251,7 @@ def getSettings():
 		settings.useCssRoster = readValueFromKey(fileText, "useCssRoster")
 		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
+		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -2300,6 +2301,7 @@ def initialSetup():
 			settings.installVictoryThemes = "true"
 			settings.useCssRoster = "true"
 			settings.installBPNames = "false"
+			settings.installSingleplayerCosmetics = "true"
 		if not defaultSettings:
 			# RSP Loading
 			settings.rspLoading = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use RSP loading? (For most builds, the answer is 'No'.)", title))
@@ -2352,6 +2354,7 @@ def initialSetup():
 				settings.installStocksToStockFaceTex = "false"
 				settings.installStocksToSSS = "false"
 			settings.fiftyCostumeCode = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use the fifty-costume code? (If your build is a Project+EX build or allows 50 costumes, the answer is most likely 'Yes'. Otherwise, the answer is probably 'No'.)", title))
+			settings.installSingleplayerCosmetics = BrawlAPI.ShowYesNoPrompt("Would you like to install franchise icons " + " and battle portrait names " if settings.installBPNames else "" + "for single player modes (such as Training, Home Run Contest, etc.)?", title)
 		# Kirby hats
 		kirbyHatManagerInstalled = BrawlAPI.ShowYesNoPrompt("Do you have QuickLava's Kirby Hat Manager installed into your build?", title)
 		if kirbyHatManagerInstalled:
@@ -2423,7 +2426,7 @@ def initialSetup():
 			settings.installVictoryThemes = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use the modern P+ tracklist system? (For P+ builds, the answer is most likely 'Yes'.)", title))
 			# Victory themes
 			if settings.installVictoryThemes == "false":
-				BrawlAPI.ShowMessage("Victory themes can only be installed with the modern tracklist system. Victory themes will not be installed.", title)
+				BrawlAPI.ShowMessage("Victory themes and credits themes can only be installed with the modern tracklist system. Victory themes and credits themes will not be installed.", title)
 			# CSSRoster.dat
 			settings.useCssRoster = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use a CSSRoster.dat to determine who appears on the character select screen? (For most builds, the answer is 'Yes'.)", title))
 		attrs = vars(settings)
@@ -2462,6 +2465,7 @@ class Settings:
 		useCssRoster = "true"
 		gfxChangeExe = ""
 		installBPNames = "false"
+		installSingleplayerCosmetics = "false"
 
 class FighterSettings:
 		lucarioBoneId = ""
