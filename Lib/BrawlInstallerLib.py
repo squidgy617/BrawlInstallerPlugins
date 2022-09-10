@@ -1283,6 +1283,120 @@ def updateThrowRelease(fighterId, fighterName, values):
 			File.WriteAllLines(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm", fileText)
 		writeLog("Finished updating throw release point")
 
+# Import ending .pac files
+def importEndingFiles(files, endingId):
+		writeLog("Importing ending .pac files")
+		for file in files:
+			createBackup(MainForm.BuildPath + getFileInfo(file).Name)
+			fileOpened = BrawlAPI.OpenFile(file)
+			fileName = ""
+			texturePrefix = ""
+			if fileOpened:
+				if BrawlAPI.RootNode.Name.startswith('EndingSimple'):
+					fileName = 'EndingSimple' + addLeadingZeros(str(endingId), 2)
+					writeLog("Renaming root node to " + fileName)
+					BrawlAPI.RootNode.Name = fileName
+					texturePrefix = "S"
+				elif BrawlAPI.RootNode.Name.startswith('EndingAll'):
+					fileName = 'EndingAll' + addLeadingZeros(str(endingId), 2)
+					writeLog("Renaming root node to " + fileName)
+					BrawlAPI.RootNode.Name = fileName
+					texturePrefix = "A"
+				node = getChildByName(BrawlAPI.RootNode, 'Model Data [4]')
+				if node:
+					texFolder = getChildByName(node, 'Textures(NW4R)')
+					if texFolder:
+						texNodes = getChildrenByPrefix(texFolder, 'MenEndpictures' + texturePrefix)
+						if texNodes:
+							texNode = texNodes[0]
+							writeLog('Renaming TEX0 node to ' + 'MenEndpictures' + texturePrefix + addLeadingZeros(str(endingId), 4))
+							texNode.Name = 'MenEndpictures' + texturePrefix + addLeadingZeros(str(endingId), 4)
+			BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/menu/intro/ending/' + fileName + '.pac')
+		writeLog("Finished importing ending files")
+
+# Import ending movie file
+def importEndingMovie(file, fighterName):
+		writeLog("Importing ending movie file")
+		createBackup(MainForm.BuildPath + getFileInfo(file).Name)
+		copyRenameFile(file, 'End_' + fighterName + '.thp', MainForm.BuildPath + '/pf/movie')
+		writeLog("Finished importing movie file")
+
+# Update an entry of the ending code
+def updateEndingCode(cosmeticConfigId, remove=False):
+		writeLog("Updating ending code for ID " + str(cosmeticConfigId))
+		if File.Exists(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm"):
+			createBackup(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
+			# Read CloneEngine.asm
+			writeLog("Reading CloneEngine.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
+			i = 0
+			valueList = []
+			tableStart = 0
+			tableEndReached = False
+			# Get all of the ending ID things
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith("ENDINGTABLE:"):
+					writeLog("Found ending table at line " + str(i))
+					tableStart = i + 2
+				if tableStart and i >= tableStart and not tableEndReached:
+					values = line.split(',')
+					for value in values:
+						# Don't count comment lines
+						if not value.strip().startswith('|'):
+							valueList.append(value.replace('|','').strip())
+				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
+					tableEndReached = True
+				i += 1
+			# Find the first unused value
+			if not remove:
+				j = 1
+				i = 0
+				while i < len(valueList):
+					if valueList[i] == str(j):
+						j += 1
+						i = 0
+					else:
+						i += 1
+				writeLog("Unused ending value " + str(j))
+			else:
+				j = -1
+				writeLog("Setting ending value to -1")
+			# Loop again, but this time we are just looking for the position to replace
+			i = tableStart
+			tableEndReached = False
+			# Count starts at -1 because the numbers are zero-indexed
+			lineCounter = -1
+			notWritten = True
+			foundId = ""
+			writeLog("Finding position to write")
+			while i < len(fileText):
+				line = fileText[i]
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				lineCounter = lineCounter + len(splitLine)
+				if notWritten and not tableEndReached and lineCounter >= int(cosmeticConfigId, 16):
+					writeLog("Found write location on line " + str(i))
+					newLine = splitLine
+					# Have to subtract 1 because of zero-indexing
+					foundId = newLine[lineCounter - int(cosmeticConfigId, 16) - 1]
+					newLine[lineCounter - int(cosmeticConfigId, 16) - 1] = str(j)
+					newString = "\t\t"
+					for part in newLine:
+						newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
+					newString = newString + '|' + fileText[i].split('|')[1]
+					fileText[i] = newString
+					notWritten = False
+				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
+					tableEndReached = True
+				i += 1
+			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', fileText)
+			if not remove:
+				returnId = str(j)
+			else:
+				returnId = foundId.strip()
+			writeLog("Finished updating ending code")
+			return returnId
+					
 #endregion IMPORT FUNCTIONS
 
 #region REMOVE FUNCTIONS
@@ -1781,7 +1895,32 @@ def removeCodeMacro(id, macroName, position=0, repeat=False, preFindText=""):
 				writeLog("Removed code macro entry")
 		writeLog(macroName + " remove finished")
 
+# Function to delete ending files
+def deleteEndingFiles(endingId):
+		writeLog("Deleting ending .pac files for ending ID " + str(endingId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac'):
+			writeLog("Deleting EndingAll file")
+			createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac')
+			File.Delete(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac')
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac'):
+			writeLog("Deleting EndingSimple file")
+			createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac')
+			File.Delete(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac')
+		writeLog("Finished deleting ending files")
 
+# Function to delete ending movie
+def deleteEndingMovie(fighterName):
+		writeLog("Deleting ending movie file")
+		if File.Exists(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp'):
+			createBackup(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp')
+			File.Delete(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp')
+		writeLog("Finished deleting ending movie file")
+
+# Function to do all the ending remove work
+def uninstallEndingFiles(fighterName, fighterId):
+		endingId = updateEndingCode(fighterId, True)
+		deleteEndingFiles(endingId)
+		deleteEndingMovie(fighterName)
 
 #endregion REMOVE FUNCTIONS
 
@@ -1864,6 +2003,14 @@ def installKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kir
 		deleteKirbyHatFiles(fighterName)
 		addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe)
 		moveKirbyHatFiles(files, oldFighterName, newFighterName)
+
+# Install ending files
+def installEndingFiles(directory, fighterName, fighterId):
+		endingId = updateEndingCode(fighterId)
+		importEndingFiles(Directory.GetFiles(directory.FullName, "*.pac"), endingId)
+		movieFiles = Directory.GetFiles(directory.FullName, "*.thp")
+		if movieFiles:
+			importEndingMovie(movieFiles[0], fighterName)
 
 #endregion INSTALLER FUNCTIONS
 
@@ -2032,13 +2179,16 @@ def getFighterSettings():
 			fighterSettings.jigglypuffBoneId = hexId(readValueFromKey(fileText, "jigglypuffBoneId"))
 			fighterSettings.jigglypuffEFLSId = hexId(readValueFromKey(fileText, "jigglypuffEFLSId"))
 			jigglypuffSfxIds = readValueFromKey(fileText, "jigglypuffSfxIds").split(',')
-			fighterSettings.jigglypuffSfxIds = []
-			for id in jigglypuffSfxIds:
-				fighterSettings.jigglypuffSfxIds.append(hexId(id))
+			if jigglypuffSfxIds:
+				fighterSettings.jigglypuffSfxIds = []
+				for id in jigglypuffSfxIds:
+					fighterSettings.jigglypuffSfxIds.append(hexId(id))
 			fighterSettings.bowserBoneId = hexId(readValueFromKey(fileText, "bowserBoneId"))
-			fighterSettings.throwReleasePoint = []
-			for id in readValueFromKey(fileText, "throwReleasePoint").split(','):
-				fighterSettings.throwReleasePoint.append(id)
+			throwReleasePoint = readValueFromKey(fileText, "throwReleasePoint")
+			if throwReleasePoint:
+				fighterSettings.throwReleasePoint = []
+				for id in throwReleasePoint.split(','):
+					fighterSettings.throwReleasePoint.append(id)
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 

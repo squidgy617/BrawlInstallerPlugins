@@ -88,7 +88,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 15, progressCounter)
+			progressBar.Begin(0, 16, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -227,6 +227,12 @@ def main():
 
 			# Delete EX configs
 			deleteExConfigs(fighterId, slotConfigId=slotId, cosmeticConfigId=cosmeticConfigId, cssSlotConfigId=cssSlotConfigId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove ending files
+			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

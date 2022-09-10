@@ -46,6 +46,7 @@ def main():
 					kirbyHatFolder = getDirectoryByName("KirbyHats", fighterDir)
 					stockIconFolder = getDirectoryByName("StockIcons", fighterDir)
 					victoryThemeFolder = getDirectoryByName("VictoryTheme", fighterDir)
+					endingFolder = getDirectoryByName("Ending", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -269,7 +270,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 16, progressCounter)
+					progressBar.Begin(0, 17, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -529,6 +530,17 @@ def main():
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 					#endregion EX Configs
+
+					#region Misc Changes
+
+					# Install ending files if they exist
+					if endingFolder:
+						installEndingFiles(endingFolder, fighterInfo.fighterName, fighterId)
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Misc Changes
 
 					#region Code Menu
 
