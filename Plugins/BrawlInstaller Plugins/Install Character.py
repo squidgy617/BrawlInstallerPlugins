@@ -558,7 +558,6 @@ def main():
 
 					# Make code changes to add a throw release point
 					if fighterSettings.throwReleasePoint:
-						BrawlAPI.ShowMessage('"' + str(fighterSettings.throwReleasePoint) + '"', "")
 						updateThrowRelease(fighterId, fighterInfo.characterName, fighterSettings.throwReleasePoint)
 
 					# Make code changes for Lucario clones
