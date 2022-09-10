@@ -231,6 +231,9 @@ def main():
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
+			# Remove ending files
+			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
+
 			# Remove fighter from code menu
 			if settings.assemblyFunctionsExe != "":
 				removeFromCodeMenu(fighterId, settings.assemblyFunctionsExe)
@@ -262,8 +265,6 @@ def main():
 			# Remove code changes for Bowser clones
 			if clonedModuleName == "ft_bowser":
 				removeCodeMacro(fighterId, "BoneIDFix", 0, False)
-
-			updateEndingCode(cosmeticConfigId, True)
 
 			buildGct()
 

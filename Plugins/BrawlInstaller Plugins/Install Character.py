@@ -270,7 +270,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 16, progressCounter)
+					progressBar.Begin(0, 17, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -531,6 +531,17 @@ def main():
 					progressBar.Update(progressCounter)
 					#endregion EX Configs
 
+					#region Misc Changes
+
+					# Install ending files if they exist
+					if endingFolder:
+						installEndingFiles(endingFolder, fighterInfo.fighterName, fighterId)
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Misc Changes
+
 					#region Code Menu
 
 					# Add fighter to code menu
@@ -591,10 +602,6 @@ def main():
 						# Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
 						if fighterSettings.bowserBoneId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFix", [ "0x" + str(fighterId), fighterSettings.bowserBoneId ], 0, False, preFindText=".macro BoneIDFix(<FighterID>, <BoneID>)")
-
-					if endingFolder:
-						endingId = updateEndingCode(fighterId)
-						importEndingFiles(Directory.GetFiles(endingFolder.FullName, "*.pac"), endingId)
 
 					buildGct()
 

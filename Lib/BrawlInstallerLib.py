@@ -1314,6 +1314,13 @@ def importEndingFiles(files, endingId):
 			BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/menu/intro/ending/' + fileName + '.pac')
 		writeLog("Finished importing ending files")
 
+# Import ending movie file
+def importEndingMovie(file, fighterName):
+		writeLog("Importing ending movie file")
+		createBackup(MainForm.BuildPath + getFileInfo(file).Name)
+		copyRenameFile(file, 'End_' + fighterName + '.thp', MainForm.BuildPath + '/pf/movie')
+		writeLog("Finished importing movie file")
+
 # Update an entry of the ending code
 def updateEndingCode(cosmeticConfigId, remove=False):
 		writeLog("Updating ending code for ID " + str(cosmeticConfigId))
@@ -1386,7 +1393,7 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 			if not remove:
 				returnId = str(j)
 			else:
-				returnId = foundId
+				returnId = foundId.strip()
 			writeLog("Finished updating ending code")
 			return returnId
 					
@@ -1888,7 +1895,32 @@ def removeCodeMacro(id, macroName, position=0, repeat=False, preFindText=""):
 				writeLog("Removed code macro entry")
 		writeLog(macroName + " remove finished")
 
+# Function to delete ending files
+def deleteEndingFiles(endingId):
+		writeLog("Deleting ending .pac files for ending ID " + str(endingId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac'):
+			writeLog("Deleting EndingAll file")
+			createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac')
+			File.Delete(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac')
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac'):
+			writeLog("Deleting EndingSimple file")
+			createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac')
+			File.Delete(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac')
+		writeLog("Finished deleting ending files")
 
+# Function to delete ending movie
+def deleteEndingMovie(fighterName):
+		writeLog("Deleting ending movie file")
+		if File.Exists(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp'):
+			createBackup(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp')
+			File.Delete(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp')
+		writeLog("Finished deleting ending movie file")
+
+# Function to do all the ending remove work
+def uninstallEndingFiles(fighterName, fighterId):
+		endingId = updateEndingCode(fighterId, True)
+		deleteEndingFiles(endingId)
+		deleteEndingMovie(fighterName)
 
 #endregion REMOVE FUNCTIONS
 
@@ -1971,6 +2003,14 @@ def installKirbyHat(characterName, fighterName, fighterId, kirbyHatFigherId, kir
 		deleteKirbyHatFiles(fighterName)
 		addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe)
 		moveKirbyHatFiles(files, oldFighterName, newFighterName)
+
+# Install ending files
+def installEndingFiles(directory, fighterName, fighterId):
+		endingId = updateEndingCode(fighterId)
+		importEndingFiles(Directory.GetFiles(directory.FullName, "*.pac"), endingId)
+		movieFiles = Directory.GetFiles(directory.FullName, "*.thp")
+		if movieFiles:
+			importEndingMovie(movieFiles[0], fighterName)
 
 #endregion INSTALLER FUNCTIONS
 
