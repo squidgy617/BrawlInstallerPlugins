@@ -97,7 +97,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 16, progressCounter)
+			progressBar.Begin(0, 17, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -145,6 +145,27 @@ def main():
 			progressBar.Update(progressCounter)
 			
 			#endregion info.pac
+
+			#region Single Player Cosmetics
+
+			if settings.installSingleplayerCosmetics:
+				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
+					fileName = getFileInfo(file).Name
+					if fileName != "info.pac":
+						# Franchise icons first
+						if uninstallFranchiseIcon:
+							removeFranchiseIcon(fighterInfo.franchiseIconId, '/pf/info2/' + fileName)
+						if settings.installBPNames == "true":
+							removeBPName(cosmeticId, '/pf/info2/' + fileName)
+						fileOpened = checkOpenFile(fileName.split('.pac')[0])
+						if fileOpened:
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			#endregion Single Player Cosmetics
 
 			#region STGRESULT
 
