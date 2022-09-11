@@ -162,6 +162,8 @@ def main():
 							BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
 
+			deleteClassicIntro(cosmeticId)
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 

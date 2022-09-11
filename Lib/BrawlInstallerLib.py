@@ -774,6 +774,30 @@ def importBPName(cosmeticId, image, filePath):
 			addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1'), frameCountOffset=10)
 		writeLog("Import BP name finished.")
 
+# Import classic intro file
+def importClassicIntro(cosmeticId, filePath):
+	writeLog("Importing classic intro file for cosmetic ID " + str(cosmeticId))
+	createBackup(getFileInfo(filePath).Name)
+	fileOpened = BrawlAPI.OpenFile(filePath)
+	if fileOpened:
+		# Iterate through all children to find the names we care about and rename them
+		children = BrawlAPI.RootNode.GetChildrenRecursive()
+		for child in children:
+			if child.Name.startswith("ItrSimpleChr"):
+				child.Name = "ItrSimpleChr" + addLeadingZeros(str(cosmeticId + 1), 4) + "_TopN"
+			if "Ey" not in child.Name and child.Name.startswith("GmSimpleChr"):
+				if child.Name.endswith("_nm1"):
+					child.Name = "GmSimpleChr" + addLeadingZeros(str(cosmeticId + 1), 2) + "_nm1"
+				elif child.Name.endswith("_nm2"):
+					child.Name = "GmSimpleChr" + addLeadingZeros(str(cosmeticId + 1), 2) + "_nm2"
+				else:
+					child.Name = "GmSimpleChr" + addLeadingZeros(str(cosmeticId + 1), 2)
+			if child.Name.startswith("GmSimpleChrEy"):
+				child.Name = "GmSimpleChrEy" + addLeadingZeros(str(cosmeticId + 1), 2)
+		BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/menu/intro/enter/chr' + addLeadingZeros(str(cosmeticId + 1), 4) + '.brres')
+		BrawlAPI.ForceCloseFile()
+	writeLog("Finished importing classic intro file")
+
 # Add franchise icon to result screen
 def importFranchiseIconResult(franchiseIconId, image):
 		writeLog("Importing franchise icon into STGRESULT.pac with franchise icon ID " + str(franchiseIconId))
@@ -855,7 +879,6 @@ def closeModule():
 				if str(e).strip() == "Collection was modified; enumeration operation may not execute.":
 					continue
 			break
-
 
 # Edit module offsets
 def editModule(fighterId, moduleFile, sectionFile, offsets):
@@ -1632,6 +1655,15 @@ def removeBPName(cosmeticId, filePath):
 			pat0NodeName = "InfFace_TopN__0"
 			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=10)
 		writeLog("Remove BP name finished")
+
+# Delete classic intro file
+def deleteClassicIntro(cosmeticId):
+		writeLog("Deleting classic intro file for cosmetic ID " + str(cosmeticId + 1))
+		filePath = MainForm.BuildPath + '/pf/menu/intro/enter/chr' + addLeadingZeros(str(cosmeticId + 1), 4) + '.brres'
+		if File.Exists(filePath):
+			createBackup(filePath)
+			File.Delete(filePath)
+		writeLog("Finished deleting classic intro file")
 
 # Remove franchise icon from result screen
 def removeFranchiseIconResult(franchiseIconId):
