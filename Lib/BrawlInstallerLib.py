@@ -216,6 +216,12 @@ def getFileNames(directory):
 			fileNames[i] = file.FullName
 		return Array[str](fileNames)
 
+# Helper function to create a directory if it does not exist
+def createDirectory(path):
+		if not Directory.Exists(path):
+			Directory.CreateDirectory(path)
+		return path
+
 # Helper function that imports a texture automatically without prompting the user
 def importTexture(node, imageSource, format, sizeW=0, sizeH=0):
 		writeLog("Importing texture " + imageSource + " to node " + node.Name)
@@ -427,12 +433,13 @@ def createLogFile():
 		File.WriteAllText(LOG_PATH + '\\log.txt', "--LOG START-\n")
 
 # Helper method to check if a file is open, and if it is not, open it and create a backup
-def openFile(filePath):
+def openFile(filePath, backup=True):
 		writeLog("Attempting to open file " + filePath)
 		nodeName = getFileInfo(filePath).Name.split('.')[0]
 		fileOpened = checkOpenFile(nodeName)
 		if fileOpened == 0:
-			createBackup(filePath)
+			if backup:
+				createBackup(filePath)
 			fileOpened = BrawlAPI.OpenFile(filePath)
 		return fileOpened
 
@@ -511,9 +518,9 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			# Export RSP while we're at it
 			newNode.Compression = "None"
 			# Back up RSP if it exists
-			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
+			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			writeLog("Exporting RSPs")
-			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
+			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
 			# If user has RSP loading on, get rid of changes to this file
@@ -1513,7 +1520,7 @@ def removeCSPs(cosmeticId):
 				nodeToRemove.Remove()
 		# Get RSP file and delete if it exists
 		writeLog("Get RSP file for cosmetic ID")
-		rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 3) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'))
+		rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 2) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'))
 		if rspFile:
 			# Back up first
 			createBackup(rspFile.FullName)
@@ -2035,6 +2042,111 @@ def uninstallCreditsSong(slotId):
 		removeSong(int(songId, 16), 'Credits', 'Credits')
 
 #endregion REMOVE FUNCTIONS
+
+#region EXTRACT FUNCTIONS
+
+# Extract CSPs
+def extractCSPs(cosmeticId):
+		writeLog("Extracting CSPs with cosmetic ID " + str(cosmeticId))
+		# If RSP file is not already opened, open it
+		filePath = MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId) + '0', 3) + '.brres'
+		if File.Exists(filePath):
+			writeLog("Found file " + filePath)
+			fileOpened = openFile(filePath, False)
+			if fileOpened:
+				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+				if texFolder:
+					i = 1
+					for child in texFolder.Children:
+						# Export each child to temp folder
+						writeLog("Exporting CSP " + child.Name)
+						exportPath = createDirectory(AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
+						child.Export(exportPath + '/' + child.Name + '.png')
+						# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
+						if not child.SharesData:
+							i += 1
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished exporting CSPs")
+
+# Extract CSS icon
+def extractCSSIcon(cosmeticId, folderName):
+		writeLog("Extracting CSS icon with cosmetic ID " + str(cosmeticId) + " to folder " + folderName)
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac', False)
+		if fileOpened:
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
+			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
+			exportPath = createDirectory(AppPath + '/temp/CSSIcon/' + folderName)
+			if node:
+				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+			if nameNode:
+				exportPath = createDirectory(exportPath + '/Name')
+				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+		writeLog("Finished extracting CSS icon")
+
+# Extract portrait name
+def extractPortraitName(cosmeticId, folderName):
+		writeLog("Extracting portrait name with cosmetic ID " + str(cosmeticId) + " to folder " + folderName)
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac', False)
+		if fileOpened:
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			tex0Node = getChildByName(texFolder, "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId), 2) + '1')
+			if tex0Node:
+				exportPath = createDirectory(AppPath + '/temp/PortraitName/' + folderName)
+				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+		writeLog("Finished extracting portrait name")
+
+# Extract stock icons
+def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+		writeLog("Extracting stock icons for " + str(cosmeticId))
+		fileOpened = openFile(MainForm.BuildPath + filePath, False)
+		if fileOpened:
+			rootNode = BrawlAPI.RootNode
+			if rootName != "":
+				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+			if tex0BresName != "":
+				node = getChildByName(rootNode, tex0BresName)
+			else:
+				node = rootNode
+			# Extract the texture nodes
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			# End of loop changes depending on if we use 50 CC or not
+			newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+			texNodeNames = []
+			cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
+			i = 1
+			while newId <= cap:
+				texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
+				if texNode:
+					texNodeNames.append(texNode.Name)
+					exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
+					texNode.Export(exportPath + '/' + texNode.Name + '.png')
+					# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
+					if not texNode.SharesData:
+						i += 1
+				else:
+					break
+				newId += 1
+			writeLog("Finished extracting stock icons")
+
+# Extract franchise icon
+def extractFranchiseIcon(franchiseIconId, filePath):
+		writeLog("Extracting franchise icon ID " + str(franchiseIconId) + " at filepath " + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath, False)
+		if fileOpened:
+			# Extract icon
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			nodeName = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Black')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting franchise icon")
+
+#endregion
 
 #region INSTALLER FUNCTIONS
 # Installer functions that check for and remove existing elements before adding
