@@ -19,6 +19,15 @@ Currently this plugin performs all the necessary installation to get an EX chara
 
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
+## Features
+- Install or uninstall fully playable characters into a build of Super Smash Bros. Brawl in just a few clicks.
+- Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
+- Numerous settings to support many different kinds of builds.
+- Tools to easily list IDs already in use in a build.
+- Automatic backup and restore features in case of unintended results.
+- Logging features to help diagnose issues when they are encountered.
+- Support for Ex modules and several non-Ex modules (Lucario, Marth, Sonic, and Pit's patched PM module).
+
 # Installation
 ## Prerequisites
 In order for these plugins to function correctly, you will need a few things:
@@ -100,7 +109,7 @@ If the user has QuickLava's Kirby Hat manager installed, the plugin will add an 
 
 If the user has QuickLava's Code Menu fork installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_Characters.txt file and run the code menu .exe.
 
-The plugin will also modify certain Gecko codes as needed if it finds them. The following Gecko codes are modified automatically:
+The plugin will also modify certain Gecko codes as needed if it finds them, and at the end it will build the GCT files in the build. The following Gecko codes are modified automatically:
 - ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]
 - Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
 - Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
@@ -213,8 +222,6 @@ The following settings are supported by the FighterSettings.txt file:
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
-- Importing necessary files for single player modes such as Classic, All-Star, Home Run Contest, etc.
-- Automatic updating of P+ EX codes that require character IDs
 - Allow redirection of EX config IDs
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
 - Support for Subspace Emissary EX
