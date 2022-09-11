@@ -15,7 +15,7 @@ This tool was made possible by:
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
 - The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
-Currently this plugin performs all the necessary installation to get an EX character fully working in Versus mode. Characters will most likely work in other modes such as Classic, All-Star, etc. but may have broken cosmetics. Full support for modes outside of Versus Mode will be implemented in a future update.
+Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes except Subspace Emissary (which will come in a future update).
 
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
@@ -50,6 +50,8 @@ If you wish to add a character with the installer plugin, the character **must**
 https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in this suite.
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
+
+Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the FighterSettings.txt section for more details.
 
 ## Template Packages
 **DOWNLOAD:** [Rockman X (by CaliKingz01) Example Package](https://www.mediafire.com/file/qnx8p14ivsb3rxo/RockmanX_by_CaliKingz01.zip/file)
@@ -98,6 +100,19 @@ If the user has QuickLava's Kirby Hat manager installed, the plugin will add an 
 
 If the user has QuickLava's Code Menu fork installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_Characters.txt file and run the code menu .exe.
 
+The plugin will also modify certain Gecko codes as needed if it finds them. The following Gecko codes are modified automatically:
+- ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]
+- Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
+- Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
+- Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]
+- Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]
+- Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
+- Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
+- Dedede Clones Fix [MarioDox]
+- Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
+- Classic and All-Star Ending Choice Engine v1.1d [DukeItOut]
+- Classic and All-Star Results Music Table [DukeItOut]
+
 Once fighter installation has completed, the user will receive a message indicating a successful installation, and then they may use their updated build as they please.
 
 The plugin attempts to back up any files in your build before modifying, replacing, or deleting them, and these backups are then stored in the `/Backups/` directory in your BrawlCrate root folder. If an error occurs during execution, an error message is displayed and the backups are restored automatically. However, any files that were *added* to the build during execution are not cleaned up, so keep that in mind.
@@ -112,6 +127,8 @@ After the user has input their selections, the plugin will attempt to remove all
 If the user has QuickLava's Kirby Hat manager installed, the plugin will remove any existing entry from EX_KirbyHats.txt and then run the hat manager.
 
 If the user has QuickLava's Code Menu fork installed, the plugin will remove any existing entry from EX_Characters.txt and then run the code menu .exe.
+
+This plugin will also modify the same codes that the "Install Character" plugin does as needed to remove entries added.
 
 After the fighter is successfully uninstalled, the user will receive a message indicating such, and then they may use their updated build as they please.
 
@@ -172,10 +189,27 @@ The settings currently supported by the BrawlInstaller plugins are as follows:
 - **soundbankStyle** - [*Values : hex, dec*] : The naming convention used for soundbanks in your build. The plugin will use this setting to determine how soundbanks imported into your build should be named. If it is set to `hex`, soundbanks will be named after their soundbank ID in hexadecimal format. If set to `dec`, soundbanks will be named after their soundbank ID in decimal format.
 - **addSevenToSoundbankName** - [*Values : true, false*] : Whether 7 should be added to soundbank IDs when naming soundbanks. If this is set to `true`, all soundbanks will be named as the ID provided + 7. If set to `false`, all soundbanks will be named only as the ID provided.
 - **addSevenToSoundBankIds** - [*Values : true, false*] : Whether 7 should be added to SFX IDs within soundbanks when converting them using QuickLava and Codes' tools. If this is set to `true`, soundbank IDs passed to QuickLava's tool will have 7 added to them. If this is set to `false`, soundbank IDs will be passed to QuickLava's tool unmodified.
-- **installVictoryThemes** - [*Values : true, false*] : Whether victory themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory themes will not be installed.
+- **installVictoryThemes** - [*Values : true, false*] : Whether victory and credits themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory and credits themes will not be installed.
 - **useCssRoster** - [*Values : true, false*] : Whether or not the build uses CSSRoster.dat to determine the roster available on the character select screen. If this is set to `true`, CSSRoster.dat will be updated to display newly installed character packages. If set to `false`, characters will not be added to the CSS.
 - **gfxChangeExe** - [*Values : a .exe path*] : The direct path to the .exe file for Codes' gfxchange.exe tool to run when changing Effect.pac IDs. This should be in the same directory as Codes' tracechange.exe, which will also be run in the event of Effect.pac ID conflicts.
 - **installBPNames** - [*Values : true, false*] : Whether or not battle portrait nameplates should be installed to `info.pac`.
+- installSingleplayerCosmetics - [*Values : true, false*] : Whether or not franchise icons and BP names (if the user has opted to install them at all) should be installed into single player modes as well (e.g. Classic Mode, Home Run Contest, Training, etc).
+
+# FighterSettings.txt
+
+When packaging a character, you can include a "FighterSettings.txt" file in the root directory of the package. This is generated automatically if you use the "Package Character" plugin and set any values that go in this file.
+
+All of the settings are also documented in the template packages.
+
+The following settings are supported by the FighterSettings.txt file:
+- **throwReleasePoint** - [*Values : a comma-separated pair of float values*] : The values used in the code `ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]`
+- **creditsThemeId** - [*Values : a song ID in hex format*] : The song ID used for the credits theme of your character if you're using a vanilla credits theme. If you provide a credits theme, that will be installed instead of using the ID.
+- **lucarioBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]`
+- **lucarioKirbyEffectId** - [*Values : an Effect.pac ID in hex format*] : The `Effect.pac ID used for the Kirby hat for the code Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]`
+- **jigglypuffBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]`
+- **jigglypuffEFLSId** - [*Values : an EFLS ID in hex format*] : The EFLS ID/index used in the code `Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]`
+- **jigglypuffSfxIds** - [*Values : a comma-separated list of four SFX IDs in hex format*] : The SFX IDs used in the code `Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]`
+- **bowserBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Bowser Clone Fire Breath Bone Fix [KingJigglypuff]`
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
