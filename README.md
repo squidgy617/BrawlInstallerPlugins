@@ -51,7 +51,7 @@ https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
 
-Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the FighterSettings.txt section for more details.
+Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins/tree/releases/v1.2.0#fightersettingstxt) section for more details.
 
 ## Template Packages
 **DOWNLOAD:** [Rockman X (by CaliKingz01) Example Package](https://www.mediafire.com/file/qnx8p14ivsb3rxo/RockmanX_by_CaliKingz01.zip/file)
@@ -199,7 +199,7 @@ The settings currently supported by the BrawlInstaller plugins are as follows:
 
 When packaging a character, you can include a "FighterSettings.txt" file in the root directory of the package. This is generated automatically if you use the "Package Character" plugin and set any values that go in this file.
 
-All of the settings are also documented in the template packages.
+All of the settings are also documented in the [template packages](https://github.com/squidgy617/BrawlInstallerPlugins/tree/releases/v1.2.0#package-character).
 
 The following settings are supported by the FighterSettings.txt file:
 - **throwReleasePoint** - [*Values : a comma-separated pair of float values*] : The values used in the code `ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]`
