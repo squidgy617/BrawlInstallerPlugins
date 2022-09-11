@@ -10,6 +10,10 @@ def main():
 			if not MainForm.BuildPath:
 				BrawlAPI.ShowMessage("Build path must be set. This can be done by navigating to Tools > Settings > General and setting the 'Default Build Path' to the path to your build's root folder.", "Build Path Not Set")
 				return
+			if not Directory.Exists(MainForm.BuildPath + '/pf/'):
+				BrawlAPI.ShowMessage("Build path does not appear to be valid. Please change your build path by going to 'Tools > Settings' and modifying the 'Default Build Path' field.\n\nYour build path should contain a folder named 'pf' within it.")
+				return
+			createLogFile()
 			backupCheck()
 			# Get user settings
 			if File.Exists(RESOURCE_PATH + '/settings.ini'):
@@ -20,19 +24,8 @@ def main():
 			#region USER INPUT/PRELIMINARY CHECKS
 
 			# Prompt user to input fighter ID
-			idEntered = False
-			while idEntered != True:
-				fighterId = BrawlAPI.UserStringInput("Enter the ID for the fighter you wish to remove")
-				# Ensure fighter ID is just the hex digits
-				if fighterId.startswith('0x'):
-					fighterId = fighterId.split('0x')[1].upper()
-					break
-				elif fighterId.isnumeric():
-					fighterId = str(hex(int(fighterId))).split('0x')[1].upper()
-					break
-				else:
-					BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-					continue
+			fighterId = showIdPrompt("Enter the ID for the fighter you wish to remove")
+			fighterId = fighterId.split('0x')[1].upper()
 
 			uninstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's franchise icon?", "Uninstall franchise icon?")
 			if settings.installVictoryThemes:
@@ -40,11 +33,63 @@ def main():
 			else:
 				uninstallVictoryTheme = False
 
+			if settings.installVictoryThemes:
+				creditsId = updateCreditsCode(fighterId, "", read=True)
+				if creditsId and creditsId != "0x0000":
+					uninstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's credits theme?", "Uninstall credits theme?")
+				else:
+					uninstallCreditsTheme = False
+			else:
+				uninstallCreditsTheme = False
+
 			# Get fighter info
+
+			# Set up progressbar
+			progressCounter = 0
+			progressBar = ProgressWindow(MainForm.Instance, "Redirect Check...", "Checking for Ex Config redirects", False)
+			progressBar.Begin(0, 3, progressCounter)
+
 			fighterConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "Fighter" + fighterId + ".dat")[0]
-			cosmeticConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
-			slotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot" + fighterId + ".dat")[0]
+			# Slot configs
+			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot*.dat"):
+				BrawlAPI.OpenFile(config)
+				if BrawlAPI.RootNode.SetSlot == True and BrawlAPI.RootNode.CharSlot1 == int(fighterId, 16):
+					slotConfig = config
+					slotId = str(getFileInfo(config).Name.split('Slot')[1]).replace('.dat', '')
+				BrawlAPI.ForceCloseFile()
+			if 'slotConfig' not in locals():
+				slotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot" + fighterId + ".dat")[0]
+				slotId = str(fighterId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			# Cosmetic configs
+			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic*.dat"):
+				BrawlAPI.OpenFile(config)
+				if BrawlAPI.RootNode.HasSecondary == True and BrawlAPI.RootNode.CharSlot1 == int(slotId, 16):
+					cosmeticConfig = config
+					cosmeticConfigId = str(getFileInfo(config).Name.split('Cosmetic')[1]).replace('.dat', '')
+				BrawlAPI.ForceCloseFile()
+			if 'cosmeticConfig' not in locals():
+				cosmeticConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
+				cosmeticConfigId = str(fighterId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			# CSS Slot configs
+			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', 'CSSSlot*.dat'):
+				BrawlAPI.OpenFile(config)
+				if (BrawlAPI.RootNode.SetPrimarySecondary == True and BrawlAPI.RootNode.CharSlot1 == int(slotId, 16)) or (BrawlAPI.RootNode.SetCosmeticSlot == True and BrawlAPI.RootNode.CosmeticSlot == int(cosmeticConfigId, 16)):
+					cssSlotConfig = config
+					cssSlotConfigId = str(getFileInfo(config).Name.split('CSSSlot')[1]).replace('.dat', '')
+			if 'cssSlotConfig' not in locals():
+				cssSlotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
+				cssSlotConfigId = str(fighterId)
+			progressBar.Finish()
 			fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
+			moduleFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/module', 'ft_' + fighterInfo.fighterName + '.rel')
+			# Get the fighter this one is cloned from
+			clonedModuleName = ""
+			if moduleFiles:
+				clonedModuleName = getClonedModuleName(moduleFiles[0])
 
 			cosmeticId = fighterInfo.cosmeticId
 			#endregion USER INPUT/PRELIMINARY CHECKS
@@ -52,7 +97,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 14, progressCounter)
+			progressBar.Begin(0, 17, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -88,6 +133,9 @@ def main():
 			# Uninstall franchise icon from info.pac
 			if uninstallFranchiseIcon:
 				removeFranchiseIcon(fighterInfo.franchiseIconId, '/pf/info2/info.pac')
+			# Uninstall BP name from info.pac
+			if settings.installBPNames == "true":
+				removeBPName(cosmeticId, '/pf/info2/info.pac')
 			fileOpened = checkOpenFile("info")
 			if fileOpened:
 				BrawlAPI.SaveFile()
@@ -97,6 +145,29 @@ def main():
 			progressBar.Update(progressCounter)
 			
 			#endregion info.pac
+
+			#region Single Player Cosmetics
+
+			if settings.installSingleplayerCosmetics:
+				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
+					fileName = getFileInfo(file).Name
+					if fileName != "info.pac":
+						# Franchise icons first
+						if uninstallFranchiseIcon:
+							removeFranchiseIcon(fighterInfo.franchiseIconId, '/pf/info2/' + fileName)
+						if settings.installBPNames == "true":
+							removeBPName(cosmeticId, '/pf/info2/' + fileName)
+						fileOpened = checkOpenFile(fileName.split('.pac')[0])
+						if fileOpened:
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
+
+			deleteClassicIntro(cosmeticId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			#endregion Single Player Cosmetics
 
 			#region STGRESULT
 
@@ -147,8 +218,8 @@ def main():
 
 			# Remove victory theme
 			if uninstallVictoryTheme:
-				removeSongId = getVictoryThemeIDByFighterId(fighterId)
-				removeVictoryTheme(removeSongId)
+				removeSongId = getVictoryThemeIDByFighterId(slotId)
+				removeSong(removeSongId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
@@ -187,7 +258,16 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# Delete EX configs
-			deleteExConfigs(fighterId)
+			deleteExConfigs(fighterId, slotConfigId=slotId, cosmeticConfigId=cosmeticConfigId, cssSlotConfigId=cssSlotConfigId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove ending files
+			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
+
+			if uninstallCreditsTheme:
+				uninstallCreditsSong(fighterId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
@@ -195,6 +275,36 @@ def main():
 			# Remove fighter from code menu
 			if settings.assemblyFunctionsExe != "":
 				removeFromCodeMenu(fighterId, settings.assemblyFunctionsExe)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove code edits
+
+			# Remove code changes for throw release points
+			updateThrowRelease(fighterId, "EXFighter" + str(fighterId), [ "0.0", "0.0" ])
+
+			# Remove code changes for Lucario clones
+			if clonedModuleName == "ft_lucario":
+				removeCodeMacro(fighterId, "GFXFix", 0)
+				removeCodeMacro(fighterId, "GFXFix", 0, preFindText="bne notKirby")
+				removeCodeMacro(fighterId, "BoneIDFixA", 1, True)
+
+			# Remove code changes for Jigglypuff clones
+			if clonedModuleName == "ft_purin":
+				removeCodeMacro(fighterId, "CloneBones", 0, True)
+				removeCodeMacro(fighterId, "CloneGFX", 0, True)
+				removeCodeMacro(fighterId, "CloneSFX", 0, True)
+			
+			# Remove code changes for Dedede clones
+			if clonedModuleName == "ft_dedede":
+				removeCodeMacro(fighterId, "DededeFix", 0, True)
+
+			# Remove code changes for Bowser clones
+			if clonedModuleName == "ft_bowser":
+				removeCodeMacro(fighterId, "BoneIDFix", 0, False)
+
+			buildGct()
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
@@ -209,7 +319,9 @@ def main():
 			archiveBackup()
 			BrawlAPI.ShowMessage("Character successfully uninstalled.", "Success")
 		except Exception as e:
-			progressBar.Finish()
+			writeLog("ERROR " + str(e))
+			if 'progressBar' in locals():
+				progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically.", "An Error Has Occurred")
 			restoreBackup()

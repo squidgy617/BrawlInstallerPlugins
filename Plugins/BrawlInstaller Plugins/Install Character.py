@@ -10,6 +10,10 @@ def main():
 			if not MainForm.BuildPath:
 				BrawlAPI.ShowMessage("Build path must be set. This can be done by navigating to Tools > Settings > General and setting the 'Default Build Path' to the path to your build's root folder.", "Build Path Not Set")
 				return
+			if not Directory.Exists(MainForm.BuildPath + '/pf/'):
+				BrawlAPI.ShowMessage("Build path does not appear to be valid. Please change your build path by going to 'Tools > Settings' and modifying the 'Default Build Path' field.\n\nYour build path should contain a folder named 'pf' within it.", "Invalid Build Path")
+				return
+			createLogFile()
 			backupCheck()
 			# Get user settings
 			if File.Exists(RESOURCE_PATH + '/settings.ini'):
@@ -42,34 +46,38 @@ def main():
 					kirbyHatFolder = getDirectoryByName("KirbyHats", fighterDir)
 					stockIconFolder = getDirectoryByName("StockIcons", fighterDir)
 					victoryThemeFolder = getDirectoryByName("VictoryTheme", fighterDir)
+					endingFolder = getDirectoryByName("Ending", fighterDir)
+					creditsFolder = getDirectoryByName("CreditsTheme", fighterDir)
+					classicIntro = getDirectoryByName("ClassicIntro", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
 					slotConfig = Directory.GetFiles(folder + '/EXConfigs', "Slot*.dat")[0]
 					fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
+					effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
+					fighterSettings = getFighterSettings()
+					# Get the fighter this one is cloned from
+					if moduleFolder:
+						clonedModuleName = getClonedModuleName(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0])
+					else:
+						clonedModuleName = ""
 
 					uninstallVictoryTheme = 0
+					uninstallCreditsTheme = 0
 					newSoundbankId = ""
 					franchiseIconId = -1
 					victoryThemeId = 0
+					creditsThemeId = 0
 					overwriteFighterName = ""
+					changeEffectId = False
+					oldEffectId = ""
 
 					#region USER INPUT/PRELIMINARY CHECKS
 
 					# Prompt user to input fighter ID
-					idEntered = False
-					while idEntered != True:
-						fighterId = BrawlAPI.UserStringInput("Enter your desired fighter ID")
-						# Ensure fighter ID is just the hex digits
-						if fighterId.startswith('0x'):
-							fighterId = fighterId.split('0x')[1].upper()
-							break
-						elif fighterId.isnumeric():
-							fighterId = str(hex(int(fighterId))).split('0x')[1].upper()
-							break
-						else:
-							BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-							continue
+					fighterId = showIdPrompt("Enter your desired fighter ID")
+					fighterId = fighterId.split('0x')[1].upper()
+
 					# Check if fighter ID is already used
 					existingFighterConfig = getFighterConfig(fighterId)
 					if existingFighterConfig:
@@ -101,19 +109,9 @@ def main():
 								else:
 									break
 					# Prompt user to input cosmetic ID
-					idEntered = False
-					while idEntered != True:
-						cosmeticId = BrawlAPI.UserStringInput("Enter your desired cosmetic ID")
-						# Ensure cosmetic ID is the integer format
-						if cosmeticId.startswith('0x'):
-							cosmeticId = int(cosmeticId, 16)
-							break
-						elif cosmeticId.isnumeric():
-							cosmeticId = int(cosmeticId)
-							break
-						else:
-							BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-							continue
+					cosmeticId = showIdPrompt("Enter your desired cosmetic ID")
+					cosmeticId = int(cosmeticId, 16)
+
 					# Check if cosmetic ID is already used
 					existingFile = Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "MenSelchrFaceB" + addLeadingZeros(cosmeticId, 2) + "0.brres")
 					if existingFile:
@@ -127,18 +125,9 @@ def main():
 						installVictoryTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a victory theme. Would you like to install it?", "Install victory theme?")
 						if installVictoryTheme == False:
 							changeVictoryTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's victory theme ID?", "Change victory theme?")
-							while changeVictoryTheme:
-								victoryThemeId = BrawlAPI.UserStringInput("Enter your desired victory theme ID")
-								# Ensure victory theme ID is in integer format
-								if victoryThemeId.startswith('0x'):
-									victoryThemeId = int(victoryThemeId, 16)
-									break
-								elif victoryThemeId.isnumeric():
-									victoryThemeId = int(victoryThemeId)
-									break
-								else:
-									BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-									continue
+							if changeVictoryTheme:
+								victoryThemeId = showIdPrompt("Enter your desired victory theme ID")
+								victoryThemeId = int(victoryThemeId, 16)
 						# Check if existing fighter has a different victory theme
 						if installVictoryTheme:
 							existingSlotConfig = getSlotConfig(fighterId)
@@ -148,6 +137,24 @@ def main():
 									victoryThemeName = getFileInfo(Directory.GetFiles(folder + '/VictoryTheme', "*.brstm")[0]).Name
 									if oldVictoryThemeName != victoryThemeName.split('.brstm')[0]:
 										uninstallVictoryTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a victory theme with a different name. Do you want to remove it?", "Remove existing victory theme?")
+
+					# Credits theme checks
+					if creditsFolder:
+						# Ask user if they would like to install the included credits theme
+						doInstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a credits theme. Would you like to install it?", "Install credits theme?")
+						if doInstallCreditsTheme == False:
+							changeCreditsTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's credits theme ID?", "Change credits theme?")
+							if changeCreditsTheme:
+								creditsThemeId = showIdPrompt("Enter your desired credits theme ID")
+								creditsThemeId = int(creditsThemeId, 16)
+						# Check if existing fighter has a different credits theme
+						if doInstallCreditsTheme:
+							oldThemeId = updateCreditsCode(fighterId, "", read=True)
+							if oldThemeId and oldThemeId != "0x0000":
+								oldCreditsThemeName = getSongNameById(int(oldThemeId, 16), 'Credits', 'Credits')
+								creditsThemeName = getFileInfo(Directory.GetFiles(folder + '/CreditsTheme', "*.brstm")[0]).Name
+								if oldCreditsThemeName != creditsThemeName.split('.brstm')[0]:
+									uninstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a credits theme with a different name. Do you want to remove it?", "Remove existing credits theme?")
 						
 					# Check if soundbank is already in use
 					if soundbankFolder:
@@ -193,6 +200,44 @@ def main():
 							if overwriteSoundbank == False:
 								BrawlAPI.ShowMessage("Fighter installation will abort.", "Aborting Installation")
 								return
+					# Check if Effect.pac ID is already in use
+					if settings.gfxChangeExe != "":
+						oldEffectId = effectId
+						if effectId:
+							while True:
+								matchFound = False
+								directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
+								progressCounter = 0
+								progressBar = ProgressWindow(MainForm.Instance, "Conflict Check...", "Checking for Effect.pac ID conflicts", False)
+								progressBar.Begin(0, len(directories), progressCounter)
+								for directory in directories:
+									progressCounter += 1
+									progressBar.Update(progressCounter)
+									foundEffectId = getEffectId(DirectoryInfo(directory).Name)
+									if effectId == foundEffectId:
+										matchFound = True
+										changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+										if changeEffectId:
+											idEntered = False
+											while idEntered != True:
+												effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
+												# Ensure effect ID is just the hex digits
+												if effectId.startswith('0x'):
+													effectId = effectId.split('0x')[1].upper()
+													break
+												elif effectId.isnumeric():
+													effectId = str(hex(int(effectId))).split('0x')[1].upper()
+													break
+												else:
+													BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
+													continue
+										else:
+											matchFound = False
+										progressBar.Finish()
+										break
+								if matchFound == False:
+									progressBar.Finish()
+									break
 					# Franchise icon install prompt
 					if franchiseIconFolder:
 						doInstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("This character comes with a franchise icon. Would you like to install it?", "Install Franchise Icon")
@@ -238,7 +283,7 @@ def main():
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 14, progressCounter)
+					progressBar.Begin(0, 18, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -296,6 +341,14 @@ def main():
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
+					# Install BP names to info.pac
+					if bpFolder and settings.installBPNames == "true":
+						# Get preferred BP style
+						bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
+						if bpFolders:
+							nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
+							if nameFolders:
+								installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
 					fileOpened = checkOpenFile("info")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -305,6 +358,39 @@ def main():
 					progressBar.Update(progressCounter)
 					
 					#endregion info.pac
+
+					#region Single Player Cosmetics
+
+					# Go through each info .pac file (aside from the standard info.pac) and install stuff
+					if settings.installSingleplayerCosmetics:
+						for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
+							fileName = getFileInfo(file).Name
+							if fileName != "info.pac":
+								# Franchise icons first
+								if franchiseIconFolder and doInstallFranchiseIcon:
+									franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
+									installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
+								# BP names next
+								if bpFolder and settings.installBPNames == "true":
+									# Get preferred BP style
+									bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
+									if bpFolders:
+										nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
+										if nameFolders:
+											installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
+								fileOpened = checkOpenFile(fileName.split('.pac')[0])
+								if fileOpened:
+									BrawlAPI.SaveFile()
+									BrawlAPI.ForceCloseFile()
+
+					# Import the classic intro file if present
+					if classicIntro:
+						importClassicIntro(cosmeticId, Directory.GetFiles(classicIntro.FullName, "*.brres")[0])
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Single Player Cosmetics
 
 					#region STGRESULT
 
@@ -372,10 +458,10 @@ def main():
 					# If user indicated they want victory theme removed, remove it first
 					if uninstallVictoryTheme:
 						removeSongId = getVictoryThemeIDByFighterId(fighterId)
-						removeVictoryTheme(removeSongId)
+						removeSong(removeSongId)
 					# Add victory theme
 					if victoryThemeFolder and settings.installVictoryThemes == "true" and installVictoryTheme:
-						victoryThemeId = addVictoryTheme(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
+						victoryThemeId = addSong(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -402,6 +488,13 @@ def main():
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 					#endregion Soundbank
+
+					#region Effect ID
+
+					# Update effect ID if user opted to earlier
+					if changeEffectId and oldEffectId:
+						updateEffectId(getFileInfo(Directory.GetFiles(fighterFolder.FullName, "Fit" + fighterInfo.fighterName + ".pac")[0]), getFileInfo(settings.gfxChangeExe), oldEffectId, effectId)
+					#endregion Effect ID
 
 					#region Kirby Hats
 
@@ -484,6 +577,30 @@ def main():
 					progressBar.Update(progressCounter)
 					#endregion EX Configs
 
+					#region Misc Changes
+
+					# Install ending files if they exist
+					if endingFolder:
+						installEndingFiles(endingFolder, fighterInfo.fighterName, fighterId)
+
+					# If user indicated they want credits theme removed, remove it first
+					if uninstallCreditsTheme:
+						uninstallCreditsSong(fighterId)
+
+					# Update credits codde if ID is provided
+					if fighterSettings.creditsThemeId:
+						updateCreditsCode(fighterId, fighterSettings.creditsThemeId)
+
+					# Install credits song if one exists
+					if creditsFolder and settings.installVictoryThemes == "true" and doInstallCreditsTheme:
+						if Directory.GetFiles(creditsFolder.FullName, "*.brstm"):
+							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], fighterId)
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Misc Changes
+
 					#region Code Menu
 
 					# Add fighter to code menu
@@ -493,6 +610,63 @@ def main():
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 					#endregion Code Menu
+
+					#region Code Edits
+
+					#addCodeMacro(fighterInfo.characterName, fighterId, "StockException", [ "0x" + str(fighterId), "0x" + str(fighterId) ], 0)
+
+					# Make code changes to add a throw release point
+					if fighterSettings.throwReleasePoint:
+						updateThrowRelease(fighterId, fighterInfo.characterName, fighterSettings.throwReleasePoint)
+
+					# Make code changes for Lucario clones
+					if clonedModuleName == "ft_lucario":
+						# Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
+						addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))) ], 0)
+						# Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
+						if fighterSettings.lucarioKirbyEffectId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), fighterSettings.lucarioKirbyEffectId ], 0, preFindText="bne notKirby")
+						# Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]
+						if fighterSettings.lucarioBoneId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFixA", [ "copy", "0x" + str(fighterId), fighterSettings.lucarioBoneId ], 1, True)
+
+					# Make code changes for Jigglypuff clones
+					if clonedModuleName == "ft_purin":
+						# Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]
+						if fighterSettings.jigglypuffBoneId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneBones", [ "0x" + str(fighterId), fighterSettings.jigglypuffBoneId, "copy" ], 0, True)
+						# Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
+						if fighterSettings.jigglypuffEFLSId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneGFX", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))), fighterSettings.jigglypuffEFLSId, "copy" ], 0, True)
+						# Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
+						if fighterSettings.jigglypuffSfxIds:
+							if changeSoundbankId:
+								i = 0
+								while i < len(fighterSettings.jigglypuffSfxIds):
+									fighterSettings.jigglypuffSfxIds[i] = getNewSfxId(fighterSettings.jigglypuffSfxIds[i], settings.sfxChangeExe)
+									i += 1
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[0], "copy" ], 0, False, "HOOK @ $80ACAE3C")
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[1], "copy" ], 0, False, "HOOK @ $80ACAE60")
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[2], "copy" ], 0, False, "HOOK @ $80ACF704")
+							addCodeMacro(fighterInfo.characterName, fighterId, "CloneSFX", [ "0x" + str(fighterId), fighterSettings.jigglypuffSfxIds[3], "copy" ], 0, False, "HOOK @ $80ACA09C")
+					
+					# Make code changes for Dedede clones
+					if clonedModuleName == "ft_dedede":
+						# Dedede Clones Fix [MarioDox]
+						addCodeMacro(fighterInfo.characterName, fighterId, "DededeFix", [ "0x" + str(fighterId) ], 0, True)
+
+					# Make code changes for Bowser clones
+					if clonedModuleName == "ft_koopa":
+						# Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
+						if fighterSettings.bowserBoneId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "BoneIDFix", [ "0x" + str(fighterId), fighterSettings.bowserBoneId ], 0, False, preFindText=".macro BoneIDFix(<FighterID>, <BoneID>)")
+
+					buildGct()
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion Code Edits
 
 					#region CSSRoster
 
@@ -511,7 +685,9 @@ def main():
 				archiveBackup()
 				BrawlAPI.ShowMessage("Character successfully installed.", "Success")
 		except Exception as e:
-			progressBar.Finish()
+			writeLog("ERROR " + str(e))
+			if 'progressBar' in locals():
+				progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
 			restoreBackup()

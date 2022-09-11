@@ -9,14 +9,24 @@ This tool was made possible by:
 - markymawk, for their basic guide to writing plug-ins and for their plug-ins which served as a great learning resource.
 - Kapedani and Hatyaro, for helping with some coding challenges.
 - QuickLava and codes, for the various tools they created that these plugins are able to interact with.
+- KingJigglypuff for providing detailed information on currently supported non-Ex modules.
 - CaliKingz01, who provided the PSA for X to use as an example character package.
 - Shy, who created the cosmetics used for X.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
 - The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
-Currently this plugin performs all the necessary installation to get an EX character fully working in Versus mode. Characters will most likely work in other modes such as Classic, All-Star, etc. but may have broken cosmetics. Full support for modes outside of Versus Mode will be implemented in a future update.
+Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes except Subspace Emissary (which will come in a future update).
 
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
+
+## Features
+- Install or uninstall fully playable characters into a build of Super Smash Bros. Brawl in just a few clicks.
+- Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
+- Numerous settings to support many different kinds of builds.
+- Tools to easily list IDs already in use in a build.
+- Automatic backup and restore features in case of unintended results.
+- Logging features to help diagnose issues when they are encountered.
+- Support for Ex modules and several non-Ex modules (Lucario, Marth, Sonic, and Pit's patched PM module).
 
 # Installation
 ## Prerequisites
@@ -27,7 +37,7 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [QuickLava's Kirby Hat Manager](https://github.com/QuickLava/lavaKirbyHatManager). You will want to ensure this is installed in your build's root folder (should be in the same directory as the /pf/ folder). **This is necessary if you want Kirby hats to function correctly on P+ EX builds.**
 - **(OPTIONAL)** The latest version of [QuickLava's fork of the P+ EX code menu](https://github.com/QuickLava/PowerPC-Assembly-Functions). You will want to ensure this is installed in your build's root folder (should be in the same directory as the /pf/ folder). **This is necessary if you want your character added to the code menu.**
 - **(OPTIONAL)** The latest version of [QuickLava's Sawnd ID Replace Assist](https://github.com/QuickLava/lavaSawndIDReplaceAssist). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
-- **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
+- **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs or Effect.pac IDs in the event of a conflict.**
 - If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages).
 
 ## Setup
@@ -50,6 +60,8 @@ https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
 
+Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins#fightersettingstxt) section for more details.
+
 ## Template Packages
 **DOWNLOAD:** [Rockman X (by CaliKingz01) Example Package](https://www.mediafire.com/file/qnx8p14ivsb3rxo/RockmanX_by_CaliKingz01.zip/file)
 
@@ -62,6 +74,8 @@ These sample packages give an example of what a proper character package should 
 Each plugin can be accessed from the Plugins menu in BrawlCrate by hovering over the "BrawlInstaller Plugins" option. Plugins may prompt the user for input. When plugins prompt the user to enter IDs such as fighter IDs or cosmetic IDs, these IDs can almost always be entered as either a hex value (e.g. "0x21") or an integer value (e.g. "33") - the plugins will convert them as needed.
 
 On first run of any plugin, the user will be prompted to [configure their settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings) if they have not done so already.
+
+All plugins attempt to create backups of files that they modify, replace, or delete. These backups are stored in `/Backups/` in the BrawlCrate root directory. The plugins will also create a log of the work they are doing. The most recent log file created by one of the plugins can be found in `/Logs/log.txt` in the BrawlCrate root folder.
 
 ## Configure Settings
 **Usage:** Plugins menu > BrawlInstaller Plugins > Configure Settings
@@ -77,19 +91,36 @@ This plugin allows you to select the files for a Brawl character packaged in a .
 
 When used, the plugin will first prompt you to select a .zip file of your character package. It will then prompt you to enter a fighter ID followed by a cosmetic ID. If the fighter comes with a franchise icon, it will also ask if you wish to install it and prompt you for a franchise icon ID if you elect to do so. If the user elects not to install a franchise icon, they may enter an alternate franchise icon ID for the fighter to use instead. If the fighter comes with a victory theme, it will also ask if you wish to install it and, if you elect not to, it will ask if you wish to enter an alternative victory theme ID. All IDs can be entered in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format.
 
-If an existing fighter ID is input, the user will be prompted to either overwrite the existing fighter files or enter another fighter ID. If existing fighter files are overwritten, the plugin will attempt to remove files associated with that fighter ID before installing, though it will not remove existing cosmetics. This should only be used when reinstalling the same character over a specific ID - if you are trying to remove another character and replace them, you should use the "Uninstall Character" plugin first instead.
+If an existing fighter ID is input, the user will be prompted to either overwrite the existing fighter files or enter another fighter ID. If existing fighter files are overwritten, the plugin will attempt to remove files associated with that fighter ID before installing, though it will not remove existing cosmetics. This should only be used when reinstalling the same character over a specific ID - if you are trying to remove another character and replace them, you should use the "Uninstall Character" plugin first instead. Overwriting an existing character will not account for any redirects in their config files.
 
 If an existing cosmetic ID is input, the user will be prompted to either overwrite the existing cosmetics or enter another cosmetic ID. If existing cosmetics are overwritten, the plugin will attempt to remove all cosmetics associated with that ID before installing.
 
 If the fighter has the same internal name as an existing fighter, the user will be prompted to either overwrite the files or input a different fighter name. If files are overwritten, the plugin will remove the old files and replace them with the contents of the character package.
 
-If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd ID Replace Assist and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these, tools, you may only choose to overwrite, or else installation will be aborted.
+If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd ID Replace Assist and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these tools, you may only choose to overwrite, or else installation will be aborted.
+
+If the fighter has the same Effect.pac ID as one that already exists in the build and you have Codes' porting tools, you will be prompted to change the Effect.pac ID for the fighter, in which case you will want to enter the Effect.pac ID as it would appear in the fighter's moveset (e.g. "0x2A" as it would appear in "ef_custom2A"). If you elect not to do this, the old Effect.pac ID will continue to be used, which could create conflicts unless you are just reinstalling an existing character. If you do not have these tools, this part of the process will be skipped and the old Effect.pac ID will always be used.
 
 After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat. Cosmetic files such as stock icons and CSPs are imported in alphabetical order, so mod authors should ensure their files are named appropriately.
+
+The installer primarily supports Ex modules currently, but also supports a few other modules, including: Lucario's module, Marth's module, Sonic's module, and Pit's patched Project M module.
 
 If the user has QuickLava's Kirby Hat manager installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_KirbyHats.txt file and run the Kirby Hat manager.
 
 If the user has QuickLava's Code Menu fork installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_Characters.txt file and run the code menu .exe.
+
+The plugin will also modify certain Gecko codes as needed if it finds them, and at the end it will build the GCT files in the build. The following Gecko codes are modified automatically:
+- ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]
+- Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
+- Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
+- Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]
+- Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]
+- Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
+- Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
+- Dedede Clones Fix [MarioDox]
+- Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
+- Classic and All-Star Ending Choice Engine v1.1d [DukeItOut]
+- Classic and All-Star Results Music Table [DukeItOut]
 
 Once fighter installation has completed, the user will receive a message indicating a successful installation, and then they may use their updated build as they please.
 
@@ -105,6 +136,8 @@ After the user has input their selections, the plugin will attempt to remove all
 If the user has QuickLava's Kirby Hat manager installed, the plugin will remove any existing entry from EX_KirbyHats.txt and then run the hat manager.
 
 If the user has QuickLava's Code Menu fork installed, the plugin will remove any existing entry from EX_Characters.txt and then run the code menu .exe.
+
+This plugin will also modify the same codes that the "Install Character" plugin does as needed to remove entries added.
 
 After the fighter is successfully uninstalled, the user will receive a message indicating such, and then they may use their updated build as they please.
 
@@ -165,16 +198,31 @@ The settings currently supported by the BrawlInstaller plugins are as follows:
 - **soundbankStyle** - [*Values : hex, dec*] : The naming convention used for soundbanks in your build. The plugin will use this setting to determine how soundbanks imported into your build should be named. If it is set to `hex`, soundbanks will be named after their soundbank ID in hexadecimal format. If set to `dec`, soundbanks will be named after their soundbank ID in decimal format.
 - **addSevenToSoundbankName** - [*Values : true, false*] : Whether 7 should be added to soundbank IDs when naming soundbanks. If this is set to `true`, all soundbanks will be named as the ID provided + 7. If set to `false`, all soundbanks will be named only as the ID provided.
 - **addSevenToSoundBankIds** - [*Values : true, false*] : Whether 7 should be added to SFX IDs within soundbanks when converting them using QuickLava and Codes' tools. If this is set to `true`, soundbank IDs passed to QuickLava's tool will have 7 added to them. If this is set to `false`, soundbank IDs will be passed to QuickLava's tool unmodified.
-- **installVictoryThemes** - [*Values : true, false*] : Whether victory themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory themes will not be installed.
+- **installVictoryThemes** - [*Values : true, false*] : Whether victory and credits themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory and credits themes will not be installed.
 - **useCssRoster** - [*Values : true, false*] : Whether or not the build uses CSSRoster.dat to determine the roster available on the character select screen. If this is set to `true`, CSSRoster.dat will be updated to display newly installed character packages. If set to `false`, characters will not be added to the CSS.
+- **gfxChangeExe** - [*Values : a .exe path*] : The direct path to the .exe file for Codes' gfxchange.exe tool to run when changing Effect.pac IDs. This should be in the same directory as Codes' tracechange.exe, which will also be run in the event of Effect.pac ID conflicts.
+- **installBPNames** - [*Values : true, false*] : Whether or not battle portrait nameplates should be installed to `info.pac`.
+- installSingleplayerCosmetics - [*Values : true, false*] : Whether or not franchise icons and BP names (if the user has opted to install them at all) should be installed into single player modes as well (e.g. Classic Mode, Home Run Contest, Training, etc).
+
+# FighterSettings.txt
+
+When packaging a character, you can include a "FighterSettings.txt" file in the root directory of the package. This is generated automatically if you use the "Package Character" plugin and set any values that go in this file.
+
+All of the settings are also documented in the [template packages](https://github.com/squidgy617/BrawlInstallerPlugins#package-character).
+
+The following settings are supported by the FighterSettings.txt file:
+- **throwReleasePoint** - [*Values : a comma-separated pair of float values*] : The values used in the code `ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]`
+- **creditsThemeId** - [*Values : a song ID in hex format*] : The song ID used for the credits theme of your character if you're using a vanilla credits theme. If you provide a credits theme, that will be installed instead of using the ID.
+- **lucarioBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]`
+- **lucarioKirbyEffectId** - [*Values : an Effect.pac ID in hex format*] : The `Effect.pac ID used for the Kirby hat for the code Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]`
+- **jigglypuffBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]`
+- **jigglypuffEFLSId** - [*Values : an EFLS ID in hex format*] : The EFLS ID/index used in the code `Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]`
+- **jigglypuffSfxIds** - [*Values : a comma-separated list of four SFX IDs in hex format*] : The SFX IDs used in the code `Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]`
+- **bowserBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Bowser Clone Fire Breath Bone Fix [KingJigglypuff]`
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
-- Importing necessary files for single player modes such as Classic, All-Star, Home Run Contest, etc.
-- Automatic updating of P+ EX codes that require character IDs
-- Handling conflicts between Effect.pac IDs
 - Allow redirection of EX config IDs
-- Support for non-EX modules used by some characters
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
 - Support for Subspace Emissary EX
 - Costume Installer plugin
