@@ -48,6 +48,7 @@ def main():
 					victoryThemeFolder = getDirectoryByName("VictoryTheme", fighterDir)
 					endingFolder = getDirectoryByName("Ending", fighterDir)
 					creditsFolder = getDirectoryByName("CreditsTheme", fighterDir)
+					classicIntro = getDirectoryByName("ClassicIntro", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -341,7 +342,7 @@ def main():
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
 					# Install BP names to info.pac
-					if bpFolder and settings.installBPNames:
+					if bpFolder and settings.installBPNames == "true":
 						# Get preferred BP style
 						bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
 						if bpFolders:
@@ -370,7 +371,7 @@ def main():
 									franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 									installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
 								# BP names next
-								if bpFolder and settings.installBPNames:
+								if bpFolder and settings.installBPNames == "true":
 									# Get preferred BP style
 									bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
 									if bpFolders:
@@ -381,6 +382,10 @@ def main():
 								if fileOpened:
 									BrawlAPI.SaveFile()
 									BrawlAPI.ForceCloseFile()
+
+					# Import the classic intro file if present
+					if classicIntro:
+						importClassicIntro(cosmeticId, Directory.GetFiles(classicIntro.FullName, "*.brres")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
