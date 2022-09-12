@@ -2146,6 +2146,43 @@ def extractFranchiseIcon(franchiseIconId, filePath):
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting franchise icon")
 
+# Extract BP name
+def extractBPName(cosmeticId, filePath, folderName):
+		writeLog("Extracting BP name with cosmetic ID " + str(cosmeticId) + " at " + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath, False)
+		if fileOpened:
+			# Extract BP name
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			nodeName = "MenSelchrChrNmS." +addLeadingZeros(str(cosmeticId) + '1', 3)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting BP name")
+
+# Extract Classic intro
+def extractClassicIntro(cosmeticId):
+		writeLog("Extracting class intro file for cosmetic ID " + str(cosmeticId + 1))
+		filePath = MainForm.BuildPath + '/pf/menu/intro/enter/chr' + addLeadingZeros(str(cosmeticId + 1), 4) + '.brres'
+		if File.Exists(filePath):
+			copyFile(filePath, AppPath + '/temp/ClassicIntro')
+		writeLog("Finished extracting classic intro file")
+
+# Extract franchise icon from result
+def extractFranchiseIconResult(franchiseIconId):
+		writeLog("Extracting franchise icon ID " + str(franchiseIconId) + " from STGRESULT.pac")
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac', False)
+		if fileOpened:
+			# Extract icon
+			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Transparent')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting franchise icon")
+
 #endregion
 
 #region INSTALLER FUNCTIONS

@@ -121,6 +121,54 @@ def main():
 
 			#endregion SCSELCHARACTER
 
+			#region info.pac
+
+			# Extract stock icons if we haven't yet
+			if settings.installStocksToInfo == "true" and not stocksExtracted:
+				extractStockIcons(cosmeticId, "Misc Data [30]", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
+
+			# Extract BP names
+			if settings.installBPNames == "true":
+				extractBPName(cosmeticId, '/pf/info2/info.pac', settings.bpStyle)
+
+			fileOpened = checkOpenFile("info")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			#endregion info.pac
+
+			#region Single Player Cosmetics
+			
+			# Extract Classic intro
+			extractClassicIntro(cosmeticId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			#endregion Single Player Cosmetics
+
+			#region STGRESULT
+
+			# Extract stock icons if we haven't yet
+			if settings.installStockIconsToResult == "true" and not stocksExtracted:
+				extractStockIcons(cosmeticId, "Misc Data [120]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+
+			# Extract transparent franchise icon from STGRESULT
+			extractFranchiseIconResult(fighterInfo.franchiseIconId)
+
+			fileOpened = checkOpenFile("STGRESULT")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			#endregion STGRESULT
+
 			progressBar.Finish()
 		except Exception as e:
 			writeLog("ERROR " + str(e))
