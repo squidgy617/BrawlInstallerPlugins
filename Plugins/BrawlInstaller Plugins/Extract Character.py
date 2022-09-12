@@ -189,6 +189,12 @@ def main():
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
+			# Remove replay icon
+			extractReplayIcon(cosmeticId)
+			BrawlAPI.ForceCloseFile()
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
 			progressBar.Finish()
 		except Exception as e:
 			writeLog("ERROR " + str(e))

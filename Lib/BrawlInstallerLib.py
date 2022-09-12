@@ -2210,6 +2210,19 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 			newId += 1
 		writeLog("Finished extracting BPs")
 
+# Extract replay icon
+def extractReplayIcon(cosmeticId):
+		writeLog("Extract replay icon for cosmetic ID " + str(cosmeticId))
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
+		if fileOpened:
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting replay icon")
+
 #endregion
 
 #region INSTALLER FUNCTIONS
