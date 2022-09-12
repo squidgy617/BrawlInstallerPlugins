@@ -2183,6 +2183,33 @@ def extractFranchiseIconResult(franchiseIconId):
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting franchise icon")
 
+# Extract BPs
+def extractBPs(cosmeticId, folderName, fiftyCC="true"):
+		writeLog("Extracting BPs for cosmetic ID " + str(cosmeticId))
+		# For 50 costume code, we must multipley the cosmetic ID by 50
+		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
+		# Look for files matching naming scheme and extract them
+		while newId <= (cosmeticId * 50) + 50:
+			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
+			if bpFile:
+				fileOpened = openFile(bpFile.FullName, False)
+				if fileOpened:
+					writeLog("Extracting BP file " + bpFile.FullName)
+					texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+					if texFolder:
+						if texFolder.Children:
+							writeLog("Extracting texture " + texFolder.Children[0].Name)
+							exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
+							texFolder.Children[0].Export(exportPath + '/' + texFolder.Children[0].Name + '.png')
+							writeLog("Extracted texture")
+					BrawlAPI.ForceCloseFile()
+			else:
+				# If no matching file exists, just exit
+				break
+			newId += 1
+		writeLog("Finished extracting BPs")
+
 #endregion
 
 #region INSTALLER FUNCTIONS

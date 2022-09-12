@@ -133,7 +133,6 @@ def main():
 
 			fileOpened = checkOpenFile("info")
 			if fileOpened:
-				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
 			progressCounter += 1
@@ -162,12 +161,33 @@ def main():
 
 			fileOpened = checkOpenFile("STGRESULT")
 			if fileOpened:
-				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			#endregion STGRESULT
+
+			#region Other Stock Icon Locations
+
+			# StockFaceTex.brres - used for things like rotation mode
+			if settings.installStocksToStockFaceTex == "true":
+				extractStockIcons(cosmeticId, "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
+				BrawlAPI.ForceCloseFile()
+			# sc_selmap - used for SSS in vBrawl
+			if settings.installStocksToSSS == "true":
+				extractStockIcons(cosmeticId, "Misc Data [40]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
+				BrawlAPI.ForceCloseFile()
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			#endregion Other Stock Icon Locations
+
+			# Extract BPs
+			extractBPs(cosmeticId, settings.bpStyle, settings.fiftyCostumeCode)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
 
 			progressBar.Finish()
 		except Exception as e:
