@@ -2049,9 +2049,10 @@ def uninstallEndingFiles(fighterName, fighterId):
 		deleteEndingMovie(fighterName)
 
 # Function to do all the credits remove work
-def uninstallCreditsSong(slotId):
+def uninstallCreditsSong(slotId, removeSong=True):
 		songId = updateCreditsCode(slotId, "0x0000", remove=True)
-		removeSong(int(songId, 16), 'Credits', 'Credits')
+		if removeSong:
+			removeSong(int(songId, 16), 'Credits', 'Credits')
 
 #endregion REMOVE FUNCTIONS
 
