@@ -189,9 +189,29 @@ def main():
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
-			# Remove replay icon
+			# Extract replay icon
 			extractReplayIcon(cosmeticId)
 			BrawlAPI.ForceCloseFile()
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract victory theme
+			extractSongId = getVictoryThemeIDByFighterId(slotId)
+			extractSong(extractSongId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract soundbank
+			# Need soundbank ID to match preferences
+			soundbankId = fighterInfo.soundbankId
+			modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
+			if settings.soundbankStyle == "hex":
+				soundbankIdToExtract = str("%x" % (soundbankId + modifier)).upper()
+			else:
+				soundbankIdToExtract = str(soundbankId + modifier)
+			extractSoundbank(soundbankIdToExtract)
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 

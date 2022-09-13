@@ -2223,6 +2223,39 @@ def extractReplayIcon(cosmeticId):
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting replay icon")
 
+# Extract soundbank
+def extractSoundbank(soundBankId):
+		writeLog("Extracting soundbank ID " + str(soundBankId))
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
+		soundBank = getFileByName(str(soundBankId).upper() + ".sawnd", directory)
+		if soundBank:
+			exportPath = createDirectory(AppPath + '/temp/Soundbank')
+			copyFile(soundBank.FullName, exportPath)
+		writeLog("Extract soundbank ID complete")
+
+# Extract song from tracklist
+def extractSong(songID, songDirectory='Victory!', tracklist='Results'):
+		writeLog("Extracting theme with song ID " + str(songID))
+		fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
+		if fileOpened:
+			node = BrawlAPI.RootNode
+			if node.Children:
+				for child in node.Children:
+					if child.SongID == songID:
+						childNode = child
+						break
+			if 'childNode' in locals():
+				# Get filename
+				path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory
+				directory = Directory.CreateDirectory(path)
+				brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+				if brstmFile:
+					writeLog("Extracting file " + brstmFile.FullName)
+					exportPath = createDirectory(AppPath + '/temp/VictoryTheme')
+					copyFile(brstmFile.FullName, exportPath)
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished extracting theme")
+
 #endregion
 
 #region INSTALLER FUNCTIONS
