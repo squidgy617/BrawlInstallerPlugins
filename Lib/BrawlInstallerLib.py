@@ -1412,8 +1412,8 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
 					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[lineCounter - int(cosmeticConfigId, 16) - 1]
-					newLine[lineCounter - int(cosmeticConfigId, 16) - 1] = str(j)
+					foundId = newLine[(len(newLine) - (lineCounter - int(cosmeticConfigId, 16))) - 1]
+					newLine[(len(newLine) - (lineCounter - int(cosmeticConfigId, 16))) - 1] = str(j)
 					newString = "\t\t"
 					for part in newLine:
 						newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
@@ -1471,9 +1471,9 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
 					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[lineCounter - int(slotId, 16) - 1]
+					foundId = newLine[(len(newLine) - (lineCounter - int(slotId, 16))) - 1]
 					if not read:
-						newLine[lineCounter - int(slotId, 16) - 1] = str(songId)
+						newLine[(len(newLine) - (lineCounter - int(slotId, 16))) - 1] = str(songId)
 						newString = "\t\t"
 						for part in newLine:
 							newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
@@ -2030,9 +2030,10 @@ def uninstallEndingFiles(fighterName, fighterId):
 		deleteEndingMovie(fighterName)
 
 # Function to do all the credits remove work
-def uninstallCreditsSong(slotId):
+def uninstallCreditsSong(slotId, removeSong=True):
 		songId = updateCreditsCode(slotId, "0x0000", remove=True)
-		removeSong(int(songId, 16), 'Credits', 'Credits')
+		if removeSong:
+			removeSong(int(songId, 16), 'Credits', 'Credits')
 
 #endregion REMOVE FUNCTIONS
 
