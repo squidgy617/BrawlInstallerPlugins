@@ -86,13 +86,14 @@ def main():
 				clonedModuleName = getClonedModuleName(moduleFiles[0])
 
 			cosmeticId = fighterInfo.cosmeticId
+			fighterSettings = FighterSettings()
 
 			#endregion USER INPUT/PRELIMINARY CHECKS
 
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Extracting Character...", "Extracting Character", False)
-			progressBar.Begin(0, 17, progressCounter)
+			progressBar.Begin(0, 16, progressCounter)
 
 			# Extract CSPs
 			extractCSPs(cosmeticId)
@@ -244,10 +245,70 @@ def main():
 			# Extract ending files
 			extractEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
 
+			# Extract credits theme
+			creditsThemeId = extractCreditsSong(slotId)
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
+			# Extract code edits
+
+			# Extract throw release point
+			throwRelease = readThrowRelease(fighterId)
+			if throwRelease[0] != "0.0" and throwRelease[1] != "0.0":
+				fighterSettings.throwReleasePoint = throwRelease[0] + "," + throwRelease[1]
+
+			# Set credits theme ID if we didn't find a file
+			if creditsThemeId:
+				fighterSettings.creditsThemeId = str(creditsThemeId)
+
+			# Extract Lucario settings
+			if clonedModuleName == "ft_lucario":
+				fighterSettings.lucarioKirbyEffectId = readCodeMacro(fighterId, "GFXFix", 0, "bne notKirby", returnPosition=1)
+				fighterSettings.lucarioBoneId = readCodeMacro(fighterId, "BoneIDFixA", 1, returnPosition=2)
+
+			# Extract Jigglypuff settings
+			if clonedModuleName == "ft_purin":
+				fighterSettings.jigglypuffBoneId = readCodeMacro(fighterId, "CloneBones", 0, returnPosition=1)
+				fighterSettings.jigglypuffEFLSId = readCodeMacro(fighterId, "CloneGFX", 0, returnPosition=2)
+				jigglypuffSfxIds = []
+				jigglypuffSfxIds.append(readCodeMacro(fighterId, "CloneSFX", 0, preFindText="HOOK @ $80ACAE3C", returnPosition=1))
+				jigglypuffSfxIds.append(readCodeMacro(fighterId, "CloneSFX", 0, preFindText="HOOK @ $80ACAE60", returnPosition=1))
+				jigglypuffSfxIds.append(readCodeMacro(fighterId, "CloneSFX", 0, preFindText="HOOK @ $80ACF704", returnPosition=1))
+				jigglypuffSfxIds.append(readCodeMacro(fighterId, "CloneSFX", 0, preFindText="HOOK @ $80ACA09C", returnPosition=1))
+				fighterSettings.jigglypuffSfxIds = ""
+				for sfxId in jigglypuffSfxIds:
+					if sfxId:
+						fighterSettings.jigglypuffSfxIds = fighterSettings.jigglypuffSfxIds + ("," if fighterSettings.jigglypuffSfxIds != "" else "") + sfxId
+
+			# Extract Bowser settings
+			if clonedModuleName == "ft_bowser":
+				fighterSettings.bowserBoneId = readCodeMacro(fighterId, "BoneIDFix", 0, preFindText=".macro BoneIDFix(<FighterID>, <BoneID>)", returnPosition=1)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Write fighter settings
+			attrs = vars(fighterSettings)
+			writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+			if writeString:
+				File.WriteAllText(AppPath + '/temp/FighterSettings.txt', writeString)
+
+			# Create package
+			filePath = destination + '/' + fighterInfo.fighterName + '.zip'
+			if File.Exists(filePath):
+				File.Delete(filePath)
+			ZipFile.CreateFromDirectory(AppPath + '/temp', filePath)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
 			progressBar.Finish()
+
+			BrawlAPI.ShowMessage("Fighter package created at " + destination + '\\' + fighterInfo.fighterName + '.zip', "Success")
+
+			# Delete temporary directory
+			Directory.Delete(AppPath + '/temp', 1)
+
 		except Exception as e:
 			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():

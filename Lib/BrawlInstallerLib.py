@@ -2247,9 +2247,10 @@ def extractSoundbank(soundBankId):
 		writeLog("Extract soundbank ID complete")
 
 # Extract song from tracklist
-def extractSong(songID, songDirectory='Victory!', tracklist='Results'):
+def extractSong(songID, songDirectory='Victory!', tracklist='Results', exportFolder='VictoryTheme'):
 		writeLog("Extracting theme with song ID " + str(songID))
 		fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
+		success = False
 		if fileOpened:
 			node = BrawlAPI.RootNode
 			if node.Children:
@@ -2259,18 +2260,20 @@ def extractSong(songID, songDirectory='Victory!', tracklist='Results'):
 						break
 			if 'childNode' in locals():
 				# Get filename
-				path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory
+				path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
 				directory = Directory.CreateDirectory(path)
 				brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
 				if brstmFile:
 					writeLog("Extracting file " + brstmFile.FullName)
-					exportPath = createDirectory(AppPath + '/temp/VictoryTheme')
+					exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
 					copyFile(brstmFile.FullName, exportPath)
+					success = True
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting theme")
+		return success
 
 # Read a code macro
-def readCodeMacro(id, macroName, position=0, preFindText="", filePath='/ProjectM/CloneEngine.asm'):
+def readCodeMacro(id, macroName, position=0, preFindText="", filePath='/ProjectM/CloneEngine.asm', returnPosition=0):
 		writeLog("Reading ID " + str(id) + " " + macroName + " entry")
 		if File.Exists(MainForm.BuildPath + '/Source/' + filePath):
 			# Read file
@@ -2307,7 +2310,10 @@ def readCodeMacro(id, macroName, position=0, preFindText="", filePath='/ProjectM
 				else:
 					i += 1
 			writeLog(macroName + " read finished")
-			return foundValues
+			if foundValues and len(foundValues) >= returnPosition:
+				return foundValues[returnPosition].strip()
+			else:
+				return ""
 
 # Extract Kirby Hat
 def extractKirbyHat(fighterId, internalName):
@@ -2322,9 +2328,8 @@ def extractKirbyHat(fighterId, internalName):
 				copyFile(kirbyHatFiles[i], exportPath)
 				i += 1
 		kirbyHatId = ""
-		kirbyHatMacro = readCodeMacro(fighterId, 'HatFloatFix', 0, filePath='/Extras/KirbyHatEX.asm')
-		if kirbyHatMacro and len(kirbyHatMacro) > 1:
-			kirbyHatId = kirbyHatMacro[1]
+		kirbyHatId = readCodeMacro(fighterId, 'HatFloatFix', 0, filePath='/Extras/KirbyHatEX.asm', returnPosition=1)
+		if kirbyHatId:
 			exportPath = createDirectory(AppPath + '/temp/KirbyHats')
 			File.WriteAllText(exportPath + '/FighterID.txt', kirbyHatId)
 		writeLog("Extract Kirby hat files complete")
@@ -2395,6 +2400,41 @@ def extractEndingFiles(fighterName, cosmeticConfigId):
 			exportPath = createDirectory(AppPath + '/temp/Ending')
 			copyFile(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp', exportPath)
 		writeLog("Finished extracting ending movie file")
+
+# Extract credits song
+def extractCreditsSong(slotId):
+		writeLog("Extracting credits song for slot ID " + str(slotId))
+		songId = updateCreditsCode(slotId, "", read=True)
+		songFound = extractSong(int(songId, 16), 'Credits', 'Credits', 'CreditsTheme')
+		if songFound:
+			return 0
+		else:
+			return songId
+
+# Get throw release points
+def readThrowRelease(fighterId):
+		writeLog("Reading throw release point for ID " + str(fighterId))
+		returnValues = []
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/Modifier/ThrowRelease.asm'):
+			# Read ThrowRelease.asm
+			writeLog("Reading ThrowRelease.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm")
+			i = 0
+			tableStart = 0
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith("ThrowReleaseTable"):
+					writeLog("Found throw release table at line " + str(i))
+					tableStart = i + 2
+				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+					writeLog("Found matching EX fighter at position " + str(i))
+					value = line.split('|')[0]
+					returnValues.append(value.split(',')[0].strip())
+					returnValues.append(value.split(',')[1].strip())
+					break
+				i += 1
+		writeLog("Finished reading throw release point")
+		return returnValues
 
 #endregion
 

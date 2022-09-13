@@ -216,7 +216,9 @@ def main():
 					fighterSettings.bowserBoneId = showIdPrompt("Bone ID - Firebreath Fix")
 
 			attrs = vars(fighterSettings)
-			File.WriteAllText(AppPath + '/temp/FighterSettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
+			writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+			if writeString:
+				File.WriteAllText(AppPath + '/temp/FighterSettings.txt', writeString)
 
 		outputDirectory = BrawlAPI.OpenFolderDialog("Select output directory")
 		fileName = BrawlAPI.UserStringInput("Enter a file name")
