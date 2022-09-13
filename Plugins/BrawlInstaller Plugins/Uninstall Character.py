@@ -83,6 +83,8 @@ def main():
 			if 'cssSlotConfig' not in locals():
 				cssSlotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
 				cssSlotConfigId = str(fighterId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
 			progressBar.Finish()
 			fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
 			moduleFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/module', 'ft_' + fighterInfo.fighterName + '.rel')

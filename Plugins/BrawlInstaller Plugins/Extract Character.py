@@ -75,6 +75,8 @@ def main():
 			if 'cssSlotConfig' not in locals():
 				cssSlotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
 				cssSlotConfigId = str(fighterId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
 			progressBar.Finish()
 			fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
 			moduleFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/module', 'ft_' + fighterInfo.fighterName + '.rel')
@@ -211,6 +213,36 @@ def main():
 			else:
 				soundbankIdToExtract = str(soundbankId + modifier)
 			extractSoundbank(soundbankIdToExtract)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract kirby hat
+			extractKirbyHat(fighterId, fighterInfo.fighterName)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract fighter files
+			extractFighterFiles(fighterInfo.fighterName)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract module file
+			extractModuleFile(fighterInfo.fighterName)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract EX configs
+			extractExConfigs(fighterId, slotConfigId=slotId, cosmeticConfigId=cosmeticConfigId, cssSlotConfigId=cssSlotConfigId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract ending files
+			extractEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

@@ -1363,10 +1363,14 @@ def importEndingMovie(file, fighterName):
 		writeLog("Finished importing movie file")
 
 # Update an entry of the ending code
-def updateEndingCode(cosmeticConfigId, remove=False):
-		writeLog("Updating ending code for ID " + str(cosmeticConfigId))
+def updateEndingCode(cosmeticConfigId, remove=False, read=False):
+		if not read:
+			writeLog("Updating ending code for ID " + str(cosmeticConfigId))
+		else:
+			writeLog("Reading ending code for ID " + str(cosmeticConfigId))
 		if File.Exists(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm"):
-			createBackup(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
+			if not read:
+				createBackup(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
 			# Read CloneEngine.asm
 			writeLog("Reading CloneEngine.asm")
 			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
@@ -1390,7 +1394,7 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 					tableEndReached = True
 				i += 1
 			# Find the first unused value
-			if not remove:
+			if not remove and not read:
 				j = 1
 				i = 0
 				while i < len(valueList):
@@ -1419,23 +1423,30 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
 					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[lineCounter - int(cosmeticConfigId, 16) - 1]
-					newLine[lineCounter - int(cosmeticConfigId, 16) - 1] = str(j)
-					newString = "\t\t"
-					for part in newLine:
-						newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
-					newString = newString + '|' + fileText[i].split('|')[1]
-					fileText[i] = newString
+					writeLog("Line counter is " + str(lineCounter) + " cosmetic conf ID is " + str(int(cosmeticConfigId, 16)))
+					foundId = newLine[(len(newLine) - (lineCounter - int(cosmeticConfigId, 16))) - 1]
+					writeLog("Found ID " + foundId)
+					if not read:
+						newLine[(len(newLine) - (lineCounter - int(cosmeticConfigId, 16))) - 1] = str(j)
+						newString = "\t\t"
+						for part in newLine:
+							newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
+						newString = newString + '|' + fileText[i].split('|')[1]
+						fileText[i] = newString
 					notWritten = False
 				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
 					tableEndReached = True
 				i += 1
-			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', fileText)
-			if not remove:
+			if not read:
+				File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', fileText)
+			if not remove and not read:
 				returnId = str(j)
 			else:
 				returnId = foundId.strip()
-			writeLog("Finished updating ending code")
+			if not read:
+				writeLog("Finished updating ending code")
+			else:
+				writeLog("Finished reading ending code")
 			return returnId
 
 # Update an entry of the credits music code
@@ -1443,9 +1454,10 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 		if not read:
 			writeLog("Updating credits code for ID " + str(slotId))
 		else:
-			writeLog("REading credits code for ID " + str(slotId))
+			writeLog("Reading credits code for ID " + str(slotId))
 		if File.Exists(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm"):
-			createBackup(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
+			if not read:
+				createBackup(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
 			# Read ResultsMusic.asm
 			writeLog("Reading ResultsMusic.asm")
 			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
@@ -1478,9 +1490,9 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
 					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[lineCounter - int(slotId, 16) - 1]
+					foundId = newLine[(len(newLine) - (lineCounter - int(slotId, 16))) - 1]
 					if not read:
-						newLine[lineCounter - int(slotId, 16) - 1] = str(songId)
+						newLine[(len(newLine) - (lineCounter - int(slotId, 16))) - 1] = str(songId)
 						newString = "\t\t"
 						for part in newLine:
 							newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
@@ -2255,6 +2267,133 @@ def extractSong(songID, songDirectory='Victory!', tracklist='Results'):
 					copyFile(brstmFile.FullName, exportPath)
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting theme")
+
+# Read a code macro
+def readCodeMacro(id, macroName, position=0, preFindText="", filePath='/ProjectM/CloneEngine.asm'):
+		writeLog("Reading ID " + str(id) + " " + macroName + " entry")
+		if File.Exists(MainForm.BuildPath + '/Source/' + filePath):
+			# Read file
+			writeLog("Reading " + MainForm.BuildPath + '/Source/' + filePath)
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/' + filePath)
+			matchFound = False
+			foundMacros = False
+			foundPreText = False
+			i = 0
+			foundValues = []
+			# Search for matching ID and if one is found, return the values
+			while i < len(fileText):
+				line = fileText[i]
+				if preFindText != "" and line.strip() == preFindText:
+					foundPreText = True
+				# Get the ID out of the entry
+				if str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
+					writeLog("Found macro entries")
+					foundId = line.split(',')[position]
+					if '0x' + str(id) in foundId:
+						writeLog("Found matching entry")
+						matchFound = True
+						for value in line.split(','):
+							if '(' in value:
+								value = value.split('(')[1].strip()
+							elif ')' in value:
+								value = value.split(')')[0].strip()
+							foundValues.append(value)
+					i += 1
+				# If we hit the end, just exit
+				elif foundMacros and not matchFound and not str(line).strip().StartsWith("%" + macroName) and ((not preFindText) or foundPreText):
+					writeLog("No match found")
+					break
+				else:
+					i += 1
+			writeLog(macroName + " read finished")
+			return foundValues
+
+# Extract Kirby Hat
+def extractKirbyHat(fighterId, internalName):
+		writeLog("Extracting Kirby hat for fighter ID " + fighterId)
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/fighter/kirby')
+		kirbyHatFiles = Directory.GetFiles(directory.FullName, "FitKirby" + internalName + "*.pac")
+		if kirbyHatFiles:
+			i = 0
+			while i < len(kirbyHatFiles):
+				writeLog("Extracting Kirby hat file " + kirbyHatFiles[i])
+				exportPath = createDirectory(AppPath + '/temp/KirbyHats')
+				copyFile(kirbyHatFiles[i], exportPath)
+				i += 1
+		kirbyHatId = ""
+		kirbyHatMacro = readCodeMacro(fighterId, 'HatFloatFix', 0, filePath='/Extras/KirbyHatEX.asm')
+		if kirbyHatMacro and len(kirbyHatMacro) > 1:
+			kirbyHatId = kirbyHatMacro[1]
+			exportPath = createDirectory(AppPath + '/temp/KirbyHats')
+			File.WriteAllText(exportPath + '/FighterID.txt', kirbyHatId)
+		writeLog("Extract Kirby hat files complete")
+
+# Extract fighter files from build
+def extractFighterFiles(fighterName):
+		writeLog("Extracting fighter files")
+		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower()
+		if Directory.Exists(path):
+			for file in Directory.GetFiles(path, "*.pac"):
+				writeLog("Extracting file " + file)
+				exportPath = createDirectory(AppPath + '/temp/Fighter')
+				copyFile(file, exportPath)
+		writeLog("Finished extracting fighter files")
+
+# Extract module file
+def extractModuleFile(internalName):
+		writeLog("Extracting module for fighter name " + internalName)
+		path = MainForm.BuildPath + '/pf/module'
+		if Directory.Exists(MainForm.BuildPath + '/pf/module'):
+			directory = DirectoryInfo(path)
+			moduleFile = getFileByName("ft_" + internalName.lower() + ".rel", directory)
+			if moduleFile:
+				exportPath = createDirectory(AppPath + '/temp/Module')
+				copyFile(moduleFile.FullName, exportPath)
+		writeLog("Finished extracting module")
+
+# Extract EX configs
+def extractExConfigs(fighterId, slotConfigId="", cosmeticConfigId="", cssSlotConfigId=""):
+		writeLog("Extracting Ex configs for fighter ID " + fighterId)
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/BrawlEx')
+		for folder in Directory.GetDirectories(directory.FullName):
+			writeLog("Getting config from " + folder)
+			if DirectoryInfo(folder).Name == "SlotConfig" and slotConfigId:
+				writeLog("Slot ID " + str(slotConfigId))
+				id = slotConfigId
+			elif DirectoryInfo(folder).Name == "CosmeticConfig" and cosmeticConfigId:
+				writeLog("Cosmetic config ID " + str(cosmeticConfigId))
+				id = cosmeticConfigId
+			elif DirectoryInfo(folder).Name == "CSSSlotConfig" and cssSlotConfigId:
+				writeLog("CSSSlot config ID " + str(cssSlotConfigId))
+				id = cssSlotConfigId
+			else:
+				writeLog("Fighter ID " + str(fighterId))
+				id = fighterId
+			exConfig = getFileByName(DirectoryInfo(folder).Name.split("Config")[0] + str(id) + ".dat", DirectoryInfo(folder))
+			if exConfig:
+				writeLog("Extracting config " + exConfig.FullName)
+				exportPath = createDirectory(AppPath + '/temp/EXConfigs')
+				copyFile(exConfig.FullName, exportPath)
+		writeLog("Finished extracting Ex configs")
+
+# Extract ending files
+def extractEndingFiles(fighterName, cosmeticConfigId):
+		endingId = updateEndingCode(cosmeticConfigId, read=True)
+		writeLog("Extracting ending .pac files for ending ID " + str(endingId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac'):
+			writeLog("Extracting EndingAll file")
+			exportPath = createDirectory(AppPath + '/temp/Ending')
+			copyFile(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac', exportPath)
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac'):
+			writeLog("Extracting EndingSimple file")
+			exportPath = createDirectory(AppPath + '/temp/Ending')
+			copyFile(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac', exportPath)
+		writeLog("Finished extracting ending files")
+		writeLog("Extracting ending movie file")
+		if File.Exists(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp'):
+			exportPath = createDirectory(AppPath + '/temp/Ending')
+			copyFile(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp', exportPath)
+		writeLog("Finished extracting ending movie file")
 
 #endregion
 
