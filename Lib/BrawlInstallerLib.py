@@ -2551,6 +2551,9 @@ def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
 		songId = 0
 		characterName = ""
 		fighterId = ""
+		slotConfigId = ""
+		cosmeticConfigId = ""
+		cssSlotConfigId = ""
 		if fighterConfig:
 			writeLog("Retrieving information from " + fighterConfig)
 			BrawlAPI.OpenFile(fighterConfig)
@@ -2565,14 +2568,16 @@ def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
 			# Add 1 because the franchise icon ID in the config is 1 less
 			franchiseIconId = BrawlAPI.RootNode.FranchiseIconID + 1
 			characterName = BrawlAPI.RootNode.CharacterName
+			cosmeticConfigId = getFileInfo(cosmeticConfig).Name.replace('Cosmetic','').replace('.dat','')
 			BrawlAPI.ForceCloseFile()
 		if slotConfig:
 			writeLog("Retrieving information from " + slotConfig)
 			BrawlAPI.OpenFile(slotConfig)
 			songId = BrawlAPI.RootNode.VictoryTheme
+			slotConfigId = getFileInfo(slotConfig).Name.replace('Slot','').replace('.dat','')
 			BrawlAPI.ForceCloseFile()
 		writeLog("Get fighter info finished")
-		return FighterInfo(fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName)
+		return FighterInfo(fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId)
 
 # From a fighter config, get fighter info
 def getfighterConfigInfo(fighterConfig):
@@ -2763,8 +2768,8 @@ def getAllFighterInfo():
 			if not matchFound:
 				info.append(fighterConfig)
 				info.append(getSlotConfigInfo(fighterConfigPath))
-			matchFound = False
 			# Search for matching cosmetic configs
+			matchFound = False
 			for cosmeticConfig in cosmeticConfigInfo:
 				if cosmeticConfig.redirect and hexId(cosmeticConfig.redirectId) == '0x' + info[1].slotConfigId:
 					info.append(cosmeticConfig)
@@ -2772,13 +2777,14 @@ def getAllFighterInfo():
 			if not matchFound:
 				info.append(getCosmeticConfigInfo(fighterConfigPath))
 			# Search for matching CSS slot configs
+			matchFound = False
 			for cssSlotConfig in cssSlotConfigInfo:
 				if cssSlotConfig.redirect and hexId(cssSlotConfig.redirectId) == '0x' + info[1].slotConfigId:
 					info.append(cssSlotConfig)
 					matchFound = True
 			if not matchFound:
 				info.append(getCssSlotConfigInfo(fighterConfigPath))
-			newFighterInfo = FighterInfo(info[0].fighterId, info[0].fighterName, info[2].cosmeticId, info[2].franchiseIconId, info[0].soundbankId, info[1].songId, info[2].characterName)
+			newFighterInfo = FighterInfo(info[0].fighterId, info[0].fighterName, info[2].cosmeticId, info[2].franchiseIconId, info[0].soundbankId, info[1].songId, info[2].characterName, info[1].slotConfigId, info[2].cosmeticConfigId, info[3].cssSlotConfigId)
 			exConfigs.append(newFighterInfo)
 		return exConfigs
 
@@ -3042,7 +3048,7 @@ class FighterSettings:
 		creditsThemeId = ""
 
 class FighterInfo:
-		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
+		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId):
 			self.fighterId = fighterId
 			self.fighterName = fighterName
 			self.cosmeticId = cosmeticId
@@ -3050,6 +3056,9 @@ class FighterInfo:
 			self.soundbankId = soundbankId
 			self.songId = songId
 			self.characterName = characterName
+			self.slotConfigId = slotConfigId
+			self.cosmeticConfigId = cosmeticConfigId
+			self.cssSlotConfigId = cssSlotConfigId
 
 class FighterConfigInfo:
 		def __init__(self, fighterName, fighterId, soundbankId):
