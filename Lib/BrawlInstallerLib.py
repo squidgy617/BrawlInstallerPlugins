@@ -2735,59 +2735,90 @@ def getNewSfxId(sfxId, sfxChangeExe):
 
 # Get info for all fighters in a build
 def getAllFighterInfo():
-		# Get fighter config info
-		fighterConfigInfo = []
-		for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig'):
-			fighterConfigInfo.append(getfighterConfigInfo(file))
-		# Get slot config info
-		slotConfigInfo = []
-		for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig'):
-			slotConfigInfo.append(getSlotConfigInfo(file))
-		# Get cosmetic config info
-		cosmeticConfigInfo = []
-		for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig'):
-			cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
-		# Get CSS slot config info
-		cssSlotConfigInfo = []
-		for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'):
-			cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
+		try:
+			# Set up progressbar
+			progressCounter = 0
+			totalFiles = len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig')) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig')) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig')) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'))
+			progressBar = ProgressWindow(MainForm.Instance, "Gathering Ex configs...", "Gathering Ex configs", False)
+			progressBar.Begin(0, totalFiles, progressCounter)
 
-		# Starting with fighter config, find matching configs and add them to list
-		exConfigs = []
-		for fighterConfig in fighterConfigInfo:
-			matchFound = False
-			fighterConfigPath = MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + fighterConfig.fighterId + '.dat'
-			info = []
-			# Search for matching slot configs
-			for slotConfig in slotConfigInfo:
-				# Check for redirects
-				if slotConfig.redirect and hexId(slotConfig.redirectId) == '0x' + fighterConfig.fighterId:
+			# Get fighter config info
+			fighterConfigInfo = []
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig'):
+				fighterConfigInfo.append(getfighterConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			# Get slot config info
+			slotConfigInfo = []
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig'):
+				slotConfigInfo.append(getSlotConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			# Get cosmetic config info
+			cosmeticConfigInfo = []
+			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig'):
+				cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			# Get CSS slot config info
+			cssSlotConfigInfo = []
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'):
+				cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			progressBar.Finish()
+
+			# Set up progressbar
+			progressCounter = 0
+			progressBar = ProgressWindow(MainForm.Instance, "Joining Ex configs...", "Joining Ex configs", False)
+			progressBar.Begin(0, len(fighterConfigInfo), progressCounter)
+
+			# Starting with fighter config, find matching configs and add them to list
+			exConfigs = []
+			for fighterConfig in fighterConfigInfo:
+				matchFound = False
+				fighterConfigPath = MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + fighterConfig.fighterId + '.dat'
+				info = []
+				# Search for matching slot configs
+				for slotConfig in slotConfigInfo:
+					# Check for redirects
+					if slotConfig.redirect and hexId(slotConfig.redirectId) == '0x' + fighterConfig.fighterId:
+						info.append(fighterConfig)
+						info.append(slotConfig)
+						matchFound = True
+						break
+				# If no redirect is found, try just using the fighter config's actual ID
+				if not matchFound:
 					info.append(fighterConfig)
-					info.append(slotConfig)
-					matchFound = True
-			# If no redirect is found, try just using the fighter config's actual ID
-			if not matchFound:
-				info.append(fighterConfig)
-				info.append(getSlotConfigInfo(fighterConfigPath))
-			# Search for matching cosmetic configs
-			matchFound = False
-			for cosmeticConfig in cosmeticConfigInfo:
-				if cosmeticConfig.redirect and hexId(cosmeticConfig.redirectId) == '0x' + info[1].slotConfigId:
-					info.append(cosmeticConfig)
-					matchFound = True
-			if not matchFound:
-				info.append(getCosmeticConfigInfo(fighterConfigPath))
-			# Search for matching CSS slot configs
-			matchFound = False
-			for cssSlotConfig in cssSlotConfigInfo:
-				if cssSlotConfig.redirect and hexId(cssSlotConfig.redirectId) == '0x' + info[1].slotConfigId:
-					info.append(cssSlotConfig)
-					matchFound = True
-			if not matchFound:
-				info.append(getCssSlotConfigInfo(fighterConfigPath))
-			newFighterInfo = FighterInfo(info[0].fighterId, info[0].fighterName, info[2].cosmeticId, info[2].franchiseIconId, info[0].soundbankId, info[1].songId, info[2].characterName, info[1].slotConfigId, info[2].cosmeticConfigId, info[3].cssSlotConfigId)
-			exConfigs.append(newFighterInfo)
-		return exConfigs
+					info.append(getSlotConfigInfo(fighterConfigPath))
+				# Search for matching cosmetic configs
+				matchFound = False
+				for cosmeticConfig in cosmeticConfigInfo:
+					if cosmeticConfig.redirect and hexId(cosmeticConfig.redirectId) == '0x' + info[1].slotConfigId:
+						info.append(cosmeticConfig)
+						matchFound = True
+						break
+				if not matchFound:
+					info.append(getCosmeticConfigInfo(fighterConfigPath))
+				# Search for matching CSS slot configs
+				matchFound = False
+				for cssSlotConfig in cssSlotConfigInfo:
+					if cssSlotConfig.redirect and hexId(cssSlotConfig.redirectId) == '0x' + info[1].slotConfigId:
+						info.append(cssSlotConfig)
+						matchFound = True
+						break
+				if not matchFound:
+					info.append(getCssSlotConfigInfo(fighterConfigPath))
+				newFighterInfo = FighterInfo(info[0].fighterId, info[0].fighterName, info[2].cosmeticId, info[2].franchiseIconId, info[0].soundbankId, info[1].songId, info[2].characterName, info[1].slotConfigId, info[2].cosmeticConfigId, info[3].cssSlotConfigId)
+				exConfigs.append(newFighterInfo)
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			progressBar.Finish()
+			return exConfigs
+		except Exception as e:
+			if 'progressBar' in locals():
+				progressBar.Finish()
+			raise e
 
 #endregion GENERAL FUNCTIONS
 
