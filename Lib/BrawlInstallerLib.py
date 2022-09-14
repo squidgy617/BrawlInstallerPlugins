@@ -2550,11 +2550,13 @@ def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
 		franchiseIconId = 0
 		songId = 0
 		characterName = ""
+		fighterId = ""
 		if fighterConfig:
 			writeLog("Retrieving information from " + fighterConfig)
 			BrawlAPI.OpenFile(fighterConfig)
 			fighterName = BrawlAPI.RootNode.FighterName
 			soundbankId = BrawlAPI.RootNode.SoundBank
+			fighterId = getFileInfo(fighterConfig).Name.replace('Fighter','').replace('.dat','')
 			BrawlAPI.ForceCloseFile()
 		if cosmeticConfig:
 			writeLog("Retrieving information from " + cosmeticConfig)
@@ -2570,7 +2572,80 @@ def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
 			songId = BrawlAPI.RootNode.VictoryTheme
 			BrawlAPI.ForceCloseFile()
 		writeLog("Get fighter info finished")
-		return FighterInfo(fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName)
+		return FighterInfo(fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName)
+
+# From a fighter config, get fighter info
+def getfighterConfigInfo(fighterConfig):
+		fighterName = ""
+		soundbankId = 0
+		fighterId = ""
+		if File.Exists(fighterConfig):
+			BrawlAPI.OpenFile(fighterConfig)
+			fighterName = BrawlAPI.RootNode.FighterName
+			soundbankId = BrawlAPI.RootNode.SoundBank
+			fighterId = getFileInfo(fighterConfig).Name.replace('Fighter','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		return FighterConfigInfo(fighterName, fighterId, soundbankId)
+
+# From a cosmetic config, get cosmetic info
+def getCosmeticConfigInfo(cosmeticConfig):
+		writeLog("Getting cosmetic config info for path " + cosmeticConfig)
+		cosmeticId = 0
+		franchiseIconId = 0
+		characterName = ""
+		redirect = False
+		redirectId = 0
+		cosmeticConfigId = ""
+		configFile = MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/Cosmetic' + getFileInfo(cosmeticConfig).Name.replace('Fighter','').replace('Cosmetic','')
+		if File.Exists(configFile):
+			writeLog("File " + configFile + "found")
+			BrawlAPI.OpenFile(configFile)
+			cosmeticId = BrawlAPI.RootNode.CosmeticID
+			# Add 1 because the franchise icon ID in the config is 1 less
+			franchiseIconId = BrawlAPI.RootNode.FranchiseIconID + 1
+			characterName = BrawlAPI.RootNode.CharacterName
+			redirect = BrawlAPI.RootNode.HasSecondary
+			redirectId = BrawlAPI.RootNode.CharSlot1
+			cosmeticConfigId = getFileInfo(configFile).Name.replace('Cosmetic','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting cosmetic config info")
+		return CosmeticConfigInfo(cosmeticId, cosmeticConfigId, franchiseIconId, characterName, redirect, redirectId)
+
+# From a CSSSlot config, get CSSSlot config info
+def getCssSlotConfigInfo(cssSlotConfig):
+		writeLog("Getting CSSSlot config info for path " + cssSlotConfig)
+		redirect = False
+		redirectId = 0
+		cssSlotConfigId = ""
+		configFile = MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + getFileInfo(cssSlotConfig).Name.replace('Fighter','').replace('CSSSlot','')
+		if File.Exists(configFile):
+			writeLog("File " + configFile + "found")
+			BrawlAPI.OpenFile(configFile)
+			redirect = BrawlAPI.RootNode.SetPrimarySecondary
+			redirectId = BrawlAPI.RootNode.CharSlot1
+			cssSlotConfigId = getFileInfo(configFile).Name.replace('CSSSlot','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting CSSSlot config info")
+		return CssSlotConfigInfo(cssSlotConfigId, redirect, redirectId)
+
+# From a slot config, get slot info
+def getSlotConfigInfo(slotConfig):
+		writeLog("Getting slot config info for path " + slotConfig)
+		songId = 0
+		redirect = False
+		redirectId = 0
+		slotConfigId = ""
+		configFile = MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/Slot' + getFileInfo(slotConfig).Name.replace('Fighter','').replace('Slot','')
+		if File.Exists(configFile):
+			writeLog("File " + configFile + "found")
+			BrawlAPI.OpenFile(configFile)
+			songId = BrawlAPI.RootNode.VictoryTheme
+			redirect = BrawlAPI.RootNode.SetSlot
+			redirectId = hexId(BrawlAPI.RootNode.CharSlot1)
+			slotConfigId = getFileInfo(configFile).Name.replace('Slot','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting slot config info")
+		return SlotConfigInfo(slotConfigId, songId, redirect, redirectId)
 
 # Check if franchise icon ID is already used
 def franchiseIconIdUsed(franchiseIconId):
@@ -2651,6 +2726,61 @@ def getNewSfxId(sfxId, sfxChangeExe):
 						writeLog("Matching SFX ID found at line: " + line + ", new ID is " + str(line).split(' ')[1])
 						return str(line).split(' ')[1]
 		return ""
+
+# Get info for all fighters in a build
+def getAllFighterInfo():
+		# Get fighter config info
+		fighterConfigInfo = []
+		for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig'):
+			fighterConfigInfo.append(getfighterConfigInfo(file))
+		# Get slot config info
+		slotConfigInfo = []
+		for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig'):
+			slotConfigInfo.append(getSlotConfigInfo(file))
+		# Get cosmetic config info
+		cosmeticConfigInfo = []
+		for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig'):
+			cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
+		# Get CSS slot config info
+		cssSlotConfigInfo = []
+		for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'):
+			cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
+
+		# Starting with fighter config, find matching configs and add them to list
+		exConfigs = []
+		for fighterConfig in fighterConfigInfo:
+			matchFound = False
+			fighterConfigPath = MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + fighterConfig.fighterId + '.dat'
+			info = []
+			# Search for matching slot configs
+			for slotConfig in slotConfigInfo:
+				# Check for redirects
+				if slotConfig.redirect and hexId(slotConfig.redirectId) == '0x' + fighterConfig.fighterId:
+					info.append(fighterConfig)
+					info.append(slotConfig)
+					matchFound = True
+			# If no redirect is found, try just using the fighter config's actual ID
+			if not matchFound:
+				info.append(fighterConfig)
+				info.append(getSlotConfigInfo(fighterConfigPath))
+			matchFound = False
+			# Search for matching cosmetic configs
+			for cosmeticConfig in cosmeticConfigInfo:
+				if cosmeticConfig.redirect and hexId(cosmeticConfig.redirectId) == '0x' + info[1].slotConfigId:
+					info.append(cosmeticConfig)
+					matchFound = True
+			if not matchFound:
+				info.append(getCosmeticConfigInfo(fighterConfigPath))
+			# Search for matching CSS slot configs
+			for cssSlotConfig in cssSlotConfigInfo:
+				if cssSlotConfig.redirect and hexId(cssSlotConfig.redirectId) == '0x' + info[1].slotConfigId:
+					info.append(cssSlotConfig)
+					matchFound = True
+			if not matchFound:
+				info.append(getCssSlotConfigInfo(fighterConfigPath))
+			newFighterInfo = FighterInfo(info[0].fighterId, info[0].fighterName, info[2].cosmeticId, info[2].franchiseIconId, info[0].soundbankId, info[1].songId, info[2].characterName)
+			exConfigs.append(newFighterInfo)
+		return exConfigs
 
 #endregion GENERAL FUNCTIONS
 
@@ -2912,12 +3042,41 @@ class FighterSettings:
 		creditsThemeId = ""
 
 class FighterInfo:
-		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
+		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
+			self.fighterId = fighterId
 			self.fighterName = fighterName
 			self.cosmeticId = cosmeticId
 			self.franchiseIconId = franchiseIconId
 			self.soundbankId = soundbankId
 			self.songId = songId
 			self.characterName = characterName
+
+class FighterConfigInfo:
+		def __init__(self, fighterName, fighterId, soundbankId):
+			self.fighterName = fighterName
+			self.fighterId = fighterId
+			self.soundbankId = soundbankId
+
+class CosmeticConfigInfo:
+		def __init__(self, cosmeticId, cosmeticConfigId, franchiseIconId, characterName, redirect, redirectId):
+			self.cosmeticId = cosmeticId
+			self.cosmeticConfigId = cosmeticConfigId
+			self.franchiseIconId = franchiseIconId
+			self.characterName = characterName
+			self.redirect = redirect
+			self.redirectId = redirectId
+
+class CssSlotConfigInfo:
+		def __init__(self, cssSlotConfigId, redirect, redirectId):
+			self.cssSlotConfigId = cssSlotConfigId
+			self.redirect = redirect
+			self.redirectId = redirectId
+
+class SlotConfigInfo:
+		def __init__(self, slotConfigId, songId, redirect, redirectId):
+			self.slotConfigId = slotConfigId
+			self.songId = songId
+			self.redirect = redirect
+			self.redirectId = redirectId
 
 #endregion CLASSES
