@@ -1,4 +1,4 @@
-﻿version = "1.0"
+﻿version = "1.3.0"
 # BrawlInstallerLib
 # Functions used by BrawlInstaller plugins
 
@@ -2091,7 +2091,7 @@ def extractCSSIcon(cosmeticId, folderName):
 			tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
 			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
 			exportPath = createDirectory(AppPath + '/temp/CSSIcon/' + folderName)
-			if node:
+			if tex0Node:
 				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
 			if nameNode:
 				exportPath = createDirectory(exportPath + '/Name')
@@ -2214,7 +2214,7 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 						if texFolder.Children:
 							writeLog("Extracting texture " + texFolder.Children[0].Name)
 							exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
-							texFolder.Children[0].Export(exportPath + '/' + texFolder.Children[0].Name + '.png')
+							texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
 							writeLog("Extracted texture")
 					BrawlAPI.ForceCloseFile()
 			else:
@@ -2262,12 +2262,13 @@ def extractSong(songID, songDirectory='Victory!', tracklist='Results', exportFol
 				# Get filename
 				path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
 				directory = Directory.CreateDirectory(path)
-				brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
-				if brstmFile:
-					writeLog("Extracting file " + brstmFile.FullName)
-					exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
-					copyFile(brstmFile.FullName, exportPath)
-					success = True
+				if '/' in childNode.SongFileName:
+					brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+					if brstmFile:
+						writeLog("Extracting file " + brstmFile.FullName)
+						exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
+						copyFile(brstmFile.FullName, exportPath)
+						success = True
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting theme")
 		return success
