@@ -46,8 +46,9 @@ def main():
 
 			# Set up progressbar
 			progressCounter = 0
+			fileCount = len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot*.dat")) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic*.dat")) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', 'CSSSlot*.dat'))
 			progressBar = ProgressWindow(MainForm.Instance, "Redirect Check...", "Checking for Ex Config redirects", False)
-			progressBar.Begin(0, 3, progressCounter)
+			progressBar.Begin(0, fileCount, progressCounter)
 
 			fighterConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "Fighter" + fighterId + ".dat")[0]
 			# Slot configs
@@ -56,18 +57,20 @@ def main():
 				if BrawlAPI.RootNode.SetSlot == True and BrawlAPI.RootNode.CharSlot1 == int(fighterId, 16):
 					slotConfig = config
 					slotId = str(getFileInfo(config).Name.split('Slot')[1]).replace('.dat', '')
+				progressCounter += 1
+				progressBar.Update(progressCounter)
 				BrawlAPI.ForceCloseFile()
 			if 'slotConfig' not in locals():
 				slotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot" + fighterId + ".dat")[0]
 				slotId = str(fighterId)
-			progressCounter += 1
-			progressBar.Update(progressCounter)
 			# Cosmetic configs
 			for config in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic*.dat"):
 				BrawlAPI.OpenFile(config)
 				if BrawlAPI.RootNode.HasSecondary == True and BrawlAPI.RootNode.CharSlot1 == int(slotId, 16):
 					cosmeticConfig = config
 					cosmeticConfigId = str(getFileInfo(config).Name.split('Cosmetic')[1]).replace('.dat', '')
+				progressCounter += 1
+				progressBar.Update(progressCounter)
 				BrawlAPI.ForceCloseFile()
 			if 'cosmeticConfig' not in locals():
 				cosmeticConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
@@ -80,11 +83,11 @@ def main():
 				if (BrawlAPI.RootNode.SetPrimarySecondary == True and BrawlAPI.RootNode.CharSlot1 == int(slotId, 16)) or (BrawlAPI.RootNode.SetCosmeticSlot == True and BrawlAPI.RootNode.CosmeticSlot == int(cosmeticConfigId, 16)):
 					cssSlotConfig = config
 					cssSlotConfigId = str(getFileInfo(config).Name.split('CSSSlot')[1]).replace('.dat', '')
+				progressCounter += 1
+				progressBar.Update(progressCounter)
 			if 'cssSlotConfig' not in locals():
 				cssSlotConfig = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic" + fighterId + ".dat")[0]
 				cssSlotConfigId = str(fighterId)
-			progressCounter += 1
-			progressBar.Update(progressCounter)
 			progressBar.Finish()
 			fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
 			moduleFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/module', 'ft_' + fighterInfo.fighterName + '.rel')
