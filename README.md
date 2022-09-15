@@ -80,7 +80,7 @@ All plugins attempt to create backups of files that they modify, replace, or del
 ## Configure Settings
 **Usage:** Plugins menu > BrawlInstaller Plugins > Configure Settings
 
-This plugin prompts the user for input on various settings that are used by all of the plugins in this suite. Users should respond to prompts to the best of their knowledge. If the user is tasked with entering an ID, typically they may enter it in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. After setting configuration is complete, a settings.ini file will be created in the "Resources/BrawlInstaller" folder in the BrawlCrate directory.
+This plugin prompts the user for input on various settings that are used by all of the plugins in this suite. Users should respond to prompts to the best of their knowledge. If the user is tasked with entering an ID, typically they may enter it in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. After setting configuration is complete, a settings.ini file will be created in the root folder of the build directory.
 
 For a detailed breakdown of the settings configured by this plugin, see the section on the [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins#settingsini) file.
 
@@ -143,6 +143,28 @@ After the fighter is successfully uninstalled, the user will receive a message i
 
 The plugin attempts to back up any files in your build before modifying, replacing, or deleting them, and these backups are then stored in the `/Backups/` directory in your BrawlCrate root folder. If an error occurs during execution, an error message is displayed and the backups are restored automatically. However, any files that were *added* to the build during execution are not cleaned up, so keep that in mind.
 
+## Extract Character
+**Usage:** Plugins menu > BrawlInstaller Plugins > Extract Character
+
+This plugin allows you to enter a fighter ID for a charater you wish to extract from your build. Like other prompts, the fighter ID can be entered in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. The user will then be asked to select a directory to extract the character to.
+
+After the user has input their selections, the plugin will attempt to gather up all assets and settings for the character within the build set in the user's build path. It will read through various files in the build to achieve this.
+
+After the fighter is successfully extracted, the user will receive a message indicating such, and they can use the extracted character package as they please.
+
+**NOTE:** Characters extracted with this plugin will only contain assets present in the build, since it is impossible to create new assets for other build types. To work with builds of all settings, missing assets will need to be added manually.
+
+## Extract All characters
+**Usage:** Plugins menu > BrawlInstaller Plugins > Extract All Characters
+
+This plugin performs the same tasks as "Extract Character", but it does so for every single valid character in your build. Characters are only considered valid if they have all necessary Ex configs, and the plugin does know how to identify Ex redirects as well.
+
+The user will first be prompted to select a directory to extract the character packages to. Afterward, the plugin will perform the operations used in "Extract Character" on every character in the build.
+
+Once all characters have been extracted, the user will receive a message indicating such, and they can use the extracted character packages as they please.
+
+**NOTE:** This process can take some time. Also note that some vanilla characters might be extracted as well, but since vanilla characters work differently from Ex characters, these are unlikely to work correctly.
+
 ## Package Character
 **Usage:** Plugins menu > BrawlInstaller Plugins > Package Character
 
@@ -165,7 +187,7 @@ After the user has selected all files, they will be prompted to select an output
 
 This plugin will iterate through all of the EX configs in your build and print the fighter ID, name, cosmetic ID, franchise icon ID, soundbank ID, and victory theme ID of each fighter found to a fighter_info.txt file located in your `/BrawlAPI/Resources/BrawlInstaller/` directory in the BrawlCrate root folder. This can be useful if you need a reference for what IDs are available.
 
-All IDs printed are in decimal format.
+All IDs printed are in decimal format except for EffectID, which is printed in hexadecimal format.
 
 ## Restore Backup
 
@@ -175,7 +197,7 @@ When this plulgin is run, it will first check if any backups exist. If they do n
 
 # settings.ini
 
-After [configuring settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings), a settings.ini file is generated that the BrawlInstaller plugins use to determine various behaviors.
+After [configuring settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings), a settings.ini file is generated that the BrawlInstaller plugins use to determine various behaviors. This settings.ini is stored in the root folder of the user's build directory.
 
 The settings currently supported by the BrawlInstaller plugins are as follows:
 - **rspLoading** - [*Values: true, false*] : Whether or not the build uses RSP (result-screen portrait) loading. If this is set to `true`, character select portraits will not be installed to the build's `sc_selcharacter.pac`, and will instead only be installed as result-screen portraits in `/pf/menu/common/char_bust_tex/`.
@@ -202,7 +224,7 @@ The settings currently supported by the BrawlInstaller plugins are as follows:
 - **useCssRoster** - [*Values : true, false*] : Whether or not the build uses CSSRoster.dat to determine the roster available on the character select screen. If this is set to `true`, CSSRoster.dat will be updated to display newly installed character packages. If set to `false`, characters will not be added to the CSS.
 - **gfxChangeExe** - [*Values : a .exe path*] : The direct path to the .exe file for Codes' gfxchange.exe tool to run when changing Effect.pac IDs. This should be in the same directory as Codes' tracechange.exe, which will also be run in the event of Effect.pac ID conflicts.
 - **installBPNames** - [*Values : true, false*] : Whether or not battle portrait nameplates should be installed to `info.pac`.
-- installSingleplayerCosmetics - [*Values : true, false*] : Whether or not franchise icons and BP names (if the user has opted to install them at all) should be installed into single player modes as well (e.g. Classic Mode, Home Run Contest, Training, etc).
+- **installSingleplayerCosmetics** - [*Values : true, false*] : Whether or not franchise icons and BP names (if the user has opted to install them at all) should be installed into single player modes as well (e.g. Classic Mode, Home Run Contest, Training, etc).
 
 # FighterSettings.txt
 
@@ -214,7 +236,7 @@ The following settings are supported by the FighterSettings.txt file:
 - **throwReleasePoint** - [*Values : a comma-separated pair of float values*] : The values used in the code `ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]`
 - **creditsThemeId** - [*Values : a song ID in hex format*] : The song ID used for the credits theme of your character if you're using a vanilla credits theme. If you provide a credits theme, that will be installed instead of using the ID.
 - **lucarioBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]`
-- **lucarioKirbyEffectId** - [*Values : an Effect.pac ID in hex format*] : The `Effect.pac ID used for the Kirby hat for the code Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]`
+- **lucarioKirbyEffectId** - [*Values : an Effect.pac ID in hex format*] : The Effect.pac ID used for the Kirby hat for the code `Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]`
 - **jigglypuffBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]`
 - **jigglypuffEFLSId** - [*Values : an EFLS ID in hex format*] : The EFLS ID/index used in the code `Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]`
 - **jigglypuffSfxIds** - [*Values : a comma-separated list of four SFX IDs in hex format*] : The SFX IDs used in the code `Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]`
