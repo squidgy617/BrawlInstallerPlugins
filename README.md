@@ -21,6 +21,7 @@ If you find any bugs or issues with the plugins, please submit them as an issue 
 
 ## Features
 - Install or uninstall fully playable characters into a build of Super Smash Bros. Brawl in just a few clicks.
+- Extract characters from a build as fully installable packages - either individually or en masse
 - Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
 - Numerous settings to support many different kinds of builds.
 - Tools to easily list IDs already in use in a build.
@@ -249,4 +250,3 @@ These are some features that are planned for eventual implementation in the plug
 - Support for Subspace Emissary EX
 - Costume Installer plugin
 - Stage Installer plugin
-- Plugin to extract character packages from an existing build
