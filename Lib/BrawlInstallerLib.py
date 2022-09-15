@@ -1,4 +1,4 @@
-﻿version = "1.0"
+﻿version = "1.3.0"
 # BrawlInstallerLib
 # Functions used by BrawlInstaller plugins
 
@@ -216,6 +216,12 @@ def getFileNames(directory):
 			fileNames[i] = file.FullName
 		return Array[str](fileNames)
 
+# Helper function to create a directory if it does not exist
+def createDirectory(path):
+		if not Directory.Exists(path):
+			Directory.CreateDirectory(path)
+		return path
+
 # Helper function that imports a texture automatically without prompting the user
 def importTexture(node, imageSource, format, sizeW=0, sizeH=0):
 		writeLog("Importing texture " + imageSource + " to node " + node.Name)
@@ -427,12 +433,13 @@ def createLogFile():
 		File.WriteAllText(LOG_PATH + '\\log.txt', "--LOG START-\n")
 
 # Helper method to check if a file is open, and if it is not, open it and create a backup
-def openFile(filePath):
+def openFile(filePath, backup=True):
 		writeLog("Attempting to open file " + filePath)
 		nodeName = getFileInfo(filePath).Name.split('.')[0]
 		fileOpened = checkOpenFile(nodeName)
 		if fileOpened == 0:
-			createBackup(filePath)
+			if backup:
+				createBackup(filePath)
 			fileOpened = BrawlAPI.OpenFile(filePath)
 		return fileOpened
 
@@ -511,9 +518,9 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			# Export RSP while we're at it
 			newNode.Compression = "None"
 			# Back up RSP if it exists
-			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
+			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			writeLog("Exporting RSPs")
-			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + str(cosmeticId) + '0.brres')
+			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
 			# If user has RSP loading on, get rid of changes to this file
@@ -1356,10 +1363,14 @@ def importEndingMovie(file, fighterName):
 		writeLog("Finished importing movie file")
 
 # Update an entry of the ending code
-def updateEndingCode(cosmeticConfigId, remove=False):
-		writeLog("Updating ending code for ID " + str(cosmeticConfigId))
+def updateEndingCode(cosmeticConfigId, remove=False, read=False):
+		if not read:
+			writeLog("Updating ending code for ID " + str(cosmeticConfigId))
+		else:
+			writeLog("Reading ending code for ID " + str(cosmeticConfigId))
 		if File.Exists(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm"):
-			createBackup(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
+			if not read:
+				createBackup(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
 			# Read CloneEngine.asm
 			writeLog("Reading CloneEngine.asm")
 			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/ProjectM/CloneEngine.asm")
@@ -1383,7 +1394,7 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 					tableEndReached = True
 				i += 1
 			# Find the first unused value
-			if not remove:
+			if not remove and not read:
 				j = 1
 				i = 0
 				while i < len(valueList):
@@ -1412,23 +1423,30 @@ def updateEndingCode(cosmeticConfigId, remove=False):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
 					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[lineCounter - int(cosmeticConfigId, 16) - 1]
-					newLine[lineCounter - int(cosmeticConfigId, 16) - 1] = str(j)
-					newString = "\t\t"
-					for part in newLine:
-						newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
-					newString = newString + '|' + fileText[i].split('|')[1]
-					fileText[i] = newString
+					writeLog("Line counter is " + str(lineCounter) + " cosmetic conf ID is " + str(int(cosmeticConfigId, 16)))
+					foundId = newLine[(len(newLine) - (lineCounter - int(cosmeticConfigId, 16))) - 1]
+					writeLog("Found ID " + foundId)
+					if not read:
+						newLine[(len(newLine) - (lineCounter - int(cosmeticConfigId, 16))) - 1] = str(j)
+						newString = "\t\t"
+						for part in newLine:
+							newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
+						newString = newString + '|' + fileText[i].split('|')[1]
+						fileText[i] = newString
 					notWritten = False
 				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
 					tableEndReached = True
 				i += 1
-			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', fileText)
-			if not remove:
+			if not read:
+				File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', fileText)
+			if not remove and not read:
 				returnId = str(j)
 			else:
 				returnId = foundId.strip()
-			writeLog("Finished updating ending code")
+			if not read:
+				writeLog("Finished updating ending code")
+			else:
+				writeLog("Finished reading ending code")
 			return returnId
 
 # Update an entry of the credits music code
@@ -1436,9 +1454,10 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 		if not read:
 			writeLog("Updating credits code for ID " + str(slotId))
 		else:
-			writeLog("REading credits code for ID " + str(slotId))
+			writeLog("Reading credits code for ID " + str(slotId))
 		if File.Exists(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm"):
-			createBackup(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
+			if not read:
+				createBackup(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
 			# Read ResultsMusic.asm
 			writeLog("Reading ResultsMusic.asm")
 			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/ResultsMusic.asm")
@@ -1471,9 +1490,9 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
 					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[lineCounter - int(slotId, 16) - 1]
+					foundId = newLine[(len(newLine) - (lineCounter - int(slotId, 16))) - 1]
 					if not read:
-						newLine[lineCounter - int(slotId, 16) - 1] = str(songId)
+						newLine[(len(newLine) - (lineCounter - int(slotId, 16))) - 1] = str(songId)
 						newString = "\t\t"
 						for part in newLine:
 							newString = newString + part.strip() + (', ' if len(fileText[i + 1]) != 0 else '')
@@ -1513,7 +1532,7 @@ def removeCSPs(cosmeticId):
 				nodeToRemove.Remove()
 		# Get RSP file and delete if it exists
 		writeLog("Get RSP file for cosmetic ID")
-		rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 3) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'))
+		rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 2) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'))
 		if rspFile:
 			# Back up first
 			createBackup(rspFile.FullName)
@@ -2030,11 +2049,395 @@ def uninstallEndingFiles(fighterName, fighterId):
 		deleteEndingMovie(fighterName)
 
 # Function to do all the credits remove work
-def uninstallCreditsSong(slotId):
+def uninstallCreditsSong(slotId, removeTheme=True):
 		songId = updateCreditsCode(slotId, "0x0000", remove=True)
-		removeSong(int(songId, 16), 'Credits', 'Credits')
+		if removeTheme:
+			removeSong(int(songId, 16), 'Credits', 'Credits')
 
 #endregion REMOVE FUNCTIONS
+
+#region EXTRACT FUNCTIONS
+
+# Extract CSPs
+def extractCSPs(cosmeticId):
+		writeLog("Extracting CSPs with cosmetic ID " + str(cosmeticId))
+		# If RSP file is not already opened, open it
+		filePath = MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId) + '0', 3) + '.brres'
+		if File.Exists(filePath):
+			writeLog("Found file " + filePath)
+			fileOpened = openFile(filePath, False)
+			if fileOpened:
+				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+				if texFolder:
+					i = 1
+					for child in texFolder.Children:
+						# Export each child to temp folder
+						writeLog("Exporting CSP " + child.Name)
+						exportPath = createDirectory(AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
+						child.Export(exportPath + '/' + child.Name + '.png')
+						# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
+						if not child.SharesData:
+							i += 1
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished exporting CSPs")
+
+# Extract CSS icon
+def extractCSSIcon(cosmeticId, folderName):
+		writeLog("Extracting CSS icon with cosmetic ID " + str(cosmeticId) + " to folder " + folderName)
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac', False)
+		if fileOpened:
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
+			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
+			exportPath = createDirectory(AppPath + '/temp/CSSIcon/' + folderName)
+			if tex0Node:
+				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+			if nameNode:
+				exportPath = createDirectory(exportPath + '/Name')
+				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+		writeLog("Finished extracting CSS icon")
+
+# Extract portrait name
+def extractPortraitName(cosmeticId, folderName):
+		writeLog("Extracting portrait name with cosmetic ID " + str(cosmeticId) + " to folder " + folderName)
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac', False)
+		if fileOpened:
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			tex0Node = getChildByName(texFolder, "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId), 2) + '1')
+			if tex0Node:
+				exportPath = createDirectory(AppPath + '/temp/PortraitName/' + folderName)
+				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+		writeLog("Finished extracting portrait name")
+
+# Extract stock icons
+def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+		writeLog("Extracting stock icons for " + str(cosmeticId))
+		fileOpened = openFile(MainForm.BuildPath + filePath, False)
+		if fileOpened:
+			rootNode = BrawlAPI.RootNode
+			if rootName != "":
+				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+			if tex0BresName != "":
+				node = getChildByName(rootNode, tex0BresName)
+			else:
+				node = rootNode
+			# Extract the texture nodes
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			# End of loop changes depending on if we use 50 CC or not
+			newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+			texNodeNames = []
+			cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
+			i = 1
+			while newId <= cap:
+				texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
+				if texNode:
+					texNodeNames.append(texNode.Name)
+					exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
+					texNode.Export(exportPath + '/' + texNode.Name + '.png')
+					# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
+					if not texNode.SharesData:
+						i += 1
+				else:
+					break
+				newId += 1
+			writeLog("Finished extracting stock icons")
+
+# Extract franchise icon
+def extractFranchiseIcon(franchiseIconId, filePath):
+		writeLog("Extracting franchise icon ID " + str(franchiseIconId) + " at filepath " + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath, False)
+		if fileOpened:
+			# Extract icon
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			nodeName = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Black')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting franchise icon")
+
+# Extract BP name
+def extractBPName(cosmeticId, filePath, folderName):
+		writeLog("Extracting BP name with cosmetic ID " + str(cosmeticId) + " at " + filePath)
+		fileOpened = openFile(MainForm.BuildPath + filePath, False)
+		if fileOpened:
+			# Extract BP name
+			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			nodeName = "MenSelchrChrNmS." +addLeadingZeros(str(cosmeticId) + '1', 3)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting BP name")
+
+# Extract Classic intro
+def extractClassicIntro(cosmeticId):
+		writeLog("Extracting class intro file for cosmetic ID " + str(cosmeticId + 1))
+		filePath = MainForm.BuildPath + '/pf/menu/intro/enter/chr' + addLeadingZeros(str(cosmeticId + 1), 4) + '.brres'
+		if File.Exists(filePath):
+			copyFile(filePath, AppPath + '/temp/ClassicIntro')
+		writeLog("Finished extracting classic intro file")
+
+# Extract franchise icon from result
+def extractFranchiseIconResult(franchiseIconId):
+		writeLog("Extracting franchise icon ID " + str(franchiseIconId) + " from STGRESULT.pac")
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac', False)
+		if fileOpened:
+			# Extract icon
+			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Transparent')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting franchise icon")
+
+# Extract BPs
+def extractBPs(cosmeticId, folderName, fiftyCC="true"):
+		writeLog("Extracting BPs for cosmetic ID " + str(cosmeticId))
+		# For 50 costume code, we must multipley the cosmetic ID by 50
+		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
+		# Look for files matching naming scheme and extract them
+		while newId <= (cosmeticId * 50) + 50:
+			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
+			if bpFile:
+				fileOpened = openFile(bpFile.FullName, False)
+				if fileOpened:
+					writeLog("Extracting BP file " + bpFile.FullName)
+					texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+					if texFolder:
+						if texFolder.Children:
+							writeLog("Extracting texture " + texFolder.Children[0].Name)
+							exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
+							texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
+							writeLog("Extracted texture")
+					BrawlAPI.ForceCloseFile()
+			else:
+				# If no matching file exists, just exit
+				break
+			newId += 1
+		writeLog("Finished extracting BPs")
+
+# Extract replay icon
+def extractReplayIcon(cosmeticId):
+		writeLog("Extract replay icon for cosmetic ID " + str(cosmeticId))
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
+		if fileOpened:
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
+			textureNode = getChildByName(texFolder, nodeName)
+			if textureNode:
+				exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
+				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+		writeLog("Finished extracting replay icon")
+
+# Extract soundbank
+def extractSoundbank(soundBankId):
+		writeLog("Extracting soundbank ID " + str(soundBankId))
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
+		soundBank = getFileByName(str(soundBankId).upper() + ".sawnd", directory)
+		if soundBank:
+			exportPath = createDirectory(AppPath + '/temp/Soundbank')
+			copyFile(soundBank.FullName, exportPath)
+		writeLog("Extract soundbank ID complete")
+
+# Extract song from tracklist
+def extractSong(songID, songDirectory='Victory!', tracklist='Results', exportFolder='VictoryTheme'):
+		writeLog("Extracting theme with song ID " + str(songID))
+		fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
+		success = False
+		if fileOpened:
+			node = BrawlAPI.RootNode
+			if node.Children:
+				for child in node.Children:
+					if child.SongID == songID:
+						childNode = child
+						break
+			if 'childNode' in locals():
+				if '/' in childNode.SongFileName:
+					# Get filename
+					path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
+					directory = Directory.CreateDirectory(path)
+					brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+					if brstmFile:
+						writeLog("Extracting file " + brstmFile.FullName)
+						exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
+						copyFile(brstmFile.FullName, exportPath)
+						success = True
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished extracting theme")
+		return success
+
+# Read a code macro
+def readCodeMacro(id, macroName, position=0, preFindText="", filePath='/ProjectM/CloneEngine.asm', returnPosition=0):
+		writeLog("Reading ID " + str(id) + " " + macroName + " entry")
+		if File.Exists(MainForm.BuildPath + '/Source/' + filePath):
+			# Read file
+			writeLog("Reading " + MainForm.BuildPath + '/Source/' + filePath)
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/' + filePath)
+			matchFound = False
+			foundMacros = False
+			foundPreText = False
+			i = 0
+			foundValues = []
+			# Search for matching ID and if one is found, return the values
+			while i < len(fileText):
+				line = fileText[i]
+				if preFindText != "" and line.strip() == preFindText:
+					foundPreText = True
+				# Get the ID out of the entry
+				if str(line).strip().StartsWith('%' + macroName) and ((not preFindText) or foundPreText):
+					writeLog("Found macro entries")
+					foundId = line.split(',')[position]
+					if '0x' + str(id) in foundId:
+						writeLog("Found matching entry")
+						matchFound = True
+						for value in line.split(','):
+							if '(' in value:
+								value = value.split('(')[1].strip()
+							elif ')' in value:
+								value = value.split(')')[0].strip()
+							foundValues.append(value)
+					i += 1
+				# If we hit the end, just exit
+				elif foundMacros and not matchFound and not str(line).strip().StartsWith("%" + macroName) and ((not preFindText) or foundPreText):
+					writeLog("No match found")
+					break
+				else:
+					i += 1
+			writeLog(macroName + " read finished")
+			if foundValues and len(foundValues) >= returnPosition:
+				return foundValues[returnPosition].strip()
+			else:
+				return ""
+
+# Extract Kirby Hat
+def extractKirbyHat(fighterId, internalName):
+		writeLog("Extracting Kirby hat for fighter ID " + fighterId)
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/fighter/kirby')
+		kirbyHatFiles = Directory.GetFiles(directory.FullName, "FitKirby" + internalName + "*.pac")
+		if kirbyHatFiles:
+			i = 0
+			while i < len(kirbyHatFiles):
+				writeLog("Extracting Kirby hat file " + kirbyHatFiles[i])
+				exportPath = createDirectory(AppPath + '/temp/KirbyHats')
+				copyFile(kirbyHatFiles[i], exportPath)
+				i += 1
+		kirbyHatId = ""
+		kirbyHatId = readCodeMacro(fighterId, 'HatFloatFix', 0, filePath='/Extras/KirbyHatEX.asm', returnPosition=1)
+		if kirbyHatId:
+			exportPath = createDirectory(AppPath + '/temp/KirbyHats')
+			File.WriteAllText(exportPath + '/FighterID.txt', kirbyHatId)
+		writeLog("Extract Kirby hat files complete")
+
+# Extract fighter files from build
+def extractFighterFiles(fighterName):
+		writeLog("Extracting fighter files")
+		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower()
+		if Directory.Exists(path):
+			for file in Directory.GetFiles(path, "*.pac"):
+				writeLog("Extracting file " + file)
+				exportPath = createDirectory(AppPath + '/temp/Fighter')
+				copyFile(file, exportPath)
+		writeLog("Finished extracting fighter files")
+
+# Extract module file
+def extractModuleFile(internalName):
+		writeLog("Extracting module for fighter name " + internalName)
+		path = MainForm.BuildPath + '/pf/module'
+		if Directory.Exists(MainForm.BuildPath + '/pf/module'):
+			directory = DirectoryInfo(path)
+			moduleFile = getFileByName("ft_" + internalName.lower() + ".rel", directory)
+			if moduleFile:
+				exportPath = createDirectory(AppPath + '/temp/Module')
+				copyFile(moduleFile.FullName, exportPath)
+		writeLog("Finished extracting module")
+
+# Extract EX configs
+def extractExConfigs(fighterId, slotConfigId="", cosmeticConfigId="", cssSlotConfigId=""):
+		writeLog("Extracting Ex configs for fighter ID " + fighterId)
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/BrawlEx')
+		for folder in Directory.GetDirectories(directory.FullName):
+			writeLog("Getting config from " + folder)
+			if DirectoryInfo(folder).Name == "SlotConfig" and slotConfigId:
+				writeLog("Slot ID " + str(slotConfigId))
+				id = slotConfigId
+			elif DirectoryInfo(folder).Name == "CosmeticConfig" and cosmeticConfigId:
+				writeLog("Cosmetic config ID " + str(cosmeticConfigId))
+				id = cosmeticConfigId
+			elif DirectoryInfo(folder).Name == "CSSSlotConfig" and cssSlotConfigId:
+				writeLog("CSSSlot config ID " + str(cssSlotConfigId))
+				id = cssSlotConfigId
+			else:
+				writeLog("Fighter ID " + str(fighterId))
+				id = fighterId
+			exConfig = getFileByName(DirectoryInfo(folder).Name.split("Config")[0] + str(id) + ".dat", DirectoryInfo(folder))
+			if exConfig:
+				writeLog("Extracting config " + exConfig.FullName)
+				exportPath = createDirectory(AppPath + '/temp/EXConfigs')
+				copyFile(exConfig.FullName, exportPath)
+		writeLog("Finished extracting Ex configs")
+
+# Extract ending files
+def extractEndingFiles(fighterName, cosmeticConfigId):
+		endingId = updateEndingCode(cosmeticConfigId, read=True)
+		writeLog("Extracting ending .pac files for ending ID " + str(endingId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac'):
+			writeLog("Extracting EndingAll file")
+			exportPath = createDirectory(AppPath + '/temp/Ending')
+			copyFile(MainForm.BuildPath + '/pf/menu/intro/ending/EndingAll' + str(endingId) + '.pac', exportPath)
+		if File.Exists(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac'):
+			writeLog("Extracting EndingSimple file")
+			exportPath = createDirectory(AppPath + '/temp/Ending')
+			copyFile(MainForm.BuildPath + '/pf/menu/intro/ending/EndingSimple' + str(endingId) + '.pac', exportPath)
+		writeLog("Finished extracting ending files")
+		writeLog("Extracting ending movie file")
+		if File.Exists(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp'):
+			exportPath = createDirectory(AppPath + '/temp/Ending')
+			copyFile(MainForm.BuildPath + '/pf/movie/End_' + fighterName + '.thp', exportPath)
+		writeLog("Finished extracting ending movie file")
+
+# Extract credits song
+def extractCreditsSong(slotId):
+		writeLog("Extracting credits song for slot ID " + str(slotId))
+		songId = updateCreditsCode(slotId, "", read=True)
+		songFound = extractSong(int(songId, 16), 'Credits', 'Credits', 'CreditsTheme')
+		if songFound:
+			return 0
+		else:
+			return songId
+
+# Get throw release points
+def readThrowRelease(fighterId):
+		writeLog("Reading throw release point for ID " + str(fighterId))
+		returnValues = []
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/Modifier/ThrowRelease.asm'):
+			# Read ThrowRelease.asm
+			writeLog("Reading ThrowRelease.asm")
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/ProjectM/Modifier/ThrowRelease.asm")
+			i = 0
+			tableStart = 0
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith("ThrowReleaseTable"):
+					writeLog("Found throw release table at line " + str(i))
+					tableStart = i + 2
+				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+					writeLog("Found matching EX fighter at position " + str(i))
+					value = line.split('|')[0]
+					returnValues.append(value.split(',')[0].strip())
+					returnValues.append(value.split(',')[1].strip())
+					break
+				i += 1
+		writeLog("Finished reading throw release point")
+		return returnValues
+
+#endregion
 
 #region INSTALLER FUNCTIONS
 # Installer functions that check for and remove existing elements before adding
@@ -2148,11 +2551,16 @@ def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
 		franchiseIconId = 0
 		songId = 0
 		characterName = ""
+		fighterId = ""
+		slotConfigId = ""
+		cosmeticConfigId = ""
+		cssSlotConfigId = ""
 		if fighterConfig:
 			writeLog("Retrieving information from " + fighterConfig)
 			BrawlAPI.OpenFile(fighterConfig)
 			fighterName = BrawlAPI.RootNode.FighterName
 			soundbankId = BrawlAPI.RootNode.SoundBank
+			fighterId = getFileInfo(fighterConfig).Name.replace('Fighter','').replace('.dat','')
 			BrawlAPI.ForceCloseFile()
 		if cosmeticConfig:
 			writeLog("Retrieving information from " + cosmeticConfig)
@@ -2161,14 +2569,89 @@ def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
 			# Add 1 because the franchise icon ID in the config is 1 less
 			franchiseIconId = BrawlAPI.RootNode.FranchiseIconID + 1
 			characterName = BrawlAPI.RootNode.CharacterName
+			cosmeticConfigId = getFileInfo(cosmeticConfig).Name.replace('Cosmetic','').replace('.dat','')
 			BrawlAPI.ForceCloseFile()
 		if slotConfig:
 			writeLog("Retrieving information from " + slotConfig)
 			BrawlAPI.OpenFile(slotConfig)
 			songId = BrawlAPI.RootNode.VictoryTheme
+			slotConfigId = getFileInfo(slotConfig).Name.replace('Slot','').replace('.dat','')
 			BrawlAPI.ForceCloseFile()
 		writeLog("Get fighter info finished")
-		return FighterInfo(fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName)
+		return FighterInfo(fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId)
+
+# From a fighter config, get fighter info
+def getfighterConfigInfo(fighterConfig):
+		fighterName = ""
+		soundbankId = 0
+		fighterId = ""
+		if File.Exists(fighterConfig):
+			BrawlAPI.OpenFile(fighterConfig)
+			fighterName = BrawlAPI.RootNode.FighterName
+			soundbankId = BrawlAPI.RootNode.SoundBank
+			fighterId = getFileInfo(fighterConfig).Name.replace('Fighter','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		return FighterConfigInfo(fighterName, fighterId, soundbankId)
+
+# From a cosmetic config, get cosmetic info
+def getCosmeticConfigInfo(cosmeticConfig):
+		writeLog("Getting cosmetic config info for path " + cosmeticConfig)
+		cosmeticId = 0
+		franchiseIconId = 0
+		characterName = ""
+		redirect = False
+		redirectId = 0
+		cosmeticConfigId = ""
+		configFile = MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/Cosmetic' + getFileInfo(cosmeticConfig).Name.replace('Fighter','').replace('Cosmetic','')
+		if File.Exists(configFile):
+			writeLog("File " + configFile + "found")
+			BrawlAPI.OpenFile(configFile)
+			cosmeticId = BrawlAPI.RootNode.CosmeticID
+			# Add 1 because the franchise icon ID in the config is 1 less
+			franchiseIconId = BrawlAPI.RootNode.FranchiseIconID + 1
+			characterName = BrawlAPI.RootNode.CharacterName
+			redirect = BrawlAPI.RootNode.HasSecondary
+			redirectId = BrawlAPI.RootNode.CharSlot1
+			cosmeticConfigId = getFileInfo(configFile).Name.replace('Cosmetic','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting cosmetic config info")
+		return CosmeticConfigInfo(cosmeticId, cosmeticConfigId, franchiseIconId, characterName, redirect, redirectId)
+
+# From a CSSSlot config, get CSSSlot config info
+def getCssSlotConfigInfo(cssSlotConfig):
+		writeLog("Getting CSSSlot config info for path " + cssSlotConfig)
+		redirect = False
+		redirectId = 0
+		cssSlotConfigId = ""
+		configFile = MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + getFileInfo(cssSlotConfig).Name.replace('Fighter','').replace('CSSSlot','')
+		if File.Exists(configFile):
+			writeLog("File " + configFile + "found")
+			BrawlAPI.OpenFile(configFile)
+			redirect = BrawlAPI.RootNode.SetPrimarySecondary
+			redirectId = BrawlAPI.RootNode.CharSlot1
+			cssSlotConfigId = getFileInfo(configFile).Name.replace('CSSSlot','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting CSSSlot config info")
+		return CssSlotConfigInfo(cssSlotConfigId, redirect, redirectId)
+
+# From a slot config, get slot info
+def getSlotConfigInfo(slotConfig):
+		writeLog("Getting slot config info for path " + slotConfig)
+		songId = 0
+		redirect = False
+		redirectId = 0
+		slotConfigId = ""
+		configFile = MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/Slot' + getFileInfo(slotConfig).Name.replace('Fighter','').replace('Slot','')
+		if File.Exists(configFile):
+			writeLog("File " + configFile + "found")
+			BrawlAPI.OpenFile(configFile)
+			songId = BrawlAPI.RootNode.VictoryTheme
+			redirect = BrawlAPI.RootNode.SetSlot
+			redirectId = hexId(BrawlAPI.RootNode.CharSlot1)
+			slotConfigId = getFileInfo(configFile).Name.replace('Slot','').replace('.dat','')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting slot config info")
+		return SlotConfigInfo(slotConfigId, songId, redirect, redirectId)
 
 # Check if franchise icon ID is already used
 def franchiseIconIdUsed(franchiseIconId):
@@ -2250,13 +2733,99 @@ def getNewSfxId(sfxId, sfxChangeExe):
 						return str(line).split(' ')[1]
 		return ""
 
+# Get info for all fighters in a build
+def getAllFighterInfo():
+		try:
+			# Set up progressbar
+			progressCounter = 0
+			totalFiles = len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig')) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig')) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig')) + len(Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'))
+			progressBar = ProgressWindow(MainForm.Instance, "Gathering Ex configs...", "Gathering Ex configs", False)
+			progressBar.Begin(0, totalFiles, progressCounter)
+
+			# Get fighter config info
+			fighterConfigInfo = []
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig'):
+				fighterConfigInfo.append(getfighterConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			# Get slot config info
+			slotConfigInfo = []
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig'):
+				slotConfigInfo.append(getSlotConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			# Get cosmetic config info
+			cosmeticConfigInfo = []
+			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig'):
+				cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			# Get CSS slot config info
+			cssSlotConfigInfo = []
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'):
+				cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			progressBar.Finish()
+
+			# Set up progressbar
+			progressCounter = 0
+			progressBar = ProgressWindow(MainForm.Instance, "Joining Ex configs...", "Joining Ex configs", False)
+			progressBar.Begin(0, len(fighterConfigInfo), progressCounter)
+
+			# Starting with fighter config, find matching configs and add them to list
+			exConfigs = []
+			for fighterConfig in fighterConfigInfo:
+				matchFound = False
+				fighterConfigPath = MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + fighterConfig.fighterId + '.dat'
+				info = []
+				# Search for matching slot configs
+				for slotConfig in slotConfigInfo:
+					# Check for redirects
+					if slotConfig.redirect and hexId(slotConfig.redirectId) == '0x' + fighterConfig.fighterId:
+						info.append(fighterConfig)
+						info.append(slotConfig)
+						matchFound = True
+						break
+				# If no redirect is found, try just using the fighter config's actual ID
+				if not matchFound:
+					info.append(fighterConfig)
+					info.append(getSlotConfigInfo(fighterConfigPath))
+				# Search for matching cosmetic configs
+				matchFound = False
+				for cosmeticConfig in cosmeticConfigInfo:
+					if cosmeticConfig.redirect and hexId(cosmeticConfig.redirectId) == '0x' + info[1].slotConfigId:
+						info.append(cosmeticConfig)
+						matchFound = True
+						break
+				if not matchFound:
+					info.append(getCosmeticConfigInfo(fighterConfigPath))
+				# Search for matching CSS slot configs
+				matchFound = False
+				for cssSlotConfig in cssSlotConfigInfo:
+					if cssSlotConfig.redirect and hexId(cssSlotConfig.redirectId) == '0x' + info[1].slotConfigId:
+						info.append(cssSlotConfig)
+						matchFound = True
+						break
+				if not matchFound:
+					info.append(getCssSlotConfigInfo(fighterConfigPath))
+				newFighterInfo = FighterInfo(info[0].fighterId, info[0].fighterName, info[2].cosmeticId, info[2].franchiseIconId, info[0].soundbankId, info[1].songId, info[2].characterName, info[1].slotConfigId, info[2].cosmeticConfigId, info[3].cssSlotConfigId)
+				exConfigs.append(newFighterInfo)
+				progressCounter += 1
+				progressBar.Update(progressCounter)
+			progressBar.Finish()
+			return exConfigs
+		except Exception as e:
+			if 'progressBar' in locals():
+				progressBar.Finish()
+			raise e
+
 #endregion GENERAL FUNCTIONS
 
 #region SETUP FUNCTIONS
 def getSettings():
 		writeLog("Reading settings file")
-		Directory.SetCurrentDirectory(RESOURCE_PATH)
-		fileText = File.ReadAllLines(RESOURCE_PATH + '/settings.ini')
+		fileText = File.ReadAllLines(MainForm.BuildPath + '/settings.ini')
 		settings = Settings()
 		settings.rspLoading = readValueFromKey(fileText, "rspLoading")
 		settings.cssIconStyle = readValueFromKey(fileText, "cssIconStyle")
@@ -2312,10 +2881,18 @@ def getFighterSettings():
 		return fighterSettings
 
 def initialSetup():
+		if File.Exists(RESOURCE_PATH + '/settings.ini'):
+			copyFile(RESOURCE_PATH + '/settings.ini', MainForm.BuildPath)
+			File.Delete(RESOURCE_PATH + '/settings.ini')
+			settings = getSettings()
+			return settings
 		settings = Settings()
 		title = "Setup"
-		defaultSettings = BrawlAPI.ShowYesNoPrompt("Would you like to use Project+ EX default settings? Only choose this option if you have a Project+ EX build that doesn't have major modifications.", title)
-		if defaultSettings:
+		remixDefaults = False
+		projectPlusExDefaults = BrawlAPI.ShowYesNoPrompt("Would you like to use Project+ EX default settings? Only choose this option if you have a Project+ EX build that doesn't have major modifications.", title)
+		if not projectPlusExDefaults:
+			remixDefaults = BrawlAPI.ShowYesNoPrompt("Would you like to use PMEX REMIX default settings? Only choose this option if you have a PMEX REMIX build that doesn't have major modifications.", title)
+		if projectPlusExDefaults:
 			settings.rspLoading = "false"
 			settings.cssIconStyle = "P+"
 			settings.bpStyle = "vBrawl"
@@ -2334,6 +2911,29 @@ def initialSetup():
 			settings.useCssRoster = "true"
 			settings.installBPNames = "false"
 			settings.installSingleplayerCosmetics = "true"
+		if remixDefaults:
+			settings.rspLoading = "true"
+			settings.cssIconStyle = "REMIX"
+			settings.bpStyle = "REMIX"
+			settings.installPortraitNames = "true"
+			settings.portraitNameStyle = "PM"
+			settings.franchiseIconSizeCSS = 64
+			settings.installStocksToCSS = "false"
+			settings.installStocksToInfo = "false"
+			settings.installStockIconsToResult = "false"
+			settings.installStocksToStockFaceTex = "false"
+			settings.fiftyCostumeCode = "true"
+			settings.soundbankStyle = "hex"
+			settings.addSevenToSoundbankName = "false"
+			settings.addSevenToSoundbankIds = "true"
+			settings.installVictoryThemes = "true"
+			settings.useCssRoster = "false"
+			settings.installBPNames = "false"
+			settings.installSingleplayerCosmetics = "false"
+		if projectPlusExDefaults or remixDefaults:
+			defaultSettings = True
+		else:
+			defaultSettings = False
 		if not defaultSettings:
 			# RSP Loading
 			settings.rspLoading = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use RSP loading? (For most builds, the answer is 'No'.)", title))
@@ -2510,12 +3110,44 @@ class FighterSettings:
 		creditsThemeId = ""
 
 class FighterInfo:
-		def __init__(self, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName):
+		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId):
+			self.fighterId = fighterId
 			self.fighterName = fighterName
 			self.cosmeticId = cosmeticId
 			self.franchiseIconId = franchiseIconId
 			self.soundbankId = soundbankId
 			self.songId = songId
 			self.characterName = characterName
+			self.slotConfigId = slotConfigId
+			self.cosmeticConfigId = cosmeticConfigId
+			self.cssSlotConfigId = cssSlotConfigId
+
+class FighterConfigInfo:
+		def __init__(self, fighterName, fighterId, soundbankId):
+			self.fighterName = fighterName
+			self.fighterId = fighterId
+			self.soundbankId = soundbankId
+
+class CosmeticConfigInfo:
+		def __init__(self, cosmeticId, cosmeticConfigId, franchiseIconId, characterName, redirect, redirectId):
+			self.cosmeticId = cosmeticId
+			self.cosmeticConfigId = cosmeticConfigId
+			self.franchiseIconId = franchiseIconId
+			self.characterName = characterName
+			self.redirect = redirect
+			self.redirectId = redirectId
+
+class CssSlotConfigInfo:
+		def __init__(self, cssSlotConfigId, redirect, redirectId):
+			self.cssSlotConfigId = cssSlotConfigId
+			self.redirect = redirect
+			self.redirectId = redirectId
+
+class SlotConfigInfo:
+		def __init__(self, slotConfigId, songId, redirect, redirectId):
+			self.slotConfigId = slotConfigId
+			self.songId = songId
+			self.redirect = redirect
+			self.redirectId = redirectId
 
 #endregion CLASSES

@@ -16,7 +16,7 @@ def main():
 			createLogFile()
 			backupCheck()
 			# Get user settings
-			if File.Exists(RESOURCE_PATH + '/settings.ini'):
+			if File.Exists(MainForm.BuildPath + '/settings.ini'):
 				settings = getSettings()
 			else:
 				settings = initialSetup()
@@ -369,7 +369,8 @@ def main():
 								# Franchise icons first
 								if franchiseIconFolder and doInstallFranchiseIcon:
 									franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-									installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
+									if franchisIconFolderInfo:
+										installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
 								# BP names next
 								if bpFolder and settings.installBPNames == "true":
 									# Get preferred BP style
@@ -400,7 +401,8 @@ def main():
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")
-						installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
+						if franchisIconFolderResult:
+							installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
 					fileOpened = checkOpenFile("STGRESULT")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -511,14 +513,16 @@ def main():
 								elif fighterIdString.isnumeric():
 									kirbyHatFighterId = int(fighterIdString)
 						# If we don't have a kirby hat fighter ID but settings say we should, generate kirby hat based on settings
-						if kirbyHatFighterId == -1 and settings.defaultKirbyHat != "none":
+						# If we don't have kirby hat files but do have an ID, generate kirby hat based on that
+						if (kirbyHatFighterId == -1 or not Directory.GetFiles(AppPath + '/temp/KirbyHats', "*.pac")) and settings.defaultKirbyHat != "none":
 							# Delete Kirby hat folder if it already exists
 							if kirbyHatFolder:
 								Directory.Delete(kirbyHatFolder.FullName, 1)
 							# Create the kirby hat folder
 							kirbyHatFolder = Directory.CreateDirectory(AppPath + '/temp/KirbyHats')
 							# Get name of fighter based on default kirby hat ID
-							kirbyHatFighterId = int(settings.defaultKirbyHat, 16)
+							if kirbyHatFighterId == -1:
+								kirbyHatFighterId = int(settings.defaultKirbyHat, 16)
 							kirbyHatFighterName = FIGHTER_IDS[kirbyHatFighterId]
 							# Get Kirby hat files from the build and copy them to the temp directory
 							kirbyHatFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/fighter/kirby', "FitKirby" + kirbyHatFighterName + "*.pac")
