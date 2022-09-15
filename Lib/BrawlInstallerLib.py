@@ -2259,10 +2259,10 @@ def extractSong(songID, songDirectory='Victory!', tracklist='Results', exportFol
 						childNode = child
 						break
 			if 'childNode' in locals():
-				# Get filename
-				path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
-				directory = Directory.CreateDirectory(path)
 				if '/' in childNode.SongFileName:
+					# Get filename
+					path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
+					directory = Directory.CreateDirectory(path)
 					brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
 					if brstmFile:
 						writeLog("Extracting file " + brstmFile.FullName)
@@ -2825,8 +2825,7 @@ def getAllFighterInfo():
 #region SETUP FUNCTIONS
 def getSettings():
 		writeLog("Reading settings file")
-		Directory.SetCurrentDirectory(RESOURCE_PATH)
-		fileText = File.ReadAllLines(RESOURCE_PATH + '/settings.ini')
+		fileText = File.ReadAllLines(MainForm.BuildPath + '/settings.ini')
 		settings = Settings()
 		settings.rspLoading = readValueFromKey(fileText, "rspLoading")
 		settings.cssIconStyle = readValueFromKey(fileText, "cssIconStyle")
@@ -2882,10 +2881,18 @@ def getFighterSettings():
 		return fighterSettings
 
 def initialSetup():
+		if File.Exists(RESOURCE_PATH + '/settings.ini'):
+			copyFile(RESOURCE_PATH + '/settings.ini', MainForm.BuildPath)
+			File.Delete(RESOURCE_PATH + '/settings.ini')
+			settings = getSettings()
+			return settings
 		settings = Settings()
 		title = "Setup"
-		defaultSettings = BrawlAPI.ShowYesNoPrompt("Would you like to use Project+ EX default settings? Only choose this option if you have a Project+ EX build that doesn't have major modifications.", title)
-		if defaultSettings:
+		remixDefaults = False
+		projectPlusExDefaults = BrawlAPI.ShowYesNoPrompt("Would you like to use Project+ EX default settings? Only choose this option if you have a Project+ EX build that doesn't have major modifications.", title)
+		if not projectPlusExDefaults:
+			remixDefaults = BrawlAPI.ShowYesNoPrompt("Would you like to use PMEX REMIX default settings? Only choose this option if you have a PMEX REMIX build that doesn't have major modifications.", title)
+		if projectPlusExDefaults:
 			settings.rspLoading = "false"
 			settings.cssIconStyle = "P+"
 			settings.bpStyle = "vBrawl"
@@ -2904,6 +2911,29 @@ def initialSetup():
 			settings.useCssRoster = "true"
 			settings.installBPNames = "false"
 			settings.installSingleplayerCosmetics = "true"
+		if remixDefaults:
+			settings.rspLoading = "true"
+			settings.cssIconStyle = "REMIX"
+			settings.bpStyle = "REMIX"
+			settings.installPortraitNames = "true"
+			settings.portraitNameStyle = "PM"
+			settings.franchiseIconSizeCSS = 64
+			settings.installStocksToCSS = "false"
+			settings.installStocksToInfo = "false"
+			settings.installStockIconsToResult = "false"
+			settings.installStocksToStockFaceTex = "false"
+			settings.fiftyCostumeCode = "true"
+			settings.soundbankStyle = "hex"
+			settings.addSevenToSoundbankName = "false"
+			settings.addSevenToSoundbankIds = "true"
+			settings.installVictoryThemes = "true"
+			settings.useCssRoster = "false"
+			settings.installBPNames = "false"
+			settings.installSingleplayerCosmetics = "false"
+		if projectPlusExDefaults or remixDefaults:
+			defaultSettings = True
+		else:
+			defaultSettings = False
 		if not defaultSettings:
 			# RSP Loading
 			settings.rspLoading = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use RSP loading? (For most builds, the answer is 'No'.)", title))

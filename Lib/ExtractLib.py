@@ -7,7 +7,7 @@ from BrawlInstallerLib import *
 def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticConfigId="", cssSlotConfigId="", skipMessage=False):
 		try:
 			# Get user settings
-			if File.Exists(RESOURCE_PATH + '/settings.ini'):
+			if File.Exists(MainForm.BuildPath + '/settings.ini'):
 				settings = getSettings()
 			else:
 				settings = initialSetup()

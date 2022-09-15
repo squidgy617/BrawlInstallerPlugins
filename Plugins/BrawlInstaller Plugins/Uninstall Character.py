@@ -16,7 +16,7 @@ def main():
 			createLogFile()
 			backupCheck()
 			# Get user settings
-			if File.Exists(RESOURCE_PATH + '/settings.ini'):
+			if File.Exists(MainForm.BuildPath + '/settings.ini'):
 				settings = getSettings()
 			else:
 				settings = initialSetup()
