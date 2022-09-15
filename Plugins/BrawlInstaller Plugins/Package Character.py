@@ -1,5 +1,5 @@
 __author__ = "Squidgy"
-__version__ = "1.0.1"
+__version__ = "1.3.0"
 
 from BrawlInstallerLib import *
 
@@ -31,6 +31,7 @@ def main():
 				break
 		# BPs
 		bpFiles = BrawlAPI.OpenMultiFileDialog("Select vBrawl BP files", "PNG files|*.png")
+		bpName = BrawlAPI.OpenFileDialog("Select vBrawl BP name", "PNG files|*.png")
 		remixBpFiles = BrawlAPI.OpenMultiFileDialog("Select REMIX BP files", "PNG files|*.png")
 
 		# CSS Icons
@@ -97,6 +98,18 @@ def main():
 		# Victory Theme
 		victoryTheme = BrawlAPI.OpenFileDialog("Select your victory .brstm file", "BRSTM files|*.brstm")
 
+		# Classic Intro
+		classicIntro = BrawlAPI.OpenFileDialog("Select your classic intro .brres file", "BRRES files|*.brres")
+
+		# Credits Theme
+		creditsTheme = BrawlAPI.OpenFileDialog("Select your credits .brstm file", "BRSTM files|*.brstm")
+
+		# Ending Files
+		endingFiles = BrawlAPI.OpenMultiFileDialog("Select your ending .pac files", "PAC files|*.pac")
+
+		# Ending Movie
+		endingMovie = BrawlAPI.OpenFileDialog("Select your ending movie file", "THP files|*.thp")
+
 		# Stage directory
 		Directory.CreateDirectory(AppPath + '/temp')
 
@@ -124,6 +137,9 @@ def main():
 			for file in bpFiles:
 				copyRenameFile(file, addLeadingZeros(str(i), 4) + '.png', AppPath + '/temp/BPs/vBrawl')
 				i += 1
+		
+		if bpName:
+			copyFile(bpName, AppPath + '/temp/BPs/vBrawl/Name')
 
 		if remixBpFiles:
 			i = 1
@@ -183,6 +199,19 @@ def main():
 		if victoryTheme:
 			copyFile(victoryTheme, AppPath + '/temp/VictoryTheme')
 
+		if classicIntro:
+			copyFile(classicIntro, AppPath + '/temp/ClassicIntro')
+
+		if creditsTheme:
+			copyFile(creditsTheme, AppPath + '/temp/CreditsTheme')
+
+		if endingFiles:
+			for file in endingFiles:
+				copyFile(file, AppPath + '/temp/Ending')
+
+		if endingMovie:
+			copyFile(endingMovie, AppPath + '/temp/Ending')
+
 		fighterSettings = FighterSettings()
 		setThrowRelease = BrawlAPI.ShowYesNoPrompt("Would you like to set a throw release point for your fighter? (This step is optional.)", title)
 		if setThrowRelease:
@@ -216,7 +245,9 @@ def main():
 					fighterSettings.bowserBoneId = showIdPrompt("Bone ID - Firebreath Fix")
 
 			attrs = vars(fighterSettings)
-			File.WriteAllText(AppPath + '/temp/FighterSettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
+			writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+			if writeString:
+				File.WriteAllText(AppPath + '/temp/FighterSettings.txt', writeString)
 
 		outputDirectory = BrawlAPI.OpenFolderDialog("Select output directory")
 		fileName = BrawlAPI.UserStringInput("Enter a file name")
