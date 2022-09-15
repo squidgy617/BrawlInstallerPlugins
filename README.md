@@ -57,7 +57,7 @@ If you're just looking to get started in using these plugins to package and inst
 The Install Character plugin works by extracting files from a "Character Package", a .zip file containing the fighter's files, cosmetics, etc. with a particular directory structure.
 
 If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages)) or by using the [Package Character](
-https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in this suite.
+https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in this suite. Character packages can also be extracted from a build using the [Extract Character](https://github.com/squidgy617/BrawlInstallerPlugins#extract-character) plugin.
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
 
