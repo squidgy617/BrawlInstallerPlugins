@@ -755,14 +755,15 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Import icon
-			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			brresName = "Misc Data [30]" if not fileNodeName.startswith("if_adv_mngr") else "Misc Data [0]"
+			node = getChildByName(BrawlAPI.RootNode, brresName)
 			if fileNodeName == "sc_selcharacter":
 				# set format based on size: <= 64 should be I4, greater should be I8
 				format = WiiPixelFormat.I4 if size <= 64 else WiiPixelFormat.I8
 				newNode = importTexture(node, image, format, sizeW=size)
 				pat0texNodeName = "Card04"
 				pat0NodeName = "MenSelchrCmark4_TopN__0"
-			if fileNodeName.startswith("info"):
+			if fileNodeName.startswith("info") or fileNodeName.startswith("if_adv_mngr"):
 				newNode = importTexture(node, image, WiiPixelFormat.I4, sizeW=48)
 				pat0texNodeName = "lambert110"
 				pat0NodeName = "InfMark_TopN__0"
@@ -1768,7 +1769,8 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Remove icon
-			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			brresName = "Misc Data [30]" if not fileNodeName.startswith("if_adv_mngr") else "Misc Data [0]"
+			node = getChildByName(BrawlAPI.RootNode, brresName)
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			nodeName = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
 			textureNode = getChildByName(texFolder, nodeName)
@@ -1777,7 +1779,7 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 			if fileNodeName == "sc_selcharacter":
 				pat0texNodeName = "Card04"
 				pat0NodeName = "MenSelchrCmark4_TopN__0"
-			if fileNodeName.startswith("info"):
+			if fileNodeName.startswith("info") or fileNodeName.startswith("if_adv_mngr"):
 				pat0texNodeName = "lambert110"
 				pat0NodeName = "InfMark_TopN__0"
 			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=1)

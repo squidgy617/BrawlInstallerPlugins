@@ -624,10 +624,13 @@ def main():
 								createNewcomerFile(fighterId, imagePath)
 						if stockIconFolder:
 							importStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
-							fileOpened = checkOpenFile("if_adv_mngr")
-							if fileOpened:
-								BrawlAPI.SaveFile()
-								BrawlAPI.ForceCloseFile()
+						if franchiseIconFolder and doInstallFranchiseIcon:
+							franchisIconFolderSse = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
+							installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')
+						fileOpened = checkOpenFile("if_adv_mngr")
+						if fileOpened:
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
 
 					#endregion SSE
 
