@@ -605,6 +605,32 @@ def main():
 
 					#endregion Misc Changes
 
+					#region SSE
+
+					# Add character to SSE roster
+					if settings.installToSse == "true":
+						addToSSE(fighterId, settings.sseUnlockStage)
+						if cssIconFolder:
+							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
+							if iconFolders:
+								cssIconNameSse = ""
+								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
+								if nameFolders:
+									nameFiles = Directory.GetFiles(nameFolders[0], "*.png")
+									if nameFiles:
+										cssIconNameSse = nameFiles[0]
+								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
+								importCSSIconSSE(cosmeticId, imagePath, cssIconNameSse)
+								createNewcomerFile(fighterId, imagePath)
+						if stockIconFolder:
+							importStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
+							fileOpened = checkOpenFile("if_adv_mngr")
+							if fileOpened:
+								BrawlAPI.SaveFile()
+								BrawlAPI.ForceCloseFile()
+
+					#endregion SSE
+
 					#region Code Menu
 
 					# Add fighter to code menu
