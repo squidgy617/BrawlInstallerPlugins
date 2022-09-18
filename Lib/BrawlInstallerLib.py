@@ -3061,6 +3061,13 @@ def initialSetup():
 				BrawlAPI.ShowMessage("Victory themes and credits themes can only be installed with the modern tracklist system. Victory themes and credits themes will not be installed.", title)
 			# CSSRoster.dat
 			settings.useCssRoster = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use a CSSRoster.dat to determine who appears on the character select screen? (For most builds, the answer is 'Yes'.)", title))
+		settings.installToSse = boolText(BrawlAPI.ShowYesNoPrompt("Does your build support SSE Ex, and would you like to install characters to Subspace Emissary mode? (For P+Ex 1.2 and later, the answer is likely 'Yes'. For most other builds, the answer is probably 'No'.", title))
+		if settings.installToSse == "true":
+			BrawlAPI.ShowMessage("You will be prompted to select the stage at which you would like Ex characters added to SSE to unlock. Enter an integer corresponding to the below options:\n\n1 : Unlock Immediately\n2 : Unlock After Great Maze is Completed")
+			unlockStage = BrawlAPI.UserIntegerInput(title, "Franchise Icon Size: ", 1, 1, 2)
+			settings.sseUnlockStage = "start" if unlockStage == 1 else "end"
+		else:
+			settings.sseUnlockStage = "end"
 		attrs = vars(settings)
 		File.WriteAllText(RESOURCE_PATH + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
 		BrawlAPI.ShowMessage("Setup complete.", title)
@@ -3098,6 +3105,8 @@ class Settings:
 		gfxChangeExe = ""
 		installBPNames = "false"
 		installSingleplayerCosmetics = "false"
+		installToSse = "false"
+		sseUnlockStage = "end"
 
 class FighterSettings:
 		lucarioBoneId = ""
