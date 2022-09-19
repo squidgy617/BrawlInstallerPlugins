@@ -917,7 +917,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		writeLog("Replaced module contents")
 
 # Update the SSE module
-def addToSSE(cssSlotId, unlockStage="end"):
+def updateSseModule(cssSlotId, unlockStage="end", remove=False):
 		writeLog("Updating sora_adv_stage.rel for CSSSlot ID " + str(cssSlotId))
 		filePath = MainForm.BuildPath + '/pf/module/sora_adv_stage.rel'
 		if File.Exists(filePath):
@@ -947,7 +947,10 @@ def addToSSE(cssSlotId, unlockStage="end"):
 							if value == int(cssSlotId, 16):
 								writeLog("Match found at offset " + str(i))
 								editFile.seek(i)
-								editFile.write(binascii.unhexlify(cssSlotId))
+								if not remove:
+									editFile.write(binascii.unhexlify(cssSlotId))
+								else:
+									editFile.write(binascii.unhexlify('00'))
 								matchFound = True
 								break
 							# Track the first zero we find in case we don't find a match
@@ -955,7 +958,7 @@ def addToSSE(cssSlotId, unlockStage="end"):
 								firstZero = i
 							i += 1
 						# If we didn't find a match, add an entry
-						if firstZero != -1 and not matchFound:
+						if firstZero != -1 and not matchFound and not remove:
 							writeLog("No match found, updating offset " + str(firstZero))
 							# Update first empty byte
 							editFile.seek(firstZero)
@@ -972,7 +975,9 @@ def addToSSE(cssSlotId, unlockStage="end"):
 						# multiply by 4 because there are 4 bytes for each of these
 						position = 376 + (4 * (int(cssSlotId, 16) - int('2A', 16)))
 						editFile.seek(position)
-						if unlockStage == "start":
+						if remove:
+							editFile.write(binascii.unhexlify('00000000'))
+						elif unlockStage == "start":
 							editFile.write(binascii.unhexlify('00000001'))
 						elif unlockStage == "end":
 							editFile.write(binascii.unhexlify('00000002'))

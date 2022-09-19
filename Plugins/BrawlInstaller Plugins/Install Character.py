@@ -609,7 +609,7 @@ def main():
 
 					# Add character to SSE roster
 					if settings.installToSse == "true":
-						addToSSE(fighterId, settings.sseUnlockStage)
+						updateSseModule(fighterId, settings.sseUnlockStage)
 						if cssIconFolder:
 							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
 							if iconFolders:
@@ -631,6 +631,9 @@ def main():
 						if fileOpened:
 							BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
 
 					#endregion SSE
 
