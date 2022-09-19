@@ -362,7 +362,7 @@ def main():
 					#region Single Player Cosmetics
 
 					# Go through each info .pac file (aside from the standard info.pac) and install stuff
-					if settings.installSingleplayerCosmetics:
+					if settings.installSingleplayerCosmetics == "true":
 						for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
 							fileName = getFileInfo(file).Name
 							if fileName != "info.pac":
