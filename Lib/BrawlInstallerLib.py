@@ -2269,6 +2269,23 @@ def extractCSSIcon(cosmeticId, folderName):
 				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
 		writeLog("Finished extracting CSS icon")
 
+# Extract CSS icon
+def extractCSSIconSSE(cosmeticId):
+		writeLog("Extracting CSS icon with cosmetic ID " + str(cosmeticId) + " to folder vBrawl")
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/adventure/selchrcd_common.brres', False)
+		if fileOpened:
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
+			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
+			exportPath = createDirectory(AppPath + '/temp/CSSIcon/vBrawl')
+			if tex0Node:
+				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+			if nameNode:
+				exportPath = createDirectory(exportPath + '/Name')
+				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished extracting CSS icon")
+
 # Extract portrait name
 def extractPortraitName(cosmeticId, folderName):
 		writeLog("Extracting portrait name with cosmetic ID " + str(cosmeticId) + " to folder " + folderName)
