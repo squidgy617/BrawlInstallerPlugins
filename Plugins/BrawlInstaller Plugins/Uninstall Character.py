@@ -153,7 +153,7 @@ def main():
 
 			#region Single Player Cosmetics
 
-			if settings.installSingleplayerCosmetics:
+			if settings.installSingleplayerCosmetics == "true":
 				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
 					fileName = getFileInfo(file).Name
 					if fileName != "info.pac":
