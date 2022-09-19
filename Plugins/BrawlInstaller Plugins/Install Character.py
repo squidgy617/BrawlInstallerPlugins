@@ -623,7 +623,7 @@ def main():
 								importCSSIconSSE(cosmeticId, imagePath, cssIconNameSse)
 								createNewcomerFile(fighterId, imagePath)
 						if stockIconFolder:
-							importStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
+							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
 						if franchiseIconFolder and doInstallFranchiseIcon:
 							franchisIconFolderSse = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 							installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')

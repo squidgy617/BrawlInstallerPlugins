@@ -2575,9 +2575,9 @@ def installCSPs(cosmeticId, directory, rspLoading):
 		importCSPs(cosmeticId, directory, rspLoading)
 
 # Install stock icons
-def installStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+def installStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true", firstOnly=False):
 		removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName, filePath, fiftyCC)
-		importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName, filePath, fiftyCC)
+		importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName, filePath, fiftyCC, firstOnly)
 
 # Install BPs
 def installBPs(cosmeticId, images, fiftyCC="true"):
