@@ -335,6 +335,8 @@ def main():
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
+			progressCounter += 1
+			progressBar.Update(progressCounter)
 			progressBar.Finish()
 			archiveBackup()
 			BrawlAPI.ShowMessage("Character successfully uninstalled.", "Success")
