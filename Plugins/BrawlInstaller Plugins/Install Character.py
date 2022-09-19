@@ -605,6 +605,38 @@ def main():
 
 					#endregion Misc Changes
 
+					#region SSE
+
+					# Add character to SSE roster
+					if settings.installToSse == "true":
+						updateSseModule(fighterId, settings.sseUnlockStage)
+						if cssIconFolder:
+							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
+							if iconFolders:
+								cssIconNameSse = ""
+								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
+								if nameFolders:
+									nameFiles = Directory.GetFiles(nameFolders[0], "*.png")
+									if nameFiles:
+										cssIconNameSse = nameFiles[0]
+								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
+								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
+								createNewcomerFile(fighterId, imagePath)
+						if stockIconFolder:
+							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
+						if franchiseIconFolder and doInstallFranchiseIcon:
+							franchisIconFolderSse = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
+							installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')
+						fileOpened = checkOpenFile("if_adv_mngr")
+						if fileOpened:
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion SSE
+
 					#region Code Menu
 
 					# Add fighter to code menu
@@ -681,6 +713,8 @@ def main():
 							BrawlAPI.SaveFile()
 						BrawlAPI.ForceCloseFile()
 
+					progressCounter += 1
+					progressBar.Update(progressCounter)
 					progressBar.Finish()
 					#endregion
 					

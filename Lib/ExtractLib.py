@@ -38,7 +38,7 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Extracting Character...", "Extracting Character", False)
-			progressBar.Begin(0, 16, progressCounter)
+			progressBar.Begin(0, 17, progressCounter)
 
 			# Extract CSPs
 			extractCSPs(cosmeticId)
@@ -192,6 +192,13 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 
 			# Extract credits theme
 			creditsThemeId = extractCreditsSong(slotId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Extract SSE CSS icon
+			if settings.cssIconStyle != "vBrawl":
+				extractCSSIconSSE(cosmeticId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

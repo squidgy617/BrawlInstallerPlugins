@@ -529,7 +529,7 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			writeLog("Importing CSPs completed successfully")
 
 # Import stock icons
-def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true", firstOnly=False):
 		writeLog("Importing stock icons to " + filePath + " with cosmetic ID " + str(cosmeticId))
 		# If info.pac is not already opened, open it
 		# Check this out: https://github.com/soopercool101/BrawlCrate/blob/b089bf32f0cfb2b5f1e6d729b95da4dd169903f2/BrawlCrate/NodeWrappers/Graphics/TEX0Wrapper.cs#L231
@@ -548,7 +548,7 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 				writeLog("Importing stock icons from folder " + folder)
 				images = Directory.GetFiles(folder, "*.png")
 				# Color smash images in folders with multiple
-				if len(images) > 1:
+				if len(images) > 1 and not firstOnly:
 					writeLog("Color smashing stock icons")
 					ColorSmashImport(node, images, 256)
 					writeLog("Imported color smashed icons")
@@ -556,8 +556,12 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 					writeLog("Importing standalone icon")
 					importTexture(node, images[0], WiiPixelFormat.CI8, 32, 32)
 					writeLog("Imported standalone icon")
-				for image in images:
-					totalImages.append(image)
+				if not firstOnly:
+					for image in images:
+						totalImages.append(image)
+				else:
+					totalImages.append(images[0])
+					break
 			# Rename the texture nodes
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			# Get the starting ID for imported stocks
@@ -751,14 +755,15 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Import icon
-			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			brresName = "Misc Data [30]" if not fileNodeName.startswith("if_adv_mngr") else "Misc Data [0]"
+			node = getChildByName(BrawlAPI.RootNode, brresName)
 			if fileNodeName == "sc_selcharacter":
 				# set format based on size: <= 64 should be I4, greater should be I8
 				format = WiiPixelFormat.I4 if size <= 64 else WiiPixelFormat.I8
 				newNode = importTexture(node, image, format, sizeW=size)
 				pat0texNodeName = "Card04"
 				pat0NodeName = "MenSelchrCmark4_TopN__0"
-			if fileNodeName.startswith("info"):
+			if fileNodeName.startswith("info") or fileNodeName.startswith("if_adv_mngr"):
 				newNode = importTexture(node, image, WiiPixelFormat.I4, sizeW=48)
 				pat0texNodeName = "lambert110"
 				pat0NodeName = "InfMark_TopN__0"
@@ -842,7 +847,7 @@ def updateModule(file, directory, fighterId, fighterName):
 		if node:
 			writeLog("Modifying Section [8] of module file")
 			node.Export(directory.FullName + "/Section [8]")
-			BrawlAPI.ForceCloseFile()
+			closeModule()
 			# Get the exported section 8 file
 			sectionFile = directory.FullName + "/Section [8]"
 			editModule(fighterId, file, sectionFile, [0x00])
@@ -910,6 +915,132 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 			file.seek(0)
 			file.write(updatedData)
 		writeLog("Replaced module contents")
+
+# Update the SSE module
+def updateSseModule(cssSlotId, unlockStage="end", remove=False):
+		writeLog("Updating sora_adv_stage.rel for CSSSlot ID " + str(cssSlotId))
+		filePath = MainForm.BuildPath + '/pf/module/sora_adv_stage.rel'
+		if File.Exists(filePath):
+			moduleFile = getFileInfo(filePath)
+			fileOpened = openFile(moduleFile.FullName)
+			# Get section 8 and export it
+			if fileOpened:
+				node = getChildByName(BrawlAPI.RootNode, "Section [8]")
+				if node:
+					writeLog("Modifying Section [8] of module file")
+					createDirectory(AppPath + "/temp/SSE")
+					node.Export(AppPath + "/temp/SSE/Section [8]")
+					closeModule()
+					# Get the exported section 8 file
+					sectionFile = AppPath + "/temp/SSE/Section [8]"
+					# Search for ID
+					firstZero = -1
+					matchFound = False
+					with open(sectionFile, mode='r+b') as editFile:
+						# First read the unmodified section file into a variable
+						section = editFile.read()
+						editFile.seek(2)
+						i = 2
+						while i < 128:
+							value = int(binascii.hexlify(editFile.read(1)), 16)
+							# If we find a match, update it
+							if value == int(cssSlotId, 16):
+								writeLog("Match found at offset " + str(i))
+								editFile.seek(i)
+								if not remove:
+									editFile.write(binascii.unhexlify(cssSlotId))
+								else:
+									editFile.write(binascii.unhexlify('00'))
+								matchFound = True
+								break
+							# Track the first zero we find in case we don't find a match
+							if firstZero == -1 and value == 0:
+								firstZero = i
+							i += 1
+						# If we didn't find a match, add an entry
+						if firstZero != -1 and not matchFound and not remove:
+							writeLog("No match found, updating offset " + str(firstZero))
+							# Update first empty byte
+							editFile.seek(firstZero)
+							editFile.write(binascii.unhexlify(cssSlotId))
+							# Update the counter
+							editFile.seek(0)
+							currentValue = int(binascii.hexlify(editFile.read(1)), 16)
+							writeLog("Updating fighter count to " + str(currentValue + 1))
+							editFile.seek(0)
+							editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
+						# Add unlock conditions
+						writeLog("Updating unlock stage")
+						# IDs start at 2A for unlock stages (first Ex ID), so we subtract 2A to get how far we move
+						# multiply by 4 because there are 4 bytes for each of these
+						position = 376 + (4 * (int(cssSlotId, 16) - int('2A', 16)))
+						editFile.seek(position)
+						if remove:
+							editFile.write(binascii.unhexlify('00000000'))
+						elif unlockStage == "start":
+							editFile.write(binascii.unhexlify('00000001'))
+						elif unlockStage == "end":
+							editFile.write(binascii.unhexlify('00000002'))
+						# Save the modified section bytes to a variable
+						editFile.seek(0)
+						sectionModified = editFile.read()
+						editFile.close()
+					# Read the module file
+					with open(moduleFile.FullName,  mode='r+b') as file:
+						data = str(file.read())
+						file.close()
+					# Where the module file matches the section, replace it with our modified section values
+					updatedData = data.replace(section, sectionModified)
+					with open(moduleFile.FullName, mode='r+b') as file:
+						file.seek(0)
+						file.write(updatedData)
+					writeLog("Replaced module contents")
+				else:
+					closeModule()
+		writeLog("Finish update sora_adv_stage.rel")
+
+# Import CSS icon for SSE
+def importCSSIconSSE(cosmeticId, iconImagePath, nameImagePath=""):
+		writeLog("Attempting to import CSS icon to SSE with cosmetic ID" + str(cosmeticId))
+		filePath = MainForm.BuildPath + '/pf/menu/adventure/selchrcd_common.brres'
+		if File.Exists(filePath):
+			# If selchrcd_common is not already opened, open it
+			fileOpened = openFile(filePath)
+			if fileOpened:
+				# Import icon texture
+				newNode = importTexture(BrawlAPI.RootNode, iconImagePath, WiiPixelFormat.CMPR)
+				newNode.Name = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
+				# Sort textures
+				newNode.Parent.SortChildren()
+				# Add CSS icon to CSS
+				anmTexPat = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+				pat0Node = getChildByName(anmTexPat, "MenAdvChrCd0001_TopN__0")
+				addToPat0(BrawlAPI.RootNode, pat0Node.Name, "Face02", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
+				if nameImagePath:
+					# Next, import the name
+					writeLog("Importing CSS icon name")
+					newNode = importTexture(BrawlAPI.RootNode, nameImagePath, WiiPixelFormat.I4)
+					newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
+					# Sort textures
+					newNode.Parent.SortChildren()
+					# Add CSS icon to CSS
+					anmTexPat = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+					pat0Node = getChildByName(anmTexPat, "MenAdvChrCd0001_TopN__0")
+					addToPat0(BrawlAPI.RootNode, pat0Node.Name, "Face03", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished importing CSS icon")
+
+# Create newcomer file for SSE
+def createNewcomerFile(cosmeticConfigId, iconImagePath):
+		writeLog("Creating SSE newcomer file for cosmetic config ID " + str(cosmeticConfigId))
+		outputPath = MainForm.BuildPath + '/pf/menu/adventure/comer_tex/tex_face' + addLeadingZeros(str(int(cosmeticConfigId, 16) + 16), 3) + '.brres'
+		createBackup(outputPath)
+		BrawlAPI.New[BRRESNode]()
+		importTexture(BrawlAPI.RootNode, iconImagePath, WiiPixelFormat.CMPR)
+		BrawlAPI.SaveFileAs(outputPath)
+		BrawlAPI.ForceCloseFile()
+		writeLog("Finished creating newcomer file")
 
 # Move fighter files to fighter folder
 def moveFighterFiles(files, fighterName, originalFighterName=""):
@@ -1328,7 +1459,7 @@ def updateThrowRelease(fighterId, fighterName, values):
 def importEndingFiles(files, endingId):
 		writeLog("Importing ending .pac files")
 		for file in files:
-			createBackup(MainForm.BuildPath + getFileInfo(file).Name)
+			createBackup(MainForm.BuildPath + '/' + getFileInfo(file).Name)
 			fileOpened = BrawlAPI.OpenFile(file)
 			fileName = ""
 			texturePrefix = ""
@@ -1358,7 +1489,7 @@ def importEndingFiles(files, endingId):
 # Import ending movie file
 def importEndingMovie(file, fighterName):
 		writeLog("Importing ending movie file")
-		createBackup(MainForm.BuildPath + getFileInfo(file).Name)
+		createBackup(MainForm.BuildPath + '/' + getFileInfo(file).Name)
 		copyRenameFile(file, 'End_' + fighterName + '.thp', MainForm.BuildPath + '/pf/movie')
 		writeLog("Finished importing movie file")
 
@@ -1643,7 +1774,8 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Remove icon
-			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+			brresName = "Misc Data [30]" if not fileNodeName.startswith("if_adv_mngr") else "Misc Data [0]"
+			node = getChildByName(BrawlAPI.RootNode, brresName)
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			nodeName = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
 			textureNode = getChildByName(texFolder, nodeName)
@@ -1652,7 +1784,7 @@ def removeFranchiseIcon(franchiseIconId, filePath):
 			if fileNodeName == "sc_selcharacter":
 				pat0texNodeName = "Card04"
 				pat0NodeName = "MenSelchrCmark4_TopN__0"
-			if fileNodeName.startswith("info"):
+			if fileNodeName.startswith("info") or fileNodeName.startswith("if_adv_mngr"):
 				pat0texNodeName = "lambert110"
 				pat0NodeName = "InfMark_TopN__0"
 			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=1)
@@ -2054,6 +2186,45 @@ def uninstallCreditsSong(slotId, removeTheme=True):
 		if removeTheme:
 			removeSong(int(songId, 16), 'Credits', 'Credits')
 
+# Remove CSS icon for SSE
+def removeCSSIconSSE(cosmeticId):
+		writeLog("Attempting to remove CSS icon from SSE with cosmetic ID " + str(cosmeticId))
+		filePath = MainForm.BuildPath + '/pf/menu/adventure/selchrcd_common.brres'
+		if File.Exists(filePath):
+			# If selchrcd_common is not already opened, open it
+			fileOpened = openFile(filePath)
+			if fileOpened:
+				# Remove icon texture
+				writeLog("Removing icon texture")
+				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+				if texFolder:
+					tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
+					if tex0Node:
+						tex0Node.Remove()
+					nameTex0Node = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
+					if nameTex0Node:
+						nameTex0Node.Remove()
+				# Remove icon from pat0
+				writeLog("Removing icon pat0")
+				anmTexPat = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Node = getChildByName(anmTexPat, "MenAdvChrCd0001_TopN__0")
+					removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "Face02", "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3), frameCountOffset=10)
+					removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "Face03", "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3), frameCountOffset=10)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished removing CSS icon")
+
+# Delete newcomer file
+def deleteNewcomerFile(cosmeticConfigId):
+		writeLog("Deleting SSE newcomer file for cosmetic config ID " + str(cosmeticConfigId))
+		path = MainForm.BuildPath + '/pf/menu/adventure/comer_tex/tex_face' + addLeadingZeros(str(int(cosmeticConfigId, 16) + 16), 3) + '.brres'
+		if File.Exists(path):
+			createBackup(path)
+			file = getFileInfo(path)
+			file.Delete()
+		writeLog("Finished delete SSE newcomer file")
+
 #endregion REMOVE FUNCTIONS
 
 #region EXTRACT FUNCTIONS
@@ -2096,6 +2267,23 @@ def extractCSSIcon(cosmeticId, folderName):
 			if nameNode:
 				exportPath = createDirectory(exportPath + '/Name')
 				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+		writeLog("Finished extracting CSS icon")
+
+# Extract CSS icon
+def extractCSSIconSSE(cosmeticId):
+		writeLog("Extracting CSS icon with cosmetic ID " + str(cosmeticId) + " to folder vBrawl")
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/adventure/selchrcd_common.brres', False)
+		if fileOpened:
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
+			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
+			exportPath = createDirectory(AppPath + '/temp/CSSIcon/vBrawl')
+			if tex0Node:
+				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+			if nameNode:
+				exportPath = createDirectory(exportPath + '/Name')
+				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting CSS icon")
 
 # Extract portrait name
@@ -2448,9 +2636,9 @@ def installCSPs(cosmeticId, directory, rspLoading):
 		importCSPs(cosmeticId, directory, rspLoading)
 
 # Install stock icons
-def installStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+def installStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true", firstOnly=False):
 		removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName, filePath, fiftyCC)
-		importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName, filePath, fiftyCC)
+		importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName, filePath, fiftyCC, firstOnly)
 
 # Install BPs
 def installBPs(cosmeticId, images, fiftyCC="true"):
@@ -2461,6 +2649,11 @@ def installBPs(cosmeticId, images, fiftyCC="true"):
 def installCSSIcon(cosmeticId, iconImagePath, format):
 		removeCSSIcon(cosmeticId)
 		importCSSIcon(cosmeticId, iconImagePath, format)
+
+# Install CSS icon SSE
+def installCssIconSSE(cosmeticId, iconImagePath, nameImagePath):
+		removeCSSIconSSE(cosmeticId)
+		importCSSIconSSE(cosmeticId, iconImagePath, nameImagePath)
 
 # Install replay icon
 def installReplayIcon(cosmeticId, iconImagePath):
@@ -2853,6 +3046,8 @@ def getSettings():
 		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
+		settings.installToSse = readValueFromKey(fileText, "installToSse")
+		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -3061,6 +3256,13 @@ def initialSetup():
 				BrawlAPI.ShowMessage("Victory themes and credits themes can only be installed with the modern tracklist system. Victory themes and credits themes will not be installed.", title)
 			# CSSRoster.dat
 			settings.useCssRoster = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use a CSSRoster.dat to determine who appears on the character select screen? (For most builds, the answer is 'Yes'.)", title))
+		settings.installToSse = boolText(BrawlAPI.ShowYesNoPrompt("Does your build support SSE Ex, and would you like to install characters to Subspace Emissary mode? (For P+Ex 1.2 and later, the answer is likely 'Yes'. For most other builds, the answer is probably 'No'.", title))
+		if settings.installToSse == "true":
+			BrawlAPI.ShowMessage("You will be prompted to select the stage at which you would like Ex characters added to SSE to unlock. Enter an integer corresponding to the below options:\n\n1 : Unlock Immediately\n2 : Unlock After Great Maze is Completed")
+			unlockStage = BrawlAPI.UserIntegerInput(title, "Franchise Icon Size: ", 1, 1, 2)
+			settings.sseUnlockStage = "start" if unlockStage == 1 else "end"
+		else:
+			settings.sseUnlockStage = "end"
 		attrs = vars(settings)
 		File.WriteAllText(RESOURCE_PATH + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
 		BrawlAPI.ShowMessage("Setup complete.", title)
@@ -3098,6 +3300,8 @@ class Settings:
 		gfxChangeExe = ""
 		installBPNames = "false"
 		installSingleplayerCosmetics = "false"
+		installToSse = "false"
+		sseUnlockStage = "end"
 
 class FighterSettings:
 		lucarioBoneId = ""
