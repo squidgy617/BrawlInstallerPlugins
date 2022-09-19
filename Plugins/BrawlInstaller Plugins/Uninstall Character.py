@@ -102,7 +102,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 17, progressCounter)
+			progressBar.Begin(0, 18, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -272,6 +272,22 @@ def main():
 			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
 
 			uninstallCreditsSong(fighterId, uninstallCreditsTheme)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove SSE changes
+			if settings.installToSse == "true":
+				updateSseModule(fighterId, "", remove=True)
+				removeCSSIconSSE(cosmeticId)
+				deleteNewcomerFile(fighterInfo.cosmeticConfigId)
+				removeStockIcons(cosmeticId, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false")
+				if uninstallFranchiseIcon:
+					removeFranchiseIcon(fighterInfo.franchiseIconId, '/pf/menu2/if_adv_mngr.pac')
+				fileOpened = checkOpenFile("if_adv_mngr")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

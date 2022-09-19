@@ -3,7 +3,6 @@
 # Functions used by BrawlInstaller plugins
 
 import binascii
-from msvcrt import getch
 import clr
 clr.AddReference("System.Drawing")
 clr.AddReference("System.IO.Compression.FileSystem")
@@ -2207,7 +2206,7 @@ def removeCSSIconSSE(cosmeticId):
 						nameTex0Node.Remove()
 				# Remove icon from pat0
 				writeLog("Removing icon pat0")
-				anmTexPat = getChldByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+				anmTexPat = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
 				if anmTexPat:
 					pat0Node = getChildByName(anmTexPat, "MenAdvChrCd0001_TopN__0")
 					removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "Face02", "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3), frameCountOffset=10)
