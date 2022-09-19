@@ -3,6 +3,7 @@
 # Functions used by BrawlInstaller plugins
 
 import binascii
+from msvcrt import getch
 import clr
 clr.AddReference("System.Drawing")
 clr.AddReference("System.IO.Compression.FileSystem")
@@ -970,7 +971,7 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False):
 							editFile.seek(0)
 							editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
 						# Add unlock conditions
-						writeLog("Adding unlock stage")
+						writeLog("Updating unlock stage")
 						# IDs start at 2A for unlock stages (first Ex ID), so we subtract 2A to get how far we move
 						# multiply by 4 because there are 4 bytes for each of these
 						position = 376 + (4 * (int(cssSlotId, 16) - int('2A', 16)))
@@ -2185,6 +2186,45 @@ def uninstallCreditsSong(slotId, removeTheme=True):
 		songId = updateCreditsCode(slotId, "0x0000", remove=True)
 		if removeTheme:
 			removeSong(int(songId, 16), 'Credits', 'Credits')
+
+# Remove CSS icon for SSE
+def removeCSSIconSSE(cosmeticId):
+		writeLog("Attempting to remove CSS icon from SSE with cosmetic ID " + str(cosmeticId))
+		filePath = MainForm.BuildPath + '/pf/menu/adventure/selchrcd_common.brres'
+		if File.Exists(filePath):
+			# If selchrcd_common is not already opened, open it
+			fileOpened = openFile(filePath)
+			if fileOpened:
+				# Remove icon texture
+				writeLog("Removing icon texture")
+				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+				if texFolder:
+					tex0Node = getChildByName(texFolder, "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3))
+					if tex0Node:
+						tex0Node.Remove()
+					nameTex0Node = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
+					if nameTex0Node:
+						nameTex0Node.Remove()
+				# Remove icon from pat0
+				writeLog("Removing icon pat0")
+				anmTexPat = getChldByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Node = getChildByName(anmTexPat, "MenAdvChrCd0001_TopN__0")
+					removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "Face02", "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3), frameCountOffset=10)
+					removeFromPat0(BrawlAPI.RootNode, pat0Node.Name, "Face03", "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3), frameCountOffset=10)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished removing CSS icon")
+
+# Delete newcomer file
+def deleteNewcomerFile(cosmeticConfigId):
+		writeLog("Deleting SSE newcomer file for cosmetic config ID " + str(cosmeticConfigId))
+		path = MainForm.BuildPath + '/pf/menu/adventure/comer_tex/tex_face' + addLeadingZeros(str(int(cosmeticConfigId, 16) + 16), 3) + '.brres'
+		if File.Exists(path):
+			createBackup(path)
+			file = getFileInfo(path)
+			file.Delete()
+		writeLog("Finished delete SSE newcomer file")
 
 #endregion REMOVE FUNCTIONS
 
