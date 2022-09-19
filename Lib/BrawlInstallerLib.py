@@ -2633,6 +2633,11 @@ def installCSSIcon(cosmeticId, iconImagePath, format):
 		removeCSSIcon(cosmeticId)
 		importCSSIcon(cosmeticId, iconImagePath, format)
 
+# Install CSS icon SSE
+def installCssIconSSE(cosmeticId, iconImagePath, nameImagePath):
+		removeCSSIconSSE(cosmeticId)
+		importCSSIconSSE(cosmeticId, iconImagePath, nameImagePath)
+
 # Install replay icon
 def installReplayIcon(cosmeticId, iconImagePath):
 		removeReplayIcon(cosmeticId)

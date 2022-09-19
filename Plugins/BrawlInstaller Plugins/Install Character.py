@@ -620,7 +620,7 @@ def main():
 									if nameFiles:
 										cssIconNameSse = nameFiles[0]
 								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
-								importCSSIconSSE(cosmeticId, imagePath, cssIconNameSse)
+								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
 								createNewcomerFile(fighterId, imagePath)
 						if stockIconFolder:
 							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
