@@ -1644,6 +1644,109 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 			else:
 				writeLog("Finished reading credits code")
 			return returnId
+
+# Add trophy to game
+def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, nameIndex=-1, gameIndex=-1, descriptionIndex=-1):
+		writeLog("Adding trophy " + name + " to common3.pac")
+		# First add name and game names
+		writeLog("Adding trophy name " + trophyName + " and game names " + gameName1 + " " + gameName2)
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin'):
+			# TODO: check if the character already has a trophy assigned, and if they do, update existing instead of adding... or something
+			# Actually we'll probably make an install function for this and remove trophy first instead
+			# When we do remove, we'll have to adjust the trophy IDs of every trophy after it... unless we keep the blank
+			# Should be easy to do, when you remove one, check the code file for any IDs larger than the removed ID, and decrement them
+			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin')
+			if fileOpened:
+				BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_name_list.txt')
+				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_name_list.txt')
+				newFileText = []
+				i = 0
+				textWritten1 = False
+				textWritten2 = False
+				for line in fileText:
+					if nameIndex != -1 and i == nameIndex:
+						newFileText.append(trophyName)
+						textWritten1 = True
+						nameIndex = i
+						i += 1
+					elif gameIndex != -1 and i == gameIndex:
+						newFileText.append(gameName1 + ("<br/>" + gameName2) if gameName2 != "" else "")
+						textWritten2 = True
+						gameIndex = i
+						i += 1
+					else:
+						newFileText.append(fileText[i])
+						i += 1
+				if not textWritten1:
+					newFileText.append(trophyName)
+					nameIndex = i
+				if not textWritten2:
+					newFileText.append(gameName1 + ("<br/>" + gameName2) if gameName2 != "" else "")
+					gameIndex = i + 1
+				File.WriteAllLines(AppPath + '/temp/ty_fig_name_list.txt', newFileText)
+				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_name_list.txt')
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		# Next add description
+		writeLog("Adding trophy description")
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin')
+			if fileOpened:
+				BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_ext_list.txt')
+				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_ext_list.txt')
+				newFileText = []
+				i = 0
+				textWritten = False
+				for line in fileText:
+					if descriptionIndex != -1 and i == descriptionIndex:
+						newFileText.append("<color=E6E6E6FF>" + description + "</end>")
+						textWritten = True
+						i += 1
+					else:
+						newFileText.append(fileText[i])
+						i += 1
+				if not textWritten:
+					newFileText.append("<color=E6E6E6FF>" + description + "</end>")
+					descriptionIndex = i
+				File.WriteAllLines(AppPath + '/temp/ty_fig_ext_list.txt', newFileText)
+				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_ext_list.txt')
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+			if fileOpened:
+				tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+				tyDataList = getChildByName(tyDataNode, "tyDataList")
+				# Get first available ID
+				i = 0
+				id = 631
+				while i < len(tyDataList.Children):
+					if tyDataList.Children[i].Id == id:
+						id += 1
+						i = 0
+					else:
+						i += 1
+				trophyNode = TyDataListEntryNode()
+				trophyNode.Name = name
+				trophyNode.Id = id
+				trophyNode.BRRES = name
+				trophyNode.ThumbnailIndex = id
+				trophyNode.GameIcon1 = gameIcon1
+				trophyNode.GameIcon2 = gameIcon2
+				trophyNode.NameIndex = nameIndex
+				trophyNode.GameIndex = gameIndex
+				trophyNode.DescriptionIndex = descriptionIndex
+				trophyNode.SeriesIndex = seriesIndex
+				trophyNode.CategoryIndex = categoryIndex
+				trophyNode.Unknown0x34 = 1
+				trophyNode.Unknown0x38 = 1
+				trophyNode.Unknown0x40 = 1
+				trophyNode.Unknown0x44 = 1
+				trophyNode.Unknown0x50 = 0
+				trophyNode.Unknown0x54 = 0
+				trophyNode.Unknown0x58 = 0
+				trophyNode.Unknown0x5C = 0
+				tyDataList.AddChild(trophyNode)
 					
 #endregion IMPORT FUNCTIONS
 
