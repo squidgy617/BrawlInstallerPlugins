@@ -271,7 +271,7 @@ def main():
 			# Remove ending files
 			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
 
-			uninstallCreditsSong(fighterId, uninstallCreditsTheme)
+			uninstallCreditsSong(slotId, uninstallCreditsTheme)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
