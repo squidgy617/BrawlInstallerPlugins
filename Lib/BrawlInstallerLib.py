@@ -1700,18 +1700,30 @@ def updateTrophyCode(slotId, trophyId, fighterName):
 		writeLog("Updating trophy code for " + str(slotId))
 		# Get alias name prefix and trophy ID
 		trophyInfo = getSlotTrophyInfo(slotId)
+		if trophyInfo[1] != "":
+			fighterName = trophyInfo[0]
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			i = 0
 			newFileText = []
 			foundSlotAlias = False
 			foundTrophyAlias = False
+			classicTrophyStart = False
+			allStarTrophyStart = False
+			foundClassicLine = False
+			foundAllStarLine = False
 			lastAlias = -1
 			# Read through the text
 			while i < len(fileText):
 				# Every time we find an alias line, store it's position as the last one we've found
 				if fileText[i].startswith('.alias'):
 					lastAlias = i
+				# When we find the line that starts the Classic trophy load, set a boolean indicating such
+				if fileText[i].startswith('HOOK @ $806E29D0'):
+					classicTrophyStart = True
+				# When we find the line that starts the All Star trophy load, set a boolean indicating such
+				if fileText[i].startswith('HOOK @ $806E47D8'):
+					allStarTrophyStart = True
 				# If we find a match to our slot alias, store it
 				if fileText[i].startswith('.alias ' + trophyInfo[0] + '_Slot'):
 					foundSlotAlias = True
@@ -1727,10 +1739,30 @@ def updateTrophyCode(slotId, trophyId, fighterName):
 					if not foundTrophyAlias:
 						newFileText.insert(lastAlias + 1, '.alias ' + fighterName + '_Trophy = ' + trophyId)
 					newFileText.append(fileText[i])
+				# If we find a matching Classic trophy, store that
+				elif classicTrophyStart and fileText[i].strip().startswith('li r29,') and fighterName + '_Trophy' in fileText[i] and fighterName + '_Slot' in fileText[i]:
+					newFileText.append(fileText[i])
+					foundClassicLine = True
+				# If we find a matching All-Star trophy, store that
+				elif allStarTrophyStart and fileText[i].strip().startswith('li r26,') and fighterName + '_Trophy' in fileText[i] and fighterName + '_Slot' in fileText[i]:
+					newFileText.append(fileText[i])
+					foundAllStarLine = True
+				# If we hit the end of the Classic trophies and no classic trophy found, write it
+				elif classicTrophyStart and fileText[i].strip().startswith('li r29, 0x1') and not foundClassicLine:
+					newFileText.append('\tli r29, ' + fighterName + '_Trophy;\tcmpwi r28, ' + fighterName + "_Slot;\tbeq+ GotTrophy\t# if it's " + fighterName + "'s slot")
+					newFileText.append(fileText[i])
+					classicTrophyStart = False
+				# If we hit the end of the All Star trophies and no trophy found, write it
+				elif allStarTrophyStart and fileText[i].strip().startswith('li r26, 0x5D') and not foundAllStarLine:
+					newFileText.append('\tli r26, ' + fighterName + '_Trophy;\tcmpwi r28, ' + fighterName + "_Slot;\tbeq+ GotTrophy\t# if it's " + fighterName + "'s slot")
+					newFileText.append(fileText[i])
+					allStarTrophyStart = False
+				# If just a normal line, append as normal
 				else:
 					newFileText.append(fileText[i])
 				i += 1
 			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newFileText)
+		writeLog("Finished update trophy code")
 
 # Add trophy to game
 def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, trophyId=-1):
