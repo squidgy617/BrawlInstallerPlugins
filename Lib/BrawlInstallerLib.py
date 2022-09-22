@@ -1712,6 +1712,9 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_ext_list.txt')
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
+		# Add trophy
+		# TODO: need to check if trophy already exists before adding it
+		# Maybe we just pass in trophy ID, and at the beginning check this common3.pac for the other IDs, then use those in the above parts
 		if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
 			fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
 			if fileOpened:
