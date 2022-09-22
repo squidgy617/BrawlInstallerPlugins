@@ -1645,14 +1645,118 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 				writeLog("Finished reading credits code")
 			return returnId
 
+# Get name used in trophy code
+def getSlotTrophyInfo(slotId):
+		writeLog("Getting trophy info for slot ID " + str(slotId))
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			# First find the line that tells us where the code is
+			i = 0
+			name = ""
+			trophyId = ""
+			# Searching for slot ID
+			while i < len(fileText):
+				if fileText[i].startswith('op b 0x34 @ $806E29DC'):
+					# We found the starting line, now look through the .aliases
+					j = i
+					aliasesDone = False
+					foundAliases = False
+					while aliasesDone == False:
+						# If we get to the bottom of the aliases, start search
+						if fileText[j].startswith('.alias') and not foundAliases:
+							foundAliases = True
+						# If we get to the top of the aliases, stop search
+						if foundAliases and not fileText[j].startswith('.alias'):
+							aliasesDone = True
+							break
+						# If we find a matching slot ID line, get the name associated
+						if foundAliases and 'Slot' in fileText[j] and fileText[j].split('=')[1].strip() == '0x' + str(slotId):
+							name = fileText[j].split('.alias')[1].split('=')[0].split('_Slot')[0].strip()
+							break
+						j -= 1
+					# Next get the trophy ID
+					j = i
+					aliasesDone = False
+					foundAliases = False
+					while aliasesDone == False:
+						# If we get to the bottom of the aliases, start search
+						if fileText[j].startswith('.alias') and not foundAliases:
+							foundAliases = True
+						# If we get to the top of the aliases, stop search
+						if foundAliases and not fileText[j].startswith('.alias'):
+							aliasesDone = True
+							break
+						# If we find a matching name, get the trophy ID associated
+						if foundAliases and fileText[j].split('=')[0].split('.alias')[1].strip() == name + '_Trophy':
+							trophyId = fileText[j].split('=')[1].strip()
+							break
+						j -= 1
+				i += 1
+			writeLog("Finished get trophy info")
+			return [ name, trophyId ]
+
+# Update trophy code
+def updateTrophyCode(slotId, trophyId, fighterName):
+		writeLog("Updating trophy code for " + str(slotId))
+		# Get alias name prefix and trophy ID
+		trophyInfo = getSlotTrophyInfo(slotId)
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			i = 0
+			newFileText = []
+			foundSlotAlias = False
+			foundTrophyAlias = False
+			lastAlias = -1
+			# Read through the text
+			while i < len(fileText):
+				# Every time we find an alias line, store it's position as the last one we've found
+				if fileText[i].startswith('.alias'):
+					lastAlias = i
+				# If we find a match to our slot alias, store it
+				if fileText[i].startswith('.alias ' + trophyInfo[0] + '_Slot'):
+					foundSlotAlias = True
+					newFileText.append(fileText[i])
+				# If we find a match to our trophy alias, update it
+				elif fileText[i].startswith('.alias ' + trophyInfo[0] + '_Trophy') and 'AllStar' not in fileText[i]:
+					foundTrophyAlias = True
+					newFileText.append('.alias ' + trophyInfo[0] + '_Trophy = ' + trophyId)
+				# If we hit the line after the aliases, add them as needed
+				elif fileText[i].startswith('op b 0x34 @ $806E29DC'):
+					if not foundSlotAlias:
+						newFileText.insert(lastAlias + 1, '.alias ' + fighterName + '_Slot = 0x' + str(slotId))
+					if not foundTrophyAlias:
+						newFileText.insert(lastAlias + 1, '.alias ' + fighterName + '_Trophy = ' + trophyId)
+					newFileText.append(fileText[i])
+				else:
+					newFileText.append(fileText[i])
+				i += 1
+			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newFileText)
+
 # Add trophy to game
-def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, nameIndex=-1, gameIndex=-1, descriptionIndex=-1):
+def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, trophyId=-1):
 		writeLog("Adding trophy " + name + " to common3.pac")
-		# First add name and game names
+		# First check for existing trophy entry
+		nameIndex = -1
+		gameIndex = -1
+		descriptionIndex = -1
+		trophyExists = False
+		if trophyId != -1:
+			writeLog("Getting current trophy values")
+			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					for trophyNode in tyDataList.Children:
+						if trophyNode.Id == trophyId:
+							nameIndex = trophyNode.NameIndex
+							gameIndex = trophyNode.GameIndex
+							descriptionIndex = trophyNode.DescriptionIndex
+							trophyExists = True
+					BrawlAPI.ForceCloseFile()
+		# Add name and game names
 		writeLog("Adding trophy name " + trophyName + " and game names " + gameName1 + " " + gameName2)
 		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin'):
-			# TODO: check if the character already has a trophy assigned, and if they do, update existing instead of adding... or something
-			# Actually we'll probably make an install function for this and remove trophy first instead
 			# When we do remove, we'll have to adjust the trophy IDs of every trophy after it... unless we keep the blank
 			# Should be easy to do, when you remove one, check the code file for any IDs larger than the removed ID, and decrement them
 			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin')
@@ -1713,43 +1817,42 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		# Add trophy
-		# TODO: need to check if trophy already exists before adding it
-		# Maybe we just pass in trophy ID, and at the beginning check this common3.pac for the other IDs, then use those in the above parts
-		if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
-			fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
-			if fileOpened:
-				tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
-				tyDataList = getChildByName(tyDataNode, "tyDataList")
-				# Get first available ID
-				i = 0
-				id = 631
-				while i < len(tyDataList.Children):
-					if tyDataList.Children[i].Id == id:
-						id += 1
-						i = 0
-					else:
-						i += 1
-				trophyNode = TyDataListEntryNode()
-				trophyNode.Name = name
-				trophyNode.Id = id
-				trophyNode.BRRES = name
-				trophyNode.ThumbnailIndex = id
-				trophyNode.GameIcon1 = gameIcon1
-				trophyNode.GameIcon2 = gameIcon2
-				trophyNode.NameIndex = nameIndex
-				trophyNode.GameIndex = gameIndex
-				trophyNode.DescriptionIndex = descriptionIndex
-				trophyNode.SeriesIndex = seriesIndex
-				trophyNode.CategoryIndex = categoryIndex
-				trophyNode.Unknown0x34 = 1
-				trophyNode.Unknown0x38 = 1
-				trophyNode.Unknown0x40 = 1
-				trophyNode.Unknown0x44 = 1
-				trophyNode.Unknown0x50 = 0
-				trophyNode.Unknown0x54 = 0
-				trophyNode.Unknown0x58 = 0
-				trophyNode.Unknown0x5C = 0
-				tyDataList.AddChild(trophyNode)
+		if not trophyExists:
+			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					# Get first available ID
+					i = 0
+					id = 631
+					while i < len(tyDataList.Children):
+						if tyDataList.Children[i].Id == id:
+							id += 1
+							i = 0
+						else:
+							i += 1
+					trophyNode = TyDataListEntryNode()
+					trophyNode.Name = name
+					trophyNode.Id = id
+					trophyNode.BRRES = name
+					trophyNode.ThumbnailIndex = id
+					trophyNode.GameIcon1 = gameIcon1
+					trophyNode.GameIcon2 = gameIcon2
+					trophyNode.NameIndex = nameIndex
+					trophyNode.GameIndex = gameIndex
+					trophyNode.DescriptionIndex = descriptionIndex
+					trophyNode.SeriesIndex = seriesIndex
+					trophyNode.CategoryIndex = categoryIndex
+					trophyNode.Unknown0x34 = 1
+					trophyNode.Unknown0x38 = 1
+					trophyNode.Unknown0x40 = 1
+					trophyNode.Unknown0x44 = 1
+					trophyNode.Unknown0x50 = 0
+					trophyNode.Unknown0x54 = 0
+					trophyNode.Unknown0x58 = 0
+					trophyNode.Unknown0x5C = 0
+					tyDataList.AddChild(trophyNode)
 					
 #endregion IMPORT FUNCTIONS
 

@@ -5,6 +5,7 @@ from BrawlInstallerLib import *
 
 def main():
 		Directory.CreateDirectory(AppPath + '/temp')
-		addTrophy("TestTrophy", 0, 0, "Test Trophy2", "TEST GAME2", "TEST GAME THE SEQUEL2", "THIS IS A TEST GAME2", 0, 0, 1088, 1089, 544)
+		updateTrophyCode('41', '0x123', 'RockmanX')
+		#addTrophy("TestTrophy", 0, 0, "Test Trophy4", "TEST GAME4", "TEST GAME THE SEQUEL4", "THIS IS A TEST GAME4", 0, 0, 631)
 
 main()
