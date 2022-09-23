@@ -1649,6 +1649,7 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 def getSlotTrophyInfo(slotId):
 		writeLog("Getting trophy info for slot ID " + str(slotId))
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			# First find the line that tells us where the code is
 			i = 0
@@ -1703,6 +1704,7 @@ def updateTrophyCode(slotId, trophyId, fighterName):
 		if trophyInfo[1] != "":
 			fighterName = trophyInfo[0]
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			i = 0
 			newFileText = []
@@ -1797,6 +1799,7 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_name_list.txt')
 				newFileText = []
 				i = 0
+				id = -1
 				textWritten1 = False
 				textWritten2 = False
 				for line in fileText:
@@ -1885,6 +1888,29 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 					trophyNode.Unknown0x58 = 0
 					trophyNode.Unknown0x5C = 0
 					tyDataList.AddChild(trophyNode)
+					trophyId = id
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished add trophy")
+		return trophyId
+
+# Add trophy thumbnail
+def importTrophyThumbnail(imagePath, trophyId):
+		writeLog("Importing trophy thumbnail at " + imagePath + " for trophy ID " + str(trophyId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres')
+			if fileOpened:
+				newNode = importTexture(BrawlAPI.RootNode, imagePath, WiiPixelFormat.CMPR)
+				newNode.Name = 'MenCollDisplay01.' + str(trophyId)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished import trophy thumbnail")
+
+# Add trophy model
+def importTrophyModel(modelPath):
+		writeLog("Importing trophy model at " + modelPath)
+		if File.Exists(modelPath):
+			copyFile(modelPath, MainForm.BuildPath + '/pf/toy/fig')
 					
 #endregion IMPORT FUNCTIONS
 
@@ -2466,6 +2492,28 @@ def deleteNewcomerFile(cosmeticConfigId):
 			file.Delete()
 		writeLog("Finished delete SSE newcomer file")
 
+# Remove trophy thumbnail
+def removeTrophyThumbnail(trophyId):
+		writeLog("Removing trophy thumbnail for trophy ID " + str(trophyId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres')
+			if fileOpened:
+				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+				if texFolder:
+					node = getChildByName(texFolder, "MenCollDisplay01." + str(trophyId))
+					if node:
+						node.Remove()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished remove trophy thumbnail")
+
+# Delete trophy model
+def deleteTrophyModel(bresName):
+		writeLog("Deleting trophy model with name " + bresName)
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres'):
+			File.Delete(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres')
+		writeLog("Finished delete trophy model")
+
 #endregion REMOVE FUNCTIONS
 
 #region EXTRACT FUNCTIONS
@@ -2966,6 +3014,23 @@ def installEndingFiles(directory, fighterName, fighterId):
 def installCreditsTheme(file, slotId):
 		creditsThemeId = hexId(addSong(file, 'Credits', 'Credits'))
 		updateCreditsCode(slotId, creditsThemeId)
+
+# Install trophy
+def installTrophy(slotId, brresPath, thumbnailPath, fighterName, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex):
+		trophyIdHex = getSlotTrophyInfo(slotId)[1]
+		if trophyIdHex:
+			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
+		else:
+			trophyIdInt = -1
+		if File.Exists(brresPath):
+			bresName = getFileInfo(brresPath).Name.replace('.brres','')
+			deleteTrophyModel(brresPath)
+			importTrophyModel(brresPath)
+			returnedTrophyId = addTrophy(bresName, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, trophyIdInt)
+			if File.Exists(thumbnailPath):
+				removeTrophyThumbnail(returnedTrophyId)
+				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
+			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
 
 #endregion INSTALLER FUNCTIONS
 
