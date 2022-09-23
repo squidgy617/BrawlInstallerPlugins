@@ -152,6 +152,31 @@ KIRBY_SOUNDBANKS = {
 	"MarioD" : 0
 }
 
+TROPHY_SERIES = {
+	"Super Smash Bros." : 0,
+	"The Subspace Emissary" : 1,
+	"Super Mario Bros." : 2,
+	"Donkey Kong" : 3,
+	"The Legend of Zelda" : 4,
+	"Metroid" : 5,
+	"Yoshi's Island" : 6,
+	"Kirby Super Star" : 7,
+	"Star Fox" : 8,
+	"Pokemon" : 9,
+	"F-Zero" : 10,
+	"Mother" : 11,
+	"Ice Climber" : 12,
+	"Fire Emblem" : 13,
+	"Kid Icarus" : 14,
+	"WarioWare" : 15,
+	"Pikmin" : 16,
+	"Animal Crossing" : 17,
+	"Game & Watch" : 18,
+	"Others" : 19,
+	"Metal Gear Solid" : 20,
+	"Sonic the Hedgehog" : 21
+}
+
 #endregion CONSTANTS
 
 #region HELPER FUNCTIONS
@@ -181,6 +206,11 @@ def sortChildrenByFrameIndex(parentNode):
 		for child in childList:
 			while child.PrevSibling() is not None and child.FrameIndex < child.PrevSibling().FrameIndex:
 				child.MoveUp()
+
+# Helper function to move a node to the bottom of their branch
+def moveNodeToEnd(node):
+		while node.NextSibling() is not None:
+			node.MoveDown()
 
 # Helper function that gets files from a directory by their name
 def getFileByName(name, directory):
@@ -1767,7 +1797,7 @@ def updateTrophyCode(slotId, trophyId, fighterName):
 		writeLog("Finished update trophy code")
 
 # Add trophy to game
-def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, trophyId=-1):
+def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, trophyId=-1):
 		writeLog("Adding trophy " + name + " to common3.pac")
 		# First check for existing trophy entry
 		nameIndex = -1
@@ -1878,17 +1908,20 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 					trophyNode.GameIndex = gameIndex
 					trophyNode.DescriptionIndex = descriptionIndex
 					trophyNode.SeriesIndex = seriesIndex
-					trophyNode.CategoryIndex = categoryIndex
+					trophyNode.CategoryIndex = 23
 					trophyNode.Unknown0x34 = 1
 					trophyNode.Unknown0x38 = 1
 					trophyNode.Unknown0x40 = 1
 					trophyNode.Unknown0x44 = 1
-					trophyNode.Unknown0x50 = 0
-					trophyNode.Unknown0x54 = 0
-					trophyNode.Unknown0x58 = 0
-					trophyNode.Unknown0x5C = 0
+					trophyNode.Unknown0x50 = -0.13
+					trophyNode.Unknown0x54 = 0.72
+					trophyNode.Unknown0x58 = 1.23
+					trophyNode.Unknown0x5C = 1.25
 					tyDataList.AddChild(trophyNode)
 					trophyId = id
+					# After adding our trophy, move the <null> trophy to the end of the list
+					nullNode = getChildByName(tyDataList, "<null>")
+					moveNodeToEnd(nullNode)
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished add trophy")
@@ -1901,7 +1934,7 @@ def importTrophyThumbnail(imagePath, trophyId):
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres')
 			if fileOpened:
 				newNode = importTexture(BrawlAPI.RootNode, imagePath, WiiPixelFormat.CMPR)
-				newNode.Name = 'MenCollDisplay01.' + str(trophyId)
+				newNode.Name = 'MenCollDisply01.' + str(trophyId)
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished import trophy thumbnail")
@@ -3016,7 +3049,7 @@ def installCreditsTheme(file, slotId):
 		updateCreditsCode(slotId, creditsThemeId)
 
 # Install trophy
-def installTrophy(slotId, brresPath, thumbnailPath, fighterName, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex):
+def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings):
 		trophyIdHex = getSlotTrophyInfo(slotId)[1]
 		if trophyIdHex:
 			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
@@ -3026,7 +3059,7 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, gameIcon1, game
 			bresName = getFileInfo(brresPath).Name.replace('.brres','')
 			deleteTrophyModel(brresPath)
 			importTrophyModel(brresPath)
-			returnedTrophyId = addTrophy(bresName, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, categoryIndex, trophyIdInt)
+			returnedTrophyId = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt)
 			if File.Exists(thumbnailPath):
 				removeTrophyThumbnail(returnedTrophyId)
 				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
@@ -3382,6 +3415,34 @@ def getFighterSettings():
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
+def getTrophySettings():
+	writeLog("Reading trophy settings file")
+	trophySettings = TrophySettings()
+	if File.Exists(AppPath + '/temp/Trophy/TrophySettings.txt'):
+		fileText = File.ReadAllLines(AppPath + '/temp/Trophy/TrophySettings.txt')
+		trophySettings.trophyName = readValueFromKey(fileText, "trophyName")
+		trophySettings.description = readValueFromKey(fileText, "description")
+		trophySettings.gameIcon1 = readValueFromKey(fileText, "gameIcon1")
+		if trophySettings.gameIcon1:
+			trophySettings.gameIcon1 = int(trophySettings.gameIcon1)
+		else:
+			trophySettings.gameIcon1 = 0
+		trophySettings.gameIcon2 = readValueFromKey(fileText, "gameIcon2")
+		if trophySettings.gameIcon2:
+			trophySettings.gameIcon2 = int(trophySettings.gameIcon2)
+		else:
+			trophySettings.gameIcon2 = 0
+		trophySettings.gameName1 = readValueFromKey(fileText, "gameName1")
+		trophySettings.gameName2 = readValueFromKey(fileText, "gameName2")
+		trophySettings.seriesIndex = readValueFromKey(fileText, "seriesIndex")
+		if trophySettings.seriesIndex:
+			trophySettings.seriesIndex = int(trophySettings.seriesIndex)
+		else:
+			trophySettings.seriesIndex = 0
+	writeLog("Finished reading trophy settings file")
+	return trophySettings
+		
+
 def initialSetup():
 		if File.Exists(RESOURCE_PATH + '/settings.ini'):
 			copyFile(RESOURCE_PATH + '/settings.ini', MainForm.BuildPath)
@@ -3619,6 +3680,15 @@ class FighterSettings:
 		bowserBoneId = ""
 		throwReleasePoint = []
 		creditsThemeId = ""
+
+class TrophySettings:
+		trophyName = ""
+		description = ""
+		gameIcon1 = 0
+		gameIcon2 = 0
+		gameName1 = ""
+		gameName2 = ""
+		seriesIndex = 0
 
 class FighterInfo:
 		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId):

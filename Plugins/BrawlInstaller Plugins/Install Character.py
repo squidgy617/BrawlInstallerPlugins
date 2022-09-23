@@ -49,6 +49,7 @@ def main():
 					endingFolder = getDirectoryByName("Ending", fighterDir)
 					creditsFolder = getDirectoryByName("CreditsTheme", fighterDir)
 					classicIntro = getDirectoryByName("ClassicIntro", fighterDir)
+					trophyFolder = getDirectoryByName("Trophy", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -599,6 +600,14 @@ def main():
 					if creditsFolder and settings.installVictoryThemes == "true" and doInstallCreditsTheme:
 						if Directory.GetFiles(creditsFolder.FullName, "*.brstm"):
 							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], fighterId)
+
+					# Install trophy if one exists
+					if trophyFolder:
+						trophySettings = getTrophySettings()
+						brresFiles = Directory.GetFiles(trophyFolder.FullName, "*.brres")
+						imageFiles = Directory.GetFiles(trophyFolder.FullName, "*.png")
+						if imageFiles and brresFiles:
+							installTrophy(fighterId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
