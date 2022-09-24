@@ -1681,7 +1681,7 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 def getSlotTrophyInfo(slotId):
 		writeLog("Getting trophy info for slot ID " + str(slotId))
 		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
-			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			#createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
 			# First find the line that tells us where the code is
 			i = 0
@@ -2587,6 +2587,7 @@ def removeTrophyThumbnail(trophyId):
 # Delete trophy model
 def deleteTrophyModel(bresName):
 		writeLog("Deleting trophy model with name " + bresName)
+		createBackup(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres')
 		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres'):
 			File.Delete(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres')
 		writeLog("Finished delete trophy model")
