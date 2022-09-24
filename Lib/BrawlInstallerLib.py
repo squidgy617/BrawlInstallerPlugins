@@ -3103,6 +3103,96 @@ def readThrowRelease(fighterId):
 		writeLog("Finished reading throw release point")
 		return returnValues
 
+# Get trophy settings
+def extractTrophy(slotId):
+		trophyInfo = getSlotTrophyInfo(slotId)
+		if trophyInfo and len(trophyInfo) > 1:
+			trophyId = int(trophyInfo[1].replace('0x', ''), 16)
+		else:
+			trophyId = ""
+		if trophyId:
+			trophySettings = TrophySettings()
+			writeLog("Extracting trophy with ID " + str(trophyId))
+			nameIndex = -1
+			gameIndex = -1
+			descriptionIndex = -1
+			brresName = ""
+			# Extract from trophy list
+			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac', False)
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					for trophyNode in tyDataList.Children:
+						if trophyNode.Id == trophyId:
+							nameIndex = trophyNode.NameIndex
+							gameIndex = trophyNode.GameIndex
+							descriptionIndex = trophyNode.DescriptionIndex
+							brresName = trophyNode.BRRES
+							trophySettings.gameIcon1 = trophyNode.GameIcon1
+							trophySettings.gameIcon2 = trophyNode.GameIcon2
+							trophySettings.seriesIndex = trophyNode.SeriesIndex
+							break
+					BrawlAPI.ForceCloseFile()
+			# Extract name and game names
+			writeLog("Extracting trophy name and game names")
+			if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin', False)
+				if fileOpened:
+					createDirectory(AppPath + '/temp')
+					BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_name_list.txt')
+					fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_name_list.txt')
+					i = 0
+					for line in fileText:
+						if nameIndex != -1 and i == nameIndex:
+							trophySettings.trophyName = line
+						if gameIndex != -1 and i == gameIndex:
+							gameNames = line.split('<br/>')
+							if gameNames:
+								trophySettings.gameName1 = gameNames[0]
+								if len(gameNames) > 1:
+									trophySettings.gameName2 = gameNames[1]
+						i += 1
+					File.Delete(AppPath + '/temp/ty_fig_name_list.txt')
+					BrawlAPI.ForceCloseFile()
+			# Extract description
+			writeLog("Extracting trophy description")
+			createDirectory(AppPath + '/temp')
+			if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin', False)
+				if fileOpened:
+					BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_ext_list.txt')
+					fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_ext_list.txt')
+					newFileText = []
+					i = 0
+					for line in fileText:
+						if descriptionIndex != -1 and i == descriptionIndex:
+							trophySettings.description = line.replace('<color=E6E6E6FF>', '').replace('</end>', '')
+						i += 1
+					File.Delete(AppPath + '/temp/ty_fig_ext_list.txt')
+					BrawlAPI.ForceCloseFile()
+			# Extract thumbnail
+			writeLog("Extracting trophy thumbnail")
+			if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres', False)
+				if fileOpened:
+					texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+					if texFolder:
+						node = getChildByName(texFolder, "MenCollDisply01." + str(trophyId))
+						if node:
+							createDirectory(AppPath + '/temp/Trophy')
+							node.Export(AppPath + '/temp/Trophy/' + node.Name + '.png')
+					BrawlAPI.ForceCloseFile()
+			# Extract model
+			writeLog("Extracting trophy model")
+			if brresName:
+				if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres'):
+					copyFile(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres', AppPath + '/temp/Trophy')
+			# Write settings
+			attrs = vars(trophySettings)
+			File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
+			writeLog("Finished extracting trophy")
+
 #endregion
 
 #region INSTALLER FUNCTIONS
