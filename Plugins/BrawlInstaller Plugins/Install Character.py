@@ -607,7 +607,7 @@ def main():
 						brresFiles = Directory.GetFiles(trophyFolder.FullName, "*.brres")
 						imageFiles = Directory.GetFiles(trophyFolder.FullName, "*.png")
 						if imageFiles and brresFiles:
-							installTrophy(fighterId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings)
+							installTrophy(fighterId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings, settings.installToSse)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)

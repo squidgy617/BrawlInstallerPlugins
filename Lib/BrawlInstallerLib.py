@@ -944,6 +944,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		with open(moduleFile.FullName, mode='r+b') as file:
 			file.seek(0)
 			file.write(updatedData)
+			file.close()
 		writeLog("Replaced module contents")
 
 # Update the SSE module
@@ -1024,6 +1025,7 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False):
 					with open(moduleFile.FullName, mode='r+b') as file:
 						file.seek(0)
 						file.write(updatedData)
+						file.close()
 					writeLog("Replaced module contents")
 				else:
 					closeModule()
@@ -1944,6 +1946,48 @@ def importTrophyModel(modelPath):
 		writeLog("Importing trophy model at " + modelPath)
 		if File.Exists(modelPath):
 			copyFile(modelPath, MainForm.BuildPath + '/pf/toy/fig')
+
+# Assign SSE continue screen trophy
+def updateTrophySSE(slotId, trophyId):
+		writeLog("Updating module file to add trophy with ID " + str(trophyId) + " for slot ID " + str(slotId))
+		filePath = MainForm.BuildPath + '/pf/module/sora_adv_menu_game_over.rel'
+		if File.Exists(filePath):
+			moduleFile = getFileInfo(filePath)
+			fileOpened = openFile(moduleFile.FullName)
+			# Get section 8 and export it
+			if fileOpened:
+				node = getChildByName(BrawlAPI.RootNode, "Section [8]")
+				if node:
+					writeLog("Modifying Section [8] of module file")
+					createDirectory(AppPath + "/temp/SSE/Trophy")
+					node.Export(AppPath + "/temp/SSE/Trophy/Section [8]")
+					closeModule()
+					# Get the exported section 8 file
+					sectionFile = AppPath + "/temp/SSE/Trophy/Section [8]"
+					with open(sectionFile, mode='r+b') as editFile:
+						# First read the unmodified section file into a variable
+						section = editFile.read()
+						writeLog("Updating trophy ID")
+						position = (4 * (int(slotId, 16) - int('32', 16)))
+						editFile.seek(position)
+						editFile.write(binascii.unhexlify(addLeadingZeros(str(trophyId), 8)))
+						editFile.seek(0)
+						sectionModified = editFile.read()
+						editFile.close()
+					# Read the module file
+					with open(moduleFile.FullName,  mode='r+b') as file:
+						data = str(file.read())
+						file.close()
+					# Where the module file matches the section, replace it with our modified section values
+					updatedData = data.replace(section, sectionModified)
+					with open(moduleFile.FullName, mode='r+b') as file:
+						file.seek(0)
+						file.write(updatedData)
+						file.close()
+					writeLog("Replaced file contents")
+				else:
+					closeModule()
+		writeLog("Finished adding SSE trophy")
 					
 #endregion IMPORT FUNCTIONS
 
@@ -3049,7 +3093,7 @@ def installCreditsTheme(file, slotId):
 		updateCreditsCode(slotId, creditsThemeId)
 
 # Install trophy
-def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings):
+def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse):
 		trophyIdHex = getSlotTrophyInfo(slotId)[1]
 		if trophyIdHex:
 			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
@@ -3064,6 +3108,8 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings)
 				removeTrophyThumbnail(returnedTrophyId)
 				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
 			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
+		if installToSse:
+			updateTrophySSE(slotId, hexId(returnedTrophyId).replace('0x', ''))
 
 #endregion INSTALLER FUNCTIONS
 
