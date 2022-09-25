@@ -4,7 +4,7 @@ version = "1.4.0"
 
 from BrawlInstallerLib import *
 
-def installCharacter():
+def installCharacter(baseCssSlotId=""):
 		try:
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -643,6 +643,10 @@ def installCharacter():
 					if settings.assemblyFunctionsExe != "":
 						addToCodeMenu(fighterInfo.characterName, fighterId, settings.assemblyFunctionsExe)
 
+					# Add entry to L-load code
+					if baseCssSlotId:
+						addAltCharacter(fighterId, baseCssSlotId)
+
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 					#endregion Code Menu
@@ -708,10 +712,11 @@ def installCharacter():
 
 					# Add fighter to roster
 					if settings.useCssRoster == "true":
-						changesMade = addToRoster(fighterId)
-						if changesMade:
-							BrawlAPI.SaveFile()
-						BrawlAPI.ForceCloseFile()
+						if not baseCssSlotId:
+							changesMade = addToRoster(fighterId)
+							if changesMade:
+								BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
