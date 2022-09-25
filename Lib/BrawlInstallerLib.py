@@ -152,6 +152,31 @@ KIRBY_SOUNDBANKS = {
 	"MarioD" : 0
 }
 
+TROPHY_SERIES = {
+	"Super Smash Bros." : 0,
+	"The Subspace Emissary" : 1,
+	"Super Mario Bros." : 2,
+	"Donkey Kong" : 3,
+	"The Legend of Zelda" : 4,
+	"Metroid" : 5,
+	"Yoshi's Island" : 6,
+	"Kirby Super Star" : 7,
+	"Star Fox" : 8,
+	"Pokemon" : 9,
+	"F-Zero" : 10,
+	"Mother" : 11,
+	"Ice Climber" : 12,
+	"Fire Emblem" : 13,
+	"Kid Icarus" : 14,
+	"WarioWare" : 15,
+	"Pikmin" : 16,
+	"Animal Crossing" : 17,
+	"Game & Watch" : 18,
+	"Others" : 19,
+	"Metal Gear Solid" : 20,
+	"Sonic the Hedgehog" : 21
+}
+
 #endregion CONSTANTS
 
 #region HELPER FUNCTIONS
@@ -181,6 +206,11 @@ def sortChildrenByFrameIndex(parentNode):
 		for child in childList:
 			while child.PrevSibling() is not None and child.FrameIndex < child.PrevSibling().FrameIndex:
 				child.MoveUp()
+
+# Helper function to move a node to the bottom of their branch
+def moveNodeToEnd(node):
+		while node.NextSibling() is not None:
+			node.MoveDown()
 
 # Helper function that gets files from a directory by their name
 def getFileByName(name, directory):
@@ -914,6 +944,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		with open(moduleFile.FullName, mode='r+b') as file:
 			file.seek(0)
 			file.write(updatedData)
+			file.close()
 		writeLog("Replaced module contents")
 
 # Update the SSE module
@@ -994,6 +1025,7 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False):
 					with open(moduleFile.FullName, mode='r+b') as file:
 						file.seek(0)
 						file.write(updatedData)
+						file.close()
 					writeLog("Replaced module contents")
 				else:
 					closeModule()
@@ -1644,6 +1676,325 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 			else:
 				writeLog("Finished reading credits code")
 			return returnId
+
+# Get name used in trophy code
+def getSlotTrophyInfo(slotId):
+		writeLog("Getting trophy info for slot ID " + str(slotId))
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			#createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			# First find the line that tells us where the code is
+			i = 0
+			name = ""
+			trophyId = ""
+			# Searching for slot ID
+			while i < len(fileText):
+				if fileText[i].startswith('op b 0x34 @ $806E29DC'):
+					# We found the starting line, now look through the .aliases
+					j = i
+					aliasesDone = False
+					foundAliases = False
+					while aliasesDone == False:
+						# If we get to the bottom of the aliases, start search
+						if fileText[j].startswith('.alias') and not foundAliases:
+							foundAliases = True
+						# If we get to the top of the aliases, stop search
+						if foundAliases and not fileText[j].startswith('.alias'):
+							aliasesDone = True
+							break
+						# If we find a matching slot ID line, get the name associated
+						if foundAliases and 'Slot' in fileText[j] and fileText[j].split('=')[1].strip() == '0x' + str(slotId):
+							name = fileText[j].split('.alias')[1].split('=')[0].split('_Slot')[0].strip()
+							break
+						j -= 1
+					# Next get the trophy ID
+					j = i
+					aliasesDone = False
+					foundAliases = False
+					while aliasesDone == False:
+						# If we get to the bottom of the aliases, start search
+						if fileText[j].startswith('.alias') and not foundAliases:
+							foundAliases = True
+						# If we get to the top of the aliases, stop search
+						if foundAliases and not fileText[j].startswith('.alias'):
+							aliasesDone = True
+							break
+						# If we find a matching name, get the trophy ID associated
+						if foundAliases and fileText[j].split('=')[0].split('.alias')[1].strip() == name + '_Trophy':
+							trophyId = fileText[j].split('=')[1].strip()
+							break
+						j -= 1
+				i += 1
+			writeLog("Finished get trophy info")
+			return [ name, trophyId ]
+
+# Update trophy code
+def updateTrophyCode(slotId, trophyId, fighterName, remove=False):
+		writeLog("Updating trophy code for " + str(slotId))
+		# Get alias name prefix and trophy ID
+		trophyInfo = getSlotTrophyInfo(slotId)
+		if trophyInfo[1] != "":
+			fighterName = trophyInfo[0]
+		if File.Exists(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm'):
+			createBackup(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			fileText = File.ReadAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm')
+			i = 0
+			newFileText = []
+			foundSlotAlias = False
+			foundTrophyAlias = False
+			classicTrophyStart = False
+			allStarTrophyStart = False
+			foundClassicLine = False
+			foundAllStarLine = False
+			lastAlias = -1
+			# Read through the text
+			while i < len(fileText):
+				# Every time we find an alias line, store it's position as the last one we've found
+				if fileText[i].startswith('.alias'):
+					lastAlias = i
+				# When we find the line that starts the Classic trophy load, set a boolean indicating such
+				if fileText[i].startswith('HOOK @ $806E29D0'):
+					classicTrophyStart = True
+				# When we find the line that starts the All Star trophy load, set a boolean indicating such
+				if fileText[i].startswith('HOOK @ $806E47D8'):
+					allStarTrophyStart = True
+				# If we find a match to our slot alias, store it
+				if fileText[i].startswith('.alias ' + trophyInfo[0] + '_Slot'):
+					foundSlotAlias = True
+					if not remove:
+						newFileText.append(fileText[i])
+				# If we find a match to our trophy alias, update it
+				elif fileText[i].startswith('.alias ' + trophyInfo[0] + '_Trophy') and 'AllStar' not in fileText[i]:
+					foundTrophyAlias = True
+					if not remove:
+						newFileText.append('.alias ' + trophyInfo[0] + '_Trophy = ' + trophyId)
+				# If we hit the line after the aliases, add them as needed
+				elif fileText[i].startswith('op b 0x34 @ $806E29DC'):
+					if not foundSlotAlias and not remove:
+						newFileText.insert(lastAlias + 1, '.alias ' + fighterName + '_Slot = 0x' + str(slotId))
+					if not foundTrophyAlias and not remove:
+						newFileText.insert(lastAlias + 1, '.alias ' + fighterName + '_Trophy = ' + trophyId)
+					newFileText.append(fileText[i])
+				# If we find a matching Classic trophy, store that
+				elif classicTrophyStart and fileText[i].strip().startswith('li r29,') and fighterName + '_Trophy' in fileText[i] and fighterName + '_Slot' in fileText[i]:
+					if not remove:
+						newFileText.append(fileText[i])
+					foundClassicLine = True
+				# If we find a matching All-Star trophy, store that
+				elif allStarTrophyStart and fileText[i].strip().startswith('li r26,') and fighterName + '_Trophy' in fileText[i] and fighterName + '_Slot' in fileText[i]:
+					if not remove:
+						newFileText.append(fileText[i])
+					foundAllStarLine = True
+				# If we hit the end of the Classic trophies and no classic trophy found, write it
+				elif classicTrophyStart and fileText[i].strip().startswith('li r29, 0x1') and not foundClassicLine and not remove:
+					newFileText.append('\tli r29, ' + fighterName + '_Trophy;\tcmpwi r28, ' + fighterName + "_Slot;\tbeq+ GotTrophy\t# if it's " + fighterName + "'s slot")
+					newFileText.append(fileText[i])
+					classicTrophyStart = False
+				# If we hit the end of the All Star trophies and no trophy found, write it
+				elif allStarTrophyStart and fileText[i].strip().startswith('li r26, 0x5D') and not foundAllStarLine and not remove:
+					newFileText.append('\tli r26, ' + fighterName + '_Trophy;\tcmpwi r28, ' + fighterName + "_Slot;\tbeq+ GotTrophy\t# if it's " + fighterName + "'s slot")
+					newFileText.append(fileText[i])
+					allStarTrophyStart = False
+				# If just a normal line, append as normal
+				else:
+					newFileText.append(fileText[i])
+				i += 1
+			File.WriteAllLines(MainForm.BuildPath + '/Source/ProjectM/CloneEngine.asm', newFileText)
+		writeLog("Finished update trophy code")
+
+# Add trophy to game
+def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, trophyId=-1):
+		writeLog("Adding trophy " + name + " to common3.pac")
+		# First check for existing trophy entry
+		nameIndex = -1
+		gameIndex = -1
+		descriptionIndex = -1
+		trophyExists = False
+		if trophyId != -1:
+			writeLog("Getting current trophy values")
+			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					for trophyNode in tyDataList.Children:
+						if trophyNode.Id == trophyId:
+							nameIndex = trophyNode.NameIndex
+							gameIndex = trophyNode.GameIndex
+							descriptionIndex = trophyNode.DescriptionIndex
+							trophyExists = True
+					BrawlAPI.ForceCloseFile()
+		# Add name and game names
+		writeLog("Adding trophy name " + trophyName + " and game names " + gameName1 + " " + gameName2)
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin'):
+			# When we do remove, we'll have to adjust the trophy IDs of every trophy after it... unless we keep the blank
+			# Should be easy to do, when you remove one, check the code file for any IDs larger than the removed ID, and decrement them
+			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin')
+			if fileOpened:
+				BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_name_list.txt')
+				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_name_list.txt')
+				newFileText = []
+				i = 0
+				id = -1
+				textWritten1 = False
+				textWritten2 = False
+				for line in fileText:
+					if nameIndex != -1 and i == nameIndex:
+						newFileText.append(trophyName)
+						textWritten1 = True
+						nameIndex = i
+						i += 1
+					elif gameIndex != -1 and i == gameIndex:
+						newFileText.append(gameName1 + ("<br/>" + gameName2) if gameName2 != "" else "")
+						textWritten2 = True
+						gameIndex = i
+						i += 1
+					else:
+						newFileText.append(fileText[i])
+						i += 1
+				if not textWritten1:
+					newFileText.append(trophyName)
+					nameIndex = i
+				if not textWritten2:
+					newFileText.append(gameName1 + ("<br/>" + gameName2) if gameName2 != "" else "")
+					gameIndex = i + 1
+				File.WriteAllLines(AppPath + '/temp/ty_fig_name_list.txt', newFileText)
+				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_name_list.txt')
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		# Next add description
+		writeLog("Adding trophy description")
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin')
+			if fileOpened:
+				BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_ext_list.txt')
+				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_ext_list.txt')
+				newFileText = []
+				i = 0
+				textWritten = False
+				for line in fileText:
+					if descriptionIndex != -1 and i == descriptionIndex:
+						newFileText.append("<color=E6E6E6FF>" + description + "</end>")
+						textWritten = True
+						i += 1
+					else:
+						newFileText.append(fileText[i])
+						i += 1
+				if not textWritten:
+					newFileText.append("<color=E6E6E6FF>" + description + "</end>")
+					descriptionIndex = i
+				File.WriteAllLines(AppPath + '/temp/ty_fig_ext_list.txt', newFileText)
+				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_ext_list.txt')
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		# Add trophy
+		if not trophyExists:
+			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					# Get first available ID
+					i = 0
+					id = 631
+					while i < len(tyDataList.Children):
+						if tyDataList.Children[i].Id == id:
+							id += 1
+							i = 0
+						else:
+							i += 1
+					trophyNode = TyDataListEntryNode()
+					trophyNode.Name = name
+					trophyNode.Id = id
+					trophyNode.BRRES = name
+					trophyNode.ThumbnailIndex = id
+					trophyNode.GameIcon1 = gameIcon1
+					trophyNode.GameIcon2 = gameIcon2
+					trophyNode.NameIndex = nameIndex
+					trophyNode.GameIndex = gameIndex
+					trophyNode.DescriptionIndex = descriptionIndex
+					trophyNode.SeriesIndex = seriesIndex
+					trophyNode.CategoryIndex = 23
+					trophyNode.Unknown0x34 = 1
+					trophyNode.Unknown0x38 = 1
+					trophyNode.Unknown0x40 = 1
+					trophyNode.Unknown0x44 = 1
+					trophyNode.Unknown0x50 = -0.13
+					trophyNode.Unknown0x54 = 0.72
+					trophyNode.Unknown0x58 = 1.23
+					trophyNode.Unknown0x5C = 1.25
+					tyDataList.AddChild(trophyNode)
+					trophyId = id
+					# After adding our trophy, move the <null> trophy to the end of the list
+					nullNode = getChildByName(tyDataList, "<null>")
+					moveNodeToEnd(nullNode)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished add trophy")
+		return trophyId
+
+# Add trophy thumbnail
+def importTrophyThumbnail(imagePath, trophyId):
+		writeLog("Importing trophy thumbnail at " + imagePath + " for trophy ID " + str(trophyId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres')
+			if fileOpened:
+				newNode = importTexture(BrawlAPI.RootNode, imagePath, WiiPixelFormat.CMPR)
+				newNode.Name = 'MenCollDisply01.' + str(trophyId)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished import trophy thumbnail")
+
+# Add trophy model
+def importTrophyModel(modelPath):
+		writeLog("Importing trophy model at " + modelPath)
+		if File.Exists(modelPath):
+			copyFile(modelPath, MainForm.BuildPath + '/pf/toy/fig')
+
+# Assign SSE continue screen trophy
+def updateTrophySSE(slotId, trophyId, remove=False):
+		writeLog("Updating trophy module file for slot ID " + str(slotId))
+		filePath = MainForm.BuildPath + '/pf/module/sora_adv_menu_game_over.rel'
+		if File.Exists(filePath):
+			moduleFile = getFileInfo(filePath)
+			fileOpened = openFile(moduleFile.FullName)
+			# Get section 8 and export it
+			if fileOpened:
+				node = getChildByName(BrawlAPI.RootNode, "Section [8]")
+				if node:
+					writeLog("Modifying Section [8] of module file")
+					createDirectory(AppPath + "/temp/SSE/Trophy")
+					node.Export(AppPath + "/temp/SSE/Trophy/Section [8]")
+					closeModule()
+					# Get the exported section 8 file
+					sectionFile = AppPath + "/temp/SSE/Trophy/Section [8]"
+					with open(sectionFile, mode='r+b') as editFile:
+						# First read the unmodified section file into a variable
+						section = editFile.read()
+						writeLog("Updating trophy ID")
+						position = (4 * (int(slotId, 16) - int('32', 16)))
+						editFile.seek(position)
+						if not remove:
+							editFile.write(binascii.unhexlify(addLeadingZeros(str(trophyId), 8)))
+						else:
+							editFile.write(binascii.unhexlify('00000001'))
+						editFile.seek(0)
+						sectionModified = editFile.read()
+						editFile.close()
+					# Read the module file
+					with open(moduleFile.FullName,  mode='r+b') as file:
+						data = str(file.read())
+						file.close()
+					# Where the module file matches the section, replace it with our modified section values
+					updatedData = data.replace(section, sectionModified)
+					with open(moduleFile.FullName, mode='r+b') as file:
+						file.seek(0)
+						file.write(updatedData)
+						file.close()
+					writeLog("Replaced file contents")
+				else:
+					closeModule()
+		writeLog("Finished updating SSE trophy")
 					
 #endregion IMPORT FUNCTIONS
 
@@ -2225,6 +2576,132 @@ def deleteNewcomerFile(cosmeticConfigId):
 			file.Delete()
 		writeLog("Finished delete SSE newcomer file")
 
+# Remove trophy
+def removeTrophy(trophyId):
+		writeLog("Removing trophy with ID " + str(trophyId))
+		nameIndex = -1
+		gameIndex = -1
+		descriptionIndex = -1
+		brresName = ""
+		nodeToRemove = ""
+		# Remove from trophy list
+		if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					for trophyNode in tyDataList.Children:
+						if trophyNode.Id == trophyId:
+							nameIndex = trophyNode.NameIndex
+							gameIndex = trophyNode.GameIndex
+							descriptionIndex = trophyNode.DescriptionIndex
+							brresName = trophyNode.BRRES
+							nodeToRemove = trophyNode
+							break
+					nodeToRemove.Remove()
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+		# Remove name and game names
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin')
+			if fileOpened:
+				createDirectory(AppPath + '/temp')
+				BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_name_list.txt')
+				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_name_list.txt')
+				i = 0
+				newFileText = []
+				for line in fileText:
+					if nameIndex != -1 and i == nameIndex:
+						i += 1
+						continue
+					if gameIndex != -1 and i == gameIndex:
+						i += 1
+						continue
+					else:
+						newFileText.append(fileText[i])
+						i += 1
+				File.WriteAllLines(AppPath + '/temp/ty_fig_name_list.txt', newFileText)
+				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_name_list.txt')
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		# Remove description
+		createDirectory(AppPath + '/temp')
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin')
+			if fileOpened:
+				BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_ext_list.txt')
+				fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_ext_list.txt')
+				newFileText = []
+				i = 0
+				for line in fileText:
+					if descriptionIndex != -1 and i == descriptionIndex:
+						i += 1
+						continue
+					else:
+						newFileText.append(fileText[i])
+						i += 1
+				File.WriteAllLines(AppPath + '/temp/ty_fig_ext_list.txt', newFileText)
+				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_ext_list.txt')
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		# Update indexes for any trophies that had greater indexes than the removed one
+		if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					for trophyNode in tyDataList.Children:
+						if nameIndex != -1 and trophyNode.NameIndex > nameIndex:
+							trophyNode.NameIndex -= 1
+						if gameIndex != -1 and trophyNode.GameIndex > gameIndex:
+							trophyNode.GameIndex -= 1
+						if descriptionIndex != -1 and trophyNode.DescriptionIndex > descriptionIndex:
+							trophyNode.DescriptionIndex -= 1
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+		writeLog("Finished remove trophy")
+		return brresName
+
+# Remove trophy thumbnail
+def removeTrophyThumbnail(trophyId):
+		writeLog("Removing trophy thumbnail for trophy ID " + str(trophyId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres')
+			if fileOpened:
+				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+				if texFolder:
+					node = getChildByName(texFolder, "MenCollDisply01." + str(trophyId))
+					if node:
+						node.Remove()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished remove trophy thumbnail")
+
+# Delete trophy model
+def deleteTrophyModel(bresName):
+		writeLog("Deleting trophy model with name " + bresName)
+		createBackup(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres')
+		if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres'):
+			File.Delete(MainForm.BuildPath + '/pf/toy/fig/' + bresName + '.brres')
+		writeLog("Finished delete trophy model")
+
+# Do all steps to uninstall a trophy
+def uninstallTrophy(slotId, uninstallFromSse):
+		trophyIdHex = getSlotTrophyInfo(slotId)[1]
+		bresName = ""
+		if trophyIdHex:
+			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
+		else:
+			trophyIdInt = -1
+		if trophyIdInt != -1:
+			bresName = removeTrophy(trophyIdInt)
+			removeTrophyThumbnail(trophyIdInt)
+			updateTrophyCode(slotId, hexId(trophyIdInt), "", True)
+		if bresName:
+			deleteTrophyModel(bresName)
+		if uninstallFromSse and trophyIdInt != -1:
+			updateTrophySSE(slotId, hexId(trophyIdInt).replace('0x', ''), True)
+
 #endregion REMOVE FUNCTIONS
 
 #region EXTRACT FUNCTIONS
@@ -2626,6 +3103,96 @@ def readThrowRelease(fighterId):
 		writeLog("Finished reading throw release point")
 		return returnValues
 
+# Get trophy settings
+def extractTrophy(slotId):
+		trophyInfo = getSlotTrophyInfo(slotId)
+		if trophyInfo and len(trophyInfo) > 1:
+			trophyId = int(trophyInfo[1].replace('0x', ''), 16)
+		else:
+			trophyId = ""
+		if trophyId:
+			trophySettings = TrophySettings()
+			writeLog("Extracting trophy with ID " + str(trophyId))
+			nameIndex = -1
+			gameIndex = -1
+			descriptionIndex = -1
+			brresName = ""
+			# Extract from trophy list
+			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac', False)
+				if fileOpened:
+					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+					tyDataList = getChildByName(tyDataNode, "tyDataList")
+					for trophyNode in tyDataList.Children:
+						if trophyNode.Id == trophyId:
+							nameIndex = trophyNode.NameIndex
+							gameIndex = trophyNode.GameIndex
+							descriptionIndex = trophyNode.DescriptionIndex
+							brresName = trophyNode.BRRES
+							trophySettings.gameIcon1 = trophyNode.GameIcon1
+							trophySettings.gameIcon2 = trophyNode.GameIcon2
+							trophySettings.seriesIndex = trophyNode.SeriesIndex
+							break
+					BrawlAPI.ForceCloseFile()
+			# Extract name and game names
+			writeLog("Extracting trophy name and game names")
+			if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_name_list.msbin', False)
+				if fileOpened:
+					createDirectory(AppPath + '/temp')
+					BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_name_list.txt')
+					fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_name_list.txt')
+					i = 0
+					for line in fileText:
+						if nameIndex != -1 and i == nameIndex:
+							trophySettings.trophyName = line
+						if gameIndex != -1 and i == gameIndex:
+							gameNames = line.split('<br/>')
+							if gameNames:
+								trophySettings.gameName1 = gameNames[0]
+								if len(gameNames) > 1:
+									trophySettings.gameName2 = gameNames[1]
+						i += 1
+					File.Delete(AppPath + '/temp/ty_fig_name_list.txt')
+					BrawlAPI.ForceCloseFile()
+			# Extract description
+			writeLog("Extracting trophy description")
+			createDirectory(AppPath + '/temp')
+			if File.Exists(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/toy/fig/ty_fig_ext_list.msbin', False)
+				if fileOpened:
+					BrawlAPI.RootNode.Export(AppPath + '/temp/ty_fig_ext_list.txt')
+					fileText = File.ReadAllLines(AppPath + '/temp/ty_fig_ext_list.txt')
+					newFileText = []
+					i = 0
+					for line in fileText:
+						if descriptionIndex != -1 and i == descriptionIndex:
+							trophySettings.description = line.replace('<color=E6E6E6FF>', '').replace('</end>', '')
+						i += 1
+					File.Delete(AppPath + '/temp/ty_fig_ext_list.txt')
+					BrawlAPI.ForceCloseFile()
+			# Extract thumbnail
+			writeLog("Extracting trophy thumbnail")
+			if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres', False)
+				if fileOpened:
+					texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+					if texFolder:
+						node = getChildByName(texFolder, "MenCollDisply01." + str(trophyId))
+						if node:
+							createDirectory(AppPath + '/temp/Trophy')
+							node.Export(AppPath + '/temp/Trophy/' + node.Name + '.png')
+					BrawlAPI.ForceCloseFile()
+			# Extract model
+			writeLog("Extracting trophy model")
+			if brresName:
+				if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres'):
+					copyFile(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres', AppPath + '/temp/Trophy')
+			# Write settings
+			attrs = vars(trophySettings)
+			File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
+			writeLog("Finished extracting trophy")
+
 #endregion
 
 #region INSTALLER FUNCTIONS
@@ -2725,6 +3292,25 @@ def installEndingFiles(directory, fighterName, fighterId):
 def installCreditsTheme(file, slotId):
 		creditsThemeId = hexId(addSong(file, 'Credits', 'Credits'))
 		updateCreditsCode(slotId, creditsThemeId)
+
+# Install trophy
+def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse):
+		trophyIdHex = getSlotTrophyInfo(slotId)[1]
+		if trophyIdHex:
+			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
+		else:
+			trophyIdInt = -1
+		if File.Exists(brresPath):
+			bresName = getFileInfo(brresPath).Name.replace('.brres','')
+			deleteTrophyModel(bresName)
+			importTrophyModel(brresPath)
+			returnedTrophyId = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt)
+			if File.Exists(thumbnailPath):
+				removeTrophyThumbnail(returnedTrophyId)
+				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
+			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
+		if installToSse:
+			updateTrophySSE(slotId, hexId(returnedTrophyId).replace('0x', ''))
 
 #endregion INSTALLER FUNCTIONS
 
@@ -3049,6 +3635,7 @@ def getSettings():
 		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
 		settings.installToSse = readValueFromKey(fileText, "installToSse")
 		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
+		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -3075,6 +3662,34 @@ def getFighterSettings():
 			fighterSettings.creditsThemeId = hexId(readValueFromKey(fileText, "creditsThemeId"))
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
+
+def getTrophySettings():
+	writeLog("Reading trophy settings file")
+	trophySettings = TrophySettings()
+	if File.Exists(AppPath + '/temp/Trophy/TrophySettings.txt'):
+		fileText = File.ReadAllLines(AppPath + '/temp/Trophy/TrophySettings.txt')
+		trophySettings.trophyName = readValueFromKey(fileText, "trophyName")
+		trophySettings.description = readValueFromKey(fileText, "description")
+		trophySettings.gameIcon1 = readValueFromKey(fileText, "gameIcon1")
+		if trophySettings.gameIcon1:
+			trophySettings.gameIcon1 = int(trophySettings.gameIcon1)
+		else:
+			trophySettings.gameIcon1 = 0
+		trophySettings.gameIcon2 = readValueFromKey(fileText, "gameIcon2")
+		if trophySettings.gameIcon2:
+			trophySettings.gameIcon2 = int(trophySettings.gameIcon2)
+		else:
+			trophySettings.gameIcon2 = 0
+		trophySettings.gameName1 = readValueFromKey(fileText, "gameName1")
+		trophySettings.gameName2 = readValueFromKey(fileText, "gameName2")
+		trophySettings.seriesIndex = readValueFromKey(fileText, "seriesIndex")
+		if trophySettings.seriesIndex:
+			trophySettings.seriesIndex = int(trophySettings.seriesIndex)
+		else:
+			trophySettings.seriesIndex = 0
+	writeLog("Finished reading trophy settings file")
+	return trophySettings
+		
 
 def initialSetup():
 		if File.Exists(RESOURCE_PATH + '/settings.ini'):
@@ -3264,6 +3879,7 @@ def initialSetup():
 			settings.sseUnlockStage = "start" if unlockStage == 1 else "end"
 		else:
 			settings.sseUnlockStage = "end"
+		settings.installTrophies = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install character trophies when they are available?\n\nAlthough adding trophies appears to be stable, added trophies are still not fully understood, so this feature is considered experimental.", title))
 		attrs = vars(settings)
 		File.WriteAllText(RESOURCE_PATH + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
 		BrawlAPI.ShowMessage("Setup complete.", title)
@@ -3303,6 +3919,7 @@ class Settings:
 		installSingleplayerCosmetics = "false"
 		installToSse = "false"
 		sseUnlockStage = "end"
+		installTrophies = "false"
 
 class FighterSettings:
 		lucarioBoneId = ""
@@ -3313,6 +3930,15 @@ class FighterSettings:
 		bowserBoneId = ""
 		throwReleasePoint = []
 		creditsThemeId = ""
+
+class TrophySettings:
+		trophyName = ""
+		description = ""
+		gameIcon1 = 0
+		gameIcon2 = 0
+		gameName1 = ""
+		gameName2 = ""
+		seriesIndex = 0
 
 class FighterInfo:
 		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId):

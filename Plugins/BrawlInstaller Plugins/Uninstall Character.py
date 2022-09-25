@@ -271,7 +271,11 @@ def main():
 			# Remove ending files
 			uninstallEndingFiles(fighterInfo.fighterName, cosmeticConfigId)
 
-			uninstallCreditsSong(fighterId, uninstallCreditsTheme)
+			uninstallCreditsSong(slotId, uninstallCreditsTheme)
+
+			# Remove trophy
+			if settings.installTrophies == "true":
+				uninstallTrophy(slotId, settings.installToSse)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

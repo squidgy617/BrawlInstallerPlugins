@@ -193,6 +193,9 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 			# Extract credits theme
 			creditsThemeId = extractCreditsSong(slotId)
 
+			# Extract trophy stuff
+			extractTrophy(slotId)
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
