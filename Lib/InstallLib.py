@@ -609,7 +609,7 @@ def installCharacter(baseCssSlotId=""):
 
 					# Add character to SSE roster
 					if settings.installToSse == "true":
-						updateSseModule(fighterId, settings.sseUnlockStage)
+						updateSseModule(fighterId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId)
 						if cssIconFolder:
 							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
 							if iconFolders:

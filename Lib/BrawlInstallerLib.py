@@ -948,7 +948,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		writeLog("Replaced module contents")
 
 # Update the SSE module
-def updateSseModule(cssSlotId, unlockStage="end", remove=False):
+def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""):
 		writeLog("Updating sora_adv_stage.rel for CSSSlot ID " + str(cssSlotId))
 		filePath = MainForm.BuildPath + '/pf/module/sora_adv_stage.rel'
 		if File.Exists(filePath):
@@ -972,34 +972,43 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False):
 						section = editFile.read()
 						editFile.seek(2)
 						i = 2
-						while i < 128:
-							value = int(binascii.hexlify(editFile.read(1)), 16)
-							# If we find a match, update it
-							if value == int(cssSlotId, 16):
-								writeLog("Match found at offset " + str(i))
-								editFile.seek(i)
-								if not remove:
-									editFile.write(binascii.unhexlify(cssSlotId))
-								else:
-									editFile.write(binascii.unhexlify('00'))
-								matchFound = True
-								break
-							# Track the first zero we find in case we don't find a match
-							if firstZero == -1 and value == 0:
-								firstZero = i
-							i += 1
-						# If we didn't find a match, add an entry
-						if firstZero != -1 and not matchFound and not remove:
-							writeLog("No match found, updating offset " + str(firstZero))
-							# Update first empty byte
-							editFile.seek(firstZero)
+						# Add character only if they are not a sub-character
+						if not baseCssSlotId:
+							while i < 128:
+								value = int(binascii.hexlify(editFile.read(1)), 16)
+								# If we find a match, update it
+								if value == int(cssSlotId, 16):
+									writeLog("Match found at offset " + str(i))
+									editFile.seek(i)
+									if not remove:
+										editFile.write(binascii.unhexlify(cssSlotId))
+									else:
+										editFile.write(binascii.unhexlify('00'))
+									matchFound = True
+									break
+								# Track the first zero we find in case we don't find a match
+								if firstZero == -1 and value == 0:
+									firstZero = i
+								i += 1
+							# If we didn't find a match, add an entry
+							if firstZero != -1 and not matchFound and not remove:
+								writeLog("No match found, updating offset " + str(firstZero))
+								# Update first empty byte
+								editFile.seek(firstZero)
+								editFile.write(binascii.unhexlify(cssSlotId))
+								# Update the counter
+								editFile.seek(0)
+								currentValue = int(binascii.hexlify(editFile.read(1)), 16)
+								writeLog("Updating fighter count to " + str(currentValue + 1))
+								editFile.seek(0)
+								editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
+						else:
+							# If it's a sub character, set them up appropriately
+							writeLog("Adding sub character to ID " + str(baseCssSlotId) + " with ID " + str(cssSlotId))
+							# Position for sub-characters starts at 132, or 0x184 in hex
+							position = 132 + int(baseCssSlotId, 16)
+							editFile.seek(position)
 							editFile.write(binascii.unhexlify(cssSlotId))
-							# Update the counter
-							editFile.seek(0)
-							currentValue = int(binascii.hexlify(editFile.read(1)), 16)
-							writeLog("Updating fighter count to " + str(currentValue + 1))
-							editFile.seek(0)
-							editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
 						# Add unlock conditions
 						writeLog("Updating unlock stage")
 						# IDs start at 2A for unlock stages (first Ex ID), so we subtract 2A to get how far we move
