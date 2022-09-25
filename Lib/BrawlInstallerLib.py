@@ -3635,6 +3635,7 @@ def getSettings():
 		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
 		settings.installToSse = readValueFromKey(fileText, "installToSse")
 		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
+		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -3878,6 +3879,7 @@ def initialSetup():
 			settings.sseUnlockStage = "start" if unlockStage == 1 else "end"
 		else:
 			settings.sseUnlockStage = "end"
+		settings.installTrophies = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install character trophies when they are available?\n\nAlthough adding trophies appears to be stable, added trophies are still not fully understood, so this feature is considered experimental.", title))
 		attrs = vars(settings)
 		File.WriteAllText(RESOURCE_PATH + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
 		BrawlAPI.ShowMessage("Setup complete.", title)
@@ -3917,6 +3919,7 @@ class Settings:
 		installSingleplayerCosmetics = "false"
 		installToSse = "false"
 		sseUnlockStage = "end"
+		installTrophies = "false"
 
 class FighterSettings:
 		lucarioBoneId = ""

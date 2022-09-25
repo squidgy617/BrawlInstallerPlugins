@@ -274,7 +274,8 @@ def main():
 			uninstallCreditsSong(slotId, uninstallCreditsTheme)
 
 			# Remove trophy
-			uninstallTrophy(slotId, settings.installToSse)
+			if settings.installTrophies == "true":
+				uninstallTrophy(slotId, settings.installToSse)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

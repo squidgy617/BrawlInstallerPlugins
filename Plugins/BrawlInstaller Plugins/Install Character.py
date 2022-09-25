@@ -602,7 +602,7 @@ def main():
 							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], fighterId)
 
 					# Install trophy if one exists
-					if trophyFolder:
+					if trophyFolder and settings.installTrophies == "true":
 						trophySettings = getTrophySettings()
 						brresFiles = Directory.GetFiles(trophyFolder.FullName, "*.brres")
 						imageFiles = Directory.GetFiles(trophyFolder.FullName, "*.png")
