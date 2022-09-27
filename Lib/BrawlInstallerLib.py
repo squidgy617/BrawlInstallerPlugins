@@ -1,4 +1,4 @@
-﻿version = "1.3.0"
+﻿version = "1.4.0"
 # BrawlInstallerLib
 # Functions used by BrawlInstaller plugins
 
@@ -948,7 +948,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		writeLog("Replaced module contents")
 
 # Update the SSE module
-def updateSseModule(cssSlotId, unlockStage="end", remove=False):
+def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""):
 		writeLog("Updating sora_adv_stage.rel for CSSSlot ID " + str(cssSlotId))
 		filePath = MainForm.BuildPath + '/pf/module/sora_adv_stage.rel'
 		if File.Exists(filePath):
@@ -972,34 +972,47 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False):
 						section = editFile.read()
 						editFile.seek(2)
 						i = 2
-						while i < 128:
-							value = int(binascii.hexlify(editFile.read(1)), 16)
-							# If we find a match, update it
-							if value == int(cssSlotId, 16):
-								writeLog("Match found at offset " + str(i))
-								editFile.seek(i)
-								if not remove:
-									editFile.write(binascii.unhexlify(cssSlotId))
-								else:
-									editFile.write(binascii.unhexlify('00'))
-								matchFound = True
-								break
-							# Track the first zero we find in case we don't find a match
-							if firstZero == -1 and value == 0:
-								firstZero = i
-							i += 1
-						# If we didn't find a match, add an entry
-						if firstZero != -1 and not matchFound and not remove:
-							writeLog("No match found, updating offset " + str(firstZero))
-							# Update first empty byte
-							editFile.seek(firstZero)
-							editFile.write(binascii.unhexlify(cssSlotId))
-							# Update the counter
-							editFile.seek(0)
-							currentValue = int(binascii.hexlify(editFile.read(1)), 16)
-							writeLog("Updating fighter count to " + str(currentValue + 1))
-							editFile.seek(0)
-							editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
+						# Add character only if they are not a sub-character
+						if not baseCssSlotId:
+							while i < 128:
+								value = int(binascii.hexlify(editFile.read(1)), 16)
+								# If we find a match, update it
+								if value == int(cssSlotId, 16):
+									writeLog("Match found at offset " + str(i))
+									editFile.seek(i)
+									if not remove:
+										editFile.write(binascii.unhexlify(cssSlotId))
+									else:
+										editFile.write(binascii.unhexlify('00'))
+									matchFound = True
+									break
+								# Track the first zero we find in case we don't find a match
+								if firstZero == -1 and value == 0:
+									firstZero = i
+								i += 1
+							# If we didn't find a match, add an entry
+							if firstZero != -1 and not matchFound and not remove:
+								writeLog("No match found, updating offset " + str(firstZero))
+								# Update first empty byte
+								editFile.seek(firstZero)
+								editFile.write(binascii.unhexlify(cssSlotId))
+								# Update the counter
+								editFile.seek(0)
+								currentValue = int(binascii.hexlify(editFile.read(1)), 16)
+								writeLog("Updating fighter count to " + str(currentValue + 1))
+								editFile.seek(0)
+								editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
+						else:
+							# If it's a sub character, set them up appropriately
+							writeLog("Adding sub character to ID " + str(baseCssSlotId) + " with ID " + str(cssSlotId))
+							# Position for sub-characters starts at 132, or 0x184 in hex
+							position = 132 + int(baseCssSlotId, 16)
+							editFile.seek(position)
+							if not remove:
+								replacement = cssSlotId
+							else:
+								replacement = baseCssSlotId
+							editFile.write(binascii.unhexlify(replacement))
 						# Add unlock conditions
 						writeLog("Updating unlock stage")
 						# IDs start at 2A for unlock stages (first Ex ID), so we subtract 2A to get how far we move
@@ -1676,6 +1689,57 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 			else:
 				writeLog("Finished reading credits code")
 			return returnId
+
+# Add an L-load
+def addAltCharacter(cssSlotId, baseCssSlotId):
+		writeLog("Updating L-load code to set ID " + str(cssSlotId) + " as L-load for ID " + str(baseCssSlotId))
+		path = MainForm.BuildPath + '/Source/ProjectM/CSS.asm'
+		foundId = ""
+		if File.Exists(path):
+			createBackup(path)
+			# Read CSS.asm
+			writeLog("Reading CSS.asm")
+			fileText = File.ReadAllLines(path)
+			i = 0
+			tableStart = 0
+			# Find the l-load table
+			while i < len(fileText):
+				line = fileText[i]
+				if line.startswith(".GOTO->Table_Skip"):
+					writeLog("Found table at line " + str(i))
+					tableStart = i + 2
+					break
+				i += 1
+			# Search for position to replace
+			i = tableStart
+			tableEndReached = False
+			# Count starts at -1 because the numbers are zero-indexed
+			lineCounter = -1
+			notWritten = True
+			writeLog("Finding position to write")
+			while i < len(fileText):
+				line = fileText[i]
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				lineCounter = lineCounter + len(splitLine)
+				if notWritten and not tableEndReached and lineCounter >= int(baseCssSlotId, 16):
+					writeLog("Found write location on line " + str(i))
+					newLine = splitLine
+					# Have to subtract 1 because of zero-indexing
+					foundId = newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1]
+					newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1] = '0x' + addLeadingZeros(str(cssSlotId), 2)
+					newString = ""
+					for part in newLine:
+						newString = newString + part.strip() + (', ' if part.strip() != '0x7F' else '')
+					if len(fileText[i].split('|')) > 1:
+						newString = newString + '|' + fileText[i].split('|')[1]
+					fileText[i] = newString
+					notWritten = False
+				if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
+					tableEndReached = True
+				i += 1
+			File.WriteAllLines(path, fileText)
+			writeLog("Finished updating L-load code")
+		return foundId
 
 # Get name used in trophy code
 def getSlotTrophyInfo(slotId):
@@ -2701,6 +2765,57 @@ def uninstallTrophy(slotId, uninstallFromSse):
 			deleteTrophyModel(bresName)
 		if uninstallFromSse and trophyIdInt != -1:
 			updateTrophySSE(slotId, hexId(trophyIdInt).replace('0x', ''), True)
+
+# Remove an L-load code entry
+def removeAltCharacter(cssSlotId):
+		writeLog("Updating L-load code to remove ID " + str(cssSlotId) + " as alt character")
+		path = MainForm.BuildPath + '/Source/ProjectM/CSS.asm'
+		foundId = ""
+		if File.Exists(path):
+			createBackup(path)
+			# Read CSS.asm
+			writeLog("Reading CSS.asm")
+			fileText = File.ReadAllLines(path)
+			i = 0
+			tableStart = 0
+			# Find the l-load table
+			while i < len(fileText):
+				line = fileText[i]
+				if line.startswith(".GOTO->Table_Skip"):
+					writeLog("Found table at line " + str(i))
+					tableStart = i + 2
+					break
+				i += 1
+			# Search for position to replace
+			i = tableStart
+			tableEndReached = False
+			writeLog("Finding position to write")
+			lineCounter = 0
+			while i < len(fileText):
+				line = fileText[i]
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				lineCounter = lineCounter + len(splitLine)
+				if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
+					writeLog("Reached table end")
+					tableEndReached = True
+				if not tableEndReached:
+					newLine = splitLine
+					newString = ""
+					j = 0
+					while j < len(newLine):
+						if newLine[j].strip() == '0x' + addLeadingZeros(cssSlotId, 2) and '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2) != '0x' + cssSlotId:
+							foundId = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+							writeLog("Found ID " + str(foundId))
+						newValue = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+						newString = newString + newValue + (', ' if newValue != '0x7F' else '')
+						j += 1
+					if len(fileText[i].split('|')) > 1:
+						newString = newString + '|' + fileText[i].split('|')[1]
+					fileText[i] = newString
+				i += 1
+			File.WriteAllLines(path, fileText)
+			writeLog("Finished updating L-load code")
+			return foundId
 
 #endregion REMOVE FUNCTIONS
 

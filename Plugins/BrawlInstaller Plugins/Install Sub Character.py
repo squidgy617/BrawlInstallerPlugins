@@ -15,7 +15,11 @@ def main():
 				return
 			createLogFile()
 			backupCheck()
-			installCharacter()
+
+			cssSlotConfigId = showIdPrompt("Enter base CSS slot config ID")
+			cssSlotConfigId = cssSlotConfigId.split('0x')[1].upper()
+
+			installCharacter(baseCssSlotId=cssSlotConfigId)
 		except Exception as e:
 			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():

@@ -1,4 +1,4 @@
-version = "1.3.0"
+version = "1.4.0"
 # ExtractLib
 # Library for BrawlInstaller's extraction plugins
 
