@@ -280,9 +280,12 @@ def main():
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
+			# Remove from L-load code
+			baseCssSlotId = removeAltCharacter(cssSlotConfigId)
+
 			# Remove SSE changes
 			if settings.installToSse == "true":
-				updateSseModule(fighterId, "", remove=True)
+				updateSseModule(fighterId, "", remove=True, baseCssSlotId=baseCssSlotId.replace('0x', ''))
 				removeCSSIconSSE(cosmeticId)
 				deleteNewcomerFile(fighterInfo.cosmeticConfigId)
 				removeStockIcons(cosmeticId, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false")

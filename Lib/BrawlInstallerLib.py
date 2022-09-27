@@ -1008,7 +1008,11 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 							# Position for sub-characters starts at 132, or 0x184 in hex
 							position = 132 + int(baseCssSlotId, 16)
 							editFile.seek(position)
-							editFile.write(binascii.unhexlify(cssSlotId))
+							if not remove:
+								replacement = cssSlotId
+							else:
+								replacement = baseCssSlotId
+							editFile.write(binascii.unhexlify(replacement))
 						# Add unlock conditions
 						writeLog("Updating unlock stage")
 						# IDs start at 2A for unlock stages (first Ex ID), so we subtract 2A to get how far we move
@@ -1725,8 +1729,9 @@ def addAltCharacter(cssSlotId, baseCssSlotId):
 					newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1] = '0x' + addLeadingZeros(str(cssSlotId), 2)
 					newString = ""
 					for part in newLine:
-						newString = newString + part.strip() + (', ' if not fileText[i + 1].startswith('Table_Skip:') else '')
-					newString = newString + '|' + fileText[i].split('|')[1]
+						newString = newString + part.strip() + (', ' if part.strip() != '0x7F' else '')
+					if len(fileText[i].split('|')) > 1:
+						newString = newString + '|' + fileText[i].split('|')[1]
 					fileText[i] = newString
 					notWritten = False
 				if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
@@ -2760,6 +2765,57 @@ def uninstallTrophy(slotId, uninstallFromSse):
 			deleteTrophyModel(bresName)
 		if uninstallFromSse and trophyIdInt != -1:
 			updateTrophySSE(slotId, hexId(trophyIdInt).replace('0x', ''), True)
+
+# Remove an L-load code entry
+def removeAltCharacter(cssSlotId):
+		writeLog("Updating L-load code to remove ID " + str(cssSlotId) + " as alt character")
+		path = MainForm.BuildPath + '/Source/ProjectM/CSS.asm'
+		foundId = ""
+		if File.Exists(path):
+			createBackup(path)
+			# Read CSS.asm
+			writeLog("Reading CSS.asm")
+			fileText = File.ReadAllLines(path)
+			i = 0
+			tableStart = 0
+			# Find the l-load table
+			while i < len(fileText):
+				line = fileText[i]
+				if line.startswith(".GOTO->Table_Skip"):
+					writeLog("Found table at line " + str(i))
+					tableStart = i + 2
+					break
+				i += 1
+			# Search for position to replace
+			i = tableStart
+			tableEndReached = False
+			writeLog("Finding position to write")
+			lineCounter = 0
+			while i < len(fileText):
+				line = fileText[i]
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				lineCounter = lineCounter + len(splitLine)
+				if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
+					writeLog("Reached table end")
+					tableEndReached = True
+				if not tableEndReached:
+					newLine = splitLine
+					newString = ""
+					j = 0
+					while j < len(newLine):
+						if newLine[j].strip() == '0x' + addLeadingZeros(cssSlotId, 2) and '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2) != '0x' + cssSlotId:
+							foundId = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+							writeLog("Found ID " + str(foundId))
+						newValue = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+						newString = newString + newValue + (', ' if newValue != '0x7F' else '')
+						j += 1
+					if len(fileText[i].split('|')) > 1:
+						newString = newString + '|' + fileText[i].split('|')[1]
+					fileText[i] = newString
+				i += 1
+			File.WriteAllLines(path, fileText)
+			writeLog("Finished updating L-load code")
+			return foundId
 
 #endregion REMOVE FUNCTIONS
 
