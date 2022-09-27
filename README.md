@@ -15,13 +15,14 @@ This tool was made possible by:
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
 - The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
-Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes except Subspace Emissary (which will come in a future update).
+Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes, including Subspace Emissary, so long as your build supports Subspace Emissary Ex.
 
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
 ## Features
 - Install or uninstall fully playable characters into a build of Super Smash Bros. Brawl in just a few clicks.
-- Extract characters from a build as fully installable packages - either individually or en masse
+- Extract characters from a build as fully installable packages - either individually or en masse.
+- Installed characters playable in all modes, including support for [Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases).
 - Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
 - Numerous settings to support many different kinds of builds.
 - Tools to easily list IDs already in use in a build.
@@ -39,6 +40,7 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [QuickLava's fork of the P+ EX code menu](https://github.com/QuickLava/PowerPC-Assembly-Functions). You will want to ensure this is installed in your build's root folder (should be in the same directory as the /pf/ folder). **This is necessary if you want your character added to the code menu.**
 - **(OPTIONAL)** The latest version of [QuickLava's Sawnd ID Replace Assist](https://github.com/QuickLava/lavaSawndIDReplaceAssist). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
 - **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs or Effect.pac IDs in the event of a conflict.**
+- **(OPTIONAL)** The latest version of [Kapedani's Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases). This can be installed over your P+Ex build's root directory. **This is only necessary if you would like to install your characters into Subspace Emissary mode.**
 - If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages).
 
 ## Setup
@@ -85,6 +87,5 @@ BrawlInstaller supports a wide variety of different settings that enable users t
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Allow redirection of EX config IDs
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
-- Support for Subspace Emissary EX
 - Costume Installer plugin
 - Stage Installer plugin
