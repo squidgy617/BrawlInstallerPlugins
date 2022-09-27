@@ -57,11 +57,11 @@ If you're just looking to get started in using these plugins to package and inst
 The Install Character plugin works by extracting files from a "Character Package", a .zip file containing the fighter's files, cosmetics, etc. with a particular directory structure.
 
 If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages)) or by using the [Package Character](
-https://github.com/squidgy617/BrawlInstallerPlugins#package-character) plugin in this suite. Character packages can also be extracted from a build using the [Extract Character](https://github.com/squidgy617/BrawlInstallerPlugins#extract-character) plugin.
+https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins#package-character) plugin in this suite. Character packages can also be extracted from a build using the [Extract Character](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins#extract-character) plugin.
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
 
-Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins#fightersettingstxt) section for more details.
+Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Character-Packages#fightersettingstxt) section for more details.
 
 ## Template Packages
 **DOWNLOAD:** [Rockman X (by CaliKingz01) Example Package](https://www.mediafire.com/file/qnx8p14ivsb3rxo/RockmanX_by_CaliKingz01.zip/file)
@@ -70,178 +70,16 @@ Character packages can also come with a FighterSettings.txt file that declares v
 
 These sample packages give an example of what a proper character package should look like. In both examples, every folder contains text files with additional instructions on how they should be used.
 
-# Plugins
+## [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Character-Packages#fightersettingstxt)
+Character packages can include a text file specifying certain parameters to use during installation. Click the above link to see detailed documentation on these parameters.
 
-Each plugin can be accessed from the Plugins menu in BrawlCrate by hovering over the "BrawlInstaller Plugins" option. Plugins may prompt the user for input. When plugins prompt the user to enter IDs such as fighter IDs or cosmetic IDs, these IDs can almost always be entered as either a hex value (e.g. "0x21") or an integer value (e.g. "33") - the plugins will convert them as needed.
+# [Plugins](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins)
 
-On first run of any plugin, the user will be prompted to [configure their settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings) if they have not done so already.
+Click the above link to see detailed documentation on all of the plugins included in this suite.
 
-All plugins attempt to create backups of files that they modify, replace, or delete. These backups are stored in `/Backups/` in the BrawlCrate root directory. The plugins will also create a log of the work they are doing. The most recent log file created by one of the plugins can be found in `/Logs/log.txt` in the BrawlCrate root folder.
+# [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Settings)
 
-## Configure Settings
-**Usage:** Plugins menu > BrawlInstaller Plugins > Configure Settings
-
-This plugin prompts the user for input on various settings that are used by all of the plugins in this suite. Users should respond to prompts to the best of their knowledge. If the user is tasked with entering an ID, typically they may enter it in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. After setting configuration is complete, a settings.ini file will be created in the root folder of the build directory.
-
-For a detailed breakdown of the settings configured by this plugin, see the section on the [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins#settingsini) file.
-
-## Install Character
-**Usage:** Plugins menu > BrawlInstaller Plugins > Install Character
-
-This plugin allows you to select the files for a Brawl character packaged in a .zip file and automatically performs all the necessary work to add the character to your build. It is primarily designed for installing brand-new characters to a build, but it also attempts to resolve issues if you attempt to overwrite an existing character within a build as well.
-
-When used, the plugin will first prompt you to select a .zip file of your character package. It will then prompt you to enter a fighter ID followed by a cosmetic ID. If the fighter comes with a franchise icon, it will also ask if you wish to install it and prompt you for a franchise icon ID if you elect to do so. If the user elects not to install a franchise icon, they may enter an alternate franchise icon ID for the fighter to use instead. If the fighter comes with a victory theme, it will also ask if you wish to install it and, if you elect not to, it will ask if you wish to enter an alternative victory theme ID. All IDs can be entered in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format.
-
-If an existing fighter ID is input, the user will be prompted to either overwrite the existing fighter files or enter another fighter ID. If existing fighter files are overwritten, the plugin will attempt to remove files associated with that fighter ID before installing, though it will not remove existing cosmetics. This should only be used when reinstalling the same character over a specific ID - if you are trying to remove another character and replace them, you should use the "Uninstall Character" plugin first instead. Overwriting an existing character will not account for any redirects in their config files.
-
-If an existing cosmetic ID is input, the user will be prompted to either overwrite the existing cosmetics or enter another cosmetic ID. If existing cosmetics are overwritten, the plugin will attempt to remove all cosmetics associated with that ID before installing.
-
-If the fighter has the same internal name as an existing fighter, the user will be prompted to either overwrite the files or input a different fighter name. If files are overwritten, the plugin will remove the old files and replace them with the contents of the character package.
-
-If the fighter has the same soundbank ID as one that already exists in the build and you have QuickLava's Sawnd ID Replace Assist and Codes' porting tools, you will be prompted to change the soundbank ID for the fighter, in which case you will want to enter the soundbank ID as it would appear in your fighter's config file. If you elect not to do this, the old soundbank will be overwritten. If you do not have these tools, you may only choose to overwrite, or else installation will be aborted.
-
-If the fighter has the same Effect.pac ID as one that already exists in the build and you have Codes' porting tools, you will be prompted to change the Effect.pac ID for the fighter, in which case you will want to enter the Effect.pac ID as it would appear in the fighter's moveset (e.g. "0x2A" as it would appear in "ef_custom2A"). If you elect not to do this, the old Effect.pac ID will continue to be used, which could create conflicts unless you are just reinstalling an existing character. If you do not have these tools, this part of the process will be skipped and the old Effect.pac ID will always be used.
-
-After the initial setup is finished, the plugin will install the character's files based on the user's [configured settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings). Files will be moved to the appropriate destinations in the user's build and modifications will be made to both the fighter files and build files as necessary to add the character to the roster. The fighter will automatically be added to the end of the character select screen if the user's build has a CSSRoster.dat. Cosmetic files such as stock icons and CSPs are imported in alphabetical order, so mod authors should ensure their files are named appropriately.
-
-The installer primarily supports Ex modules currently, but also supports a few other modules, including: Lucario's module, Marth's module, Sonic's module, and Pit's patched Project M module.
-
-If the user has QuickLava's Kirby Hat manager installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_KirbyHats.txt file and run the Kirby Hat manager.
-
-If the user has QuickLava's Code Menu fork installed, the plugin will add an entry (or modify an existing entry if one exists for the supplied ID) to the EX_Characters.txt file and run the code menu .exe.
-
-The plugin will also modify certain Gecko codes as needed if it finds them, and at the end it will build the GCT files in the build. The following Gecko codes are modified automatically:
-- ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]
-- Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
-- Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
-- Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]
-- Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]
-- Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
-- Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
-- Dedede Clones Fix [MarioDox]
-- Bowser Clone Fire Breath Bone Fix [KingJigglypuff]
-- Classic and All-Star Ending Choice Engine v1.1d [DukeItOut]
-- Classic and All-Star Results Music Table [DukeItOut]
-
-Once fighter installation has completed, the user will receive a message indicating a successful installation, and then they may use their updated build as they please.
-
-The plugin attempts to back up any files in your build before modifying, replacing, or deleting them, and these backups are then stored in the `/Backups/` directory in your BrawlCrate root folder. If an error occurs during execution, an error message is displayed and the backups are restored automatically. However, any files that were *added* to the build during execution are not cleaned up, so keep that in mind.
-
-## Uninstall Character
-**Usage:** Plugins menu > BrawlInstaller Plugins > Uninstall Character
-
-This plugin allows you to enter a fighter ID for a character you wish to uninstall from your build. Like other prompts, the fighter ID can be entered in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. The user will also be prompted on whether or not they want to uninstall the fighter's victory theme or franchise icon.
-
-After the user has input their selections, the plugin will attempt to remove all existing files and cosmetics associated with the supplied fighter ID. It will also remove the fighter's entry from CSSRoster.dat if the user's build uses it.
-
-If the user has QuickLava's Kirby Hat manager installed, the plugin will remove any existing entry from EX_KirbyHats.txt and then run the hat manager.
-
-If the user has QuickLava's Code Menu fork installed, the plugin will remove any existing entry from EX_Characters.txt and then run the code menu .exe.
-
-This plugin will also modify the same codes that the "Install Character" plugin does as needed to remove entries added.
-
-After the fighter is successfully uninstalled, the user will receive a message indicating such, and then they may use their updated build as they please.
-
-The plugin attempts to back up any files in your build before modifying, replacing, or deleting them, and these backups are then stored in the `/Backups/` directory in your BrawlCrate root folder. If an error occurs during execution, an error message is displayed and the backups are restored automatically. However, any files that were *added* to the build during execution are not cleaned up, so keep that in mind.
-
-## Extract Character
-**Usage:** Plugins menu > BrawlInstaller Plugins > Extract Character
-
-This plugin allows you to enter a fighter ID for a charater you wish to extract from your build. Like other prompts, the fighter ID can be entered in either hexadecimal (e.g. "0x21") or decimal (e.g. "33") format. The user will then be asked to select a directory to extract the character to.
-
-After the user has input their selections, the plugin will attempt to gather up all assets and settings for the character within the build set in the user's build path. It will read through various files in the build to achieve this.
-
-After the fighter is successfully extracted, the user will receive a message indicating such, and they can use the extracted character package as they please.
-
-**NOTE:** Characters extracted with this plugin will only contain assets present in the build, since it is impossible to create new assets for other build types. To work with builds of all settings, missing assets will need to be added manually.
-
-## Extract All characters
-**Usage:** Plugins menu > BrawlInstaller Plugins > Extract All Characters
-
-This plugin performs the same tasks as "Extract Character", but it does so for every single valid character in your build. Characters are only considered valid if they have all necessary Ex configs, and the plugin does know how to identify Ex redirects as well.
-
-The user will first be prompted to select a directory to extract the character packages to. Afterward, the plugin will perform the operations used in "Extract Character" on every character in the build.
-
-Once all characters have been extracted, the user will receive a message indicating such, and they can use the extracted character packages as they please.
-
-**NOTE:** This process can take some time. Also note that some vanilla characters might be extracted as well, but since vanilla characters work differently from Ex characters, these are unlikely to work correctly.
-
-## Package Character
-**Usage:** Plugins menu > BrawlInstaller Plugins > Package Character
-
-This plugin allows you to package a character into a .zip file with the correct directory structure to be installed via the "Install Character" plugin. When run, the plugin will give the user various prompts to browse their computer for files for their character such as cosmetics, EX configs, and other character files. If the user does not have the files requested, they can simply select "Cancel" instead of choosing a file, but users should bear in mind that some files, such as EX configs and fighter files, are essential and not supplying them will make the character package not work properly.
-
-All images packaged with the character should be the size they are expected to be in-game, with the exception of franchise icons which will be resized upon character installation.
-
-When selecting multiple files, they will be read into the plugin in the order that you select them in. The plugin will automatically rename cosmetic files such as stock icons, battle portraits, and CSPs to ensure they are in alphabetical order so the installer plugins will order them correctly.
-
-While the character installer plugin attempts to modify files as needed, users should ensure their .pac files are named using the same name as what is listed in the fighter's FighterConfig file.
-
-For CSPs and stock icons, users will be repeatedly prompted to select files. Each set of CSPs or stock icons selected is considered a group and will be color smashed on installation. Once the user has selected all of the image groups they want they may simply respond "No" to the onscreen prompt to move on to the next section.
-
-If the user has Kirby hat files to package with the fighter, they will be prompted to enter a fighter ID for the Kirby hat. This is the fighter ID that the modded Kirby hat is cloned from, so for example if the Kirby hat is based on Lucario's, it should use Lucario's fighter ID of 0x21. As with most ID fields, this prompt accepts both hexadecimal and decimal formats.
-
-After the user has selected all files, they will be prompted to select an output directory and to enter a name for the file. The character package will be output to the directory chosen by the user as "{name}.zip", where {name} is the name the user entered. They will then receive a message indicated successful package creation, and this .zip can be used with the "Install Character" plugin to install the character to a build.
-
-## Output Fighter Info To Text
-**Usage:** Plugins menu > BrawlInstaller Plugins > Output Fighter Info To Text
-
-This plugin will iterate through all of the EX configs in your build and print the fighter ID, name, cosmetic ID, franchise icon ID, soundbank ID, and victory theme ID of each fighter found to a fighter_info.txt file located in your `/BrawlAPI/Resources/BrawlInstaller/` directory in the BrawlCrate root folder. This can be useful if you need a reference for what IDs are available.
-
-All IDs printed are in decimal format except for EffectID, which is printed in hexadecimal format.
-
-## Restore Backup
-
-This plugin allows you to restore backups created when running the other plugins, such as installing or uninstalling characters. The plugins attempt to create backups of any file they modify, delete, or replace during execution, and these backups can be found in the `/Backups/` folder in your BrawlCrate root directory. The last nine backups are stored - older backups are deleted when one of the plugins attempt to back something up.
-
-When this plulgin is run, it will first check if any backups exist. If they do not, it simply displays a message and ends execution. If backups are found, the user will be displayed a list of options and prompted to enter a number associated with one of the backups in the list. Whichever backup the user selects will be restored to the user's build by copying every file within to it's respective directory into the build. Once execution completes, a message will be displayed indicating such.
-
-# settings.ini
-
-After [configuring settings](https://github.com/squidgy617/BrawlInstallerPlugins#configure-settings), a settings.ini file is generated that the BrawlInstaller plugins use to determine various behaviors. This settings.ini is stored in the root folder of the user's build directory.
-
-The settings currently supported by the BrawlInstaller plugins are as follows:
-- **rspLoading** - [*Values: true, false*] : Whether or not the build uses RSP (result-screen portrait) loading. If this is set to `true`, character select portraits will not be installed to the build's `sc_selcharacter.pac`, and will instead only be installed as result-screen portraits in `/pf/menu/common/char_bust_tex/`.
-- **cssIconStyle** - [*Values: P+, PM, REMIX, vBrawl*] : The style of CSS icon that will be installed into your build. When installing a character package, the plugin will attempt to find a CSS icon that matches your preferred style. If one cannot be found, CSS icon installation will be skipped and must be performed manually.
-- **bpStyle** - [*Values: vBrawl, REMIX*] : The style of battle portrait that will be installed into your build. When installing a character package, the plugin will attempt to find a folder of battle portraits that matches your preferred style. If such a folder cannot be found, the plugin defaults to vBrawl battle portraits.
-- **installPortraitNames** - [*Values: true, false*] : Whether or not character selection portrait names should be installed when installing a character package. These are the names displayed over the character's portrait when they are selectd on the character select screen. If this is set to true, portrait names will be installed, otherwise they will not.
-- **portraitNameStyle** - [*Values: PM, vBrawl*] : The style of portrait name to install when installing character packages. When installing a character package, the plugin will attempt to find a portrait name that matches your preferred style. If one cannot be found, portrait name installation will be skipped and must be performend manually.
-- **franchiseIconSizeCSS** - [*Values: any integer*] : The size in pixels of franchise icons on the character select screen.
-- **installStocksToCSS** - [*Values: true, false*] : Whether or not stock icons should be installed to `sc_selcharacter.pac`.
-- **installStocksToInfo** - [*Values: true, false*] : Whether or not stock icons should be installed to `info.pac`.
-- **installStockIconsToResult** - [*Values : true, false*] : Whether or not stock icons should be installed to `STGRESULT.pac`.
-- **installStocksToSTockFaceTex** - [*Values : true, false*] : Whether or not stock icons should be installed to `StockFaceTex.brres`.
-- **installStocksToSSS** - [*Values : true, false*] : Whether or not stock icons should be installed to `sc_selmap.pac`.
-- **fiftyCostumeCode** - [*Values : true, false*] : Whether or not the build uses the fifty costume code. If set to `true`, cosmetics will be named to match the naming scheme supported by the fifty costume code, otherwise they will be named according to vanilla Brawl standards.
-- **kirbyHatExe** - [*Values : a .exe path*] : The direct path to the .exe file for QuickLava's Kirby hat manager to run when installing Kirby hats.
-- **defaultKirbyHat** - [*Values : fighter ID in hex format, none*] : The hexadecimal fighter ID that Kirby hats should default to in the event that a valid Kirby hat cannot be found. If set to a hexadecimal value, this ID will be used to automatically set up a Kirby hat based on the one that corresponds to that fighter (e.g. a value of 0x21 will cause packages that are missing Kirby hats to generate a new Kirby hat that is a copy of Lucario's). If set to `none`, Kirby hat installation will be skipped entirely and the fighter's Kirby hat value will be set to "None".
-- **assemblyFunctionsExe** - [*Values : a .exe path*] : The direct path to the .exe file for QuickLava's Code Menu to run when adding a character to the code menu.
-- **sawndReplaceExe** - [*Values : a .exe path*] : The direct path to the .exe file for QuickLava's Sawnd Porting tool to run when changing soundbank IDs.
-- **sfxChangeExe** - [*Values : a .exe path*] : The direct path to the .exe file for Codes' sfxchange.exe tool to run when changing soundbank IDs.
-- **soundbankStyle** - [*Values : hex, dec*] : The naming convention used for soundbanks in your build. The plugin will use this setting to determine how soundbanks imported into your build should be named. If it is set to `hex`, soundbanks will be named after their soundbank ID in hexadecimal format. If set to `dec`, soundbanks will be named after their soundbank ID in decimal format.
-- **addSevenToSoundbankName** - [*Values : true, false*] : Whether 7 should be added to soundbank IDs when naming soundbanks. If this is set to `true`, all soundbanks will be named as the ID provided + 7. If set to `false`, all soundbanks will be named only as the ID provided.
-- **addSevenToSoundBankIds** - [*Values : true, false*] : Whether 7 should be added to SFX IDs within soundbanks when converting them using QuickLava and Codes' tools. If this is set to `true`, soundbank IDs passed to QuickLava's tool will have 7 added to them. If this is set to `false`, soundbank IDs will be passed to QuickLava's tool unmodified.
-- **installVictoryThemes** - [*Values : true, false*] : Whether victory and credits themes should be installed to the build or not when installing character packages. This primarily exists in case of builds that do not use the P+ tracklist system. If this is set to `false`, victory and credits themes will not be installed.
-- **useCssRoster** - [*Values : true, false*] : Whether or not the build uses CSSRoster.dat to determine the roster available on the character select screen. If this is set to `true`, CSSRoster.dat will be updated to display newly installed character packages. If set to `false`, characters will not be added to the CSS.
-- **gfxChangeExe** - [*Values : a .exe path*] : The direct path to the .exe file for Codes' gfxchange.exe tool to run when changing Effect.pac IDs. This should be in the same directory as Codes' tracechange.exe, which will also be run in the event of Effect.pac ID conflicts.
-- **installBPNames** - [*Values : true, false*] : Whether or not battle portrait nameplates should be installed to `info.pac`.
-- **installSingleplayerCosmetics** - [*Values : true, false*] : Whether or not franchise icons and BP names (if the user has opted to install them at all) should be installed into single player modes as well (e.g. Classic Mode, Home Run Contest, Training, etc).
-
-# FighterSettings.txt
-
-When packaging a character, you can include a "FighterSettings.txt" file in the root directory of the package. This is generated automatically if you use the "Package Character" plugin and set any values that go in this file.
-
-All of the settings are also documented in the [template packages](https://github.com/squidgy617/BrawlInstallerPlugins#package-character).
-
-The following settings are supported by the FighterSettings.txt file:
-- **throwReleasePoint** - [*Values : a comma-separated pair of float values*] : The values used in the code `ThrowN Fix and Throw Release Points v1.1c (Throw Animation Fix) [Magus]`
-- **creditsThemeId** - [*Values : a song ID in hex format*] : The song ID used for the credits theme of your character if you're using a vanilla credits theme. If you provide a credits theme, that will be installed instead of using the ID.
-- **lucarioBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Lucario Clone Aura Sphere Bone ID Fix [Dantarion, ds22, PyotrLuzhin, Yohan1044, KingJigglypuff, Desi]`
-- **lucarioKirbyEffectId** - [*Values : an Effect.pac ID in hex format*] : The Effect.pac ID used for the Kirby hat for the code `Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]`
-- **jigglypuffBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Jigglypuff Clone Rollout Bone Fix [codes, DesiacX]`
-- **jigglypuffEFLSId** - [*Values : an EFLS ID in hex format*] : The EFLS ID/index used in the code `Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]`
-- **jigglypuffSfxIds** - [*Values : a comma-separated list of four SFX IDs in hex format*] : The SFX IDs used in the code `Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]`
-- **bowserBoneId** - [*Values : a bone ID in hex format*] : The bone ID used in the code `Bowser Clone Fire Breath Bone Fix [KingJigglypuff]`
+BrawlInstaller supports a wide variety of different settings that enable users to customize it to fit their build. Click the above link to see detailed documentation on all of these settings.
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
