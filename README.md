@@ -47,7 +47,7 @@ In order for these plugins to function correctly, you will need a few things:
 ## Setup
 For initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate. Alternatively, you can download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder.
 
-**NOTE:** While the plugins create backups of your files during execution, I do recommend that you back up your build's files before installing mods with these plugins. While the plugins try to do everything without creating issues in your build, they do not clean up loose files added and I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. With the automatic backup functionality, this is less necessary, but still a good idea.
+The plugins create backups of your files during execution, but they do not clean up loose files added and I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. While loose files shouldn't cause an issue, if you want an extra safety net, I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. With the automatic backup functionality, this is not really necessary, but still a good idea.
 
 # Quick Start Guide
 
