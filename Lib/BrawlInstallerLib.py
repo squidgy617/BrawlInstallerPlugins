@@ -965,11 +965,12 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 					# Get the exported section 8 file
 					sectionFile = AppPath + "/temp/SSE/Section [8]"
 					# Search for ID
-					firstZero = -1
 					matchFound = False
 					with open(sectionFile, mode='r+b') as editFile:
 						# First read the unmodified section file into a variable
 						section = editFile.read()
+						editFile.seek(0)
+						fighterCount = 2 + int(binascii.hexlify(editFile.read(1)), 16)
 						editFile.seek(2)
 						i = 2
 						# Add character only if they are not a sub-character
@@ -984,17 +985,24 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 										editFile.write(binascii.unhexlify(cssSlotId))
 									else:
 										editFile.write(binascii.unhexlify('00'))
+										# Move all values after to the left by 1
+										movedValues = editFile.read(128 - i)
+										editFile.seek(i)
+										editFile.write(movedValues)
+										# Update the counter
+										editFile.seek(0)
+										currentValue = int(binascii.hexlify(editFile.read(1)), 16)
+										writeLog("Updating fighter count to " + str(currentValue - 1))
+										editFile.seek(0)
+										editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue - 1), 2)))
 									matchFound = True
 									break
-								# Track the first zero we find in case we don't find a match
-								if firstZero == -1 and value == 0:
-									firstZero = i
 								i += 1
 							# If we didn't find a match, add an entry
-							if firstZero != -1 and not matchFound and not remove:
-								writeLog("No match found, updating offset " + str(firstZero))
-								# Update first empty byte
-								editFile.seek(firstZero)
+							if not matchFound and not remove:
+								writeLog("No match found, updating offset " + str(fighterCount))
+								# Update first byte at the end of the fighter count
+								editFile.seek(fighterCount)
 								editFile.write(binascii.unhexlify(cssSlotId))
 								# Update the counter
 								editFile.seek(0)
