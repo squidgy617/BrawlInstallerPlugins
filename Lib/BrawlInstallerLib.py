@@ -3997,7 +3997,7 @@ def initialSetup():
 			settings.useCssRoster = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use a CSSRoster.dat to determine who appears on the character select screen? (For most builds, the answer is 'Yes'.)", title))
 		settings.installToSse = boolText(BrawlAPI.ShowYesNoPrompt("Does your build support SSE Ex, and would you like to install characters to Subspace Emissary mode? (For P+Ex 1.2 and later, the answer is likely 'Yes'. For most other builds, the answer is probably 'No'.", title))
 		if settings.installToSse == "true":
-			BrawlAPI.ShowMessage("You will be prompted to select the stage at which you would like Ex characters added to SSE to unlock. Enter an integer corresponding to the below options:\n\n1 : Unlock Immediately\n2 : Unlock After Great Maze is Completed")
+			BrawlAPI.ShowMessage("You will be prompted to select the stage at which you would like Ex characters added to SSE to unlock. Enter an integer corresponding to the below options:\n\n1 : Unlock Immediately\n2 : Unlock After Great Maze is Completed", title)
 			unlockStage = BrawlAPI.UserIntegerInput(title, "Franchise Icon Size: ", 1, 1, 2)
 			settings.sseUnlockStage = "start" if unlockStage == 1 else "end"
 		else:
