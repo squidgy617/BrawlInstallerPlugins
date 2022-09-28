@@ -1,5 +1,5 @@
 __author__ = "Squidgy"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 from BrawlInstallerLib import *
 
@@ -102,7 +102,7 @@ def main():
 			# Set up progressbar
 			progressCounter = 0
 			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Character...", "Uninstalling Character", False)
-			progressBar.Begin(0, 17, progressCounter)
+			progressBar.Begin(0, 18, progressCounter)
 
 			#region SCSELCHARACTER
 
@@ -273,6 +273,29 @@ def main():
 
 			uninstallCreditsSong(slotId, uninstallCreditsTheme)
 
+			# Remove trophy
+			if settings.installTrophies == "true":
+				uninstallTrophy(slotId, settings.installToSse)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Remove from L-load code
+			baseCssSlotId = removeAltCharacter(cssSlotConfigId)
+
+			# Remove SSE changes
+			if settings.installToSse == "true":
+				updateSseModule(fighterId, "", remove=True, baseCssSlotId=baseCssSlotId.replace('0x', ''))
+				removeCSSIconSSE(cosmeticId)
+				deleteNewcomerFile(fighterInfo.cosmeticConfigId)
+				removeStockIcons(cosmeticId, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false")
+				if uninstallFranchiseIcon:
+					removeFranchiseIcon(fighterInfo.franchiseIconId, '/pf/menu2/if_adv_mngr.pac')
+				fileOpened = checkOpenFile("if_adv_mngr")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
@@ -319,6 +342,8 @@ def main():
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
+			progressCounter += 1
+			progressBar.Update(progressCounter)
 			progressBar.Finish()
 			archiveBackup()
 			BrawlAPI.ShowMessage("Character successfully uninstalled.", "Success")

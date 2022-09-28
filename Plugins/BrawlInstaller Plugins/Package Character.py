@@ -1,5 +1,5 @@
 __author__ = "Squidgy"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 from BrawlInstallerLib import *
 
@@ -110,6 +110,25 @@ def main():
 		# Ending Movie
 		endingMovie = BrawlAPI.OpenFileDialog("Select your ending movie file", "THP files|*.thp")
 
+		# Trophy
+		trophySettings = TrophySettings()
+		trophyModel = ""
+		trophyThumbnail = ""
+		configureTrophy = BrawlAPI.ShowYesNoPrompt("Would you like to configure a trophy for your custom fighter?", title)
+		if configureTrophy:
+			trophyModel = BrawlAPI.OpenFileDialog("Select your trophy model .brres file", "BRRES files|*.brres")
+			trophyThumbnail = BrawlAPI.OpenFileDialog("Select your trophy thumbnail .png file", "PNG files|*.png")
+			trophySettings.trophyName = BrawlAPI.UserStringInput("Enter trophy name")
+			BrawlAPI.ShowMessage("You will be prompted to enter a trophy description. You can use <br/> to create line breaks in this description.", title)
+			trophySettings.description = BrawlAPI.UserStringInput("Enter trophy description")
+			trophySettings.gameName1 = BrawlAPI.UserStringInput("Enter the name of your character's first game")
+			trophySettings.gameName2 = BrawlAPI.UserStringInput("Enter the name of your character's second game")
+			BrawlAPI.ShowMessage("You will be prompted to choose values for two game icons. Enter an integer corresponding to one of the below options.\n0 : None\n1 : Nintendo 64\n2 : Gamecube\n3 : NES\n4 : Famicom Disk System\n5 : Nintendo DS\n6 : Super Nintendo\n7 : Gameboy Advance\n8 : Gameboy\n9 : Wii\n10 : Game & Watch", title)
+			trophySettings.gameIcon1 = BrawlAPI.UserIntegerInput(title, "Game Icon 1 Option: ", 0, 0, 10)
+			trophySettings.gameIcon2 = BrawlAPI.UserIntegerInput(title, "Game Icon 2 Option: ", 0, 0, 10)
+			BrawlAPI.ShowMessage("You will be prompted to choose a value for your character's series. Enter an integer corresponding to one of the below options.\n0 : Super Smash Bros.\n1 : The Subspace Emissary\n2 : Super Mario Bros.\n3 : Donkey Kong\n4 : The Legend of Zelda\n5 : Metroid\n6 : Yoshi's Island\n7 : Kirby Super Star\n8 : Star Fox\n9 : Pokemon\n10 : F-Zero\n11 : Mother\n12 : Ice Climber\n13 : Fire Emblem\n14 : Kid Icarus\n15 : WarioWare\n16 : Pikmin\n17 : Animal Crossing\n18 : Game & Watch\n19 : Others\n20 : Metal Gear Solid\n21 : Sonic the Hedgehog", title)
+			trophySettings.seriesIndex = BrawlAPI.UserIntegerInput(title, "Series Option: ", 0, 0, 21)
+
 		# Stage directory
 		Directory.CreateDirectory(AppPath + '/temp')
 
@@ -211,6 +230,16 @@ def main():
 
 		if endingMovie:
 			copyFile(endingMovie, AppPath + '/temp/Ending')
+
+		if configureTrophy:
+			if trophyModel:
+				copyFile(trophyModel, AppPath + '/temp/Trophy')
+			if trophyThumbnail:
+				copyFile(trophyThumbnail, AppPath + '/temp/Trophy')
+			attrs = vars(trophySettings)
+			writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+			if writeString:
+				File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', writeString)
 
 		fighterSettings = FighterSettings()
 		setThrowRelease = BrawlAPI.ShowYesNoPrompt("Would you like to set a throw release point for your fighter? (This step is optional.)", title)
