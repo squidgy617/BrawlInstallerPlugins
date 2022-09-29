@@ -167,16 +167,16 @@ def installCharacter(baseCssSlotId=""):
 									newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
 									# Ensure soundbank ID is just the hex digits
 									if newSoundbankId.startswith('0x'):
-										newSoundbankId = newSoundbankId.split('0x')[1]
+										newSoundbankId = addLeadingZeros(newSoundbankId.split('0x')[1], 3)
 									elif newSoundbankId.isnumeric():
-										newSoundbankId = str(hex(int(newSoundbankId))).split('0x')[1].upper()
+										newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId))).split('0x')[1].upper(), 3)
 									else:
 										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
 										continue
 									if settings.soundbankStyle == "hex":
-										soundbankNameToCheck = str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper()
+										soundbankNameToCheck = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 									else:
-										soundbankNameToCheck = str(int(newSoundbankId, 16) + modifier)
+										soundbankNameToCheck = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 									soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', newSoundbankId + '.sawnd')
 									if soundbankMatch:
 										tryAgain = BrawlAPI.ShowYesNoPrompt("Soundbank ID entered already exists. Try entering a different ID?", "Soundbank Already Exists")
@@ -474,9 +474,9 @@ def installCharacter(baseCssSlotId=""):
 							newSoundbankId = "%x" % fighterInfo.soundbankId
 						modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
 						if settings.soundbankStyle == "hex":
-							newSoundbankId = str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper()
+							newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 						else:
-							newSoundbankId = str(int(newSoundbankId, 16) + modifier)
+							newSoundbankId = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 						moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
 
 					progressCounter += 1
