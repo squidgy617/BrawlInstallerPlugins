@@ -4,6 +4,7 @@ __version__ = "1.4.0"
 from InstallLib import *
 
 def searchForExConfig(configName, id):
+		id = hexId(id).replace('0x', '')
 		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config'):
 			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config', "*.dat"):
 				foundId = getFileInfo(file).Name.replace(configName, '').replace('.dat', '')
