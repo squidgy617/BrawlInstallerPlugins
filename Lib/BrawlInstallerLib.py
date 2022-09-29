@@ -3636,6 +3636,28 @@ def getNewSfxId(sfxId, sfxChangeExe):
 						return str(line).split(' ')[1]
 		return ""
 
+# Check if a config with the specified ID exists
+def searchForExConfig(configName, id):
+		id = hexId(id).replace('0x', '')
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config', "*.dat"):
+				foundId = getFileInfo(file).Name.replace(configName, '').replace('.dat', '')
+				if foundId == id:
+					return True
+		return False
+
+# Check if any configs at all with specified ID exist
+def searchAllExConfigs(id):
+		if searchForExConfig('Fighter', id):
+			return True
+		if searchForExConfig('Cosmetic', id):
+			return True
+		if searchForExConfig('CSSSlot', id):
+			return True
+		if searchForExConfig('Slot', id):
+			return True
+		return False
+
 # Get info for all fighters in a build
 def getAllFighterInfo():
 		try:

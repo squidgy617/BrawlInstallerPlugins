@@ -4,7 +4,7 @@ version = "1.4.0"
 
 from BrawlInstallerLib import *
 
-def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False, baseCssSlotId=""):
+def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False, cosmeticConfigId="", slotConfigId="", cssSlotConfigId="", baseCssSlotId=""):
 		try:
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -69,17 +69,47 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if not fighterId:
 						fighterId = showIdPrompt("Enter your desired fighter ID")
 						fighterId = fighterId.split('0x')[1].upper()
-					
+
+					if not slotConfigId:
+						slotConfigId = fighterId
+					if not cosmeticConfigId:
+						cosmeticConfigId = fighterId
+					if not cssSlotConfigId:
+						cssSlotConfigId = fighterId
 
 					# Check if fighter ID is already used
 					
-					existingFighterConfig = getFighterConfig(fighterId)
+					if not slotConfigId:
+						existingFighterConfig = searchAllExConfigs(fighterId)
+					else:
+						existingFighterConfig = searchForExConfig('Fighter', fighterId)
 					if not auto:
 						if existingFighterConfig:
 							overwriteExistingFighter = BrawlAPI.ShowYesNoPrompt("The fighter ID entered is already in use. Do you want to overwrite the existing fighter?", "Overwrite existing fighter?")
 							if overwriteExistingFighter == False:
 								BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different fighter ID.", "Aborting Installation")
 								return
+						if cosmeticConfigId != fighterId:
+							existingCosmeticConfig = searchForExConfig('Cosmetic', cosmeticConfigId)
+							if existingCosmeticConfig:
+								overwriteExistingCosmetic = BrawlAPI.ShowYesNoPrompt("The cosmetic config ID entered is already in use. Do you want to overwrite?", "Overwrite existing fighter?")
+								if overwriteExistingCosmetic == False:
+									BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different ID.", "Aborting Installation")
+									return
+						if slotConfigId != fighterId:
+							existingSlotConfig = searchForExConfig('Slot', slotConfigId)
+							if existingSlotConfig:
+								overwriteExistingSlot = BrawlAPI.ShowYesNoPrompt("The slot config ID entered is already in use. Do you want to overwrite?", "Overwrite existing fighter?")
+								if overwriteExistingSlot == False:
+									BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different ID.", "Aborting Installation")
+									return
+						if cssSlotConfigId != fighterId:
+							existingCssSlotConfig = searchForExConfig('CSSSlot', cssSlotConfigId)
+							if existingCssSlotConfig:
+								overwriteExistingCssSlot = BrawlAPI.ShowYesNoPrompt("The CSS slot config ID entered is already in use. Do you want to overwrite?", "Overwrite existing fighter?")
+								if overwriteExistingCssSlot == False:
+									BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different ID.", "Aborting Installation")
+									return
 					# Check if fighter name is already used
 					oldFighterName = ""
 					existingFighterName = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter', fighterInfo.fighterName)
@@ -129,7 +159,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if installVictoryTheme:
 							existingSlotConfig = getSlotConfig(fighterId)
 							if existingSlotConfig:
-								oldVictoryThemeName = getVictoryThemeByFighterId(fighterId)
+								oldVictoryThemeName = getVictoryThemeByFighterId(slotConfigId)
 								if oldVictoryThemeName:
 									victoryThemeName = getFileInfo(Directory.GetFiles(folder + '/VictoryTheme', "*.brstm")[0]).Name
 									if oldVictoryThemeName != victoryThemeName.split('.brstm')[0]:
@@ -146,7 +176,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								creditsThemeId = int(creditsThemeId, 16)
 						# Check if existing fighter has a different credits theme
 						if doInstallCreditsTheme:
-							oldThemeId = updateCreditsCode(fighterId, "", read=True)
+							oldThemeId = updateCreditsCode(slotConfigId, "", read=True)
 							if oldThemeId and oldThemeId != "0x0000":
 								oldCreditsThemeName = getSongNameById(int(oldThemeId, 16), 'Credits', 'Credits')
 								creditsThemeName = getFileInfo(Directory.GetFiles(folder + '/CreditsTheme', "*.brstm")[0]).Name
@@ -477,7 +507,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# If user indicated they want victory theme removed, remove it first
 					if uninstallVictoryTheme:
-						removeSongId = getVictoryThemeIDByFighterId(fighterId)
+						removeSongId = getVictoryThemeIDByFighterId(slotConfigId)
 						removeSong(removeSongId)
 					# Add victory theme
 					if victoryThemeFolder and settings.installVictoryThemes == "true" and installVictoryTheme:
@@ -603,20 +633,20 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Install ending files if they exist
 					if endingFolder:
-						installEndingFiles(endingFolder, fighterInfo.fighterName, fighterId)
+						installEndingFiles(endingFolder, fighterInfo.fighterName, cosmeticConfigId)
 
 					# If user indicated they want credits theme removed, remove it first
 					if uninstallCreditsTheme:
-						uninstallCreditsSong(fighterId)
+						uninstallCreditsSong(slotConfigId)
 
 					# Update credits codde if ID is provided
 					if fighterSettings.creditsThemeId:
-						updateCreditsCode(fighterId, fighterSettings.creditsThemeId)
+						updateCreditsCode(slotConfigId, fighterSettings.creditsThemeId)
 
 					# Install credits song if one exists
 					if creditsFolder and settings.installVictoryThemes == "true" and doInstallCreditsTheme:
 						if Directory.GetFiles(creditsFolder.FullName, "*.brstm"):
-							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], fighterId)
+							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], slotConfigId)
 
 					# Install trophy if one exists
 					if trophyFolder and settings.installTrophies == "true":
@@ -624,7 +654,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						brresFiles = Directory.GetFiles(trophyFolder.FullName, "*.brres")
 						imageFiles = Directory.GetFiles(trophyFolder.FullName, "*.png")
 						if imageFiles and brresFiles:
-							installTrophy(fighterId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings, settings.installToSse)
+							installTrophy(slotConfigId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings, settings.installToSse)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -635,7 +665,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Add character to SSE roster
 					if settings.installToSse == "true":
-						updateSseModule(fighterId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId)
+						updateSseModule(cssSlotConfigId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId)
 						if cssIconFolder:
 							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
 							if iconFolders:
@@ -647,7 +677,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										cssIconNameSse = nameFiles[0]
 								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
 								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
-								createNewcomerFile(fighterId, imagePath)
+								createNewcomerFile(cosmeticConfigId, imagePath)
 						if stockIconFolder:
 							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
 						if franchiseIconFolder and doInstallFranchiseIcon:
@@ -671,7 +701,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Add entry to L-load code
 					if baseCssSlotId:
-						addAltCharacter(fighterId, baseCssSlotId)
+						addAltCharacter(cssSlotConfigId, baseCssSlotId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
