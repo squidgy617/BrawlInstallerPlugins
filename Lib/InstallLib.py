@@ -752,7 +752,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 				# Delete temporary directory
 				Directory.Delete(AppPath + '/temp', 1)
 				archiveBackup()
-				BrawlAPI.ShowMessage("Character successfully installed.", "Success")
+				BrawlAPI.ShowMessage("Character successfully installed with fighter ID 0x" + fighterId + " and cosmetic ID " + str(cosmeticId) + ".", "Success")
 		except Exception as e:
 			if 'progressBar' in locals():
 				progressBar.Finish()
