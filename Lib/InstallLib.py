@@ -150,13 +150,13 @@ def installCharacter(baseCssSlotId=""):
 						
 					# Check if soundbank is already in use
 					if soundbankFolder:
-						soundbankId = str(hex(int(fighterInfo.soundbankId))).split('0x')[1].upper()
+						soundbankId = addLeadingZeros(str(hex(int(fighterInfo.soundbankId))).split('0x')[1].upper(), 3)
 						# Get soundbank name to check
 						modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
 						if settings.soundbankStyle == "hex":
-							soundbankNameToCheck = str(hex(int(soundbankId, 16) + modifier)).split('0x')[1].upper()
+							soundbankNameToCheck = addLeadingZeros(str(hex(int(soundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 						else:
-							soundbankNameToCheck = str(int(soundbankId, 16) + modifier)
+							soundbankNameToCheck = addLeadingZeros(str(int(soundbankId, 16) + modifier), 3)
 						soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', soundbankNameToCheck + '.sawnd')
 						if soundbankMatch and settings.sfxChangeExe != "" and settings.sawndReplaceExe != "":
 							changeSoundbankId = BrawlAPI.ShowYesNoPrompt("A soundbank with the same ID already exists. Would you like to change the soundbank ID?", "Soundbank Already Exists")
@@ -164,7 +164,7 @@ def installCharacter(baseCssSlotId=""):
 								matchFound = True
 								# Keep prompting for alternate soundbank ID until one that is not used is entered
 								while matchFound:
-									newSoundbankId = BrawlAPI.UserStringInput("Enter your desired soundbank ID")
+									newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
 									# Ensure soundbank ID is just the hex digits
 									if newSoundbankId.startswith('0x'):
 										newSoundbankId = newSoundbankId.split('0x')[1]
