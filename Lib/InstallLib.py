@@ -215,10 +215,10 @@ def installCharacter(baseCssSlotId=""):
 												effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
 												# Ensure effect ID is just the hex digits
 												if effectId.startswith('0x'):
-													effectId = effectId.split('0x')[1].upper()
+													effectId = addLeadingZeros(effectId.split('0x')[1].upper(), 2)
 													break
 												elif effectId.isnumeric():
-													effectId = str(hex(int(effectId))).split('0x')[1].upper()
+													effectId = addLeadingZeros(str(hex(int(effectId))).split('0x')[1].upper(), 2)
 													break
 												else:
 													BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
