@@ -489,10 +489,10 @@ def boolText(boolVal):
 # Ensure an ID is hexadecimal whether it was passed in as decimal or hex
 def hexId(id):
 		if str(id).startswith('0x'):
-			id = str(id).upper().replace('0X', '0x')
+			id = addLeadingZeros(str(id).upper().replace('0X', '0x'), 2)
 			return id
 		elif str(id).isnumeric():
-			id = str(hex(int(id))).upper().replace('0X', '0x')
+			id = addLeadingZeros(str(hex(int(id))).upper().replace('0X', '0x'), 2)
 			return id
 		else:
 			return ""
