@@ -155,13 +155,13 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						
 					# Check if soundbank is already in use
 					if soundbankFolder:
-						soundbankId = str(hex(int(fighterInfo.soundbankId))).split('0x')[1].upper()
+						soundbankId = addLeadingZeros(str(hex(int(fighterInfo.soundbankId))).split('0x')[1].upper(), 3)
 						# Get soundbank name to check
 						modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
 						if settings.soundbankStyle == "hex":
-							soundbankNameToCheck = str(hex(int(soundbankId, 16) + modifier)).split('0x')[1].upper()
+							soundbankNameToCheck = addLeadingZeros(str(hex(int(soundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 						else:
-							soundbankNameToCheck = str(int(soundbankId, 16) + modifier)
+							soundbankNameToCheck = addLeadingZeros(str(int(soundbankId, 16) + modifier), 3)
 						soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', soundbankNameToCheck + '.sawnd')
 						if soundbankMatch and settings.sfxChangeExe != "" and settings.sawndReplaceExe != "":
 							if not auto:
@@ -174,22 +174,22 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								idMod = 0
 								while matchFound:
 									if not auto:
-										newSoundbankId = BrawlAPI.UserStringInput("Enter your desired soundbank ID")
+										newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
 									else:
 										# Minimum soundbank ID is 331
-										newSoundbankId = str(331 + idMod)
+										newSoundbankId = addLeadingZeros(str(331 + idMod), 3)
 									# Ensure soundbank ID is just the hex digits
 									if newSoundbankId.startswith('0x'):
-										newSoundbankId = newSoundbankId.split('0x')[1]
+										newSoundbankId = addLeadingZeros(newSoundbankId.split('0x')[1], 3)
 									elif newSoundbankId.isnumeric():
-										newSoundbankId = str(hex(int(newSoundbankId))).split('0x')[1].upper()
+										newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId))).split('0x')[1].upper(), 3)
 									else:
 										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
 										continue
 									if settings.soundbankStyle == "hex":
-										soundbankNameToCheck = str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper()
+										soundbankNameToCheck = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 									else:
-										soundbankNameToCheck = str(int(newSoundbankId, 16) + modifier)
+										soundbankNameToCheck = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 									soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', newSoundbankId + '.sawnd')
 									if soundbankMatch:
 										if not auto:
@@ -240,7 +240,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 													idMod += 1
 												# Ensure effect ID is just the hex digits
 												if effectId.startswith('0x'):
-													effectId = effectId.split('0x')[1].upper()
+													effectId = addLeadingZeros(effectId.split('0x')[1].upper(), 2)
 													break
 												elif effectId.isnumeric():
 													effectId = addLeadingZeros(str(hex(int(effectId))).split('0x')[1].upper(), 2)
@@ -500,9 +500,9 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							newSoundbankId = "%x" % fighterInfo.soundbankId
 						modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
 						if settings.soundbankStyle == "hex":
-							newSoundbankId = str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper()
+							newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 						else:
-							newSoundbankId = str(int(newSoundbankId, 16) + modifier)
+							newSoundbankId = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 						moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
 
 					progressCounter += 1
