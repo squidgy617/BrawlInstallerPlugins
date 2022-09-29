@@ -19,6 +19,10 @@ def main():
 			# Get first available ID - start at 3F (63 in dec), first available Ex ID
 			id = 63
 			while True:
+				# These IDs are reserved for SSE characters so skip them
+				if id == 72 or id == 73 or id == 74:
+					id += 1
+					continue
 				foundId = searchForExConfig('Fighter', id)
 				if foundId:
 					id += 1
