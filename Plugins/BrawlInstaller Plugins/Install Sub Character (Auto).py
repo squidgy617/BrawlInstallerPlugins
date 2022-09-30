@@ -26,19 +26,19 @@ def main():
 				if id == 72 or id == 73 or id == 74:
 					id += 1
 					continue
-				foundId = searchForExConfig('Fighter', id)
+				foundId = searchForExConfig('Fighter', hexId(id))
 				if foundId:
 					id += 1
 					continue
-				foundId = searchForExConfig('Cosmetic', id)
+				foundId = searchForExConfig('Cosmetic', hexId(id))
 				if foundId:
 					id += 1
 					continue
-				foundId = searchForExConfig('CSSSlot', id)
+				foundId = searchForExConfig('CSSSlot', hexId(id))
 				if foundId:
 					id += 1
 					continue
-				foundId = searchForExConfig('Slot', id)
+				foundId = searchForExConfig('Slot', hexId(id))
 				if foundId:
 					id += 1
 					continue

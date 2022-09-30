@@ -623,7 +623,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Update and move EX configs
 					if exConfigsFolder:
 						useKirbyHat = False if settings.defaultKirbyHat == "none" or kirbyHatFighterId == -1 else True
-						modifyExConfigs(Directory.GetFiles(exConfigsFolder.FullName, "*.dat"), cosmeticId, fighterId, fighterInfo.fighterName, franchiseIconId, useKirbyHat, newSoundbankId, victoryThemeId, kirbyHatFighterId)
+						modifyExConfigs(Directory.GetFiles(exConfigsFolder.FullName, "*.dat"), cosmeticId, fighterId, fighterInfo.fighterName, franchiseIconId, useKirbyHat, newSoundbankId, victoryThemeId, kirbyHatFighterId, cosmeticConfigId, cssSlotConfigId, slotConfigId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -769,7 +769,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Add fighter to roster
 					if settings.useCssRoster == "true":
 						if not baseCssSlotId:
-							changesMade = addToRoster(fighterId)
+							changesMade = addToRoster(cssSlotConfigId)
 							if changesMade:
 								BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()

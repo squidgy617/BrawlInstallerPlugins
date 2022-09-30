@@ -338,7 +338,7 @@ def main():
 
 			# Remove fighter from roster
 			if settings.useCssRoster == "true":
-				removeFromRoster(fighterId)
+				removeFromRoster(cssSlotConfigId)
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
