@@ -643,8 +643,14 @@ def createBPs(cosmeticId, images, fiftyCC="true"):
 		BrawlAPI.ForceCloseFile()
 
 # Update and move EX config files
-def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-1, useKirbyHat=False, newSoundBankId="", victoryThemeId=0, kirbyHatFighterId=-1):
+def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-1, useKirbyHat=False, newSoundBankId="", victoryThemeId=0, kirbyHatFighterId=-1, cosmeticConfigId="", cssSlotConfigId="", slotConfigId=""):
 		writeLog("Modifying Ex Configs for fighter ID " + str(fighterId))
+		if cosmeticConfigId == "":
+			cosmeticConfigId = fighterId
+		if slotConfigId == "":
+			slotConfigId = fighterId
+		if cssSlotConfigId == "":
+			cssSlotConfigId = fighterId
 		# Iterate through each file
 		for file in files:
 			file = getFileInfo(file)
@@ -653,13 +659,16 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 			if file.Name.lower().StartsWith("cosmetic"):
 				writeLog("Updating " + file.Name)
 				BrawlAPI.RootNode.CosmeticID = cosmeticId
-				# TODO: Allow users to choose redirects
-				BrawlAPI.RootNode.HasSecondary = False
+				if cosmeticConfigId != slotConfigId:
+					BrawlAPI.RootNode.HasSecondary = True
+					BrawlAPI.RootNode.CharSlot1 = int(slotConfigId, 16)
+				else:
+					BrawlAPI.RootNode.HasSecondary = False
 				if franchiseIconId != -1:
 					BrawlAPI.RootNode.FranchiseIconID = franchiseIconId - 1
 				# Back up first
-				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + fighterId + ".dat"))
-				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + fighterId + ".dat"))
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + cosmeticConfigId + ".dat"))
+				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig/' + file.Name.replace(file.Name, "Cosmetic" + cosmeticConfigId + ".dat"))
 			# Rename FighterConfig 
 			if file.Name.lower().StartsWith("fighter"):
 				writeLog("Updating " + file.Name)
@@ -689,22 +698,32 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 			# Rename CSSSlotConfig 
 			if file.Name.lower().StartsWith("cssslot"):
 				writeLog("Updating " + file.Name)
-				# TODO: Allow users to choose redirects
-				BrawlAPI.RootNode.SetPrimarySecondary = False
-				BrawlAPI.RootNode.SetCosmeticSlot = False
+				if cssSlotConfigId != cosmeticConfigId:
+					BrawlAPI.RootNode.SetCosmeticSlot = True
+					BrawlAPI.RootNode.CosmeticSlot = int(cosmeticConfigId, 16)
+				else:
+					BrawlAPI.RootNode.SetCosmeticSlot = False
+				if cssSlotConfigId != slotConfigId:
+					BrawlAPI.RootNode.SetPrimarySecondary = True
+					BrawlAPI.RootNode.CharSlot1 = int(slotConfigId, 16)
+				else:
+					BrawlAPI.RootNode.SetPrimarySecondary = False
 				# Back up first
-				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
-				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + fighterId + ".dat"))
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + cssSlotConfigId + ".dat"))
+				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/' + file.Name.replace(file.Name, "CSSSlot" + cssSlotConfigId + ".dat"))
 			# Rename SlotConfig
 			if file.Name.lower().StartsWith("slot"):
 				writeLog("Updating " + file.Name)
 				if victoryThemeId:
 					BrawlAPI.RootNode.VictoryTheme = victoryThemeId
-				# TODO: Allow users to choose redirects
-				BrawlAPI.RootNode.SetSlot = False
+				if slotConfigId != fighterId:
+					BrawlAPI.RootNode.SetSlot = True
+					BrawlAPI.RootNode.CharSlot1 = int(fighterId, 16)
+				else:
+					BrawlAPI.RootNode.SetSlot = False
 				# Back up first
-				createBackup(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
-				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + fighterId + ".dat"))
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + slotConfigId + ".dat"))
+				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig/' + file.Name.replace(file.Name, "Slot" + slotConfigId + ".dat"))
 			writeLog("Finished updating Ex Configs")
 			BrawlAPI.ForceCloseFile()
 
@@ -3635,6 +3654,31 @@ def getNewSfxId(sfxId, sfxChangeExe):
 						writeLog("Matching SFX ID found at line: " + line + ", new ID is " + str(line).split(' ')[1])
 						return str(line).split(' ')[1]
 		return ""
+
+# Check if a config with the specified ID exists
+def searchForExConfig(configName, id):
+		writeLog("Searching for config " + configName + " with ID " + str(id))
+		id = id.replace('0x', '')
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config', "*.dat"):
+				foundId = getFileInfo(file).Name.replace(configName, '').replace('.dat', '')
+				if foundId == id:
+					writeLog("Found config with ID " + str(id))
+					return True
+		writeLog("No ID found")
+		return False
+
+# Check if any configs at all with specified ID exist
+def searchAllExConfigs(id):
+		if searchForExConfig('Fighter', id):
+			return True
+		if searchForExConfig('Cosmetic', id):
+			return True
+		if searchForExConfig('CSSSlot', id):
+			return True
+		if searchForExConfig('Slot', id):
+			return True
+		return False
 
 # Get info for all fighters in a build
 def getAllFighterInfo():

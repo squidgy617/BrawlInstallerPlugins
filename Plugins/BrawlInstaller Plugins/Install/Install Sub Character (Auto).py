@@ -3,15 +3,6 @@ __version__ = "1.4.0"
 
 from InstallLib import *
 
-def searchForExConfig(configName, id):
-		id = hexId(id).replace('0x', '')
-		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config'):
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/' + configName + 'Config', "*.dat"):
-				foundId = getFileInfo(file).Name.replace(configName, '').replace('.dat', '')
-				if foundId == id:
-					return True
-		return False
-
 def main():
 		try: 
 			if str(BrawlAPI.RootNode) != "None":
@@ -25,22 +16,29 @@ def main():
 			createLogFile()
 			backupCheck()
 
+			cssSlotConfigId = showIdPrompt("Enter base CSS slot config ID")
+			cssSlotConfigId = cssSlotConfigId.split('0x')[1].upper()
+
 			# Get first available ID - start at 3F (63 in dec), first available Ex ID
 			id = 63
 			while True:
-				foundId = searchForExConfig('Fighter', id)
+				# These IDs are reserved for SSE characters so skip them
+				if id == 72 or id == 73 or id == 74:
+					id += 1
+					continue
+				foundId = searchForExConfig('Fighter', hexId(id))
 				if foundId:
 					id += 1
 					continue
-				foundId = searchForExConfig('Cosmetic', id)
+				foundId = searchForExConfig('Cosmetic', hexId(id))
 				if foundId:
 					id += 1
 					continue
-				foundId = searchForExConfig('CSSSlot', id)
+				foundId = searchForExConfig('CSSSlot', hexId(id))
 				if foundId:
 					id += 1
 					continue
-				foundId = searchForExConfig('Slot', id)
+				foundId = searchForExConfig('Slot', hexId(id))
 				if foundId:
 					id += 1
 					continue
@@ -82,7 +80,7 @@ def main():
 								break
 					BrawlAPI.ForceCloseFile()
 
-			installCharacter(id, cosmeticId, franchiseIconId, True)
+			installCharacter(id, cosmeticId, franchiseIconId, True, baseCssSlotId=cssSlotConfigId)
 		except Exception as e:
 			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():
