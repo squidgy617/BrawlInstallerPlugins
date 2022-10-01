@@ -20,10 +20,11 @@ def main():
 			#images = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
 			#bpImages = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
 			#stockImages = BrawlAPI.OpenMultiFileDialog("Select stocks", "PNG files|*.png")
+			costumeFiles = BrawlAPI.OpenMultiFileDialog("Select costume .pac files", "PAC files|*.pac")
 			
 			#index = addCSPs(0, images, "false", 2)
 			
-			indexes = subtractCSPs(0, "true", 2)
+			#indexes = subtractCSPs(0, "true", 2)
 			
 			# If we did any work in sc_selcharacter, save and close it
 			fileOpened = checkOpenFile("sc_selcharacter")
@@ -39,9 +40,11 @@ def main():
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
+			importCostumeFiles(costumeFiles, 'mario', '00')
+
 			#deleteBPs(0, startIndex=indexes[0], endIndex=indexes[1])
 			#incrementBPNames(0, startIndex=indexes[1], increment = -1 * ((indexes[1] - indexes[0]) + 1))
-			subtractStockIcons(0, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC="true")
+			#subtractStockIcons(0, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC="true")
 			fileOpened = checkOpenFile("STGRESULT")
 			if fileOpened:
 				BrawlAPI.SaveFile()

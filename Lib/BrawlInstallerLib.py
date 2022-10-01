@@ -177,6 +177,21 @@ TROPHY_SERIES = {
 	"Sonic the Hedgehog" : 21
 }
 
+COSTUME_COLOR = {
+	"Red" : 0,
+	"Blue" : 1,
+	"Yellow" : 2,
+	"Green" : 3,
+	"Purple" : 4,
+	"LightBlue" : 5,
+	"Pink" : 6,
+	"Brown" : 7,
+	"Black" : 8,
+	"White" : 9,
+	"Orange" : 10,
+	"Grey" : 11
+}
+
 #endregion CONSTANTS
 
 #region HELPER FUNCTIONS
@@ -1285,6 +1300,65 @@ def moveFighterFiles(files, fighterName, originalFighterName=""):
 			getFileInfo(path).Directory.Create()
 			File.Copy(file.FullName, path, 1)
 		writeLog("Finished moving fighter files")
+
+# Get unavailable costume IDs
+def getUsedCostumeIds(cssSlotConfigId):
+		writeLog("Checking used costume IDs for " + str(cssSlotConfigId))
+		usedCostumes = []
+		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
+			if fileOpened:
+				for child in BrawlAPI.RootNode.Children:
+					usedCostumes.append(child.CostumeID)
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished checking used costume IDs")
+		return usedCostumes
+
+# Import costume files to fighter folder
+def importCostumeFiles(files, fighterName, cssSlotConfigId):
+		writeLog("Attempting to move costume files")
+		usedIds = getUsedCostumeIds(cssSlotConfigId)
+		costumes = []
+		for file in files:
+			# Get first unused ID
+			i = 0
+			while i in usedIds:
+				i += 1
+			id = i
+			file = getFileInfo(file)
+			if 'Etc' in file.Name or 'Entry' in file.Name or 'Result' in file.Name or 'Final' in file.Name:
+				continue
+			# If the costume ends in a color, store that, otherwise default to Grey
+			for key, value in COSTUME_COLOR.items():
+				if file.Name.endswith(key + '.pac'):
+					color = value
+				else:
+					color = 11
+			usedIds.append(id)
+			costumes.append((id, color))
+			# Copy the file
+			newFileName = 'Fit' + fighterName + addLeadingZeros(str(id), 2) + '.pac'
+			createBackup(MainForm.BuildPath + '/pf/fighter/' + fighterName + '/' + newFileName)
+			copyRenameFile(file.FullName, newFileName, MainForm.BuildPath + '/pf/fighter/' + fighterName)
+			# Get related files and copy them
+			for relatedFile in files:
+				relatedFile = getFileInfo(relatedFile)
+				relatedFileName = ""
+				if 'Final' in relatedFile.Name and relatedFile.Name.replace('Final','') == file.Name:
+					relatedFileName = 'Fit' + fighterName + 'Final' + addLeadingZeros(str(id), 2) + '.pac'
+				if 'Result' in relatedFile.Name and relatedFile.Name.replace('Result','') == file.Name:
+					relatedFileName = 'Fit' + fighterName + 'Result' + addLeadingZeros(str(id), 2) + '.pac'
+				if 'Entry' in relatedFile.Name and relatedFile.Name.replace('Entry','') == file.Name:
+					relatedFileName = 'Fit' + fighterName + 'Entry' + addLeadingZeros(str(id), 2) + '.pac'
+				if 'MotionEtc' in relatedFile.Name and relatedFile.Name.replace('MotionEtc','') == file.Name:
+					relatedFileName = 'Fit' + fighterName + 'MotionEtc' + addLeadingZeros(str(id), 2) + '.pac'
+				if 'Etc' in relatedFile.Name and relatedFile.Name.replace('Etc','') == file.Name:
+					relatedFileName = 'Fit' + fighterName + 'Etc' + addLeadingZeros(str(id), 2) + '.pac'
+				if relatedFileName:
+					createBackup(MainForm.BuildPath + '/pf/fighter/' + fighterName + '/' + relatedFileName)
+					copyRenameFile(file.FullName, relatedFileName, MainForm.BuildPath + '/pf/fighter/' + fighterName)
+		writeLog("Finished importing costume files")
+		return costumes
 
 # Update fighter .pac to use new Effect.pac ID
 def updateEffectId(fighterFile, gfxChangeExe, oldEffectId, newEffectId):
