@@ -562,6 +562,7 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 		writeLog("Updating CSPs at cosmetic ID " + str(cosmeticId))
 		fileOpened = False
+		costumeIndex = -1
 		if rspLoading == "false":
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
@@ -586,6 +587,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 					if not child.SharesData:
 						costumeCount += 1
 					i += 1
+				costumeIndex = i + 1
 				# Import images
 				if len(images) > 1:
 					ColorSmashImport(bresNode, images, 256)
@@ -617,6 +619,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating CSPs")
+		return costumeIndex
 
 # Import stock icons
 def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true", firstOnly=False):
@@ -686,10 +689,10 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 		writeLog("Import stock icons completed")
 
 # Create battle portraits frome images
-def createBPs(cosmeticId, images, fiftyCC="true"):
+def createBPs(cosmeticId, images, fiftyCC="true", startIndex=1):
 		writeLog("Creating BPs for cosmetic ID " + str(cosmeticId))
 		# For 50 costume code, we must multiply the cosmetic ID by 50
-		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+		newId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
 		# Create a BP file for each texture
 		for image in images:
 			outputPath = MainForm.BuildPath + '/pf/info/portrite/InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + '.brres'
@@ -2176,6 +2179,8 @@ def removeCSPs(cosmeticId):
 def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 		writeLog("Removing CSPs for position " + str(position) + " for cosmetic ID " + str(cosmeticId))
 		fileOpened = "false"
+		costumeStart = -1
+		costumeEnd = -1
 		if rspLoading == "false":
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
@@ -2191,14 +2196,20 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 				texFolder = getChildByName(bresNode, "Textures(NW4R)")
 				palFolder = getChildByName(bresNode, "Palettes(NW4R)")
 				costumeCount = 1
+				i = 0
 				nodesToRemove = []
 				length = len(texFolder.Children)
 				# Loop through and remove the ones we want
 				for child in texFolder.Children:
 					if costumeCount == position:
+						if costumeStart == -1:
+							costumeStart = i + 1
 						nodesToRemove.append(child)
 					if not child.SharesData:
+						if costumeStart != -1 and costumeEnd == -1:
+							costumeEnd = i + 1
 						costumeCount += 1
+					i += 1
 				# Remove
 				i = 0
 				while i < len(nodesToRemove):
@@ -2225,15 +2236,21 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating CSPs")
+		costumeRange = []
+		costumeRange.append(costumeStart)
+		costumeRange.append(costumeEnd)
+		return costumeRange
 
 # Delete BPs for specified cosmetic ID
-def deleteBPs(cosmeticId, fiftyCC="true"):
+def deleteBPs(cosmeticId, fiftyCC="true", startIndex=1, endIndex=-1):
 		writeLog("Deleting BPs for cosmetic ID " + str(cosmeticId))
 		# For 50 costume code, we must multiply the cosmetic ID by 50
-		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+		newId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
 		# Look for files matching naming scheme and delete them
-		while newId <= (cosmeticId * 50) + 50:
+		if endIndex == -1:
+			endIndex = 50 if fiftyCC=="true" else 10
+		while newId <= (cosmeticId * (50 if fiftyCC=="true" else 1)) + endIndex:
 			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
 			if bpFile:
 				# Back it up first
@@ -3755,6 +3772,34 @@ def getClonedModuleName(filePath):
 		name = BrawlAPI.RootNode.Name
 		closeModule()
 		return name
+
+# Increment index on BP names within specific range
+def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="true"):
+		writeLog("Adjusting index of BPs for cosmetic ID " + str(cosmeticId))
+		# For 50 costume code, we must multiply the cosmetic ID by 50
+		directory = MainForm.BuildPath + '/pf/info/portrite'
+		startId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
+		if endIndex != -1:
+			endId = (cosmeticId * 50) + endIndex if fiftyCC == "true" else int(str(cosmeticId) + str(endIndex))
+			writeLog("End ID " + str(endId))
+		else:
+			# If no endIndex is provided, we will search through and find the last file in the character range
+			end = (cosmeticId * (50 if fiftyCC=="true" else 1)) + 50 if fiftyCC=="true" else 10
+			i = startId
+			while i < end:
+				if File.Exists(directory + '/InfFace' + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3) + '.brres'):
+					endId = i + 1
+				i += 1
+		id = startId
+		while id < endId:
+			path = directory + '/InfFace' + addLeadingZeros(str(id), 4 if fiftyCC == "true" else 3) + '.brres'
+			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
+			createBackup(path)
+			if File.Exists(path):
+				copyRenameFile(path, 'InfFace' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3) + '.brres', directory)
+				File.Delete(path)
+			id += 1
+		writeLog("Finished adjusting BP indexes")
 
 # Get new SFX ID from old SFX ID if we changed soundbanks
 def getNewSfxId(sfxId, sfxChangeExe):
