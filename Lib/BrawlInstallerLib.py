@@ -580,6 +580,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 				costumeCount = 1
 				i = 0
 				length = len(texFolder.Children)
+				paletteLength = len(palFolder.Children)
 				# Count costumes, find position for import
 				for child in texFolder.Children:
 					if costumeCount == position:
@@ -596,17 +597,24 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 				# Move CSPs after imported
 				for child in texFolder.Children[i:length]:
 					moveNodeToEnd(child)
-				for child in palFolder.Children[i:length]:
+				for child in palFolder.Children[i:paletteLength]:
 					moveNodeToEnd(child)
 				# Rename everything
 				i = 0
+				palettes = []
 				for child in texFolder.Children:
 					i += 1
 					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+					if child.HasPalette:
+						palettes.append(i - 1)
+				# Skip indexes where tex0 doesn't have a palette
 				i = 0
-				for child in palFolder.Children:
+				j = 0
+				while i < len(texFolder.Children):
+					if i in palettes:
+						palFolder.Children[j].Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i + 1), 3)
+						j += 1
 					i += 1
-					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -616,8 +624,9 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 				# Set compression back
 				bresNode.Compression = "ExtendedLZ77"
-			BrawlAPI.SaveFile()
-			BrawlAPI.ForceCloseFile()
+			if rspLoading == "true":
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating CSPs")
 		return costumeIndex
 
@@ -2217,13 +2226,20 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 					i += 1
 				# Rename everything
 				i = 0
+				palettes = []
 				for child in texFolder.Children:
 					i += 1
 					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+					if child.HasPalette:
+						palettes.append(i - 1)
+				# Skip indexes where tex0 doesn't have a palette
 				i = 0
-				for child in palFolder.Children:
+				j = 0
+				while i < len(texFolder.Children):
+					if i in palettes:
+						palFolder.Children[j].Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i + 1), 3)
+						j += 1
 					i += 1
-					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -2233,8 +2249,9 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 				# Set compression back
 				bresNode.Compression = "ExtendedLZ77"
-			BrawlAPI.SaveFile()
-			BrawlAPI.ForceCloseFile()
+			if rspLoading == "true":
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating CSPs")
 		costumeRange = []
 		costumeRange.append(costumeStart)

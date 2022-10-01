@@ -17,14 +17,24 @@ def main():
 			backupCheck()
 
 			#cosmeticId = showIdPrompt("Enter cosmetic ID")
-			images = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
-			bpImages = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
+			#images = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
+			#bpImages = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
+			
 			#index = addCSPs(0, images, "false", 2)
+			
+			indexes = subtractCSPs(0, "true", 2)
+			
+			# If we did any work in sc_selcharacter, save and close it
+			fileOpened = checkOpenFile("sc_selcharacter")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
 			#incrementBPNames(0, index, increment=len(bpImages), fiftyCC="true")
 			#createBPs(0, bpImages, startIndex=index)
-			indexes = subtractCSPs(0, "true", 2)
-			deleteBPs(0, startIndex=indexes[0], endIndex=indexes[1])
-			incrementBPNames(0, startIndex=indexes[1], increment = -1 * ((indexes[1] - indexes[0]) + 1))
+
+			#deleteBPs(0, startIndex=indexes[0], endIndex=indexes[1])
+			#incrementBPNames(0, startIndex=indexes[1], increment = -1 * ((indexes[1] - indexes[0]) + 1))
 		except Exception as e:
 			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():
