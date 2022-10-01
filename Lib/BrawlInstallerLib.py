@@ -697,6 +697,90 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 					addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
 		writeLog("Import stock icons completed")
 
+# Insert stock icons at specified position
+def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+		writeLog("Updating stock icons at cosmetic ID " + str(cosmeticId))
+		fileOpened = openFile(MainForm.BuildPath + filePath)
+		startId = (cosmeticId * 50) + position - 1 if fiftyCC == "true" else int(str(cosmeticId) + str(position - 1))
+		if fileOpened:
+			rootNode = BrawlAPI.RootNode
+			if rootName != "":
+				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+			if tex0BresName != "":
+				bresNode = getChildByName(rootNode, tex0BresName)
+			else:
+				bresNode = rootNode
+			# Get folders
+			texFolder = getChildByName(bresNode, "Textures(NW4R)")
+			palFolder = getChildByName(bresNode, "Palettes(NW4R)")
+			# Get ending node
+			end = (cosmeticId * (50 if fiftyCC=="true" else 1)) + 50 if fiftyCC=="true" else 10
+			i = startId
+			while i < end:
+				node = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3))
+				if node:
+					endId = i + 1
+				i += 1
+			# Import textures
+			if len(images) > 1:
+				writeLog("Color smashing stock icons")
+				ColorSmashImport(bresNode, images, 256)
+				writeLog("Imported color smashed icons")
+			else:
+				writeLog("Importing standalone icon")
+				importTexture(bresNode, images[0], WiiPixelFormat.CI8, 32, 32)
+				writeLog("Imported standalone icon")
+			# Rename old nodes
+			id = endId
+			texNodes = []
+			increment = len(images)
+			while id > startId:
+				oldName = 'InfStc.' + addLeadingZeros(str(id), 4 if fiftyCC == "true" else 3)
+				foundNode = getChildByName(texFolder, oldName)
+				if foundNode:
+					foundNode.Name = 'InfStc.' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3)
+					texNodes.append(foundNode)
+				id -= 1
+			# Move new textures up and rename them
+			imageCount = len(images)
+			prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
+			i = 1
+			while imageCount > 0:
+				texNode = texFolder.Children[len(texFolder.Children) - imageCount]
+				while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName:
+					texNode.MoveUp()
+				texNode.Name = "InfStc." + addLeadingZeros(str(startId + i), 4 if fiftyCC == "true" else 3)
+				i += 1
+				prevName = texNode.Name
+				imageCount -= 1
+			# Move new palettes up
+			paletteCount = len(images)
+			prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
+			while paletteCount > 0:
+				palNode = palFolder.Children[len(palFolder.Children) - paletteCount]
+				while palNode.PrevSibling() is not None and palNode.PrevSibling().Name != prevName:
+					palNode.MoveUp()
+				prevName = palNode.Name
+				paletteCount -= 1
+			# Add new names to pat0
+			if pat0BresName == "":
+				return
+			pat0BresNode = getChildByName(rootNode, pat0BresName)
+			anmTexPat = getChildByName(pat0BresNode, "AnmTexPat(NW4R)")
+			if (BrawlAPI.RootNode.Name.StartsWith("sc_selmap")):
+				pat0Nodes = [ getChildByName(anmTexPat, "MenSelmapPlayer1_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer2_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer3_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer4_TopN") ]
+			else:
+				pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
+			for pat0Node in pat0Nodes:
+				# For each texture we added, add a pat0 entry
+				for texNode in texNodes:
+					# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
+					frameCount = 9201 if fiftyCC == "true" else 501
+					if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
+						frameCount += 100
+					addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+		writeLog("Finished stock icons update")
+
 # Create battle portraits frome images
 def createBPs(cosmeticId, images, fiftyCC="true", startIndex=1):
 		writeLog("Creating BPs for cosmetic ID " + str(cosmeticId))
@@ -2258,6 +2342,73 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 		costumeRange.append(costumeEnd)
 		return costumeRange
 
+# Remove stock icons at specified position
+def subtractStockIcons(cosmeticId, startIndex, tex0BresName, pat0BresName, endIndex=-1, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
+		writeLog("Removing stock icons for position " + str(startIndex) + " for cosmetic ID " + str(cosmeticId))
+		startId = (cosmeticId * 50) + startIndex - 1 if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex - 1))
+		fileOpened = openFile(MainForm.BuildPath + filePath)
+		if fileOpened:
+			rootNode = BrawlAPI.RootNode
+			if rootName != "":
+				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+			if tex0BresName != "":
+				bresNode = getChildByName(rootNode, tex0BresName)
+			else:
+				bresNode = rootNode
+			# Get folders
+			texFolder = getChildByName(bresNode, "Textures(NW4R)")
+			palFolder = getChildByName(bresNode, "Palettes(NW4R)")
+			if endIndex != -1:
+				endId = (cosmeticId * 50) + endIndex if fiftyCC == "true" else int(str(cosmeticId) + str(endIndex))
+			# Get ending node
+			else:
+				end = (cosmeticId * (50 if fiftyCC=="true" else 1)) + 50 if fiftyCC=="true" else 10
+				i = startId
+				while i < end:
+					node = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3))
+					if node:
+						endId = i + 1
+					i += 1
+			# Remove nodes
+			i = startId + 1
+			while i <= endId:
+				nodeToRemove = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3))
+				if nodeToRemove:
+					nodeToRemove.Remove(True)
+				i += 1
+			# Rename nodes
+			i = endId
+			j = startId
+			lastId = -1
+			newEnd = (cosmeticId * 50) + 50 if fiftyCC == "true" else int(str(cosmeticId) + str(10))
+			while i < newEnd:
+				nodeToRename = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3))
+				if nodeToRename:
+					nodeToRename.Name = "InfStc." + addLeadingZeros(str(j), 4 if fiftyCC == "true" else 3)
+					lastId = j
+				j += 1
+				i += 1
+			# Remove excess pat0 entries
+			if pat0BresName == "":
+				return
+			pat0BresNode = getChildByName(rootNode, pat0BresName)
+			anmTexPat = getChildByName(pat0BresNode, "AnmTexPat(NW4R)")
+			if (BrawlAPI.RootNode.Name.StartsWith("sc_selmap")):
+				pat0Nodes = [ getChildByName(anmTexPat, "MenSelmapPlayer1_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer2_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer3_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer4_TopN") ]
+			else:
+				pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
+			for pat0Node in pat0Nodes:
+				i = lastId + 1
+				while i < newEnd:
+					# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
+					frameCount = 9201 if fiftyCC == "true" else 501
+					if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
+						frameCount += 100
+					nodeName = "InfStc." + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3)
+					removeFromPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, nodeName, frameCountOffset=1, overrideFrameCount=frameCount)
+					i += 1
+		writeLog("Finished remove stock icons")
+
 # Delete BPs for specified cosmetic ID
 def deleteBPs(cosmeticId, fiftyCC="true", startIndex=1, endIndex=-1):
 		writeLog("Deleting BPs for cosmetic ID " + str(cosmeticId))
@@ -3807,15 +3958,27 @@ def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="
 				if File.Exists(directory + '/InfFace' + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3) + '.brres'):
 					endId = i + 1
 				i += 1
-		id = startId
-		while id < endId:
-			path = directory + '/InfFace' + addLeadingZeros(str(id), 4 if fiftyCC == "true" else 3) + '.brres'
-			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
-			createBackup(path)
-			if File.Exists(path):
-				copyRenameFile(path, 'InfFace' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3) + '.brres', directory)
-				File.Delete(path)
-			id += 1
+		# We work backwards or forwards depending on if we are incrementing or decrementing - this prevents us from overwriting files before they can be renamed
+		if increment > -1:
+			id = endId
+			while id >= startId:
+				path = directory + '/InfFace' + addLeadingZeros(str(id), 4 if fiftyCC == "true" else 3) + '.brres'
+				# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
+				createBackup(path)
+				if File.Exists(path):
+					copyRenameFile(path, 'InfFace' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3) + '.brres', directory)
+					File.Delete(path)
+				id -= 1
+		else:
+			id = startId
+			while id < endId:
+				path = directory + '/InfFace' + addLeadingZeros(str(id), 4 if fiftyCC == "true" else 3) + '.brres'
+				# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
+				createBackup(path)
+				if File.Exists(path):
+					copyRenameFile(path, 'InfFace' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3) + '.brres', directory)
+					File.Delete(path)
+				id += 1
 		writeLog("Finished adjusting BP indexes")
 
 # Get new SFX ID from old SFX ID if we changed soundbanks

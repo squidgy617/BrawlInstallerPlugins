@@ -19,6 +19,7 @@ def main():
 			#cosmeticId = showIdPrompt("Enter cosmetic ID")
 			#images = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
 			#bpImages = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
+			#stockImages = BrawlAPI.OpenMultiFileDialog("Select stocks", "PNG files|*.png")
 			
 			#index = addCSPs(0, images, "false", 2)
 			
@@ -32,9 +33,19 @@ def main():
 
 			#incrementBPNames(0, index, increment=len(bpImages), fiftyCC="true")
 			#createBPs(0, bpImages, startIndex=index)
+			#addStockIcons(0, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC="true")
+			fileOpened = checkOpenFile("STGRESULT")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 
 			#deleteBPs(0, startIndex=indexes[0], endIndex=indexes[1])
 			#incrementBPNames(0, startIndex=indexes[1], increment = -1 * ((indexes[1] - indexes[0]) + 1))
+			subtractStockIcons(0, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC="true")
+			fileOpened = checkOpenFile("STGRESULT")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		except Exception as e:
 			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():
