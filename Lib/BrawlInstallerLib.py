@@ -558,6 +558,66 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 				newNode.Remove()
 			writeLog("Importing CSPs completed successfully")
 
+# Insert CSPs at specified position
+def addCSPs(cosmeticId, images, rspLoading="false", position=0):
+		writeLog("Updating CSPs at cosmetic ID " + str(cosmeticId))
+		fileOpened = False
+		if rspLoading == "false":
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		else:
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 3) + '.brres')
+		if fileOpened:
+			if rspLoading == "false":
+			# Find char_bust_tex_lz77
+				arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
+				bresNode = getChildByName(arcNode, "Misc Data [" + str(cosmeticId) + "]")
+			else:
+				bresNode = BrawlAPI.RootNode
+			if bresNode:
+				texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				palFolder = getChildByName(bresNode, "Palettes(NW4R)")
+				costumeCount = 1
+				i = 0
+				length = len(texFolder.Children)
+				# Count costumes, find position for import
+				for child in texFolder.Children:
+					if costumeCount == position:
+						break
+					if not child.SharesData:
+						costumeCount += 1
+					i += 1
+				# Import images
+				if len(images) > 1:
+					ColorSmashImport(bresNode, images, 256)
+				else:
+					importTexture(bresNode, images[0], WiiPixelFormat.CI8, 128, 160)
+				# Move CSPs after imported
+				for child in texFolder.Children[i:length]:
+					moveNodeToEnd(child)
+				for child in palFolder.Children[i:length]:
+					moveNodeToEnd(child)
+				# Rename everything
+				i = 0
+				for child in texFolder.Children:
+					i += 1
+					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+				i = 0
+				for child in palFolder.Children:
+					i += 1
+					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+			if rspLoading == "false":
+				# Export RSP while we're at it
+				bresNode.Compression = "None"
+				# Back up RSP if it exists
+				createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				writeLog("Exporting RSPs")
+				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				# Set compression back
+				bresNode.Compression = "ExtendedLZ77"
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished updating CSPs")
+
 # Import stock icons
 def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true", firstOnly=False):
 		writeLog("Importing stock icons to " + filePath + " with cosmetic ID " + str(cosmeticId))
@@ -2111,6 +2171,60 @@ def removeCSPs(cosmeticId):
 			createBackup(rspFile.FullName)
 			writeLog("Deleting RSP file " + rspFile.FullName)
 			rspFile.Delete()
+
+# Remove CSPs at specified position
+def subtractCSPs(cosmeticId, rspLoading="false", position=0):
+		writeLog("Removing CSPs for position " + str(position) + " for cosmetic ID " + str(cosmeticId))
+		fileOpened = "false"
+		if rspLoading == "false":
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+		else:
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 3) + '.brres')
+		if fileOpened:
+			if rspLoading == "false":
+			# Find char_bust_tex_lz77
+				arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
+				bresNode = getChildByName(arcNode, "Misc Data [" + str(cosmeticId) + "]")
+			else:
+				bresNode = BrawlAPI.RootNode
+			if bresNode:
+				texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				palFolder = getChildByName(bresNode, "Palettes(NW4R)")
+				costumeCount = 1
+				nodesToRemove = []
+				length = len(texFolder.Children)
+				# Loop through and remove the ones we want
+				for child in texFolder.Children:
+					if costumeCount == position:
+						nodesToRemove.append(child)
+					if not child.SharesData:
+						costumeCount += 1
+				# Remove
+				i = 0
+				while i < len(nodesToRemove):
+					nodesToRemove[i].Remove(True)
+					i += 1
+				# Rename everything
+				i = 0
+				for child in texFolder.Children:
+					i += 1
+					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+				i = 0
+				for child in palFolder.Children:
+					i += 1
+					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+			if rspLoading == "false":
+				# Export RSP while we're at it
+				bresNode.Compression = "None"
+				# Back up RSP if it exists
+				createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				writeLog("Exporting RSPs")
+				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				# Set compression back
+				bresNode.Compression = "ExtendedLZ77"
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished updating CSPs")
 
 # Delete BPs for specified cosmetic ID
 def deleteBPs(cosmeticId, fiftyCC="true"):
