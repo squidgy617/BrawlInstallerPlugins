@@ -1360,6 +1360,31 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId):
 		writeLog("Finished importing costume files")
 		return costumes
 
+# Add entries to the CSS slot config
+def addCssSlots(costumes, position, cssSlotConfigId):
+		writeLog("Adding entries to CSS slot config for ID " + str(cssSlotConfigId))
+		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
+			if fileOpened:
+				# Add an entry for each costume
+				length = len(BrawlAPI.RootNode.Children)
+				for costume in costumes:
+					writeLog("Adding costume " + str(costume[0]))
+					newNode = CSSCEntryNode()
+					BrawlAPI.RootNode.AddChild(newNode)
+					newNode.CostumeID = costume[0]
+					newNode.Color = costume[1]
+					writeLog("Added")
+					# Move the entry up
+					i = length
+					while i >= position:
+						newNode.MoveUp()
+						i -= 1
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished adding CSS slot config entries")
+					
+
 # Update fighter .pac to use new Effect.pac ID
 def updateEffectId(fighterFile, gfxChangeExe, oldEffectId, newEffectId):
 		writeLog("Modifying effect ID for fighter file " + fighterFile.FullName + " to change effect ID " + str(oldEffectId) + " to " + str(newEffectId))

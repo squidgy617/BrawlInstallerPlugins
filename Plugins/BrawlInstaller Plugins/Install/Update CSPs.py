@@ -17,12 +17,12 @@ def main():
 			backupCheck()
 
 			#cosmeticId = showIdPrompt("Enter cosmetic ID")
-			#images = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
+			images = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
 			#bpImages = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
 			#stockImages = BrawlAPI.OpenMultiFileDialog("Select stocks", "PNG files|*.png")
 			costumeFiles = BrawlAPI.OpenMultiFileDialog("Select costume .pac files", "PAC files|*.pac")
 			
-			#index = addCSPs(0, images, "false", 2)
+			index = addCSPs(0, images, "false", 2)
 			
 			#indexes = subtractCSPs(0, "true", 2)
 			
@@ -40,7 +40,8 @@ def main():
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 
-			importCostumeFiles(costumeFiles, 'mario', '00')
+			costumes = importCostumeFiles(costumeFiles, 'mario', '00')
+			addCssSlots(costumes, index, '00')
 
 			#deleteBPs(0, startIndex=indexes[0], endIndex=indexes[1])
 			#incrementBPNames(0, startIndex=indexes[1], increment = -1 * ((indexes[1] - indexes[0]) + 1))
