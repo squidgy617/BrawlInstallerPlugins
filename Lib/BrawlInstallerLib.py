@@ -1382,8 +1382,7 @@ def addCssSlots(costumes, position, cssSlotConfigId):
 						i -= 1
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
-		writeLog("Finished adding CSS slot config entries")
-					
+		writeLog("Finished adding CSS slot config entries")		
 
 # Update fighter .pac to use new Effect.pac ID
 def updateEffectId(fighterFile, gfxChangeExe, oldEffectId, newEffectId):
@@ -3241,6 +3240,25 @@ def removeAltCharacter(cssSlotId):
 			File.WriteAllLines(path, fileText)
 			writeLog("Finished updating L-load code")
 			return foundId
+
+# Remove entries to the CSS slot config
+def removeCssSlots(startIndex, endIndex, cssSlotConfigId):
+		writeLog("Removing entries from CSS slot config for ID " + str(cssSlotConfigId))
+		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
+			if fileOpened:
+				# Add an entry for each costume
+				i = startIndex - 1
+				costumeIds = []
+				while i < endIndex:
+					writeLog("i is " + str(i))
+					costumeIds.append(BrawlAPI.RootNode.Children[startIndex - 1].CostumeID)
+					BrawlAPI.RootNode.Children[startIndex - 1].Remove()
+					i += 1
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished removing CSS slot config entries")
+		return costumeIds	
 
 #endregion REMOVE FUNCTIONS
 
