@@ -1320,6 +1320,7 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId):
 		usedIds = getUsedCostumeIds(cssSlotConfigId)
 		costumes = []
 		for file in files:
+			color = 11
 			# Get first unused ID
 			i = 0
 			while i in usedIds:
@@ -1329,11 +1330,10 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId):
 			if 'Etc' in file.Name or 'Entry' in file.Name or 'Result' in file.Name or 'Final' in file.Name:
 				continue
 			# If the costume ends in a color, store that, otherwise default to Grey
-			for key, value in COSTUME_COLOR.items():
+			for key, value in sorted(COSTUME_COLOR.items()):
 				if file.Name.endswith(key + '.pac'):
+					writeLog("Color ends with " + str(key) + ", setting to " + str(value))
 					color = value
-				else:
-					color = 11
 			usedIds.append(id)
 			costumes.append((id, color))
 			# Copy the file
