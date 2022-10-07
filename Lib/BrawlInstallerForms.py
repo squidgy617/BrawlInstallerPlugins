@@ -88,8 +88,6 @@ class CostumeForm(Form):
         self.Controls.Add(afterButton)
         self.Controls.Add(replaceButton)
 
-        #return self.index
-
     def rightButtonPressed(self, sender, args):
         if self.index < self.imageCount - 1:
             self.index += 1
