@@ -3665,11 +3665,15 @@ def readThrowRelease(fighterId):
 def extractTrophy(slotId):
 		trophyInfo = getSlotTrophyInfo(slotId)
 		if trophyInfo and len(trophyInfo) > 1:
-			trophyId = int(trophyInfo[1].replace('0x', ''), 16)
+			if trophyInfo[1] != "":
+				trophyId = int(trophyInfo[1].replace('0x', ''), 16)
+			else:
+				trophyId = ""
 		else:
 			trophyId = ""
 		if trophyId:
 			trophySettings = TrophySettings()
+			trophySettingsWrite = False
 			writeLog("Extracting trophy with ID " + str(trophyId))
 			nameIndex = -1
 			gameIndex = -1
@@ -3690,6 +3694,7 @@ def extractTrophy(slotId):
 							trophySettings.gameIcon1 = trophyNode.GameIcon1
 							trophySettings.gameIcon2 = trophyNode.GameIcon2
 							trophySettings.seriesIndex = trophyNode.SeriesIndex
+							trophySettingsWrite = True
 							break
 					BrawlAPI.ForceCloseFile()
 			# Extract name and game names
@@ -3704,12 +3709,15 @@ def extractTrophy(slotId):
 					for line in fileText:
 						if nameIndex != -1 and i == nameIndex:
 							trophySettings.trophyName = line
+							trophySettingsWrite = True
 						if gameIndex != -1 and i == gameIndex:
 							gameNames = line.split('<br/>')
 							if gameNames:
 								trophySettings.gameName1 = gameNames[0]
+								trophySettingsWrite = True
 								if len(gameNames) > 1:
 									trophySettings.gameName2 = gameNames[1]
+									trophySettingsWrite = True
 						i += 1
 					File.Delete(AppPath + '/temp/ty_fig_name_list.txt')
 					BrawlAPI.ForceCloseFile()
@@ -3726,6 +3734,7 @@ def extractTrophy(slotId):
 					for line in fileText:
 						if descriptionIndex != -1 and i == descriptionIndex:
 							trophySettings.description = line.replace('<color=E6E6E6FF>', '').replace('</end>', '')
+							trophySettingsWrite = True
 						i += 1
 					File.Delete(AppPath + '/temp/ty_fig_ext_list.txt')
 					BrawlAPI.ForceCloseFile()
@@ -3745,10 +3754,13 @@ def extractTrophy(slotId):
 			writeLog("Extracting trophy model")
 			if brresName:
 				if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres'):
+					createDirectory(AppPath + '/temp/Trophy')
 					copyFile(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres', AppPath + '/temp/Trophy')
 			# Write settings
-			attrs = vars(trophySettings)
-			File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
+			if trophySettingsWrite:
+				attrs = vars(trophySettings)
+				createDirectory(AppPath + '/temp/Trophy')
+				File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
 			writeLog("Finished extracting trophy")
 
 #endregion
