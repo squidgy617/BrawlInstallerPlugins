@@ -581,7 +581,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 		if rspLoading == "false":
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
-			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 3) + '.brres')
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 		if fileOpened:
 			if rspLoading == "false":
 			# Find char_bust_tex_lz77
@@ -612,24 +612,24 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 				# Move CSPs after imported
 				for child in texFolder.Children[i:length]:
 					moveNodeToEnd(child)
-				for child in palFolder.Children[i:paletteLength]:
-					moveNodeToEnd(child)
+				#for child in palFolder.Children[i:paletteLength]:
+				#	moveNodeToEnd(child)
 				# Rename everything
 				i = 0
 				palettes = []
 				for child in texFolder.Children:
 					i += 1
-					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+					child.Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + i), 2)
 					if child.HasPalette:
 						palettes.append(i - 1)
 				# Skip indexes where tex0 doesn't have a palette
 				i = 0
 				j = 0
-				while i < len(texFolder.Children):
-					if i in palettes:
-						palFolder.Children[j].Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i + 1), 3)
-						j += 1
-					i += 1
+				#while i < len(texFolder.Children):
+				#	if i in palettes:
+				#		palFolder.Children[j].Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + i), 2)
+				#		j += 1
+				#	i += 1
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -639,9 +639,9 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 				# Set compression back
 				bresNode.Compression = "ExtendedLZ77"
-			if rspLoading == "true":
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
+			#if rspLoading == "true":
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating CSPs")
 		return costumeIndex
 
@@ -769,14 +769,14 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				prevName = texNode.Name
 				imageCount -= 1
 			# Move new palettes up
-			paletteCount = len(images)
-			prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
-			while paletteCount > 0:
-				palNode = palFolder.Children[len(palFolder.Children) - paletteCount]
-				while palNode.PrevSibling() is not None and palNode.PrevSibling().Name != prevName:
-					palNode.MoveUp()
-				prevName = palNode.Name
-				paletteCount -= 1
+			#paletteCount = len(images)
+			#prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
+			#while paletteCount > 0:
+			#	palNode = palFolder.Children[len(palFolder.Children) - paletteCount]
+			#	while palNode.PrevSibling() is not None and palNode.PrevSibling().Name != prevName:
+			#		palNode.MoveUp()
+			#	prevName = palNode.Name
+			#	paletteCount -= 1
 			# Add new names to pat0
 			if pat0BresName == "":
 				return
