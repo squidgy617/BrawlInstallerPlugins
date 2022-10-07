@@ -794,7 +794,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 #region INSTALL COSTUME
 
-def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles):
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[]):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -814,7 +814,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressBar.Begin(0, 5, progressCounter)
 
 			# sc_selcharacter
-			index = addCSPs(cosmeticId, cspImages, settings.rspLoading, position)
+			index = addCSPs(cosmeticId, cspImages, settings.rspLoading, position, skipPositions)
 			if settings.installStocksToCSS == "true":
 				addStockIcons(cosmeticId, stockImages, index, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 			
@@ -837,7 +837,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			# Stock icons
 			# STGRESULT
 			if settings.installStockIconsToResult == "true":
-				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC="true")
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
 				fileOpened = checkOpenFile("STGRESULT")
 				if fileOpened:
 					BrawlAPI.SaveFile()

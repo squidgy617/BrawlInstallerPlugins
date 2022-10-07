@@ -9,7 +9,7 @@ from System.Drawing import *
 
 class CostumeForm(Form):
 
-    def __init__(self, images):
+    def __init__(self, images, skipPositions=[]):
         # Form parameters
         self.Text = 'Select Costume'
         self.index = 0 # Index of selected costume
@@ -20,6 +20,8 @@ class CostumeForm(Form):
 
         # The action that will be performed
         self.action = ""
+
+        self.skipPositions = skipPositions
 
         # Costume label
         self.label = Label()
@@ -91,6 +93,8 @@ class CostumeForm(Form):
     def rightButtonPressed(self, sender, args):
         if self.index < self.imageCount - 1:
             self.index += 1
+            while self.index in self.skipPositions:
+                self.index += 1
         else:
             self.index = 0
         self.image = self.images[self.index]
@@ -100,6 +104,8 @@ class CostumeForm(Form):
     def leftButtonPressed(self, sender, args):
         if self.index > 0:
             self.index -= 1
+            while self.index in self.skipPositions:
+                self.index -= 1
         else:
             self.index = self.imageCount - 1
         self.image = self.images[self.index]

@@ -1,5 +1,5 @@
 ﻿version = "1.4.0"
-# BrawlInstallerLib
+# CostumeForm
 # Functions used by BrawlInstaller plugins
 
 import binascii
@@ -574,14 +574,14 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			writeLog("Importing CSPs completed successfully")
 
 # Insert CSPs at specified position
-def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]):
+def addCSPs(cosmeticId, images, rspLoading="false", position=0):
 		writeLog("Updating CSPs at cosmetic ID " + str(cosmeticId))
 		fileOpened = False
 		costumeIndex = -1
 		if rspLoading == "false":
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
-			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 3) + '.brres')
 		if fileOpened:
 			if rspLoading == "false":
 			# Find char_bust_tex_lz77
@@ -591,12 +591,14 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				bresNode = BrawlAPI.RootNode
 			if bresNode:
 				texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				palFolder = getChildByName(bresNode, "Palettes(NW4R)")
 				costumeCount = 1
 				i = 0
 				length = len(texFolder.Children)
+				paletteLength = len(palFolder.Children)
 				# Count costumes, find position for import
 				for child in texFolder.Children:
-					if costumeCount >= position and costumeCount - 1 not in skipPositions:
+					if costumeCount == position:
 						break
 					if not child.SharesData:
 						costumeCount += 1
@@ -610,14 +612,24 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				# Move CSPs after imported
 				for child in texFolder.Children[i:length]:
 					moveNodeToEnd(child)
+				for child in palFolder.Children[i:paletteLength]:
+					moveNodeToEnd(child)
 				# Rename everything
 				i = 0
 				palettes = []
 				for child in texFolder.Children:
 					i += 1
-					child.Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + i), 2)
+					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
 					if child.HasPalette:
 						palettes.append(i - 1)
+				# Skip indexes where tex0 doesn't have a palette
+				i = 0
+				j = 0
+				while i < len(texFolder.Children):
+					if i in palettes:
+						palFolder.Children[j].Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i + 1), 3)
+						j += 1
+					i += 1
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -627,9 +639,9 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 				# Set compression back
 				bresNode.Compression = "ExtendedLZ77"
-			#if rspLoading == "true":
-			BrawlAPI.SaveFile()
-			BrawlAPI.ForceCloseFile()
+			if rspLoading == "true":
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating CSPs")
 		return costumeIndex
 
@@ -757,14 +769,14 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				prevName = texNode.Name
 				imageCount -= 1
 			# Move new palettes up
-			#paletteCount = len(images)
-			#prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
-			#while paletteCount > 0:
-			#	palNode = palFolder.Children[len(palFolder.Children) - paletteCount]
-			#	while palNode.PrevSibling() is not None and palNode.PrevSibling().Name != prevName:
-			#		palNode.MoveUp()
-			#	prevName = palNode.Name
-			#	paletteCount -= 1
+			paletteCount = len(images)
+			prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
+			while paletteCount > 0:
+				palNode = palFolder.Children[len(palFolder.Children) - paletteCount]
+				while palNode.PrevSibling() is not None and palNode.PrevSibling().Name != prevName:
+					palNode.MoveUp()
+				prevName = palNode.Name
+				paletteCount -= 1
 			# Add new names to pat0
 			if pat0BresName == "":
 				return
@@ -2355,7 +2367,7 @@ def removeCSPs(cosmeticId):
 			rspFile.Delete()
 
 # Remove CSPs at specified position
-def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
+def subtractCSPs(cosmeticId, rspLoading="false", position=0):
 		writeLog("Removing CSPs for position " + str(position) + " for cosmetic ID " + str(cosmeticId))
 		fileOpened = "false"
 		costumeStart = -1
@@ -2363,7 +2375,7 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 		if rspLoading == "false":
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
-			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 3) + '.brres')
 		if fileOpened:
 			if rspLoading == "false":
 			# Find char_bust_tex_lz77
@@ -2373,19 +2385,19 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 				bresNode = BrawlAPI.RootNode
 			if bresNode:
 				texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				palFolder = getChildByName(bresNode, "Palettes(NW4R)")
 				costumeCount = 1
 				i = 0
 				nodesToRemove = []
 				length = len(texFolder.Children)
 				# Loop through and remove the ones we want
 				for child in texFolder.Children:
-					if costumeCount >= position:
+					if costumeCount == position:
 						if costumeStart == -1:
 							costumeStart = i + 1
-						if costumeEnd == -1:
-							nodesToRemove.append(child)
+						nodesToRemove.append(child)
 					if not child.SharesData:
-						if costumeStart != -1 and costumeEnd == -1 and costumeCount not in skipPositions:
+						if costumeStart != -1 and costumeEnd == -1:
 							costumeEnd = i + 1
 						costumeCount += 1
 					i += 1
@@ -2396,9 +2408,20 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 					i += 1
 				# Rename everything
 				i = 0
+				palettes = []
 				for child in texFolder.Children:
 					i += 1
 					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+					if child.HasPalette:
+						palettes.append(i - 1)
+				# Skip indexes where tex0 doesn't have a palette
+				i = 0
+				j = 0
+				while i < len(texFolder.Children):
+					if i in palettes:
+						palFolder.Children[j].Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i + 1), 3)
+						j += 1
+					i += 1
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -3642,15 +3665,11 @@ def readThrowRelease(fighterId):
 def extractTrophy(slotId):
 		trophyInfo = getSlotTrophyInfo(slotId)
 		if trophyInfo and len(trophyInfo) > 1:
-			if trophyInfo[1] != "":
-				trophyId = int(trophyInfo[1].replace('0x', ''), 16)
-			else:
-				trophyId = ""
+			trophyId = int(trophyInfo[1].replace('0x', ''), 16)
 		else:
 			trophyId = ""
 		if trophyId:
 			trophySettings = TrophySettings()
-			trophySettingsWrite = False
 			writeLog("Extracting trophy with ID " + str(trophyId))
 			nameIndex = -1
 			gameIndex = -1
@@ -3671,7 +3690,6 @@ def extractTrophy(slotId):
 							trophySettings.gameIcon1 = trophyNode.GameIcon1
 							trophySettings.gameIcon2 = trophyNode.GameIcon2
 							trophySettings.seriesIndex = trophyNode.SeriesIndex
-							trophySettingsWrite = True
 							break
 					BrawlAPI.ForceCloseFile()
 			# Extract name and game names
@@ -3686,15 +3704,12 @@ def extractTrophy(slotId):
 					for line in fileText:
 						if nameIndex != -1 and i == nameIndex:
 							trophySettings.trophyName = line
-							trophySettingsWrite = True
 						if gameIndex != -1 and i == gameIndex:
 							gameNames = line.split('<br/>')
 							if gameNames:
 								trophySettings.gameName1 = gameNames[0]
-								trophySettingsWrite = True
 								if len(gameNames) > 1:
 									trophySettings.gameName2 = gameNames[1]
-									trophySettingsWrite = True
 						i += 1
 					File.Delete(AppPath + '/temp/ty_fig_name_list.txt')
 					BrawlAPI.ForceCloseFile()
@@ -3711,7 +3726,6 @@ def extractTrophy(slotId):
 					for line in fileText:
 						if descriptionIndex != -1 and i == descriptionIndex:
 							trophySettings.description = line.replace('<color=E6E6E6FF>', '').replace('</end>', '')
-							trophySettingsWrite = True
 						i += 1
 					File.Delete(AppPath + '/temp/ty_fig_ext_list.txt')
 					BrawlAPI.ForceCloseFile()
@@ -3731,13 +3745,10 @@ def extractTrophy(slotId):
 			writeLog("Extracting trophy model")
 			if brresName:
 				if File.Exists(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres'):
-					createDirectory(AppPath + '/temp/Trophy')
 					copyFile(MainForm.BuildPath + '/pf/toy/fig/' + brresName + '.brres', AppPath + '/temp/Trophy')
 			# Write settings
-			if trophySettingsWrite:
-				attrs = vars(trophySettings)
-				createDirectory(AppPath + '/temp/Trophy')
-				File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
+			attrs = vars(trophySettings)
+			File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
 			writeLog("Finished extracting trophy")
 
 #endregion
@@ -4302,40 +4313,6 @@ def getTrophySettings():
 	writeLog("Finished reading trophy settings file")
 	return trophySettings
 		
-# Check for matching color smash groups in stock icons
-def checkStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2/info.pac', fiftyCC="true"):
-		writeLog("Checking stock icons at cosmetic ID " + str(cosmeticId))
-		fileOpened = openFile(MainForm.BuildPath + filePath, False)
-		startId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + str(1))
-		endId = (cosmeticId * (50 if fiftyCC=="true" else 1)) + 50 if fiftyCC=="true" else 10
-		positions = []
-		if fileOpened:
-			rootNode = BrawlAPI.RootNode
-			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
-			if tex0BresName != "":
-				node = getChildByName(rootNode, tex0BresName)
-			else:
-				node = rootNode
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			costumeSet = True
-			i = startId
-			j = 0
-			while i < endId:
-				node = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3))
-				if node:
-					if costumeSet:
-						positions.append(j)
-						costumeSet = True
-					if node.SharesData:
-						costumeSet = False
-					else:
-						costumeSet = True
-				i += 1
-				j += 1
-			BrawlAPI.ForceCloseFile()
-		writeLog("Finished checking stock icons")
-		return positions
 
 def initialSetup():
 		if File.Exists(RESOURCE_PATH + '/settings.ini'):

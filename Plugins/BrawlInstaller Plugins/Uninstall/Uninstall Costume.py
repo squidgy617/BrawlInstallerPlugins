@@ -26,10 +26,6 @@ def main():
 
 			# User input
 			# TODO: Improved form
-			cspImages = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
-			bpImages = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
-			stockImages = BrawlAPI.OpenMultiFileDialog("Select stocks", "PNG files|*.png")
-			costumeFiles = BrawlAPI.OpenMultiFileDialog("Select costume .pac files", "PAC files|*.pac")
 			fighterId = showIdPrompt("Enter fighter's ID")
 			fighterId = fighterId.split('0x')[1].upper()
 			cosmeticId = showIdPrompt("Enter fighter's cosmetic ID")
@@ -91,7 +87,8 @@ def main():
 				result = form.ShowDialog(MainForm.Instance)
 
 				if result == DialogResult.OK:
-					installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions)
+					subtractCSPs(cosmeticId, settings.rspLoading, form.index, skipPositions)
+					#installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions)
 			else:
 				BrawlAPI.ShowMessage("Cosmetics for this fighter could not be found! Please try a different ID.", "Error")
 
