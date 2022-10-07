@@ -3230,7 +3230,10 @@ def readThrowRelease(fighterId):
 def extractTrophy(slotId):
 		trophyInfo = getSlotTrophyInfo(slotId)
 		if trophyInfo and len(trophyInfo) > 1:
-			trophyId = int(trophyInfo[1].replace('0x', ''), 16)
+			if trophyInfo[1] != "":
+				trophyId = int(trophyInfo[1].replace('0x', ''), 16)
+			else:
+				trophyId = ""
 		else:
 			trophyId = ""
 		if trophyId:
