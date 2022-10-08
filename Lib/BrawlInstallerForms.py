@@ -9,7 +9,7 @@ from System.Drawing import *
 
 class CostumeForm(Form):
 
-    def __init__(self, images, skipPositions=[]):
+    def __init__(self, images, skipPositions=[], remove=False):
         # Form parameters
         self.Text = 'Select Costume'
         self.index = 0 # Index of selected costume
@@ -86,14 +86,24 @@ class CostumeForm(Form):
 
         replaceButton.Click += self.replaceButtonPressed
 
+        # Uninstall
+        uninstallButton = Button()
+        uninstallButton.Text = "Uninstall"
+        uninstallButton.Dock = DockStyle.Bottom
+
+        uninstallButton.Click += self.uninstallButtonPressed
+
         # Add controls
         self.Controls.Add(self.pictureBox)
         self.Controls.Add(self.label)
         self.Controls.Add(rightButton)
         self.Controls.Add(leftButton)
-        self.Controls.Add(beforeButton)
-        self.Controls.Add(afterButton)
-        self.Controls.Add(replaceButton)
+        if not remove:
+            self.Controls.Add(beforeButton)
+            self.Controls.Add(afterButton)
+            self.Controls.Add(replaceButton)
+        else:
+            self.Controls.Add(uninstallButton)
 
     def rightButtonPressed(self, sender, args):
         if self.index < self.imageCount - 1:
@@ -139,6 +149,12 @@ class CostumeForm(Form):
 
     def replaceButtonPressed(self, sender, args):
         self.action = "replace"
+        self.index += 1
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+    def uninstallButtonPressed(self, sender, args):
+        self.action = "remove"
         self.index += 1
         self.DialogResult = DialogResult.OK
         self.Close()

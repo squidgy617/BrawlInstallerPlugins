@@ -83,7 +83,7 @@ def main():
 					i += 1
 
 				# Show the form
-				form = CostumeForm(images=images, skipPositions=skipPositions)
+				form = CostumeForm(images=images, skipPositions=skipPositions, remove=True)
 				result = form.ShowDialog(MainForm.Instance)
 
 				if result == DialogResult.OK:
