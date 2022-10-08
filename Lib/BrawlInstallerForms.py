@@ -13,6 +13,7 @@ class CostumeForm(Form):
         # Form parameters
         self.Text = 'Select Costume'
         self.index = 0 # Index of selected costume
+        self.labelIndex = 0 # Index displayed on label
         self.Width = 250
         self.Height = 350
         self.StartPosition = FormStartPosition.CenterParent
@@ -22,10 +23,16 @@ class CostumeForm(Form):
         self.action = ""
 
         self.skipPositions = skipPositions
+        self.length = 0 # Actual count of costumes
+        i = 0
+        while i < len(images):
+            if i not in skipPositions:
+                self.length += 1
+            i += 1
 
         # Costume label
         self.label = Label()
-        self.label.Text = "Costume %s" % (self.index + 1)
+        self.label.Text = "Costume %s" % (self.labelIndex + 1)
         self.label.Dock = DockStyle.Bottom
         self.label.Height = 50
         self.label.Width = 150
@@ -95,9 +102,13 @@ class CostumeForm(Form):
                 self.index += 1
         else:
             self.index = 0
+        if self.labelIndex < self.length - 1:
+            self.labelIndex += 1
+        else:
+            self.labelIndex = 0
         self.image = self.images[self.index]
         self.pictureBox.Image = self.image
-        self.label.Text = "Costume %s" % (self.index + 1)
+        self.label.Text = "Costume %s" % (self.labelIndex + 1)
 
     def leftButtonPressed(self, sender, args):
         if self.index > 0:
@@ -106,9 +117,13 @@ class CostumeForm(Form):
                 self.index -= 1
         else:
             self.index = self.imageCount - 1
+        if self.labelIndex > 0:
+            self.labelIndex -= 1
+        else:
+            self.labelIndex = self.length - 1
         self.image = self.images[self.index]
         self.pictureBox.Image = self.image
-        self.label.Text = "Costume %s" % (self.index + 1)
+        self.label.Text = "Costume %s" % (self.labelIndex + 1)
 
     def beforeButtonPressed(self, sender, args):
         self.action = "insert"
