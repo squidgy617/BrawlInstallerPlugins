@@ -3237,6 +3237,16 @@ def removeCssSlots(startIndex, endIndex, cssSlotConfigId):
 		writeLog("Finished removing CSS slot config entries")
 		return costumeIds	
 
+# Delete costumes corresponding to CSS slot config IDs
+def deleteCostumeFiles(costumeIds, fighterName):
+		writeLog("Attempting to delete costume files")
+		if Directory.Exists(MainForm.BuildPath + '/pf/fighter/' + fighterName):
+			for id in costumeIds:
+				costumeFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/fighter/' + fighterName, "*" + addLeadingZeros(str(id), 2) + ".pac")
+				for file in costumeFiles:
+					File.Delete(file)
+		writeLog("Finished delete costume files")
+
 #endregion REMOVE FUNCTIONS
 
 #region EXTRACT FUNCTIONS
