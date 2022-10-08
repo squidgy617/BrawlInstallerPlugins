@@ -1,8 +1,10 @@
 version = "1.4.0"
-# ExtractLib
-# Library for BrawlInstaller's extraction plugins
+# InstallLib
+# Library for BrawlInstaller's installation plugins
 
 from BrawlInstallerLib import *
+
+#region INSTALL CHARACTER
 
 def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False, cosmeticConfigId="", slotConfigId="", cssSlotConfigId="", baseCssSlotId=""):
 		try:
@@ -788,3 +790,100 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 				progressBar.Finish()
 			raise e
 			
+#endregion INSTALL CHARACTER
+
+#region INSTALL COSTUME
+
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[]):
+		try: 
+			# Get user settings
+			if File.Exists(MainForm.BuildPath + '/settings.ini'):
+				settings = getSettings()
+			else:
+				settings = initialSetup()
+			# If temporary directory already exists, delete it to prevent duplicate files
+			if Directory.Exists(AppPath + '/temp'):
+				Directory.Delete(AppPath + '/temp', 1)
+
+			fighterConfig = getFighterConfig(fighterId)
+			fighterInfo = getFighterInfo(fighterConfig, "", "")
+
+			# Set up progressbar
+			progressCounter = 0
+			progressBar = ProgressWindow(MainForm.Instance, "Installing Costume...", "Installing Costume", False)
+			progressBar.Begin(0, 5, progressCounter)
+
+			# sc_selcharacter
+			index = addCSPs(cosmeticId, cspImages, settings.rspLoading, position, skipPositions)
+			if settings.installStocksToCSS == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+			
+			# If we did any work in sc_selcharacter, save and close it
+			fileOpened = checkOpenFile("sc_selcharacter")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# BPs
+			incrementBPNames(cosmeticId, index, increment=len(bpImages), fiftyCC=settings.fiftyCostumeCode)
+			createBPs(cosmeticId, bpImages, startIndex=index)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Stock icons
+			# STGRESULT
+			if settings.installStockIconsToResult == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+				fileOpened = checkOpenFile("STGRESULT")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
+			# info.pac
+			if settings.installStocksToInfo == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
+				fileOpened = checkOpenFile("info")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
+			# StockFaceTex
+			if settings.installStocksToStockFaceTex == "true":
+				addStockIcons(cosmeticId, stockImages, index, "", "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
+			# sc_selmap
+			if settings.installStocksToSSS == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [40]", "Misc Data [20]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+			
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+
+			# Costume files
+			costumes = importCostumeFiles(costumeFiles, fighterInfo.fighterName, cssSlotConfigId)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			
+			
+			# Ex Config
+			addCssSlots(costumes, index, cssSlotConfigId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			progressBar.Finish()
+			BrawlAPI.ShowMessage("Costume installed successfully.", "Success")
+
+		except Exception as e:
+			if 'progressBar' in locals():
+				progressBar.Finish()
+			raise e
+
+#endregion INSTALL COSTUME
