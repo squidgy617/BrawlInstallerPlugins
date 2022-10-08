@@ -21,7 +21,7 @@ Currently this plugin performs all the necessary installation to get an EX chara
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
 ## Features
-- Install or uninstall fully playable characters into a build of Super Smash Bros. Brawl in just a few clicks.
+- Install or uninstall fully playable characters and costumes into a build of Super Smash Bros. Brawl in just a few clicks.
 - Extract characters from a build as fully installable packages - either individually or en masse.
 - Installed characters playable in all modes, including support for [Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases).
 - Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
@@ -86,7 +86,5 @@ BrawlInstaller supports a wide variety of different settings that enable users t
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
-- Allow redirection of EX config IDs
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
-- Costume Installer plugin
 - Stage Installer plugin
