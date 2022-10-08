@@ -83,13 +83,11 @@ def main():
 					i += 1
 
 				# Show the form
-				form = CostumeForm(images=images, skipPositions=skipPositions)
+				form = CostumeForm(images=images, skipPositions=skipPositions, remove=True)
 				result = form.ShowDialog(MainForm.Instance)
 
 				if result == DialogResult.OK:
-					#subtractCSPs(cosmeticId, settings.rspLoading, form.index, skipPositions)
 					uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions)
-					#installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions)
 			else:
 				BrawlAPI.ShowMessage("Cosmetics for this fighter could not be found! Please try a different ID.", "Error")
 

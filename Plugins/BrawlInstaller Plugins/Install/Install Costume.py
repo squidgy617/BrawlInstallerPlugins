@@ -2,6 +2,7 @@ __author__ = "Squidgy"
 __version__ = "1.4.0"
 
 from InstallLib import *
+from UninstallLib import *
 from BrawlInstallerForms import *
 from System.Drawing import Bitmap
 
@@ -91,6 +92,8 @@ def main():
 				result = form.ShowDialog(MainForm.Instance)
 
 				if result == DialogResult.OK:
+					if form.action == "replace":
+						uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions, skipMessage=True)
 					installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions)
 			else:
 				BrawlAPI.ShowMessage("Cosmetics for this fighter could not be found! Please try a different ID.", "Error")

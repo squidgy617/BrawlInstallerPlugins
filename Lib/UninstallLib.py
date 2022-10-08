@@ -6,7 +6,7 @@ from BrawlInstallerLib import *
 
 #region UNINSTALL COSTUME
 
-def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPositions=[]):
+def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPositions=[], skipMessage=False):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -90,7 +90,8 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			progressBar.Update(progressCounter)
 			progressBar.Finish()
 			
-			BrawlAPI.ShowMessage("Costume uninstalled successfully.", "Success")
+			if not skipMessage:
+				BrawlAPI.ShowMessage("Costume uninstalled successfully.", "Success")
 
 		except Exception as e:
 			if 'progressBar' in locals():

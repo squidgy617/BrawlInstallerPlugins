@@ -345,23 +345,26 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						# Get user's preferred icon style
 						iconFolders = Directory.GetDirectories(cssIconFolder.FullName, settings.cssIconStyle)
 						if iconFolders:
-							# Use CMPR for Brawl/PM style icons
-							if settings.cssIconStyle == "vBrawl" or settings.cssIconStyle == "PM":
-								format = WiiPixelFormat.CMPR
-							else:
-								format = WiiPixelFormat.CI8
-							installCSSIcon(cosmeticId, Directory.GetFiles(iconFolders[0], "*.png")[0], format)
-							nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
-							# If a name folder is found in the CSS icon directory, install CSS icon name
-							if nameFolders:
-								installCSSIconName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
+							if len(Directory.GetFiles(iconFolders[0], "*.png")) > 0:
+								# Use CMPR for Brawl/PM style icons
+								if settings.cssIconStyle == "vBrawl" or settings.cssIconStyle == "PM":
+									format = WiiPixelFormat.CMPR
+								else:
+									format = WiiPixelFormat.CI8
+								installCSSIcon(cosmeticId, Directory.GetFiles(iconFolders[0], "*.png")[0], format)
+								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
+								# If a name folder is found in the CSS icon directory, install CSS icon name
+								if nameFolders:
+									if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+										installCSSIconName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
 							BrawlAPI.ShowMessage("Could not find CSS icon in a format that matches your preferences. CSS icon installation will be skipped. Please install a CSS icon manually.", "CSS Icon Not Found")
 					# Install CSS portrait name
 					if portraitNameFolder and settings.installPortraitNames == "true":
 						nameFolders = Directory.GetDirectories(portraitNameFolder.FullName, settings.portraitNameStyle)
 						if nameFolders:
-							installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
+							if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+								installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
 							BrawlAPI.ShowMessage("Could not find portrait name in a format that matches your preferences. Portrait name installation will be skipped. Please install a portrait name manually.", "Portrait Name Not Found")
 					# Install stock icons to sc_selcharacter
@@ -370,7 +373,9 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Install franchise icon to sc_selcharacter
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchiseIconFolderCss = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchiseIconFolderCss[0], "*.png")[0], '/pf/menu2/sc_selcharacter.pac', int(settings.franchiseIconSizeCSS))
+						if franchiseIconFolderCss:
+							if len(Directory.GetFiles(franchiseIconFolderCss[0], "*.png")) > 0:
+								installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchiseIconFolderCss[0], "*.png")[0], '/pf/menu2/sc_selcharacter.pac', int(settings.franchiseIconSizeCSS))
 					# If we did any work in sc_selcharacter, save and close it
 					fileOpened = checkOpenFile("sc_selcharacter")
 					if fileOpened:
@@ -390,7 +395,9 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Install franchise icon to info.pac
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
+						if franchisIconFolderInfo:
+							if len(Directory.GetFiles(franchisIconFolderInfo[0], "*.png")) > 0:
+								installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
 					# Install BP names to info.pac
 					if bpFolder and settings.installBPNames == "true":
 						# Get preferred BP style
@@ -398,7 +405,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if bpFolders:
 							nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 							if nameFolders:
-								installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
+								if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+									installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
 					fileOpened = checkOpenFile("info")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -420,7 +428,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								if franchiseIconFolder and doInstallFranchiseIcon:
 									franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 									if franchisIconFolderInfo:
-										installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
+										if len(Directory.GetFiles(franchisIconFolderInfo[0], "*.png")) > 0:
+											installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
 								# BP names next
 								if bpFolder and settings.installBPNames == "true":
 									# Get preferred BP style
@@ -428,7 +437,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									if bpFolders:
 										nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 										if nameFolders:
-											installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
+											if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+												installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
 								fileOpened = checkOpenFile(fileName.split('.pac')[0])
 								if fileOpened:
 									BrawlAPI.SaveFile()
@@ -436,7 +446,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Import the classic intro file if present
 					if classicIntro:
-						importClassicIntro(cosmeticId, Directory.GetFiles(classicIntro.FullName, "*.brres")[0])
+						if len(Directory.GetFiles(classicIntro.FullName, "*.brres")) > 0:
+							importClassicIntro(cosmeticId, Directory.GetFiles(classicIntro.FullName, "*.brres")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -450,9 +461,10 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
-						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")
+						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")	
 						if franchisIconFolderResult:
-							installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
+							if len(Directory.GetFiles(franchisIconFolderResult[0], "*.png")) > 0:
+								installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
 					fileOpened = checkOpenFile("STGRESULT")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -486,11 +498,13 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						# Get user's preferred BP style
 						bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
 						if bpFolders:
-							installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
+							if len(Directory.GetFiles(bpFolders[0], "*.png")) > 0:
+								installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
 						else:
 							bpFolders = Directory.GetDirectories(bpFolder.FullName, "vBrawl")
 							if bpFolders:
-								installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
+								if len(Directory.GetFiles(bpFolders[0], "*.png")) > 0:
+									installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -499,7 +513,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Replay Icon
 
 					if replayIconFolder:
-						installReplayIcon(cosmeticId, Directory.GetFiles(replayIconFolder.FullName, "*.png")[0])
+						if len(Directory.GetFiles(replayIconFolder.FullName, "*.png")) > 0:
+							installReplayIcon(cosmeticId, Directory.GetFiles(replayIconFolder.FullName, "*.png")[0])
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 
@@ -513,7 +528,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						removeSong(removeSongId)
 					# Add victory theme
 					if victoryThemeFolder and settings.installVictoryThemes == "true" and installVictoryTheme:
-						victoryThemeId = addSong(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
+						if len(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")) > 0:
+							victoryThemeId = addSong(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -535,7 +551,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 						else:
 							newSoundbankId = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
-						moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
+						if len(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")) > 0:
+							moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -614,7 +631,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Update and install module file
 					if moduleFolder:
-						installModuleFile(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0], moduleFolder, fighterId, fighterInfo.fighterName, existingFighterConfigName)
+						if len(Directory.GetFiles(moduleFolder.FullName, "*.rel")) > 0:
+							installModuleFile(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0], moduleFolder, fighterId, fighterInfo.fighterName, existingFighterConfigName)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -684,7 +702,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
 						if franchiseIconFolder and doInstallFranchiseIcon:
 							franchisIconFolderSse = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-							installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')
+							if len(Directory.GetFiles(franchisIconFolderSse[0], "*.png")) > 0:
+								installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')
 						fileOpened = checkOpenFile("if_adv_mngr")
 						if fileOpened:
 							BrawlAPI.SaveFile()
