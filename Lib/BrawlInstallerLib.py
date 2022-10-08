@@ -657,10 +657,12 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 					writeLog("Color smashing stock icons")
 					ColorSmashImport(node, images, 256)
 					writeLog("Imported color smashed icons")
-				else:
+				elif len(images) >= 1:
 					writeLog("Importing standalone icon")
 					importTexture(node, images[0], WiiPixelFormat.CI8, 32, 32)
 					writeLog("Imported standalone icon")
+				else:
+					return 0
 				if not firstOnly:
 					for image in images:
 						totalImages.append(image)
@@ -3244,6 +3246,7 @@ def deleteCostumeFiles(costumeIds, fighterName):
 			for id in costumeIds:
 				costumeFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/fighter/' + fighterName, "*" + addLeadingZeros(str(id), 2) + ".pac")
 				for file in costumeFiles:
+					createBackup(file)
 					File.Delete(file)
 		writeLog("Finished delete costume files")
 
@@ -4457,7 +4460,12 @@ def initialSetup():
 		# Kirby hats
 		kirbyHatManagerInstalled = BrawlAPI.ShowYesNoPrompt("Do you have QuickLava's Kirby Hat Manager installed into your build?", title)
 		if kirbyHatManagerInstalled:
-			settings.kirbyHatExe = BrawlAPI.OpenFileDialog("Select your Kirby Hat Manager .exe", "Executable files|*.exe")
+			while True:
+				settings.kirbyHatExe = BrawlAPI.OpenFileDialog("Select your Kirby Hat Manager .exe", "Executable files|*.exe")
+				if DirectoryInfo(MainForm.BuildPath).FullName not in getFileInfo(settings.kirbyHatExe).DirectoryName:
+					BrawlAPI.ShowMessage("Lava's Kirby hat manager must be in your build folder! Please move it to the correct directory and try again.", title)
+				else:
+					break
 			defaultKirbyHat = BrawlAPI.ShowYesNoPrompt("In the event a valid Kirby hat is not found for a fighter you attempt to install, you may set a default Kirby hat to fall back on. This can be any fighter ID from the vanilla Brawl roster. This is highly recommended for P+ EX builds.\n\nWhen in doubt, Lucario's ID (0x21) is recommended for stability.\n\nWould you like to set a default?", title)
 			if defaultKirbyHat:
 				idEntered = False
@@ -4490,7 +4498,12 @@ def initialSetup():
 		if useCodeMenu:
 			assemblyFunctionsInstalled = BrawlAPI.ShowYesNoPrompt("Do you have QuickLava's PowerPC Assembly Functions installed into your build?", title)
 			if assemblyFunctionsInstalled:
-				settings.assemblyFunctionsExe = BrawlAPI.OpenFileDialog("Select your PowerPC Assembly Functions .exe", "Executable files|*.exe")
+				while True:
+					settings.assemblyFunctionsExe = BrawlAPI.OpenFileDialog("Select your PowerPC Assembly Functions .exe", "Executable files|*.exe")
+					if DirectoryInfo(MainForm.BuildPath).FullName not in getFileInfo(settings.assemblyFunctionsExe).DirectoryName:
+						BrawlAPI.ShowMessage("Lava's PowerPC Assembly Functions must be in your build folder! Please move it to the correct directory and try again.", title)
+					else:
+						break
 			else:
 				settings.assemblyFunctionsExe = ""
 				BrawlAPI.ShowMessage("Fighters will not be installed to the code menu.", title)
