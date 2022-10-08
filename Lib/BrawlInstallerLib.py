@@ -23,6 +23,7 @@ from System.Drawing import Size
 from System.Collections.Generic import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 from System.IO.Compression import ZipFile
+from System.Windows.Forms import *
 
 # TODO: Rename files when importing for most things
 
@@ -196,6 +197,14 @@ COSTUME_COLOR = {
 
 #region HELPER FUNCTIONS
 # These are common functions frequently used by parts of the BrawlInstaller plugin suite
+
+def clearTextBoxes(groupBox):
+		for control in groupBox.Controls:
+			#BrawlAPI.ShowMessage(str(type(control)), "")
+			if control.GetType() == Panel:
+				clearTextBoxes(control)
+			elif control.GetType() == TextBox:
+				control.Text = ""
 
 # Get child node by name; similar to markyMawwk's function, but didn't want to make it a dependency
 def getChildByName(node, name):
