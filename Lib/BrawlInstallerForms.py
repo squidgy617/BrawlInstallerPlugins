@@ -1,6 +1,6 @@
-﻿version = "1.4.0"
-# CostumeForm
-# Class for the costume form
+﻿version = "1.5.0"
+# BrawlInstallerForms
+# Library for forms used by BrawlInstaller
 
 from BrawlInstallerLib import *
 from BrawlLib.Internal.Windows.Controls import *

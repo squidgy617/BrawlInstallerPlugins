@@ -1,4 +1,4 @@
-﻿version = "1.4.0"
+﻿version = "1.5.0"
 # BrawlInstallerLib
 # Functions used by BrawlInstaller plugins
 

@@ -1,5 +1,5 @@
 __author__ = "Squidgy"
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 from BrawlInstallerForms import *
 from UninstallLib import *
