@@ -59,11 +59,11 @@ class CharacterForm(Form):
         fighterIdLabel = Label()
         fighterIdLabel.Dock = DockStyle.Left
         fighterIdLabel.Text = "Fighter ID:"
-        fighterIdTextbox = TextBox()
-        fighterIdTextbox.Dock = DockStyle.Right
+        self.fighterIdTextbox = TextBox()
+        self.fighterIdTextbox.Dock = DockStyle.Right
 
         fighterIdPanel.Controls.Add(fighterIdLabel)
-        fighterIdPanel.Controls.Add(fighterIdTextbox)
+        fighterIdPanel.Controls.Add(self.fighterIdTextbox)
 
         cosmeticIdPanel = Panel()
         cosmeticIdPanel.Location = Point(16, 48)
@@ -71,11 +71,11 @@ class CharacterForm(Form):
         cosmeticIdLabel = Label()
         cosmeticIdLabel.Dock = DockStyle.Left
         cosmeticIdLabel.Text = "Cosmetic ID:"
-        cosmeticIdTextbox = TextBox()
-        cosmeticIdTextbox.Dock = DockStyle.Right
+        self.cosmeticIdTextbox = TextBox()
+        self.cosmeticIdTextbox.Dock = DockStyle.Right
 
         cosmeticIdPanel.Controls.Add(cosmeticIdLabel)
-        cosmeticIdPanel.Controls.Add(cosmeticIdTextbox)
+        cosmeticIdPanel.Controls.Add(self.cosmeticIdTextbox)
 
         self.fighterIdGroup.Controls.Add(cosmeticIdPanel)
         self.fighterIdGroup.Controls.Add(fighterIdPanel)
@@ -94,11 +94,11 @@ class CharacterForm(Form):
         cosmeticConfigIdLabel = Label()
         cosmeticConfigIdLabel.Dock = DockStyle.Left
         cosmeticConfigIdLabel.Text = "Cosmetic Config ID:"
-        cosmeticConfigIdTextbox = TextBox()
-        cosmeticConfigIdTextbox.Dock = DockStyle.Right
+        self.cosmeticConfigIdTextbox = TextBox()
+        self.cosmeticConfigIdTextbox.Dock = DockStyle.Right
 
         cosmeticConfigIdPanel.Controls.Add(cosmeticConfigIdLabel)
-        cosmeticConfigIdPanel.Controls.Add(cosmeticConfigIdTextbox)
+        cosmeticConfigIdPanel.Controls.Add(self.cosmeticConfigIdTextbox)
 
         slotConfigIdPanel = Panel()
         slotConfigIdPanel.Location = Point(16, 48)
@@ -106,11 +106,11 @@ class CharacterForm(Form):
         slotConfigIdLabel = Label()
         slotConfigIdLabel.Dock = DockStyle.Left
         slotConfigIdLabel.Text = "Slot Config ID:"
-        slotConfigIdTextbox = TextBox()
-        slotConfigIdTextbox.Dock = DockStyle.Right
+        self.slotConfigIdTextbox = TextBox()
+        self.slotConfigIdTextbox.Dock = DockStyle.Right
 
         slotConfigIdPanel.Controls.Add(slotConfigIdLabel)
-        slotConfigIdPanel.Controls.Add(slotConfigIdTextbox)
+        slotConfigIdPanel.Controls.Add(self.slotConfigIdTextbox)
 
         cssSlotConfigIdPanel = Panel()
         cssSlotConfigIdPanel.Location = Point(16, 80)
@@ -118,11 +118,11 @@ class CharacterForm(Form):
         cssSlotConfigIdLabel = Label()
         cssSlotConfigIdLabel.Dock = DockStyle.Left
         cssSlotConfigIdLabel.Text = "CSS Slot Config ID:"
-        cssSlotConfigIdTextbox = TextBox()
-        cssSlotConfigIdTextbox.Dock = DockStyle.Right
+        self.cssSlotConfigIdTextbox = TextBox()
+        self.cssSlotConfigIdTextbox.Dock = DockStyle.Right
 
         cssSlotConfigIdPanel.Controls.Add(cssSlotConfigIdLabel)
-        cssSlotConfigIdPanel.Controls.Add(cssSlotConfigIdTextbox)
+        cssSlotConfigIdPanel.Controls.Add(self.cssSlotConfigIdTextbox)
 
         self.configIdGroup.Controls.Add(cssSlotConfigIdPanel)
         self.configIdGroup.Controls.Add(slotConfigIdPanel)
@@ -153,11 +153,11 @@ class CharacterForm(Form):
         subCharacterLabel = Label()
         subCharacterLabel.Dock = DockStyle.Left
         subCharacterLabel.Text = "Base CSS Slot ID:"
-        subCharacterTextbox = TextBox()
-        subCharacterTextbox.Dock = DockStyle.Right
+        self.subCharacterTextbox = TextBox()
+        self.subCharacterTextbox.Dock = DockStyle.Right
 
         subCharacterPanel.Controls.Add(subCharacterLabel)
-        subCharacterPanel.Controls.Add(subCharacterTextbox)
+        subCharacterPanel.Controls.Add(self.subCharacterTextbox)
 
         self.subCharacterGroup.Controls.Add(subCharacterPanel)
 
