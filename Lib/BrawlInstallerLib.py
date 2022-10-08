@@ -19,7 +19,7 @@ from BrawlLib.Wii.Textures import *
 from System.IO import *
 from System import Array
 from System.Diagnostics import Process
-from System.Drawing import Size
+from System.Drawing import *
 from System.Collections.Generic import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 from System.IO.Compression import ZipFile
@@ -198,13 +198,26 @@ COSTUME_COLOR = {
 #region HELPER FUNCTIONS
 # These are common functions frequently used by parts of the BrawlInstaller plugin suite
 
+# Clear textboxes from a Windows forms group
 def clearTextBoxes(groupBox):
 		for control in groupBox.Controls:
-			#BrawlAPI.ShowMessage(str(type(control)), "")
 			if control.GetType() == Panel:
 				clearTextBoxes(control)
 			elif control.GetType() == TextBox:
 				control.Text = ""
+
+# Validate all text boxes in a Windows form group are valid hex IDs
+def validateTextBoxes(groupBox):
+		validationPassed = True
+		for control in groupBox.Controls:
+			if control.GetType() == Panel:
+				validateTextBoxes(control)
+			elif control.GetType() == TextBox:
+				valid = hexId(control.Text)
+				control.BackColor = Color.White if valid else Color.LightPink
+				if not valid:
+					validationPassed = False
+		return validationPassed
 
 # Get child node by name; similar to markyMawwk's function, but didn't want to make it a dependency
 def getChildByName(node, name):
@@ -513,6 +526,10 @@ def boolText(boolVal):
 # Ensure an ID is hexadecimal whether it was passed in as decimal or hex
 def hexId(id):
 		if str(id).startswith('0x'):
+			try:
+				int(id, 16)
+			except ValueError:
+				return ""
 			id = addLeadingZeros(str(id).upper().replace('0X', '0x'), 2)
 			return id
 		elif str(id).isnumeric():

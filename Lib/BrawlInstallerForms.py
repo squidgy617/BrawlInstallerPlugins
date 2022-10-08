@@ -27,25 +27,25 @@ class CharacterForm(Form):
         radioButtonGroup.Dock = DockStyle.Top
         radioButtonGroup.Height = 48
         radioButtonGroup.TabIndex = 1
-        rb1 = RadioButton()
-        rb1.Location = Point(16, 16)
-        rb1.Text = "Auto"
-        rb1.Size = Size(64, 16)
-        rb1.Checked = True
-        rb1.CheckedChanged += self.autoChecked
-        rb2 = RadioButton()
-        rb2.Location = Point(80, 16)
-        rb2.Text = "Fighter ID"
-        rb2.Size = Size(72, 16)
-        rb2.CheckedChanged += self.fighterIdChecked
-        rb3 = RadioButton()
-        rb3.Location = Point(160, 16)
-        rb3.Text = "All IDs"
-        rb3.Size = Size(64, 16)
-        rb3.CheckedChanged += self.allConfigChecked
-        radioButtonGroup.Controls.Add(rb1)
-        radioButtonGroup.Controls.Add(rb2)
-        radioButtonGroup.Controls.Add(rb3)
+        self.rb1 = RadioButton()
+        self.rb1.Location = Point(16, 16)
+        self.rb1.Text = "Auto"
+        self.rb1.Size = Size(64, 16)
+        self.rb1.Checked = True
+        self.rb1.CheckedChanged += self.autoChecked
+        self.rb2 = RadioButton()
+        self.rb2.Location = Point(80, 16)
+        self.rb2.Text = "Fighter ID"
+        self.rb2.Size = Size(72, 16)
+        self.rb2.CheckedChanged += self.fighterIdChecked
+        self.rb3 = RadioButton()
+        self.rb3.Location = Point(160, 16)
+        self.rb3.Text = "All IDs"
+        self.rb3.Size = Size(64, 16)
+        self.rb3.CheckedChanged += self.allConfigChecked
+        radioButtonGroup.Controls.Add(self.rb1)
+        radioButtonGroup.Controls.Add(self.rb2)
+        radioButtonGroup.Controls.Add(self.rb3)
 
         # Fighter ID box
         self.fighterIdGroup = GroupBox()
@@ -167,6 +167,7 @@ class CharacterForm(Form):
         installButton = Button()
         installButton.Text = "Install"
         installButton.Dock = DockStyle.Bottom
+        installButton.Click += self.installButtonPressed
         
         # Tooltips
         toolTip = ToolTip()
@@ -177,9 +178,9 @@ class CharacterForm(Form):
         toolTip.SetToolTip(cssSlotConfigIdLabel, "CSS slot config ID in decimal (33) or hexadecimal (0x21) format")
         toolTip.SetToolTip(self.checkbox, "When enabled, character will be installed as a sub character")
         toolTip.SetToolTip(subCharacterLabel, "The CSS slot config ID of the base character for this fighter")
-        toolTip.SetToolTip(rb1, "All IDs will be selected automatically")      
-        toolTip.SetToolTip(rb2, "Manually specify fighter ID and cosmetic ID")
-        toolTip.SetToolTip(rb3, "Manually specify all Ex config IDs") 
+        toolTip.SetToolTip(self.rb1, "All IDs will be selected automatically")      
+        toolTip.SetToolTip(self.rb2, "Manually specify fighter ID and cosmetic ID")
+        toolTip.SetToolTip(self.rb3, "Manually specify all Ex config IDs") 
 
         # Add controls
         self.Controls.Add(installButton)
@@ -215,6 +216,21 @@ class CharacterForm(Form):
         else:
             self.subCharacterGroup.Visible = False
             clearTextBoxes(self.subCharacterGroup)
+
+    def installButtonPressed(self, sender, args):
+        validationPassed = True
+        if self.rb2.Checked or self.rb3.Checked:
+            valid = validateTextBoxes(self.fighterIdGroup)
+            if not valid:
+                validationPassed = False
+        if self.rb3.Checked:
+            valid = validateTextBoxes(self.configIdGroup)
+            if not valid:
+                validationPassed = False
+        if self.checkbox.Checked:
+            valid = validateTextBoxes(self.subCharacterGroup)
+            if not valid:
+                validationPassed = False
 
 #endregion CHARACTER FORM
 
