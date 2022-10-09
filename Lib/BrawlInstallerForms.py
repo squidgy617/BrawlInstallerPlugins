@@ -7,6 +7,238 @@ from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
 
+#region COSTUME PROMPT
+
+class CostumePrompt(Form):
+
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Install Costume'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimumSize = Size(250,128)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        # Form vars
+        self.cspFiles = []
+        self.bpFiles = []
+        self.stockFiles = []
+        self.costumeFiles = []
+
+        # File Picker boxes
+        self.fileGroup = GroupBox()
+        self.fileGroup.Height = 192
+        self.fileGroup.Dock = DockStyle.Top
+        self.fileGroup.TabIndex = 1
+
+        # CSPs
+        cspPanel = Panel()
+        cspPanel.Location = Point(16, 16)
+        cspPanel.TabIndex = 1
+        cspPanel.Height = 32
+        cspLabel = Label()
+        cspLabel.Location = Point(0, 0)
+        cspLabel.Text = "CSPs:"
+        cspLabel.Width = 64
+        self.cspListBox = ListBox()
+        self.cspListBox.Width = 80
+        self.cspListBox.Height = 32
+        self.cspListBox.Location = Point(64, 0)
+        cspButton = Button()
+        cspButton.Location = Point(152, 0)
+        cspButton.Text = "..."
+        cspButton.Size = Size(24,24)
+        cspButton.Click += self.cspButtonPressed
+
+        cspPanel.Controls.Add(cspLabel)
+        cspPanel.Controls.Add(self.cspListBox)
+        cspPanel.Controls.Add(cspButton)
+
+        # BPs
+        bpPanel = Panel()
+        bpPanel.Location = Point(16, 64)
+        bpPanel.TabIndex = 2
+        bpPanel.Height = 32
+        bpLabel = Label()
+        bpLabel.Location = Point(0, 0)
+        bpLabel.Text = "BPs:"
+        bpLabel.Width = 64
+        self.bpListBox = ListBox()
+        self.bpListBox.Width = 80
+        self.bpListBox.Height = 32
+        self.bpListBox.Location = Point(64, 0)
+        bpButton = Button()
+        bpButton.Location = Point(152, 0)
+        bpButton.Text = "..."
+        bpButton.Size = Size(24,24)
+        bpButton.Click += self.bpButtonPressed
+
+        bpPanel.Controls.Add(bpLabel)
+        bpPanel.Controls.Add(self.bpListBox)
+        bpPanel.Controls.Add(bpButton)
+
+        # Stocks
+        stockPanel = Panel()
+        stockPanel.Location = Point(16, 112)
+        stockPanel.TabIndex = 3
+        stockPanel.Height = 32
+        stockLabel = Label()
+        stockLabel.Location = Point(0, 0)
+        stockLabel.Text = "Stocks:"
+        stockLabel.Width = 64
+        self.stockListBox = ListBox()
+        self.stockListBox.Width = 80
+        self.stockListBox.Height = 32
+        self.stockListBox.Location = Point(64, 0)
+        stockButton = Button()
+        stockButton.Location = Point(152, 0)
+        stockButton.Text = "..."
+        stockButton.Size = Size(24,24)
+        stockButton.Click += self.stockButtonPressed
+
+        stockPanel.Controls.Add(stockLabel)
+        stockPanel.Controls.Add(self.stockListBox)
+        stockPanel.Controls.Add(stockButton)
+
+        # Costume Files
+        costumePanel = Panel()
+        costumePanel.Location = Point(16, 160)
+        costumePanel.TabIndex = 4
+        costumePanel.Height = 32
+        costumeLabel = Label()
+        costumeLabel.Location = Point(0, 0)
+        costumeLabel.Text = "PAC Files:"
+        costumeLabel.Width = 64
+        self.costumeListBox = ListBox()
+        self.costumeListBox.Width = 80
+        self.costumeListBox.Height = 32
+        self.costumeListBox.Location = Point(64, 0)
+        costumeButton = Button()
+        costumeButton.Location = Point(152, 0)
+        costumeButton.Text = "..."
+        costumeButton.Size = Size(24,24)
+        costumeButton.Click += self.costumeButtonPressed
+
+        costumePanel.Controls.Add(costumeLabel)
+        costumePanel.Controls.Add(self.costumeListBox)
+        costumePanel.Controls.Add(costumeButton)
+
+        self.fileGroup.Controls.Add(cspPanel)
+        self.fileGroup.Controls.Add(bpPanel)
+        self.fileGroup.Controls.Add(stockPanel)
+        self.fileGroup.Controls.Add(costumePanel)
+
+        # Fighter ID box
+        self.fighterIdGroup = GroupBox()
+        self.fighterIdGroup.Height = 128
+        self.fighterIdGroup.Dock = DockStyle.Top
+        self.fighterIdGroup.TabIndex = 2
+
+        fighterIdPanel = Panel()
+        fighterIdPanel.Location = Point(16, 16)
+        fighterIdPanel.TabIndex = 1
+        fighterIdLabel = Label()
+        fighterIdLabel.Dock = DockStyle.Left
+        fighterIdLabel.Text = "Fighter ID:"
+        self.fighterIdTextbox = TextBox()
+        self.fighterIdTextbox.Dock = DockStyle.Right
+
+        fighterIdPanel.Controls.Add(fighterIdLabel)
+        fighterIdPanel.Controls.Add(self.fighterIdTextbox)
+
+        cosmeticIdPanel = Panel()
+        cosmeticIdPanel.Location = Point(16, 48)
+        cosmeticIdPanel.TabIndex = 2
+        cosmeticIdLabel = Label()
+        cosmeticIdLabel.Dock = DockStyle.Left
+        cosmeticIdLabel.Text = "Cosmetic ID:"
+        self.cosmeticIdTextbox = TextBox()
+        self.cosmeticIdTextbox.Dock = DockStyle.Right
+
+        cosmeticIdPanel.Controls.Add(cosmeticIdLabel)
+        cosmeticIdPanel.Controls.Add(self.cosmeticIdTextbox)
+
+        cssSlotConfigIdPanel = Panel()
+        cssSlotConfigIdPanel.Location = Point(16, 80)
+        cssSlotConfigIdPanel.TabIndex = 3
+        cssSlotConfigIdLabel = Label()
+        cssSlotConfigIdLabel.Dock = DockStyle.Left
+        cssSlotConfigIdLabel.Text = "CSS Slot ID:"
+        self.cssSlotConfigIdTextbox = TextBox()
+        self.cssSlotConfigIdTextbox.Dock = DockStyle.Right
+
+        cssSlotConfigIdPanel.Controls.Add(cssSlotConfigIdLabel)
+        cssSlotConfigIdPanel.Controls.Add(self.cssSlotConfigIdTextbox)
+
+        self.fighterIdGroup.Controls.Add(cssSlotConfigIdPanel)
+        self.fighterIdGroup.Controls.Add(cosmeticIdPanel)
+        self.fighterIdGroup.Controls.Add(fighterIdPanel)
+
+        # Install button
+        installButton = Button()
+        installButton.Text = "Install"
+        installButton.Dock = DockStyle.Bottom
+        installButton.Click += self.installButtonPressed
+
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(fighterIdLabel, "Fighter ID in decimal (33) or hexadecimal (0x21) format")
+        toolTip.SetToolTip(cosmeticIdLabel, "Cosmetic ID in decimal (33) or hexadecimal (0x21) format")
+        toolTip.SetToolTip(cssSlotConfigIdLabel, "CSS slot config ID in decimal (33) or hexadecimal (0x21) format")
+        toolTip.SetToolTip(cspLabel, "CSP images for your costume")
+        toolTip.SetToolTip(bpLabel, "BP images for your costume")
+        toolTip.SetToolTip(stockLabel, "Stock icon images for your costume")
+        toolTip.SetToolTip(costumeLabel, "Costume .pac files for your costume")
+        
+
+        # Add controls
+        self.Controls.Add(installButton)
+        self.Controls.Add(self.fileGroup)
+        self.Controls.Add(self.fighterIdGroup)
+
+    def cspButtonPressed(self, sender, args):
+        self.cspFiles = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
+        if self.cspFiles:
+            for file in self.cspFiles:
+                self.cspListBox.Items.Add(getFileInfo(file).Name)
+
+    def bpButtonPressed(self, sender, args):
+        self.bpFiles = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
+        if self.bpFiles:
+            for file in self.bpFiles:
+                self.bpListBox.Items.Add(getFileInfo(file).Name)
+
+    def stockButtonPressed(self, sender, args):
+        self.stockFiles = BrawlAPI.OpenMultiFileDialog("Select stock icons", "PNG files|*.png")
+        if self.stockFiles:
+            for file in self.stockFiles:
+                self.stockListBox.Items.Add(getFileInfo(file).Name)
+
+    def costumeButtonPressed(self, sender, args):
+        self.costumeFiles = BrawlAPI.OpenMultiFileDialog("Select costume .pac files", "PAC files|*.pac")
+        if self.costumeFiles:
+            for file in self.costumeFiles:
+                self.costumeListBox.Items.Add(getFileInfo(file).Name)
+
+    def installButtonPressed(self, sender, args):
+        valid = validateTextBoxes(self.fighterIdGroup)
+        if not valid:
+            BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
+            return
+        if not self.cspFiles or not self.bpFiles or not self.stockFiles or not self.costumeFiles:
+            proceed = BrawlAPI.ShowYesNoPrompt("You have not added all possible files. Would you like to proceed anyway?", "Files Missing")
+            if proceed:
+                self.DialogResult = DialogResult.OK
+                self.Close()
+            else:
+                return
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+#endregion COSTUME PROMPT
+
 #region CHARACTER FORM
 
 class CharacterForm(Form):
