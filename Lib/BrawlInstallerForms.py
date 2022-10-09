@@ -231,6 +231,15 @@ class CharacterForm(Form):
             valid = validateTextBoxes(self.subCharacterGroup)
             if not valid:
                 validationPassed = False
+        if validationPassed == True:
+            conflictText = idConflictCheck(self.fighterIdTextbox.Text, self.cosmeticIdTextbox.Text, self.slotConfigIdTextbox.Text, self.cosmeticConfigIdTextbox.Text, self.cssSlotConfigIdTextbox.Text)
+            if conflictText:
+                overwrite = BrawlAPI.ShowYesNoPrompt(conflictText + '\n\n Would you like to overwrite existing IDs?', 'Conflicts Found')
+                if not overwrite:
+                    return
+                # Do stuff here
+        else:
+            BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
 
 #endregion CHARACTER FORM
 

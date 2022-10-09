@@ -211,7 +211,9 @@ def validateTextBoxes(groupBox):
 		validationPassed = True
 		for control in groupBox.Controls:
 			if control.GetType() == Panel:
-				validateTextBoxes(control)
+				valid = validateTextBoxes(control)
+				if not valid:
+					validationPassed = False
 			elif control.GetType() == TextBox:
 				valid = hexId(control.Text)
 				control.BackColor = Color.White if valid else Color.LightPink
@@ -527,13 +529,13 @@ def boolText(boolVal):
 def hexId(id):
 		if str(id).startswith('0x'):
 			try:
-				int(id, 16)
+				int(id.replace('0x',''), 16)
 			except ValueError:
 				return ""
-			id = addLeadingZeros(str(id).upper().replace('0X', '0x'), 2)
+			id = '0x' + addLeadingZeros(str(id).upper().replace('0X', ''), 2)
 			return id
 		elif str(id).isnumeric():
-			id = addLeadingZeros(str(hex(int(id))).upper().replace('0X', '0x'), 2)
+			id = '0x' + addLeadingZeros(str(hex(int(id))).upper().replace('0X', ''), 2)
 			return id
 		else:
 			return ""
@@ -4375,6 +4377,66 @@ def checkStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2/i
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished checking stock icons")
 		return positions
+
+# Check for conflicts on ex config IDs
+def idConflictCheck(fighterId, cosmeticId, slotConfigId, cosmeticConfigId, cssSlotConfigId):
+		# Standardize the formats for all the IDs
+		if fighterId:
+			fighterId = hexId(fighterId).replace('0x', '').upper()
+		if cosmeticId:
+			cosmeticId = int(hexId(cosmeticId).replace('0x', ''), 16)
+		if slotConfigId:
+			slotConfigId = hexId(slotConfigId).replace('0x', '').upper()
+		if cosmeticConfigId:
+			cosmeticConfigId = hexId(cosmeticConfigId).replace('0x', '').upper()
+		if cssSlotConfigId:
+			cssSlotConfigId = hexId(cssSlotConfigId).replace('0x', '').upper()
+		# If slot config ID wasn't passed, check all ex configs for a conflict, otherwise just check fighter configs
+		if not slotConfigId:
+			existingFighterConfig = searchAllExConfigs(fighterId)
+		else:
+			existingFighterConfig = searchForExConfig('Fighter', fighterId)
+		# If any configs are blank, default to fighter ID
+		if not slotConfigId:
+			slotConfigId = fighterId
+		if not cosmeticConfigId:
+			cosmeticConfigId = fighterId
+		if not cssSlotConfigId:
+			cssSlotConfigId = fighterId
+		returnText = "The following IDs are already in use:\n"
+		conflictFound = False
+		# Check fighter config
+		if existingFighterConfig:
+			conflictFound = True
+			returnText += "\nFighter ID"
+		# Check cosmetic ID
+		if cosmeticId:
+			existingFile = Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 2) + "0.brres")
+			if existingFile:
+				conflictFound = True
+				returnText += "\nCosmetic ID"
+		# Check cosmetic config
+		if cosmeticConfigId != fighterId:
+			existingCosmeticConfig = searchForExConfig('Cosmetic', cosmeticConfigId)
+			if existingCosmeticConfig:
+				conflictFound = True
+				returnText += "\nCosmetic Config ID"
+		# Check slot config
+		if slotConfigId != fighterId:
+			existingSlotConfig = searchForExConfig('Slot', slotConfigId)
+			if existingSlotConfig:
+				conflictFound = True
+				returnText += "\nSlot Config ID"
+		# Check CSS slot config
+		if cssSlotConfigId != fighterId:
+			existingCssSlotConfig = searchForExConfig('CSSSlot', cssSlotConfigId)
+			if existingCssSlotConfig:
+				conflictFound = True
+				returnText += "\nCSS Slot Config ID"
+		if conflictFound:
+			return returnText
+		else:
+			return ""
 
 def initialSetup():
 		if File.Exists(RESOURCE_PATH + '/settings.ini'):
