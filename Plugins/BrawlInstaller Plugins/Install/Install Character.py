@@ -5,7 +5,7 @@ from InstallLib import *
 from UninstallLib import *
 from BrawlInstallerForms import *
 
-def autoInstall(baseCssSlotId):
+def autoInstall(baseCssSlotId, zipfile):
 		# Get first available ID - start at 3F (63 in dec), first available Ex ID
 		id = 63
 		while True:
@@ -66,7 +66,7 @@ def autoInstall(baseCssSlotId):
 										continue
 							break
 				BrawlAPI.ForceCloseFile()
-		installCharacter(id, cosmeticId, franchiseIconId, True, baseCssSlotId=baseCssSlotId)
+		installCharacter(id, cosmeticId, franchiseIconId, True, baseCssSlotId=baseCssSlotId, zipfile=zipfile)
 
 def main():
 		try: 
@@ -80,12 +80,15 @@ def main():
 				return
 			createLogFile()
 			backupCheck()
+			zipfile = BrawlAPI.OpenFileDialog("Select fighter zip file", "Zip files|*.zip")
+			if not zipfile:
+				return
 			form = CharacterForm()
 			result = form.ShowDialog(MainForm.Instance)
 			if result == DialogResult.OK:
 				if form.rb1.Checked:
 					baseCssSlotId = hexId(form.subCharacterTextbox.Text).replace('0x','')
-					autoInstall(baseCssSlotId)
+					autoInstall(baseCssSlotId, zipfile)
 				else:
 					fighterId = hexId(form.fighterIdTextbox.Text).replace('0x','')
 					if form.cosmeticIdTextbox.Text:
@@ -96,7 +99,7 @@ def main():
 					slotConfigId = hexId(form.slotConfigIdTextbox.Text).replace('0x','')
 					cssSlotConfigId = hexId(form.cssSlotConfigIdTextbox.Text).replace('0x','')
 					baseCssSlotId = hexId(form.subCharacterTextbox.Text).replace('0x','')
-					installCharacter(fighterId, cosmeticId, cosmeticConfigId=cosmeticConfigId, slotConfigId=slotConfigId, cssSlotConfigId=cssSlotConfigId, baseCssSlotId=baseCssSlotId)	
+					installCharacter(fighterId, cosmeticId, cosmeticConfigId=cosmeticConfigId, slotConfigId=slotConfigId, cssSlotConfigId=cssSlotConfigId, baseCssSlotId=baseCssSlotId, zipfile=zipfile)	
 
 		except Exception as e:
 			writeLog("ERROR " + str(e))

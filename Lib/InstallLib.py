@@ -6,7 +6,7 @@ from BrawlInstallerLib import *
 
 #region INSTALL CHARACTER
 
-def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False, cosmeticConfigId="", slotConfigId="", cssSlotConfigId="", baseCssSlotId=""):
+def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False, cosmeticConfigId="", slotConfigId="", cssSlotConfigId="", baseCssSlotId="", zipfile=""):
 		try:
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -17,7 +17,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
 			# Prompt the user to pick a zip file
-			zipfile = BrawlAPI.OpenFileDialog("Select fighter zip file", "Zip files|*.zip")
+			if not zipfile:
+				zipfile = BrawlAPI.OpenFileDialog("Select fighter zip file", "Zip files|*.zip")
 			if zipfile:
 				# Unzip the file and get temp path
 				unzipFile(zipfile)
