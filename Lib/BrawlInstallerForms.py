@@ -237,7 +237,8 @@ class CharacterForm(Form):
                 overwrite = BrawlAPI.ShowYesNoPrompt(conflictText + '\n\n Would you like to overwrite existing IDs?', 'Conflicts Found')
                 if not overwrite:
                     return
-                # Do stuff here
+            self.DialogResult = DialogResult.OK
+            self.Close()
         else:
             BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
 

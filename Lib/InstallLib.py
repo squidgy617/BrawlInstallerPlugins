@@ -72,46 +72,20 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						fighterId = showIdPrompt("Enter your desired fighter ID")
 						fighterId = fighterId.split('0x')[1].upper()
 
+					# Check if fighter ID is already used		
+					if not slotConfigId:
+						existingFighterConfig = searchAllExConfigs(fighterId)
+					else:
+						existingFighterConfig = searchForExConfig('Fighter', fighterId)
+
+					# Default config IDs if not passed
 					if not slotConfigId:
 						slotConfigId = fighterId
 					if not cosmeticConfigId:
 						cosmeticConfigId = fighterId
 					if not cssSlotConfigId:
 						cssSlotConfigId = fighterId
-
-					# Check if fighter ID is already used
 					
-					if not slotConfigId:
-						existingFighterConfig = searchAllExConfigs(fighterId)
-					else:
-						existingFighterConfig = searchForExConfig('Fighter', fighterId)
-					if not auto:
-						if existingFighterConfig:
-							overwriteExistingFighter = BrawlAPI.ShowYesNoPrompt("The fighter ID entered is already in use. Do you want to overwrite the existing fighter?", "Overwrite existing fighter?")
-							if overwriteExistingFighter == False:
-								BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different fighter ID.", "Aborting Installation")
-								return
-						if cosmeticConfigId != fighterId:
-							existingCosmeticConfig = searchForExConfig('Cosmetic', cosmeticConfigId)
-							if existingCosmeticConfig:
-								overwriteExistingCosmetic = BrawlAPI.ShowYesNoPrompt("The cosmetic config ID entered is already in use. Do you want to overwrite?", "Overwrite existing fighter?")
-								if overwriteExistingCosmetic == False:
-									BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different ID.", "Aborting Installation")
-									return
-						if slotConfigId != fighterId:
-							existingSlotConfig = searchForExConfig('Slot', slotConfigId)
-							if existingSlotConfig:
-								overwriteExistingSlot = BrawlAPI.ShowYesNoPrompt("The slot config ID entered is already in use. Do you want to overwrite?", "Overwrite existing fighter?")
-								if overwriteExistingSlot == False:
-									BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different ID.", "Aborting Installation")
-									return
-						if cssSlotConfigId != fighterId:
-							existingCssSlotConfig = searchForExConfig('CSSSlot', cssSlotConfigId)
-							if existingCssSlotConfig:
-								overwriteExistingCssSlot = BrawlAPI.ShowYesNoPrompt("The CSS slot config ID entered is already in use. Do you want to overwrite?", "Overwrite existing fighter?")
-								if overwriteExistingCssSlot == False:
-									BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different ID.", "Aborting Installation")
-									return
 					# Check if fighter name is already used
 					oldFighterName = ""
 					existingFighterName = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter', fighterInfo.fighterName)
@@ -135,19 +109,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										return
 								else:
 									break
-					# Prompt user to input cosmetic ID
-					if not cosmeticId:
-						cosmeticId = showIdPrompt("Enter your desired cosmetic ID")
-						cosmeticId = int(cosmeticId, 16)
-
-					# Check if cosmetic ID is already used
-					if not auto:
-						existingFile = Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "MenSelchrFaceB" + addLeadingZeros(cosmeticId, 2) + "0.brres")
-						if existingFile:
-							overwriteExistingCosmetic = BrawlAPI.ShowYesNoPrompt("The cosmetic ID entered is already in use. Do you want to overwrite the existing cosmetics?", "Overwrite existing cosmetics?")
-							if overwriteExistingCosmetic == False:
-								BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different cosmetic ID.", "Aborting Installation")
-								return
+					
 					# Victory theme checks
 					if victoryThemeFolder:
 						# Ask user if they would like to install the included victory theme
