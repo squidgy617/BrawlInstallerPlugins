@@ -38,7 +38,8 @@ def autoInstall(baseCssSlotId, zipfile):
 		id = hexId(id).replace('0x', '')
 
 		# Get the first available cosmetic ID
-		cosmeticId = 0
+		# Start at 52, first available ID after random
+		cosmeticId = 52
 		if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'):
 			while True:
 				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "*.brres"):
