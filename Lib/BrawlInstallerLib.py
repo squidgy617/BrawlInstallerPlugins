@@ -785,16 +785,9 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				texNode.Name = "InfStc." + addLeadingZeros(str(startId + i), 4 if fiftyCC == "true" else 3)
 				i += 1
 				prevName = texNode.Name
+				if startId + 1 >= endId:
+					texNodes.append(texNode)
 				imageCount -= 1
-			# Move new palettes up
-			#paletteCount = len(images)
-			#prevName = "InfStc." + addLeadingZeros(str(startId), 4 if fiftyCC == "true" else 3)
-			#while paletteCount > 0:
-			#	palNode = palFolder.Children[len(palFolder.Children) - paletteCount]
-			#	while palNode.PrevSibling() is not None and palNode.PrevSibling().Name != prevName:
-			#		palNode.MoveUp()
-			#	prevName = palNode.Name
-			#	paletteCount -= 1
 			# Add new names to pat0
 			if pat0BresName == "":
 				return
@@ -811,6 +804,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 					frameCount = 9201 if fiftyCC == "true" else 501
 					if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
 						frameCount += 100
+					removeFromPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
 					addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
 		writeLog("Finished stock icons update")
 
