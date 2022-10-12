@@ -201,24 +201,28 @@ class CostumePrompt(Form):
     def cspButtonPressed(self, sender, args):
         self.cspFiles = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
         if self.cspFiles:
+            self.cspListBox.Items.Clear()
             for file in self.cspFiles:
                 self.cspListBox.Items.Add(getFileInfo(file).Name)
 
     def bpButtonPressed(self, sender, args):
         self.bpFiles = BrawlAPI.OpenMultiFileDialog("Select BPs", "PNG files|*.png")
         if self.bpFiles:
+            self.bpListBox.Items.Clear()
             for file in self.bpFiles:
                 self.bpListBox.Items.Add(getFileInfo(file).Name)
 
     def stockButtonPressed(self, sender, args):
         self.stockFiles = BrawlAPI.OpenMultiFileDialog("Select stock icons", "PNG files|*.png")
         if self.stockFiles:
+            self.stockListBox.Items.Clear()
             for file in self.stockFiles:
                 self.stockListBox.Items.Add(getFileInfo(file).Name)
 
     def costumeButtonPressed(self, sender, args):
         self.costumeFiles = BrawlAPI.OpenMultiFileDialog("Select costume .pac files", "PAC files|*.pac")
         if self.costumeFiles:
+            self.costumeListBox.Items.Clear()
             for file in self.costumeFiles:
                 self.costumeListBox.Items.Add(getFileInfo(file).Name)
 
