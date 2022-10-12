@@ -4108,7 +4108,7 @@ def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="
 					endId = i + 1
 				i += 1
 		if endId == -1:
-			endId = startId
+			endId = startId + increment
 		# We work backwards or forwards depending on if we are incrementing or decrementing - this prevents us from overwriting files before they can be renamed
 		if increment > -1:
 			id = endId
