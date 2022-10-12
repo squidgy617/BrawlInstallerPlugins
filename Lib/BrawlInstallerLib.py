@@ -4094,6 +4094,7 @@ def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="
 		# For 50 costume code, we must multiply the cosmetic ID by 50
 		directory = MainForm.BuildPath + '/pf/info/portrite'
 		startId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
+		endId = -1
 		if endIndex != -1:
 			endId = (cosmeticId * 50) + endIndex if fiftyCC == "true" else int(str(cosmeticId) + str(endIndex))
 			writeLog("End ID " + str(endId))
@@ -4102,9 +4103,12 @@ def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="
 			end = (cosmeticId * (50 if fiftyCC=="true" else 1)) + 50 if fiftyCC=="true" else 10
 			i = startId
 			while i < end:
+				writeLog("On ID " + str(i))
 				if File.Exists(directory + '/InfFace' + addLeadingZeros(str(i), 4 if fiftyCC == "true" else 3) + '.brres'):
 					endId = i + 1
 				i += 1
+		if endId == -1:
+			endId = startId
 		# We work backwards or forwards depending on if we are incrementing or decrementing - this prevents us from overwriting files before they can be renamed
 		if increment > -1:
 			id = endId
