@@ -1324,10 +1324,11 @@ def getUsedCostumeIds(cssSlotConfigId):
 		return usedCostumes
 
 # Import costume files to fighter folder
-def importCostumeFiles(files, fighterName, cssSlotConfigId):
+def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 		writeLog("Attempting to move costume files")
 		usedIds = getUsedCostumeIds(cssSlotConfigId)
 		costumes = []
+		j = 0
 		for file in files:
 			color = 11
 			# Get first unused ID
@@ -1339,10 +1340,17 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId):
 			if 'Etc' in file.Name or 'Entry' in file.Name or 'Result' in file.Name or 'Final' in file.Name:
 				continue
 			# If the costume ends in a color, store that, otherwise default to Grey
+			colorSet = False
 			for key, value in sorted(COSTUME_COLOR.items()):
 				if file.Name.endswith(key + '.pac'):
 					writeLog("Color ends with " + str(key) + ", setting to " + str(value))
 					color = value
+					colorSet = True
+			if not colorSet:
+				if len(images) >= j:
+					form = ColorPrompt(Bitmap(images[j]))
+					result = form.ShowDialog(MainForm.Instance)
+					color = form.selectedColor
 			usedIds.append(id)
 			costumes.append((id, color))
 			# Copy the file
@@ -1366,6 +1374,7 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId):
 				if relatedFileName:
 					createBackup(MainForm.BuildPath + '/pf/fighter/' + fighterName + '/' + relatedFileName)
 					copyRenameFile(file.FullName, relatedFileName, MainForm.BuildPath + '/pf/fighter/' + fighterName)
+			j += 1
 		writeLog("Finished importing costume files")
 		return costumes
 
@@ -1389,6 +1398,29 @@ def addCssSlots(costumes, position, cssSlotConfigId):
 					while i >= position:
 						newNode.MoveUp()
 						i -= 1
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished adding CSS slot config entries")
+
+# Enable all costumes on a fighter config
+def enableAllCostumes(fighterConfigId):
+		writeLog("Enabling all costumes for ID " + str(fighterConfigId))
+		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + str(fighterConfigId) + '.dat'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + str(fighterConfigId) + '.dat')
+			if fileOpened:
+				root = BrawlAPI.RootNode
+				root.HasCostume00 = True
+				root.HasCostume01 = True
+				root.HasCostume02 = True
+				root.HasCostume03 = True
+				root.HasCostume04 = True
+				root.HasCostume05 = True
+				root.HasCostume06 = True
+				root.HasCostume07 = True
+				root.HasCostume08 = True
+				root.HasCostume09 = True
+				root.HasCostume10 = True
+				root.HasCostume11 = True
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished adding CSS slot config entries")		
@@ -4734,3 +4766,70 @@ class SlotConfigInfo:
 			self.redirectId = redirectId
 
 #endregion CLASSES
+
+#region COLOR PROMPT
+
+class ColorPrompt(Form):
+
+	def __init__(self, image):
+		# Form parameters
+		self.Text = 'Select Color'
+		self.StartPosition = FormStartPosition.CenterParent
+		self.ShowIcon = False
+		self.AutoSize = True
+		self.MinimumSize = Size(250,250)
+		self.FormBorderStyle = FormBorderStyle.FixedSingle
+		self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+		# Form vars
+		self.selectedColor = 0
+
+		# Picturebox
+		pictureBox = PictureBox()
+		pictureBox.Dock = DockStyle.Top
+		pictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+		pictureBox.Image = image
+		pictureBox.Size = Size(128, 160)
+
+		# Combobox
+		self.comboBoxGroup = GroupBox()
+		self.comboBoxGroup.Height = 60
+		self.comboBoxGroup.Dock = DockStyle.Bottom
+		self.comboBoxGroup.TabIndex = 1
+
+		comboBoxPanel = Panel()
+		comboBoxPanel.Location = Point(16, 16)
+		comboBoxPanel.TabIndex = 1
+		self.comboBox = ComboBox()
+		self.comboBox.Dock = DockStyle.Fill
+		self.comboBox.DropDownStyle = ComboBoxStyle.DropDownList
+		self.comboBox.DisplayMember = "Key"
+		self.comboBox.ValueMember = "Value"
+		for object in COSTUME_COLOR:
+			self.comboBox.Items.Add(object)
+
+		comboBoxPanel.Controls.Add(self.comboBox)
+
+		self.comboBoxGroup.Controls.Add(comboBoxPanel)
+
+		# Confirm button
+		confirmButton = Button()
+		confirmButton.Text = "Set Color"
+		confirmButton.Dock = DockStyle.Bottom
+		confirmButton.Click += self.confirmButtonPressed
+
+		self.Controls.Add(self.comboBoxGroup)
+		self.Controls.Add(confirmButton)
+		self.Controls.Add(pictureBox)
+
+	def confirmButtonPressed(self, sender, args):
+		if self.comboBox.SelectedItem:
+			self.selectedColor = COSTUME_COLOR[self.comboBox.SelectedItem]
+		else:
+			self.selectedColor = 11
+		self.DialogResult = DialogResult.OK
+		self.Close()
+
+#endregion
+
+#region COSTUME PROMPT

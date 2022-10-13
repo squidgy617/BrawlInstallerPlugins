@@ -850,13 +850,14 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 
 
 			# Costume files
-			costumes = importCostumeFiles(costumeFiles, fighterInfo.fighterName, cssSlotConfigId)
+			costumes = importCostumeFiles(costumeFiles, fighterInfo.fighterName, cssSlotConfigId, cspImages)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			
 			
 			# Ex Config
+			enableAllCostumes(fighterId)
 			addCssSlots(costumes, index, cssSlotConfigId)
 			progressCounter += 1
 			progressBar.Update(progressCounter)
