@@ -59,12 +59,10 @@ def autoInstall(baseCssSlotId, zipfile):
 					texFolder = getChildByName(bresNode, "Textures(NW4R)")
 					if texFolder:
 						while True:
-							for child in texFolder.Children:
-								if child.Name.startswith('MenSelchrMark.'):
-									foundId = int(child.Name.split('MenSelchrMark.')[1])
-									if foundId == franchiseIconId:
-										franchiseIconId += 1
-										continue
+							foundNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
+							if foundNode:
+								franchiseIconId += 1
+								continue
 							break
 				BrawlAPI.ForceCloseFile()
 		installCharacter(id, cosmeticId, franchiseIconId, True, baseCssSlotId=baseCssSlotId, zipfile=zipfile)
