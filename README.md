@@ -99,6 +99,20 @@ This usually means one of two things - one, your build is not configured to use 
 For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file). This expanded CSS supports up to 72 slots.
 </details>
 
+<details>
+  <summary><b>My character's costumes and portraits don't match up.</b></summary>
+  
+  This usually means you packaged your character incorrectly. Ensure that that the entries in the fighter's CSSSlotConfig and their cosmetics are in the correct order, and ensure that the CSSSlotConfig entries point to the right .pac files.
+  
+</details>
+
+<details>
+  <summary><b>I get an error about "color smashing", and/or the character portraits in game look messed up.</b></summary>
+  
+  This usually means you provided bad cosmetics, or you put cosmetics together in a folder when they shouldn't have been. Verify that all of your folders in the "CSPs" and "StockIcons" directories of your character package contain only cosmetics that are recolors of each other, and ensure any provided images are the right size and are color smashable.
+  
+</details>
+
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
