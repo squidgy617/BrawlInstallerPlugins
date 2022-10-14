@@ -41,7 +41,7 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [QuickLava's fork of the P+ EX code menu](https://github.com/QuickLava/PowerPC-Assembly-Functions). You will want to ensure this is installed in your build's root folder (should be in the same directory as the /pf/ folder). **This is necessary if you want your character added to the code menu.**
 - **(OPTIONAL)** The latest version of [QuickLava's Sawnd ID Replace Assist](https://github.com/QuickLava/lavaSawndIDReplaceAssist). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
 - **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs or Effect.pac IDs in the event of a conflict.**
-- **(OPTIONAL)** The latest version of [Kapedani's Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases). This can be installed over your P+Ex build's root directory. **This is only necessary if you are not on the latest P+Ex version and would like to install your characters into Subspace Emissary mode.**
+- **(OPTIONAL)** The latest version of [Kapedani's Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases). This can be installed over your P+Ex build's root directory. **This is only necessary if you are not on the latest P+Ex version and would like to install your characters into Subspace Emissary mode.** If you want additional CSS slots for SSE, you can also download a basic expanded CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file).
 - If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages).
 
 ## Setup
@@ -83,6 +83,21 @@ Click the above link to see detailed documentation on all of the plugins include
 # [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Settings)
 
 BrawlInstaller supports a wide variety of different settings that enable users to customize it to fit their build. Click the above link to see detailed documentation on all of these settings.
+
+# FAQ
+<details>
+<summary><b>There are errors/crashes when my fighter is in a battle with Kirby.</b></summary>
+
+This is not something BrawlInstaller can account for, but is actually a known issue with the KirbyHatEx system. The system is still not entirely stable, and not everything is known about how the hats interact with different fighters and IDs. Most likely, the cause is either an incompatibility with your character, your chosen ID, the chosen base fighter ID for the Kirby hat, or a combination of the three. If you run into Kirby-related issues, try uninstalling your character and reinstalling them to a different fighter ID or installing them with a different base fighter ID for their Kirby hat.
+</details>
+
+<details>
+<summary><b>I added my character but don't see them on the character select screen/SSE character select.</b></summary>
+
+This usually means one of two things - one, your build is not configured to use CSSRoster.dat, or two, you ran out of animated CSS slots in your build. If you're using P+Ex, the roster will only automatically expand up to a certain number of slots, and other builds may not even have the roster automatically expanding. In such a case, you'll have to expand it manually, which can be done in a similar manner to the steps outlined in [this guide](https://docs.google.com/document/d/14XJvGTD8WhBj17VcTE46cEsAW6g45MgPipQq6_BLDcE/edit). (see section Animate more CSS slots into selchar)
+
+For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file). This expanded CSS supports up to 72 slots.
+</details>
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
