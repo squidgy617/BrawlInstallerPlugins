@@ -1,10 +1,12 @@
-version = "1.4.0"
-# ExtractLib
-# Library for BrawlInstaller's extraction plugins
+version = "1.5.0"
+# InstallLib
+# Library for BrawlInstaller's installation plugins
 
 from BrawlInstallerLib import *
 
-def installCharacter(baseCssSlotId=""):
+#region INSTALL CHARACTER
+
+def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False, cosmeticConfigId="", slotConfigId="", cssSlotConfigId="", baseCssSlotId="", zipfile=""):
 		try:
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -15,7 +17,8 @@ def installCharacter(baseCssSlotId=""):
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
 			# Prompt the user to pick a zip file
-			zipfile = BrawlAPI.OpenFileDialog("Select fighter zip file", "Zip files|*.zip")
+			if not zipfile:
+				zipfile = BrawlAPI.OpenFileDialog("Select fighter zip file", "Zip files|*.zip")
 			if zipfile:
 				# Unzip the file and get temp path
 				unzipFile(zipfile)
@@ -57,7 +60,6 @@ def installCharacter(baseCssSlotId=""):
 					uninstallVictoryTheme = 0
 					uninstallCreditsTheme = 0
 					newSoundbankId = ""
-					franchiseIconId = -1
 					victoryThemeId = 0
 					creditsThemeId = 0
 					overwriteFighterName = ""
@@ -67,16 +69,24 @@ def installCharacter(baseCssSlotId=""):
 					#region USER INPUT/PRELIMINARY CHECKS
 
 					# Prompt user to input fighter ID
-					fighterId = showIdPrompt("Enter your desired fighter ID")
-					fighterId = fighterId.split('0x')[1].upper()
+					if not fighterId:
+						fighterId = showIdPrompt("Enter your desired fighter ID")
+						fighterId = fighterId.split('0x')[1].upper()
 
-					# Check if fighter ID is already used
-					existingFighterConfig = getFighterConfig(fighterId)
-					if existingFighterConfig:
-						overwriteExistingFighter = BrawlAPI.ShowYesNoPrompt("The fighter ID entered is already in use. Do you want to overwrite the existing fighter?", "Overwrite existing fighter?")
-						if overwriteExistingFighter == False:
-							BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different fighter ID.", "Aborting Installation")
-							return
+					# Check if fighter ID is already used		
+					if not slotConfigId:
+						existingFighterConfig = searchAllExConfigs(fighterId)
+					else:
+						existingFighterConfig = searchForExConfig('Fighter', fighterId)
+
+					# Default config IDs if not passed
+					if not slotConfigId:
+						slotConfigId = fighterId
+					if not cosmeticConfigId:
+						cosmeticConfigId = fighterId
+					if not cssSlotConfigId:
+						cssSlotConfigId = fighterId
+					
 					# Check if fighter name is already used
 					oldFighterName = ""
 					existingFighterName = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter', fighterInfo.fighterName)
@@ -100,17 +110,7 @@ def installCharacter(baseCssSlotId=""):
 										return
 								else:
 									break
-					# Prompt user to input cosmetic ID
-					cosmeticId = showIdPrompt("Enter your desired cosmetic ID")
-					cosmeticId = int(cosmeticId, 16)
-
-					# Check if cosmetic ID is already used
-					existingFile = Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "MenSelchrFaceB" + addLeadingZeros(cosmeticId, 2) + "0.brres")
-					if existingFile:
-						overwriteExistingCosmetic = BrawlAPI.ShowYesNoPrompt("The cosmetic ID entered is already in use. Do you want to overwrite the existing cosmetics?", "Overwrite existing cosmetics?")
-						if overwriteExistingCosmetic == False:
-							BrawlAPI.ShowMessage("Fighter installation will abort. Please try again with a different cosmetic ID.", "Aborting Installation")
-							return
+					
 					# Victory theme checks
 					if victoryThemeFolder:
 						# Ask user if they would like to install the included victory theme
@@ -124,7 +124,7 @@ def installCharacter(baseCssSlotId=""):
 						if installVictoryTheme:
 							existingSlotConfig = getSlotConfig(fighterId)
 							if existingSlotConfig:
-								oldVictoryThemeName = getVictoryThemeByFighterId(fighterId)
+								oldVictoryThemeName = getVictoryThemeByFighterId(slotConfigId)
 								if oldVictoryThemeName:
 									victoryThemeName = getFileInfo(Directory.GetFiles(folder + '/VictoryTheme', "*.brstm")[0]).Name
 									if oldVictoryThemeName != victoryThemeName.split('.brstm')[0]:
@@ -141,7 +141,7 @@ def installCharacter(baseCssSlotId=""):
 								creditsThemeId = int(creditsThemeId, 16)
 						# Check if existing fighter has a different credits theme
 						if doInstallCreditsTheme:
-							oldThemeId = updateCreditsCode(fighterId, "", read=True)
+							oldThemeId = updateCreditsCode(slotConfigId, "", read=True)
 							if oldThemeId and oldThemeId != "0x0000":
 								oldCreditsThemeName = getSongNameById(int(oldThemeId, 16), 'Credits', 'Credits')
 								creditsThemeName = getFileInfo(Directory.GetFiles(folder + '/CreditsTheme', "*.brstm")[0]).Name
@@ -159,12 +159,20 @@ def installCharacter(baseCssSlotId=""):
 							soundbankNameToCheck = addLeadingZeros(str(int(soundbankId, 16) + modifier), 3)
 						soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', soundbankNameToCheck + '.sawnd')
 						if soundbankMatch and settings.sfxChangeExe != "" and settings.sawndReplaceExe != "":
-							changeSoundbankId = BrawlAPI.ShowYesNoPrompt("A soundbank with the same ID already exists. Would you like to change the soundbank ID?", "Soundbank Already Exists")
+							if not auto:
+								changeSoundbankId = BrawlAPI.ShowYesNoPrompt("A soundbank with the same ID already exists. Would you like to change the soundbank ID?", "Soundbank Already Exists")
+							else:
+								changeSoundbankId = True
 							if changeSoundbankId:
 								matchFound = True
 								# Keep prompting for alternate soundbank ID until one that is not used is entered
+								idMod = 0
 								while matchFound:
-									newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
+									if not auto:
+										newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
+									else:
+										# Minimum soundbank ID is 331
+										newSoundbankId = addLeadingZeros(str(331 + idMod), 3)
 									# Ensure soundbank ID is just the hex digits
 									if newSoundbankId.startswith('0x'):
 										newSoundbankId = addLeadingZeros(newSoundbankId.split('0x')[1], 3)
@@ -179,7 +187,11 @@ def installCharacter(baseCssSlotId=""):
 										soundbankNameToCheck = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 									soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', newSoundbankId + '.sawnd')
 									if soundbankMatch:
-										tryAgain = BrawlAPI.ShowYesNoPrompt("Soundbank ID entered already exists. Try entering a different ID?", "Soundbank Already Exists")
+										if not auto:
+											tryAgain = BrawlAPI.ShowYesNoPrompt("Soundbank ID entered already exists. Try entering a different ID?", "Soundbank Already Exists")
+										else:
+											tryAgain = True
+											idMod += 1
 										if tryAgain == False:
 											BrawlAPI.ShowMessage("Fighter installation will abort.", "Aborting Installation")
 											return
@@ -208,11 +220,19 @@ def installCharacter(baseCssSlotId=""):
 									foundEffectId = getEffectId(DirectoryInfo(directory).Name)
 									if effectId == foundEffectId:
 										matchFound = True
-										changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+										if not auto:
+											changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+										else:
+											changeEffectId = True
 										if changeEffectId:
 											idEntered = False
+											idMod = 0
 											while idEntered != True:
-												effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
+												if not auto:
+													effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
+												else: 
+													effectId = str(0 + idMod)
+													idMod += 1
 												# Ensure effect ID is just the hex digits
 												if effectId.startswith('0x'):
 													effectId = addLeadingZeros(effectId.split('0x')[1].upper(), 2)
@@ -235,27 +255,28 @@ def installCharacter(baseCssSlotId=""):
 						doInstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("This character comes with a franchise icon. Would you like to install it?", "Install Franchise Icon")
 						if doInstallFranchiseIcon:
 							franchiseIconUsed = True
-							while franchiseIconUsed:
-								franchiseIconId = BrawlAPI.UserStringInput("Enter your desired franchise icon ID")
-								# Ensure franchise icon ID is in integer format
-								if franchiseIconId.startswith('0x'):
-									franchiseIconId = int(franchiseIconId, 16)
-								elif franchiseIconId.isnumeric():
-									franchiseIconId = int(franchiseIconId)
-								else:
-									BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-									continue
-								franchiseIconUsed = franchiseIconIdUsed(franchiseIconId)
-								if franchiseIconUsed:
-									changeFranchiseIconId = BrawlAPI.ShowYesNoPrompt("A franchise icon with this ID already exists. Would you like to enter a different ID?", "Franchise Icon Already Exists")
-									if changeFranchiseIconId == False:
-										BrawlAPI.ShowMessage("Fighter installation will abort.", "Aborting Installation")
+							if franchiseIconId == -1:
+								while franchiseIconUsed:
+									franchiseIconId = BrawlAPI.UserStringInput("Enter your desired franchise icon ID")
+									# Ensure franchise icon ID is in integer format
+									if franchiseIconId.startswith('0x'):
+										franchiseIconId = int(franchiseIconId, 16)
+									elif franchiseIconId.isnumeric():
+										franchiseIconId = int(franchiseIconId)
+									else:
+										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
+										continue
+									franchiseIconUsed = franchiseIconIdUsed(franchiseIconId)
+									if franchiseIconUsed:
+										changeFranchiseIconId = BrawlAPI.ShowYesNoPrompt("A franchise icon with this ID already exists. Would you like to enter a different ID?", "Franchise Icon Already Exists")
+										if changeFranchiseIconId == False:
+											BrawlAPI.ShowMessage("Fighter installation will abort.", "Aborting Installation")
+											BrawlAPI.ForceCloseFile()
+											return
+										continue
+									else:
 										BrawlAPI.ForceCloseFile()
-										return
-									continue
-								else:
-									BrawlAPI.ForceCloseFile()
-									break
+										break
 						else:
 							newFranchiseIconId = BrawlAPI.ShowYesNoPrompt("Would you like to change the franchise icon ID for this fighter?", "Change franchise icon ID?")
 							while newFranchiseIconId:
@@ -287,23 +308,26 @@ def installCharacter(baseCssSlotId=""):
 						# Get user's preferred icon style
 						iconFolders = Directory.GetDirectories(cssIconFolder.FullName, settings.cssIconStyle)
 						if iconFolders:
-							# Use CMPR for Brawl/PM style icons
-							if settings.cssIconStyle == "vBrawl" or settings.cssIconStyle == "PM":
-								format = WiiPixelFormat.CMPR
-							else:
-								format = WiiPixelFormat.CI8
-							installCSSIcon(cosmeticId, Directory.GetFiles(iconFolders[0], "*.png")[0], format)
-							nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
-							# If a name folder is found in the CSS icon directory, install CSS icon name
-							if nameFolders:
-								installCSSIconName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
+							if len(Directory.GetFiles(iconFolders[0], "*.png")) > 0:
+								# Use CMPR for Brawl/PM style icons
+								if settings.cssIconStyle == "vBrawl" or settings.cssIconStyle == "PM":
+									format = WiiPixelFormat.CMPR
+								else:
+									format = WiiPixelFormat.CI8
+								installCSSIcon(cosmeticId, Directory.GetFiles(iconFolders[0], "*.png")[0], format)
+								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
+								# If a name folder is found in the CSS icon directory, install CSS icon name
+								if nameFolders:
+									if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+										installCSSIconName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
 							BrawlAPI.ShowMessage("Could not find CSS icon in a format that matches your preferences. CSS icon installation will be skipped. Please install a CSS icon manually.", "CSS Icon Not Found")
 					# Install CSS portrait name
 					if portraitNameFolder and settings.installPortraitNames == "true":
 						nameFolders = Directory.GetDirectories(portraitNameFolder.FullName, settings.portraitNameStyle)
 						if nameFolders:
-							installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
+							if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+								installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
 							BrawlAPI.ShowMessage("Could not find portrait name in a format that matches your preferences. Portrait name installation will be skipped. Please install a portrait name manually.", "Portrait Name Not Found")
 					# Install stock icons to sc_selcharacter
@@ -312,7 +336,9 @@ def installCharacter(baseCssSlotId=""):
 					# Install franchise icon to sc_selcharacter
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchiseIconFolderCss = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchiseIconFolderCss[0], "*.png")[0], '/pf/menu2/sc_selcharacter.pac', int(settings.franchiseIconSizeCSS))
+						if franchiseIconFolderCss:
+							if len(Directory.GetFiles(franchiseIconFolderCss[0], "*.png")) > 0:
+								installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchiseIconFolderCss[0], "*.png")[0], '/pf/menu2/sc_selcharacter.pac', int(settings.franchiseIconSizeCSS))
 					# If we did any work in sc_selcharacter, save and close it
 					fileOpened = checkOpenFile("sc_selcharacter")
 					if fileOpened:
@@ -332,7 +358,9 @@ def installCharacter(baseCssSlotId=""):
 					# Install franchise icon to info.pac
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-						installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
+						if franchisIconFolderInfo:
+							if len(Directory.GetFiles(franchisIconFolderInfo[0], "*.png")) > 0:
+								installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/info.pac')
 					# Install BP names to info.pac
 					if bpFolder and settings.installBPNames == "true":
 						# Get preferred BP style
@@ -340,7 +368,8 @@ def installCharacter(baseCssSlotId=""):
 						if bpFolders:
 							nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 							if nameFolders:
-								installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
+								if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+									installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
 					fileOpened = checkOpenFile("info")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -362,7 +391,8 @@ def installCharacter(baseCssSlotId=""):
 								if franchiseIconFolder and doInstallFranchiseIcon:
 									franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 									if franchisIconFolderInfo:
-										installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
+										if len(Directory.GetFiles(franchisIconFolderInfo[0], "*.png")) > 0:
+											installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderInfo[0], "*.png")[0], '/pf/info2/' + fileName)
 								# BP names next
 								if bpFolder and settings.installBPNames == "true":
 									# Get preferred BP style
@@ -370,7 +400,8 @@ def installCharacter(baseCssSlotId=""):
 									if bpFolders:
 										nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 										if nameFolders:
-											installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
+											if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
+												installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
 								fileOpened = checkOpenFile(fileName.split('.pac')[0])
 								if fileOpened:
 									BrawlAPI.SaveFile()
@@ -378,7 +409,8 @@ def installCharacter(baseCssSlotId=""):
 
 					# Import the classic intro file if present
 					if classicIntro:
-						importClassicIntro(cosmeticId, Directory.GetFiles(classicIntro.FullName, "*.brres")[0])
+						if len(Directory.GetFiles(classicIntro.FullName, "*.brres")) > 0:
+							importClassicIntro(cosmeticId, Directory.GetFiles(classicIntro.FullName, "*.brres")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -392,9 +424,10 @@ def installCharacter(baseCssSlotId=""):
 						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
-						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")
+						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")	
 						if franchisIconFolderResult:
-							installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
+							if len(Directory.GetFiles(franchisIconFolderResult[0], "*.png")) > 0:
+								installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
 					fileOpened = checkOpenFile("STGRESULT")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -428,11 +461,13 @@ def installCharacter(baseCssSlotId=""):
 						# Get user's preferred BP style
 						bpFolders = Directory.GetDirectories(bpFolder.FullName, settings.bpStyle)
 						if bpFolders:
-							installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
+							if len(Directory.GetFiles(bpFolders[0], "*.png")) > 0:
+								installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
 						else:
 							bpFolders = Directory.GetDirectories(bpFolder.FullName, "vBrawl")
 							if bpFolders:
-								installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
+								if len(Directory.GetFiles(bpFolders[0], "*.png")) > 0:
+									installBPs(cosmeticId, Directory.GetFiles(bpFolders[0], "*.png"), fiftyCC=settings.fiftyCostumeCode)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -441,7 +476,8 @@ def installCharacter(baseCssSlotId=""):
 					#region Replay Icon
 
 					if replayIconFolder:
-						installReplayIcon(cosmeticId, Directory.GetFiles(replayIconFolder.FullName, "*.png")[0])
+						if len(Directory.GetFiles(replayIconFolder.FullName, "*.png")) > 0:
+							installReplayIcon(cosmeticId, Directory.GetFiles(replayIconFolder.FullName, "*.png")[0])
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 
@@ -451,11 +487,12 @@ def installCharacter(baseCssSlotId=""):
 
 					# If user indicated they want victory theme removed, remove it first
 					if uninstallVictoryTheme:
-						removeSongId = getVictoryThemeIDByFighterId(fighterId)
+						removeSongId = getVictoryThemeIDByFighterId(slotConfigId)
 						removeSong(removeSongId)
 					# Add victory theme
 					if victoryThemeFolder and settings.installVictoryThemes == "true" and installVictoryTheme:
-						victoryThemeId = addSong(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
+						if len(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")) > 0:
+							victoryThemeId = addSong(Directory.GetFiles(victoryThemeFolder.FullName, "*.brstm")[0])
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -477,7 +514,8 @@ def installCharacter(baseCssSlotId=""):
 							newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 						else:
 							newSoundbankId = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
-						moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
+						if len(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")) > 0:
+							moveSoundbank(getFileInfo(Directory.GetFiles(soundbankFolder.FullName, "*.sawnd")[0]), newSoundbankId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -556,7 +594,8 @@ def installCharacter(baseCssSlotId=""):
 
 					# Update and install module file
 					if moduleFolder:
-						installModuleFile(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0], moduleFolder, fighterId, fighterInfo.fighterName, existingFighterConfigName)
+						if len(Directory.GetFiles(moduleFolder.FullName, "*.rel")) > 0:
+							installModuleFile(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0], moduleFolder, fighterId, fighterInfo.fighterName, existingFighterConfigName)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -567,7 +606,7 @@ def installCharacter(baseCssSlotId=""):
 					# Update and move EX configs
 					if exConfigsFolder:
 						useKirbyHat = False if settings.defaultKirbyHat == "none" or kirbyHatFighterId == -1 else True
-						modifyExConfigs(Directory.GetFiles(exConfigsFolder.FullName, "*.dat"), cosmeticId, fighterId, fighterInfo.fighterName, franchiseIconId, useKirbyHat, newSoundbankId, victoryThemeId, kirbyHatFighterId)
+						modifyExConfigs(Directory.GetFiles(exConfigsFolder.FullName, "*.dat"), cosmeticId, fighterId, fighterInfo.fighterName, franchiseIconId, useKirbyHat, newSoundbankId, victoryThemeId, kirbyHatFighterId, cosmeticConfigId, cssSlotConfigId, slotConfigId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -577,20 +616,20 @@ def installCharacter(baseCssSlotId=""):
 
 					# Install ending files if they exist
 					if endingFolder:
-						installEndingFiles(endingFolder, fighterInfo.fighterName, fighterId)
+						installEndingFiles(endingFolder, fighterInfo.fighterName, cosmeticConfigId)
 
 					# If user indicated they want credits theme removed, remove it first
 					if uninstallCreditsTheme:
-						uninstallCreditsSong(fighterId)
+						uninstallCreditsSong(slotConfigId)
 
 					# Update credits codde if ID is provided
 					if fighterSettings.creditsThemeId:
-						updateCreditsCode(fighterId, fighterSettings.creditsThemeId)
+						updateCreditsCode(slotConfigId, fighterSettings.creditsThemeId)
 
 					# Install credits song if one exists
 					if creditsFolder and settings.installVictoryThemes == "true" and doInstallCreditsTheme:
 						if Directory.GetFiles(creditsFolder.FullName, "*.brstm"):
-							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], fighterId)
+							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], slotConfigId)
 
 					# Install trophy if one exists
 					if trophyFolder and settings.installTrophies == "true":
@@ -598,7 +637,7 @@ def installCharacter(baseCssSlotId=""):
 						brresFiles = Directory.GetFiles(trophyFolder.FullName, "*.brres")
 						imageFiles = Directory.GetFiles(trophyFolder.FullName, "*.png")
 						if imageFiles and brresFiles:
-							installTrophy(fighterId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings, settings.installToSse)
+							installTrophy(slotConfigId, brresFiles[0], imageFiles[0], fighterInfo.fighterName, trophySettings, settings.installToSse)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -609,7 +648,7 @@ def installCharacter(baseCssSlotId=""):
 
 					# Add character to SSE roster
 					if settings.installToSse == "true":
-						updateSseModule(fighterId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId)
+						updateSseModule(cssSlotConfigId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId)
 						if cssIconFolder:
 							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
 							if iconFolders:
@@ -621,12 +660,13 @@ def installCharacter(baseCssSlotId=""):
 										cssIconNameSse = nameFiles[0]
 								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
 								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
-								createNewcomerFile(fighterId, imagePath)
+								createNewcomerFile(cosmeticConfigId, imagePath)
 						if stockIconFolder:
 							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
 						if franchiseIconFolder and doInstallFranchiseIcon:
 							franchisIconFolderSse = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
-							installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')
+							if len(Directory.GetFiles(franchisIconFolderSse[0], "*.png")) > 0:
+								installFranchiseIcon(franchiseIconId, Directory.GetFiles(franchisIconFolderSse[0], "*.png")[0], '/pf/menu2/if_adv_mngr.pac')
 						fileOpened = checkOpenFile("if_adv_mngr")
 						if fileOpened:
 							BrawlAPI.SaveFile()
@@ -645,7 +685,7 @@ def installCharacter(baseCssSlotId=""):
 
 					# Add entry to L-load code
 					if baseCssSlotId:
-						addAltCharacter(fighterId, baseCssSlotId)
+						addAltCharacter(cssSlotConfigId, baseCssSlotId)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -713,7 +753,7 @@ def installCharacter(baseCssSlotId=""):
 					# Add fighter to roster
 					if settings.useCssRoster == "true":
 						if not baseCssSlotId:
-							changesMade = addToRoster(fighterId)
+							changesMade = addToRoster(cssSlotConfigId)
 							if changesMade:
 								BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
@@ -726,9 +766,107 @@ def installCharacter(baseCssSlotId=""):
 				# Delete temporary directory
 				Directory.Delete(AppPath + '/temp', 1)
 				archiveBackup()
-				BrawlAPI.ShowMessage("Character successfully installed.", "Success")
+				BrawlAPI.ShowMessage("Character successfully installed with fighter ID 0x" + fighterId + " and cosmetic ID " + str(cosmeticId) + ".", "Success")
 		except Exception as e:
 			if 'progressBar' in locals():
 				progressBar.Finish()
 			raise e
 			
+#endregion INSTALL CHARACTER
+
+#region INSTALL COSTUME
+
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[]):
+		try: 
+			# Get user settings
+			if File.Exists(MainForm.BuildPath + '/settings.ini'):
+				settings = getSettings()
+			else:
+				settings = initialSetup()
+			# If temporary directory already exists, delete it to prevent duplicate files
+			if Directory.Exists(AppPath + '/temp'):
+				Directory.Delete(AppPath + '/temp', 1)
+
+			fighterConfig = getFighterConfig(fighterId)
+			fighterInfo = getFighterInfo(fighterConfig, "", "")
+
+			# Set up progressbar
+			progressCounter = 0
+			progressBar = ProgressWindow(MainForm.Instance, "Installing Costume...", "Installing Costume", False)
+			progressBar.Begin(0, 5, progressCounter)
+
+			# sc_selcharacter
+			index = addCSPs(cosmeticId, cspImages, settings.rspLoading, position, skipPositions)
+			if settings.installStocksToCSS == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+			
+			# If we did any work in sc_selcharacter, save and close it
+			fileOpened = checkOpenFile("sc_selcharacter")
+			if fileOpened:
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# BPs
+			incrementBPNames(cosmeticId, index, increment=len(bpImages), fiftyCC=settings.fiftyCostumeCode)
+			createBPs(cosmeticId, bpImages, startIndex=index)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+			# Stock icons
+			# STGRESULT
+			if settings.installStockIconsToResult == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+				fileOpened = checkOpenFile("STGRESULT")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
+			# info.pac
+			if settings.installStocksToInfo == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
+				fileOpened = checkOpenFile("info")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
+			# StockFaceTex
+			if settings.installStocksToStockFaceTex == "true":
+				addStockIcons(cosmeticId, stockImages, index, "", "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+
+			# sc_selmap
+			if settings.installStocksToSSS == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [40]", "Misc Data [20]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+			
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+
+
+			# Costume files
+			costumes = importCostumeFiles(costumeFiles, fighterInfo.fighterName, cssSlotConfigId, cspImages)
+
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			
+			
+			# Ex Config
+			enableAllCostumes(fighterId)
+			addCssSlots(costumes, index, cssSlotConfigId)
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			progressBar.Finish()
+			BrawlAPI.ShowMessage("Costume installed successfully.", "Success")
+
+		except Exception as e:
+			if 'progressBar' in locals():
+				progressBar.Finish()
+			raise e
+
+#endregion INSTALL COSTUME

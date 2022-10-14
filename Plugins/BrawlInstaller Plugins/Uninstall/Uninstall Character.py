@@ -1,5 +1,5 @@
 __author__ = "Squidgy"
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 from BrawlInstallerLib import *
 
@@ -338,7 +338,7 @@ def main():
 
 			# Remove fighter from roster
 			if settings.useCssRoster == "true":
-				removeFromRoster(fighterId)
+				removeFromRoster(cssSlotConfigId)
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 

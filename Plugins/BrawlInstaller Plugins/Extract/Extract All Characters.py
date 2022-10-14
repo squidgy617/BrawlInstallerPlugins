@@ -1,7 +1,8 @@
 __author__ = "Squidgy"
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
-from InstallLib import *
+from BrawlInstallerLib import *
+from ExtractLib import *
 
 def main():
 		try: 
@@ -14,17 +15,21 @@ def main():
 				BrawlAPI.ShowMessage("Build path does not appear to be valid. Please change your build path by going to 'Tools > Settings' and modifying the 'Default Build Path' field.\n\nYour build path should contain a folder named 'pf' within it.", "Invalid Build Path")
 				return
 			createLogFile()
-			backupCheck()
-			installCharacter()
+
+			destination = BrawlAPI.OpenFolderDialog("Select destination for extracted character package")
+
+			# Get fighter info
+			fighterList = getAllFighterInfo()
+			
+			for fighter in fighterList:
+				if fighter.fighterId and fighter.slotConfigId and fighter.cosmeticConfigId and fighter.cssSlotConfigId:
+					extractCharacter(fighter.fighterId, destination, fighter, fighter.slotConfigId, fighter.cosmeticConfigId, fighter.cssSlotConfigId, True)
+			BrawlAPI.ShowMessage("Characters extracted to " + destination, "Success")
 		except Exception as e:
 			writeLog("ERROR " + str(e))
 			if 'progressBar' in locals():
 				progressBar.Finish()
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
-			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
-			restoreBackup()
-			archiveBackup()
-
 
 
 main()
