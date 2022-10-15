@@ -786,6 +786,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			# If temporary directory already exists, delete it to prevent duplicate files
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
+			Directory.CreateDirectory(AppPath + '/temp')
 
 			fighterConfig = getFighterConfig(fighterId)
 			fighterInfo = getFighterInfo(fighterConfig, "", "")
@@ -797,9 +798,6 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 
 			# sc_selcharacter
 			index = addCSPs(cosmeticId, cspImages, settings.rspLoading, position, skipPositions)
-			if settings.installStocksToCSS == "true":
-				addStockIcons(cosmeticId, stockImages, index, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
-			
 			# If we did any work in sc_selcharacter, save and close it
 			fileOpened = checkOpenFile("sc_selcharacter")
 			if fileOpened:
@@ -817,18 +815,26 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressBar.Update(progressCounter)
 
 			# Stock icons
-			# STGRESULT
-			if settings.installStockIconsToResult == "true":
-				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
-				fileOpened = checkOpenFile("STGRESULT")
-				if fileOpened:
-					BrawlAPI.SaveFile()
-					BrawlAPI.ForceCloseFile()
-
 			# info.pac
 			if settings.installStocksToInfo == "true":
 				addStockIcons(cosmeticId, stockImages, index, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
 				fileOpened = checkOpenFile("info")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
+			# sc_selcharacter
+			if settings.installStocksToCSS == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+				fileOpened = checkOpenFile("sc_selcharacter")
+				if fileOpened:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+
+			# STGRESULT
+			if settings.installStockIconsToResult == "true":
+				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+				fileOpened = checkOpenFile("STGRESULT")
 				if fileOpened:
 					BrawlAPI.SaveFile()
 					BrawlAPI.ForceCloseFile()
