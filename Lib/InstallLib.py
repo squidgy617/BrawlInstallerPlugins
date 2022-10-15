@@ -86,6 +86,23 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						cosmeticConfigId = fighterId
 					if not cssSlotConfigId:
 						cssSlotConfigId = fighterId
+
+					# Erase franchise icon ID if we can't find folders or files
+					if franchiseIconFolder:
+						blackFranchiseIconFolder = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
+						if blackFranchiseIconFolder:
+							if len(Directory.GetFiles(blackFranchiseIconFolder, "*.png")) < 1:
+								franchiseIconId = -1
+						else:
+							franchiseIconId = -1
+						transparentFranchiseIconFolder = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
+						if transparentFranchiseIconFolder:
+							if len(Directory.GetFiles(transparentFranchiseIconFolder, "*.png")) < 1:
+								franchiseIconId = -1
+						else:
+							franchiseIconId = -1
+					if not franchiseIconFolder:
+						franchiseIconId = -1
 					
 					# Check if fighter name is already used
 					oldFighterName = ""
