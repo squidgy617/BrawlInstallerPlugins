@@ -117,3 +117,5 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
 - Stage Installer plugin
+- Unique Multilanguage regions support (US, Europe, Japan & Korea)
+- Unlockable fighter feature (including the Subspace Emissary EX)
