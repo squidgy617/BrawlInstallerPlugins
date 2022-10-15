@@ -296,7 +296,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 18, progressCounter)
+					progressBar.Begin(0, 19, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -330,9 +330,6 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
 							BrawlAPI.ShowMessage("Could not find portrait name in a format that matches your preferences. Portrait name installation will be skipped. Please install a portrait name manually.", "Portrait Name Not Found")
-					# Install stock icons to sc_selcharacter
-					if stockIconFolder and settings.installStocksToCSS == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 					# Install franchise icon to sc_selcharacter
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchiseIconFolderCss = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
@@ -379,6 +376,22 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					progressBar.Update(progressCounter)
 					
 					#endregion info.pac
+
+					#region sc_selcharacter stocks
+
+					# Have to install stocks after info.pac work is done, because info.pac contains extra textures and can't use the replace method like other stock locations can
+					# Install stock icons to sc_selcharacter
+					if stockIconFolder and settings.installStocksToCSS == "true":
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+						fileOpened = checkOpenFile("sc_selcharacter")
+						if fileOpened:
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
+
+					progressCounter += 1
+					progressBar.Update(progressCounter)
+
+					#endregion sc_selcharacter stocks
 
 					#region Single Player Cosmetics
 
