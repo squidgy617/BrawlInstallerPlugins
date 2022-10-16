@@ -31,9 +31,10 @@ def autoInstall(baseCssSlotId, zipfile):
 				continue
 			break
 		
+		# Commented out for 242 character code builds
 		# Max ID is 7F (127 in hex)
-		if id > 127:
-			id = 127
+		#if id > 127:
+		#	id = 127
 
 		id = hexId(id).replace('0x', '')
 
