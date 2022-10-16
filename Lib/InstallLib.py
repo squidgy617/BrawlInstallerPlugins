@@ -74,10 +74,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						fighterId = fighterId.split('0x')[1].upper()
 
 					# Check if fighter ID is already used		
-					if not slotConfigId:
-						existingFighterConfig = searchAllExConfigs(fighterId)
+					existingFighterConfigs = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', 'Fighter' + str(fighterId) + '.dat')
+					if existingFighterConfigs:
+						existingFighterConfig = existingFighterConfigs[0]
 					else:
-						existingFighterConfig = searchForExConfig('Fighter', fighterId)
+						existingFighterConfig = False
+
 
 					# Default config IDs if not passed
 					if not slotConfigId:
@@ -91,13 +93,13 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if franchiseIconFolder:
 						blackFranchiseIconFolder = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 						if blackFranchiseIconFolder:
-							if len(Directory.GetFiles(blackFranchiseIconFolder, "*.png")) < 1:
+							if len(Directory.GetFiles(blackFranchiseIconFolder[0], "*.png")) < 1:
 								franchiseIconId = -1
 						else:
 							franchiseIconId = -1
 						transparentFranchiseIconFolder = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
 						if transparentFranchiseIconFolder:
-							if len(Directory.GetFiles(transparentFranchiseIconFolder, "*.png")) < 1:
+							if len(Directory.GetFiles(transparentFranchiseIconFolder[0], "*.png")) < 1:
 								franchiseIconId = -1
 						else:
 							franchiseIconId = -1
