@@ -783,12 +783,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region CSSRoster
 
 					# Add fighter to roster
-					if settings.useCssRoster == "true":
-						if not baseCssSlotId:
-							changesMade = addToRoster(cssSlotConfigId)
-							if changesMade:
-								BrawlAPI.SaveFile()
-							BrawlAPI.ForceCloseFile()
+					if not baseCssSlotId:
+						changesMade = addToRoster(cssSlotConfigId)
+						if changesMade:
+							BrawlAPI.SaveFile()
+						BrawlAPI.ForceCloseFile()
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
