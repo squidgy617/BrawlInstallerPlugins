@@ -75,15 +75,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Check if fighter ID is already used		
 					existingFighterConfigs = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', 'Fighter' + str(fighterId) + '.dat')
-					writeLog("EHRE")
 					if existingFighterConfigs:
-						writeLog("HERE")
 						existingFighterConfig = existingFighterConfigs[0]
 					else:
-						writeLog("HUH")
 						existingFighterConfig = False
 
-					writeLog("HDFLSDKL")
 
 					# Default config IDs if not passed
 					if not slotConfigId:
@@ -109,8 +105,6 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							franchiseIconId = -1
 					if not franchiseIconFolder:
 						franchiseIconId = -1
-
-					writeLog("DFJFKLDJKLFDSJFKLDSJ")
 					
 					# Check if fighter name is already used
 					oldFighterName = ""
