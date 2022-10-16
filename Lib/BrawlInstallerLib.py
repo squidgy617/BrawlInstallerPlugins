@@ -1633,7 +1633,11 @@ def moveSoundbank(file, newSoundBankId=""):
 def addToRoster(fighterId):
 		writeLog("Adding fighter ID " + str(fighterId) + " to CSSRoster.dat")
 		changesMade = False
-		fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		fileOpened = False
+		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		elif File.Exists(MainForm.BuildPath + '/pf/BrawlEx/css.bx'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/css.bx')
 		if fileOpened:
 			# Add character to character select
 			folder = getChildByName(BrawlAPI.RootNode, "Character Select")
@@ -4421,7 +4425,6 @@ def getSettings():
 		settings.addSevenToSoundbankIds = readValueFromKey(fileText, "addSevenToSoundbankIds")
 		settings.addSevenToSoundbankName = readValueFromKey(fileText, "addSevenToSoundbankName")
 		settings.installVictoryThemes = readValueFromKey(fileText, "installVictoryThemes")
-		settings.useCssRoster = readValueFromKey(fileText, "useCssRoster")
 		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
@@ -4605,7 +4608,6 @@ def initialSetup():
 			settings.addSevenToSoundbankName = "false"
 			settings.addSevenToSoundbankIds = "true"
 			settings.installVictoryThemes = "true"
-			settings.useCssRoster = "true"
 			settings.installBPNames = "false"
 			settings.installSingleplayerCosmetics = "true"
 		if remixDefaults:
@@ -4624,7 +4626,6 @@ def initialSetup():
 			settings.addSevenToSoundbankName = "false"
 			settings.addSevenToSoundbankIds = "true"
 			settings.installVictoryThemes = "true"
-			settings.useCssRoster = "false"
 			settings.installBPNames = "false"
 			settings.installSingleplayerCosmetics = "false"
 		if projectPlusExDefaults or remixDefaults:
@@ -4766,8 +4767,6 @@ def initialSetup():
 			# Victory themes
 			if settings.installVictoryThemes == "false":
 				BrawlAPI.ShowMessage("Victory themes and credits themes can only be installed with the modern tracklist system. Victory themes and credits themes will not be installed.", title)
-			# CSSRoster.dat
-			settings.useCssRoster = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use a CSSRoster.dat to determine who appears on the character select screen? (For most builds, the answer is 'Yes'.)", title))
 		settings.installToSse = boolText(BrawlAPI.ShowYesNoPrompt("Does your build support SSE Ex, and would you like to install characters to Subspace Emissary mode? (For P+Ex 1.2 and later, the answer is likely 'Yes'. For most other builds, the answer is probably 'No'.", title))
 		if settings.installToSse == "true":
 			BrawlAPI.ShowMessage("You will be prompted to select the stage at which you would like Ex characters added to SSE to unlock. Enter an integer corresponding to the below options:\n\n1 : Unlock Immediately\n2 : Unlock After Great Maze is Completed", title)
@@ -4809,7 +4808,6 @@ class Settings:
 		addSevenToSoundbankIds = "true"
 		addSevenToSoundbankName = "false"
 		installVictoryThemes = "true"
-		useCssRoster = "true"
 		gfxChangeExe = ""
 		installBPNames = "false"
 		installSingleplayerCosmetics = "false"
