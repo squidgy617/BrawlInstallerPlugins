@@ -1485,7 +1485,7 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 					relatedFileName = 'Fit' + fighterName + 'Etc' + addLeadingZeros(str(id), 2) + '.pac'
 				if relatedFileName:
 					createBackup(MainForm.BuildPath + '/pf/fighter/' + fighterName + '/' + relatedFileName)
-					copyRenameFile(file.FullName, relatedFileName, MainForm.BuildPath + '/pf/fighter/' + fighterName)
+					copyRenameFile(relatedFile.FullName, relatedFileName, MainForm.BuildPath + '/pf/fighter/' + fighterName)
 			j += 1
 		writeLog("Finished importing costume files")
 		return costumes
