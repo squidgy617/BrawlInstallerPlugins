@@ -594,6 +594,10 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			createBackup(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			writeLog("Exporting RSPs")
 			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+			# If we have a char_bust_tex in BrawlEx, export there too
+			if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
+					createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+					newNode.Export(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
 			# If user has RSP loading on, get rid of changes to this file
@@ -655,6 +659,10 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 			if rspLoading == "true":
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
+				# If we have a char_bust_tex in BrawlEx, export there too
+				if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
+					createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+					copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex')
 		writeLog("Finished updating CSPs")
 		return costumeIndex
 
@@ -2522,6 +2530,14 @@ def removeCSPs(cosmeticId):
 			createBackup(rspFile.FullName)
 			writeLog("Deleting RSP file " + rspFile.FullName)
 			rspFile.Delete()
+		# Repeat if char_bust_tex in BrawlEx
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
+			rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 2) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'))
+			if rspFile:
+				# Back up first
+				createBackup(rspFile.FullName)
+				writeLog("Deleting RSP file " + rspFile.FullName)
+				rspFile.Delete()
 
 # Remove CSPs at specified position
 def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
@@ -2580,6 +2596,11 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 			if rspLoading == "true":
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
+				# If we have a char_bust_tex in BrawlEx, copy there too
+				if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
+					if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres'):
+						createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+						copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex')
 		writeLog("Finished updating CSPs")
 		costumeRange = []
 		costumeRange.append(costumeStart)
@@ -2943,7 +2964,11 @@ def deleteExConfigs(fighterId, slotConfigId = "", cosmeticConfigId = "", cssSlot
 # Remove character from CSSRoster.dat
 def removeFromRoster(fighterId):
 		writeLog("Removing fighter ID " + str(fighterId) + " from CSSRoster.dat")
-		fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		fileOpened = False
+		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSRoster.dat')
+		elif File.Exists(MainForm.BuildPath + '/pf/BrawlEx/css.bx'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/css.bx')
 		if fileOpened:
 			# Remove character from character select
 			folder = getChildByName(BrawlAPI.RootNode, "Character Select")
@@ -2957,6 +2982,8 @@ def removeFromRoster(fighterId):
 				nodeToRemove = getChildByFighterID(folder, fighterId)
 				if nodeToRemove:
 					nodeToRemove.Remove()
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing fighter from CSSRoster.dat")
 
 # Remove character victory theme

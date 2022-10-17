@@ -337,10 +337,7 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# Remove fighter from roster
-			if settings.useCssRoster == "true":
-				removeFromRoster(cssSlotConfigId)
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
+			removeFromRoster(cssSlotConfigId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
