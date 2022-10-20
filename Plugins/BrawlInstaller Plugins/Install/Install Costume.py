@@ -57,6 +57,8 @@ def main():
 						else:
 							costumeSet = True
 						i += 1
+
+					newPositions = positions
 							
 					BrawlAPI.ForceCloseFile()
 

@@ -4711,7 +4711,7 @@ def initialSetup():
 				settings.installStocksToStockFaceTex = "false"
 				settings.installStocksToSSS = "false"
 			settings.fiftyCostumeCode = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use the fifty-costume code? (If your build is a Project+EX build or allows 50 costumes, the answer is most likely 'Yes'. Otherwise, the answer is probably 'No'.)", title))
-			settings.installSingleplayerCosmetics = BrawlAPI.ShowYesNoPrompt("Would you like to install franchise icons " + " and battle portrait names " if settings.installBPNames else "" + "for single player modes (such as Training, Home Run Contest, etc.)?", title)
+			settings.installSingleplayerCosmetics = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install franchise icons " + " and battle portrait names " if settings.installBPNames else "" + "for single player modes (such as Training, Home Run Contest, etc.)?", title))
 		# Kirby hats
 		kirbyHatManagerInstalled = BrawlAPI.ShowYesNoPrompt("Do you have QuickLava's Kirby Hat Manager installed into your build?", title)
 		if kirbyHatManagerInstalled:
