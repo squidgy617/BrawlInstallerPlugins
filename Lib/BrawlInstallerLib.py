@@ -643,10 +643,10 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				for child in texFolder.Children[i:length]:
 					moveNodeToEnd(child)
 				# Rename everything
-				i = 0
-				for child in texFolder.Children:
-					i += 1
-					child.Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + i), 3)
+				i = len(texFolder.Children) - 1
+				while i > 0:
+					texFolder.Children[i].Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + i), 3)
+					i -= 1
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
