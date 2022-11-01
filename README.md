@@ -42,7 +42,7 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [QuickLava's Sawnd ID Replace Assist](https://github.com/QuickLava/lavaSawndIDReplaceAssist). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs in the event of a conflict.**
 - **(OPTIONAL)** The latest version of Codes' "Porting_Tools.zip", which is linked in the [official BrawlEx Guide for P+ EX](https://docs.google.com/document/d/1ZoL_qDcwUpUXg82cKaUp-6D_AcfpFctoW6GXFY74_0k/edit#). This can be anywhere on your computer. **This is necessary if you want to be able to change soundbank IDs or Effect.pac IDs in the event of a conflict.**
 - **(OPTIONAL)** The latest version of [Kapedani's Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases). This can be installed over your P+Ex build's root directory. **This is only necessary if you are not on the latest P+Ex version and would like to install your characters into Subspace Emissary mode.** If you want additional CSS slots for SSE, you can also download a basic expanded CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file).
-- If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages).
+- If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages). You can also find a variety of character packages uploaded [here](http://forums.kc-mm.com/Gallery/BrawlView.php?ByUserID=28848&Moderated=All).
 
 ## Setup
 For initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate. Alternatively, you can download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder.
@@ -61,6 +61,8 @@ The Install Character plugin works by extracting files from a "Character Package
 
 If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages)) or by using the [Package Character](
 https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins#package-character) plugin in this suite. Character packages can also be extracted from a build using the [Extract Character](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins#extract-character) plugin.
+
+Some character packages can be found on BrawlVault [here](http://forums.kc-mm.com/Gallery/BrawlView.php?ByUserID=28848&Moderated=All). There are also template packages available in the next section.
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
 
