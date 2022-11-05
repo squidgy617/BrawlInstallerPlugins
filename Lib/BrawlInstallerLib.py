@@ -701,7 +701,7 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 					# Color smash images in folders with multiple
 					if len(images) > 1 and not firstOnly:
 						writeLog("Color smashing stock icons")
-						ColorSmashImport(node, images, 256)
+						ColorSmashImport(node, images, 32)
 						writeLog("Imported color smashed icons")
 					elif len(images) >= 1:
 						writeLog("Importing standalone icon")
@@ -830,7 +830,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				# Import textures
 				if len(images) > 1:
 					writeLog("Color smashing stock icons")
-					ColorSmashImport(bresNode, images, 256)
+					ColorSmashImport(bresNode, images, 32)
 					writeLog("Imported color smashed icons")
 				else:
 					writeLog("Importing standalone icon")
