@@ -1,4 +1,4 @@
-version = "1.5.0"
+version = "1.6.0"
 # InstallLib
 # Library for BrawlInstaller's installation plugins
 
@@ -227,6 +227,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if settings.gfxChangeExe != "":
 						oldEffectId = effectId
 						if effectId:
+							idMod = 0
 							while True:
 								matchFound = False
 								directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
@@ -245,13 +246,13 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 											changeEffectId = True
 										if changeEffectId:
 											idEntered = False
-											idMod = 0
 											while idEntered != True:
 												if not auto:
 													effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
 												else: 
-													effectId = str(0 + idMod)
+													effectId = addLeadingZeros(idMod, 2)
 													idMod += 1
+													break
 												# Ensure effect ID is just the hex digits
 												if effectId.startswith('0x'):
 													effectId = addLeadingZeros(effectId.split('0x')[1].upper(), 2)
