@@ -25,34 +25,16 @@ def main():
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
 
-			# Prompt to select images
-			franchiseIconBlack = BrawlAPI.OpenFileDialog("Select franchise icon with black background", "PNG files|*.PNG")
-			franchiseIconTransparent = BrawlAPI.OpenFileDialog("Select franchise icon with transparent background", "PNG files|*.PNG")
-
 			# Franchise Icon ID prompt
-			franchiseIconUsed = True
-			while franchiseIconUsed:
-				franchiseIconId = int(showIdPrompt("Enter your desired franchise icon ID").replace('0x', ''), 16)
-				franchiseIconUsed = franchiseIconIdUsed(franchiseIconId)
-				if franchiseIconUsed:
-					changeFranchiseIconId = BrawlAPI.ShowYesNoPrompt("A franchise icon with this ID already exists. Would you like to enter a different ID?", "Franchise Icon Already Exists")
-					if changeFranchiseIconId == False:
-						BrawlAPI.ShowMessage("Fighter installation will abort.", "Aborting Installation")
-						BrawlAPI.ForceCloseFile()
-						return
-					continue
-				else:
-					BrawlAPI.ForceCloseFile()
-					break
+			franchiseIconId = int(showIdPrompt("Enter your desired franchise icon ID").replace('0x', ''), 16)
 
 			# Set up progressbar
 			progressCounter = 0
-			progressBar = ProgressWindow(MainForm.Instance, "Installing Franchise Icon...", "Installing Franchise Icon", False)
+			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Franchise Icon...", "Uninstalling Franchise Icon", False)
 			progressBar.Begin(0, 5, progressCounter)
 
-			# Install to sc_selcharacter
-			if franchiseIconBlack:
-				installFranchiseIcon(franchiseIconId, franchiseIconBlack, '/pf/menu2/sc_selcharacter.pac', int(settings.franchiseIconSizeCSS))
+			# Uninstall from sc_selcharacter
+			removeFranchiseIcon(franchiseIconId, '/pf/menu2/sc_selcharacter.pac')
 			fileOpened = checkOpenFile("sc_selcharacter")
 			if fileOpened:
 				BrawlAPI.SaveFile()
@@ -62,8 +44,7 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# info.pac
-			if franchiseIconBlack:
-				installFranchiseIcon(franchiseIconId, franchiseIconBlack, '/pf/info2/info.pac')
+			removeFranchiseIcon(franchiseIconId, '/pf/info2/info.pac')
 			fileOpened = checkOpenFile("info")
 			if fileOpened:
 				BrawlAPI.SaveFile()
@@ -72,13 +53,13 @@ def main():
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
-			# Single player modes
+			# single player cosmetics
 			if settings.installSingleplayerCosmetics == "true":
 				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/info2/', "*.pac"):
 					fileName = getFileInfo(file).Name
 					if fileName != "info.pac":
-						if franchiseIconBlack:
-							installFranchiseIcon(franchiseIconId, franchiseIconBlack, '/pf/info2/' + fileName)
+						# Franchise icons first
+						removeFranchiseIcon(franchiseIconId, '/pf/info2/' + fileName)
 						fileOpened = checkOpenFile(fileName.split('.pac')[0])
 						if fileOpened:
 							BrawlAPI.SaveFile()
@@ -88,8 +69,7 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# STGRESULT
-			if franchiseIconTransparent:
-				installFranchiseIconResult(franchiseIconId, franchiseIconTransparent)
+			removeFranchiseIconResult(franchiseIconId)
 			fileOpened = checkOpenFile("STGRESULT")
 			if fileOpened:
 				BrawlAPI.SaveFile()
@@ -100,8 +80,7 @@ def main():
 
 			# SSE
 			if settings.installToSse == "true":
-				if franchiseIconBlack:
-					installFranchiseIcon(franchiseIconId, franchiseIconBlack, '/pf/menu2/if_adv_mngr.pac')
+				removeFranchiseIcon(franchiseIconId, '/pf/menu2/if_adv_mngr.pac')
 				fileOpened = checkOpenFile("if_adv_mngr")
 				if fileOpened:
 					BrawlAPI.SaveFile()
@@ -115,7 +94,7 @@ def main():
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
 			archiveBackup()
-			BrawlAPI.ShowMessage("Franchise icon installed successfully.", "Success")
+			BrawlAPI.ShowMessage("Franchise icon uninstalled successfully.", "Success")
 
 		except Exception as e:
 			writeLog("ERROR " + str(e))
