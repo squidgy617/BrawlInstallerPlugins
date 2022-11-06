@@ -311,6 +311,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								else:
 									BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
 									continue
+							if not newFranchiseIconId:
+								franchiseIconId = -1
 					#endregion USER INPUT/PRELIMINARY CHECKS
 
 					# Set up progressbar
