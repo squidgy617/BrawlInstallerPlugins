@@ -2583,7 +2583,7 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 				i = 0
 				for child in texFolder.Children:
 					i += 1
-					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str(i), 3)
+					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str((cosmeticId * 10) + i), 3)
 			if rspLoading == "false":
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
