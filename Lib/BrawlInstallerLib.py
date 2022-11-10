@@ -1193,7 +1193,8 @@ def updateModule(file, directory, fighterId, fighterName):
 		BrawlAPI.OpenFile(file.FullName)
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [8]")
-		if node:
+		# Ex modules only have 8 sections, so any with more is a different type of module
+		if node and not getChildByName(BrawlAPI.RootNode, "Section [9]"):
 			writeLog("Modifying Section [8] of module file")
 			node.Export(directory.FullName + "/Section [8]")
 			closeModule()
@@ -1209,6 +1210,8 @@ def updateModule(file, directory, fighterId, fighterName):
 			closeModule()
 			# Get the exported section 1 file
 			sectionFile = directory.FullName + "/Section [1]"
+			# TODO: If we add support for any non-EX modules that DO have a Section [8] and DO NOT have extra sections, we will need
+			#to add a FighterSetting or something to explicitly specify those modules.
 			# Handle Pit module
 			if rootNode == 'ft_pit':
 				writeLog("Modifying module as patched PM Pit module")
