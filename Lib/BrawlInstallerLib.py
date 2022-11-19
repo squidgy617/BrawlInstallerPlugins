@@ -832,10 +832,12 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 					writeLog("Color smashing stock icons")
 					ColorSmashImport(bresNode, images, 32)
 					writeLog("Imported color smashed icons")
-				else:
+				elif len(images) >= 1:
 					writeLog("Importing standalone icon")
 					importTexture(bresNode, images[0], WiiPixelFormat.CI8, 32, 32)
 					writeLog("Imported standalone icon")
+				else:
+					return 0
 				# Rename old nodes
 				id = endId
 				texNodes = []
