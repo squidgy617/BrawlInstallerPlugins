@@ -7,6 +7,143 @@ from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
 
+#region STAGE LIST
+
+class StageList(Form):
+
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Stage List'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimumSize = Size(250,128)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        stageSlots = []
+        pageNumber = 0
+        fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
+        if fileOpened:
+            pages = getStageList()
+            for page in pages:
+                pageNumber += 1
+                pageSlot = StageSlot('0x00', '00', '00', '0000', '--PAGE ' + str(pageNumber) + '--')
+                stageSlots.append(pageSlot)
+                for slotId in page:
+                    stageIds = getStageIdsByNumber(slotId)
+                    stageName = getStageName(stageIds[2:4])
+                    stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
+                    stageSlots.append(stageSlot)
+            BrawlAPI.ForceCloseFile()
+
+        # Buttons
+        #for page in getStageList():
+        #    for stage in page:
+        #        button = Button()
+        #        button.Text = stage
+        #        button.Dock = DockStyle.Bottom
+        #        self.Controls.Add(button)
+
+        self.listBox = ListBox()
+        self.listBox.Width = 120
+        self.listBox.Height = 240
+        self.listBox.Location = Point(64, 0)
+        #self.listBox.Dock = DockStyle.Left
+        self.listBox.DataSource = stageSlots
+        self.listBox.DisplayMember = "name"
+        self.listBox.ValueMember = "fullId"
+        #for page in getStageList():
+        #    for stage in page:
+        #        listBox.Items.Add(stage)
+        #for stageSlot in stageSlots:
+        #    self.listBox.Items.Add(stageSlot)
+        #listBox.SelectedIndexChanged += self.listBoxChanged
+
+        button = Button()
+        button.Dock = DockStyle.Bottom
+        button.Click += self.buttonPressed
+
+        self.Controls.Add(self.listBox)
+        self.Controls.Add(button)
+    
+    def buttonPressed(self, sender, args):
+        fullId = str(self.listBox.SelectedValue)
+        form = StageEditor(fullId)
+        result = form.ShowDialog(MainForm.Instance)
+
+#endregion
+
+#region EDIT STAGE
+
+class StageEditor(Form):
+
+    def __init__(self, fullId):
+        # Form parameters
+        self.Text = 'Edit Stage'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimumSize = Size(250,128)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.cosmetics = getStageCosmetics(fullId[2:4])
+        self.alts = getStageAlts(fullId[0:2])
+
+        # Stage Name
+        self.namePictureBox = PictureBox()
+        self.namePictureBox.Location = Point(64, 0)
+        self.namePictureBox.Width = 208
+        self.namePictureBox.Height = 56
+        self.namePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.namePictureBox.Image = self.cosmetics.stageName
+
+        # Stage Icon
+        self.iconPictureBox = PictureBox()
+        self.iconPictureBox.Location = Point(0, 64)
+        self.iconPictureBox.Width = 128
+        self.iconPictureBox.Height = 112
+        self.iconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.iconPictureBox.Image = self.cosmetics.stageIcon
+
+        # Franchise Icon
+        self.franchiseIconPictureBox = PictureBox()
+        self.franchiseIconPictureBox.Location = Point(128, 64)
+        self.franchiseIconPictureBox.Width = 64
+        self.franchiseIconPictureBox.Height = 64
+        self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon
+
+        # Game Logo
+        self.gameLogoPictureBox = PictureBox()
+        self.gameLogoPictureBox.Location = Point(128, 128)
+        self.gameLogoPictureBox.Width = 120
+        self.gameLogoPictureBox.Height = 56
+        self.gameLogoPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.gameLogoPictureBox.Image = self.cosmetics.gameLogo
+
+        # Stage Preview
+        self.previewPictureBox = PictureBox()
+        self.previewPictureBox.Location = Point(0, 192)
+        self.previewPictureBox.Width = 312
+        self.previewPictureBox.Height = 112
+        self.previewPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.previewPictureBox.Image = self.cosmetics.stagePreview
+
+        aslIndicator = ASLIndicator()
+        aslIndicator.Location = Point(0, 256)
+        aslIndicator.TargetNode = self.alts[1]
+
+        self.Controls.Add(self.namePictureBox)
+        self.Controls.Add(self.iconPictureBox)
+        self.Controls.Add(self.franchiseIconPictureBox)
+        self.Controls.Add(self.gameLogoPictureBox)
+        self.Controls.Add(self.previewPictureBox)
+        self.Controls.Add(aslIndicator)
+
+#endregion
+
 #region COSTUME PROMPT
 
 class CostumePrompt(Form):

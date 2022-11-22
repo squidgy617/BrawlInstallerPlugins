@@ -237,6 +237,18 @@ def getChildByFighterID(node, fighterId):
 					return child
 		return 0
 
+# Get child node by frame index
+def getChildByFrameIndex(parentNode, index):
+		prevChild = 0
+		if parentNode.Children:
+			for child in parentNode.Children:
+				if child.FrameIndex == index:
+					return child
+				if child.FrameIndex > index:
+					return prevChild
+				prevChild = child
+		return 0
+
 # Helper function to sort PAT0Entry nodes by FrameIndex
 def sortChildrenByFrameIndex(parentNode):
 		childList = []
@@ -4908,6 +4920,22 @@ class SlotConfigInfo:
 			self.redirect = redirect
 			self.redirectId = redirectId
 
+class StageSlot:
+		def __init__(self, slotId, stageId, cosmeticId, fullId, name):
+			self.slotId = slotId
+			self.stageId = stageId
+			self.cosmeticId = cosmeticId
+			self.fullId = fullId
+			self.name = name
+
+class StageCosmetics:
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo):
+			self.stageIcon = stageIcon
+			self.stagePreview = stagePreview
+			self.stageName = stageName
+			self.franchiseIcon = franchiseIcon
+			self.gameLogo = gameLogo
+
 #endregion CLASSES
 
 #region COLOR PROMPT
@@ -4975,4 +5003,156 @@ class ColorPrompt(Form):
 
 #endregion
 
-#region COSTUME PROMPT
+#region STAGES
+
+# Get list of stages
+def getStageList():
+		writeLog("Reading stage list")
+		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		tables = []
+		tableStarts = []
+		# Find the tables
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.StartsWith("TABLE_") and "STAGES" not in line:
+				writeLog("Found stage table at line " + str(i))
+				tableStarts.append(i + 2)
+			i += 1
+		# Get all values in each table
+		for tableStart in tableStarts:
+			i = tableStart
+			tableValues = []
+			while i < len(fileText):
+				line = fileText[i]
+				if len(line) <= 0 or line.startswith('TABLE'):
+					break
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				for item in splitLine:
+					tableValues.append(item.strip())
+				i += 1
+			tables.append(tableValues)
+		writeLog("Finished getting stage list")
+		return tables
+
+# Get stage IDs
+def getStageIds():
+		writeLog("Getting stage IDs")
+		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		tableValues = []
+		tableStart = 0
+		# Find the stages table
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.startswith("TABLE_STAGES:"):
+				writeLog("Found stages table at line " + str(i))
+				tableStart = i + 3
+				break
+			i += 1
+		# Get all values in table
+		i = tableStart
+		while i < len(fileText):
+			line = fileText[i]
+			if len(line) <= 0 or line.startswith('TABLE'):
+				break
+			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			for item in splitLine:
+				tableValues.append(item)
+			i += 1
+		writeLog("Got stage IDs")
+		return tableValues
+
+# Get stage IDs for specific stage number
+def getStageIdsByNumber(stageNumber):
+		writeLog("Getting stage ID by slot ID " + str(stageNumber))
+		stageIds = getStageIds()
+		i = 0
+		for stageId in stageIds:
+			if hexId(i) == stageNumber:
+				writeLog("Found stage ID " + str(stageId))
+				return stageId.strip()
+			i += 1
+		writeLog("No stage ID found")
+		return -1
+
+# Get stage name by stage ID
+def getStageName(stageId):
+		writeLog("Getting stage name by stage ID " + str(stageId))
+		fileOpened = checkOpenFile("stageslot")
+		if not fileOpened:
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
+		if fileOpened:
+			folder = getChildByName(BrawlAPI.RootNode, str(stageId).replace('0x', ''))
+			if folder:
+				node = folder.Children[0]
+				if node:
+					writeLog("Found stage name " + str(node.Name))
+					return node.Name
+		writeLog("Finished getting stage name")
+
+# Get stage cosmetics by cosmetic ID
+def getStageCosmetics(cosmeticId):
+		writeLog("Getting cosmetics for stage with cosmetic ID " + str(cosmeticId))
+		stageIcon = 0
+		stagePreview = 0
+		stageName = 0
+		franchiseIcon = 0
+		gameLogo = 0
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac', False)
+		if fileOpened:
+			bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+			if bresNode:
+				anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+				texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				if anmTexPatFolder and texFolder:
+					# Icon
+					iconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapIcon", "iconM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, iconTextureName)
+					stageIcon = Bitmap(texNode.GetImage(0))
+					# Preview
+					previewTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, previewTextureName)
+					stagePreview = Bitmap(texNode.GetImage(0))
+					# Name
+					nameTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, nameTextureName)
+					stageName = Bitmap(texNode.GetImage(0))
+					# Franchise Icon
+					franchiseIconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, franchiseIconTextureName)
+					franchiseIcon = Bitmap(texNode.GetImage(0))
+					# Game Logo
+					gameLogoTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, gameLogoTextureName)
+					gameLogo = Bitmap(texNode.GetImage(0))
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting cosmetics")
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo)
+
+# Get the texture associated with a pat0 entry by input frame index
+def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
+		writeLog("Getting textures for pat0 entry with frame index " + str(frameIndex))
+		pat0 = getChildByName(patFolder, pat0Name)
+		if pat0:
+			pat0Entry = getChildByName(pat0, entryName).Children[0]
+			if pat0Entry:
+				frame = getChildByFrameIndex(pat0Entry, frameIndex)
+				if frame:
+					textureName = frame.Texture
+					return textureName
+		return 0
+
+# Get the ASLEntry nodes for all stage alts for a single stage slot
+def getStageAlts(stageId):
+		writeLog("Getting all stage alts for stage with ID " + str(stageId))
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl', False)
+		if fileOpened:
+			writeLog("Found stage slot")
+			nodes = BrawlAPI.RootNode.Children
+			BrawlAPI.ForceCloseFile()
+			return nodes
+		writeLog("Couldn't find stage slot")
+		return 0
+
+#endregion STAGES
