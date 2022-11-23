@@ -37,28 +37,13 @@ class StageList(Form):
                     stageSlots.append(stageSlot)
             BrawlAPI.ForceCloseFile()
 
-        # Buttons
-        #for page in getStageList():
-        #    for stage in page:
-        #        button = Button()
-        #        button.Text = stage
-        #        button.Dock = DockStyle.Bottom
-        #        self.Controls.Add(button)
-
         self.listBox = ListBox()
         self.listBox.Width = 120
         self.listBox.Height = 240
         self.listBox.Location = Point(64, 0)
-        #self.listBox.Dock = DockStyle.Left
         self.listBox.DataSource = stageSlots
         self.listBox.DisplayMember = "name"
         self.listBox.ValueMember = "fullId"
-        #for page in getStageList():
-        #    for stage in page:
-        #        listBox.Items.Add(stage)
-        #for stageSlot in stageSlots:
-        #    self.listBox.Items.Add(stageSlot)
-        #listBox.SelectedIndexChanged += self.listBoxChanged
 
         button = Button()
         button.Dock = DockStyle.Bottom
@@ -198,34 +183,135 @@ class StageEditor(Form):
         cosmeticsGroupBox.Controls.Add(gameLogoDropDown)
         cosmeticsGroupBox.Controls.Add(gameLogoButton)
 
+        # Parameters Groupbox
+        parametersGroupBox = GroupBox()
+        parametersGroupBox.Location = Point(384, 0)
+        parametersGroupBox.AutoSize = True
+        parametersGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        parametersGroupBox.Text = "Parameters"
+
         # Stage Alt Listbox
         self.stageAltListbox = ListBox()
         self.stageAltListbox.DataSource = self.alts
         self.stageAltListbox.DisplayMember = "aslEntry"
         self.stageAltListbox.ValueMember = "aslEntry"
-        self.stageAltListbox.Location = Point(0, 320)
+        self.stageAltListbox.Location = Point(16, 16)
         self.stageAltListbox.Width = 120
         self.stageAltListbox.Height = 240
         self.stageAltListbox.SelectedValueChanged += self.stageAltChanged
 
+        # Name textbox
+        self.nameTextBox = TextBox()
+        self.nameTextBox.Text = self.alts[0].aslEntry.Name
+        self.nameTextBox.Location = Point(208, 16)
+        self.nameTextBox.Width = 160
+
+        nameLabel = Label()
+        nameLabel.Text = "Name:"
+        nameLabel.Location = Point(104, 16)
+        nameLabel.TextAlign = ContentAlignment.TopRight
+
+        # PAC Name textbox
+        self.pacNameTextBox = TextBox()
+        self.pacNameTextBox.Text = self.alts[0].pacName
+        self.pacNameTextBox.Location = Point(208, 48)
+        self.pacNameTextBox.Width = 160
+
+        pacNameLabel = Label()
+        pacNameLabel.Text = "PAC Name:"
+        pacNameLabel.Location = Point(104, 48)
+        pacNameLabel.TextAlign = ContentAlignment.TopRight
+
+        pacNameButton = Button()
+        pacNameButton.Text = "Browse..."
+        pacNameButton.Location = Point(376, 47)
+
         # Module textbox
-        self.textBox = TextBox()
-        self.textBox.Text = self.alts[0].module
-        self.textBox.Location = Point(520, 0)
+        self.moduleTextBox = TextBox()
+        self.moduleTextBox.Text = self.alts[0].module
+        self.moduleTextBox.Location = Point(208, 80)
+        self.moduleTextBox.Width = 160
+
+        moduleLabel = Label()
+        moduleLabel.Text = "Module:"
+        moduleLabel.Location = Point(104, 80)
+        moduleLabel.TextAlign = ContentAlignment.TopRight
+
+        moduleButton = Button()
+        moduleButton.Text = "Browse..."
+        moduleButton.Location = Point(376, 79)
+
+        # Tracklist textbox
+        self.tracklistTextBox = TextBox()
+        self.tracklistTextBox.Text = self.alts[0].tracklist
+        self.tracklistTextBox.Location = Point(208, 112)
+        self.tracklistTextBox.Width = 160
+
+        tracklistLabel = Label()
+        tracklistLabel.Text = "Tracklist:"
+        tracklistLabel.Location = Point(104, 112)
+        tracklistLabel.TextAlign = ContentAlignment.TopRight
+
+        tracklistButton = Button()
+        tracklistButton.Text = "Browse..."
+        tracklistButton.Location = Point(376, 111)
+
+        # Soundbank textbox
+        self.soundBankTextBox = TextBox()
+        self.soundBankTextBox.Text = str(hexId(self.alts[0].soundBank))
+        self.soundBankTextBox.Location = Point(208, 144)
+        self.soundBankTextBox.Width = 160
+
+        soundBankLabel = Label()
+        soundBankLabel.Text = "Sound Bank:"
+        soundBankLabel.Location = Point(104, 144)
+        soundBankLabel.TextAlign = ContentAlignment.TopRight
+
+        # Effectbank textbox
+        self.effectBankTextBox = TextBox()
+        self.effectBankTextBox.Text = str(hexId(self.alts[0].effectBank))
+        self.effectBankTextBox.Location = Point(208, 176)
+        self.effectBankTextBox.Width = 160
+
+        effectBankLabel = Label()
+        effectBankLabel.Text = "Effect Bank:"
+        effectBankLabel.Location = Point(104, 176)
+        effectBankLabel.TextAlign = ContentAlignment.TopRight
 
         # Button Checkboxes
         self.aslIndicator = ASLIndicator()
-        self.aslIndicator.Location = Point(256, 256)
+        self.aslIndicator.Location = Point(16, 256)
         self.aslIndicator.TargetNode = self.alts[0].aslEntry
 
+        parametersGroupBox.Controls.Add(self.stageAltListbox)
+        parametersGroupBox.Controls.Add(self.aslIndicator)
+        parametersGroupBox.Controls.Add(self.moduleTextBox)
+        parametersGroupBox.Controls.Add(moduleLabel)
+        parametersGroupBox.Controls.Add(moduleButton)
+        parametersGroupBox.Controls.Add(self.nameTextBox)
+        parametersGroupBox.Controls.Add(nameLabel)
+        parametersGroupBox.Controls.Add(self.pacNameTextBox)
+        parametersGroupBox.Controls.Add(pacNameLabel)
+        parametersGroupBox.Controls.Add(pacNameButton)
+        parametersGroupBox.Controls.Add(self.tracklistTextBox)
+        parametersGroupBox.Controls.Add(tracklistLabel)
+        parametersGroupBox.Controls.Add(tracklistButton)
+        parametersGroupBox.Controls.Add(self.soundBankTextBox)
+        parametersGroupBox.Controls.Add(soundBankLabel)
+        parametersGroupBox.Controls.Add(self.effectBankTextBox)
+        parametersGroupBox.Controls.Add(effectBankLabel)
+
         self.Controls.Add(cosmeticsGroupBox)
-        self.Controls.Add(self.aslIndicator)
-        self.Controls.Add(self.stageAltListbox)
-        self.Controls.Add(self.textBox)
+        self.Controls.Add(parametersGroupBox)
 
     def stageAltChanged(self, sender, args):
         self.aslIndicator.TargetNode = self.stageAltListbox.SelectedValue
-        self.textBox.Text = self.stageAltListbox.SelectedItem.module
+        self.moduleTextBox.Text = self.stageAltListbox.SelectedItem.module
+        self.nameTextBox.Text = self.stageAltListbox.SelectedValue.Name
+        self.pacNameTextBox.Text = self.stageAltListbox.SelectedItem.pacName
+        self.tracklistTextBox.Text = self.stageAltListbox.SelectedItem.tracklist
+        self.soundBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.soundBank))
+        self.effectBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.effectBank))
 
 #endregion
 
