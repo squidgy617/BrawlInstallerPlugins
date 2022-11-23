@@ -3617,20 +3617,21 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
 		# Look for files matching naming scheme and extract them
-		while newId <= (cosmeticId * 50) + 50:
-			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
-			if bpFile:
-				fileOpened = openFile(bpFile.FullName, False)
-				if fileOpened:
-					writeLog("Extracting BP file " + bpFile.FullName)
-					texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
-					if texFolder:
-						if texFolder.Children:
-							writeLog("Extracting texture " + texFolder.Children[0].Name)
-							exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
-							texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
-							writeLog("Extracted texture")
-					BrawlAPI.ForceCloseFile()
+		while ((newId <= (cosmeticId * 50) + 50) if fiftyCC == "true" else (newId <= cosmeticId + 10)):
+			if File.Exists(MainForm.BuildPath + '/pf/info/portrite/' + "InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres"):
+				bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
+				if bpFile:
+					fileOpened = openFile(bpFile.FullName, False)
+					if fileOpened:
+						writeLog("Extracting BP file " + bpFile.FullName)
+						texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+						if texFolder:
+							if texFolder.Children:
+								writeLog("Extracting texture " + texFolder.Children[0].Name)
+								exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
+								texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
+								writeLog("Extracted texture")
+						BrawlAPI.ForceCloseFile()
 			else:
 				# If no matching file exists, just exit
 				break
@@ -3663,27 +3664,28 @@ def extractSoundbank(soundBankId):
 # Extract song from tracklist
 def extractSong(songID, songDirectory='Victory!', tracklist='Results', exportFolder='VictoryTheme'):
 		writeLog("Extracting theme with song ID " + str(songID))
-		fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
 		success = False
-		if fileOpened:
-			node = BrawlAPI.RootNode
-			if node.Children:
-				for child in node.Children:
-					if child.SongID == songID:
-						childNode = child
-						break
-			if 'childNode' in locals():
-				if '/' in childNode.SongFileName:
-					# Get filename
-					path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
-					directory = Directory.CreateDirectory(path)
-					brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
-					if brstmFile:
-						writeLog("Extracting file " + brstmFile.FullName)
-						exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
-						copyFile(brstmFile.FullName, exportPath)
-						success = True
-			BrawlAPI.ForceCloseFile()
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
+			if fileOpened:
+				node = BrawlAPI.RootNode
+				if node.Children:
+					for child in node.Children:
+						if child.SongID == songID:
+							childNode = child
+							break
+				if 'childNode' in locals():
+					if '/' in childNode.SongFileName:
+						# Get filename
+						path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
+						directory = Directory.CreateDirectory(path)
+						brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+						if brstmFile:
+							writeLog("Extracting file " + brstmFile.FullName)
+							exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
+							copyFile(brstmFile.FullName, exportPath)
+							success = True
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting theme")
 		return success
 
