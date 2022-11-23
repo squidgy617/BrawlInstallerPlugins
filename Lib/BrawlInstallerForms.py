@@ -89,58 +89,143 @@ class StageEditor(Form):
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.cosmetics = getStageCosmetics(fullId[2:4])
-        self.alts = getStageAlts(fullId[0:2])
+        self.alts = getStageAltInfo(fullId[0:2])
+
+        # Cosmetics Groupbox
+        cosmeticsGroupBox = GroupBox()
+        cosmeticsGroupBox.Location = Point(0,0)
+        cosmeticsGroupBox.AutoSize = True
+        cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        cosmeticsGroupBox.Text = "Cosmetics"
 
         # Stage Name
         self.namePictureBox = PictureBox()
-        self.namePictureBox.Location = Point(64, 0)
+        self.namePictureBox.Location = Point(16, 160)
         self.namePictureBox.Width = 208
         self.namePictureBox.Height = 56
         self.namePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         self.namePictureBox.Image = self.cosmetics.stageName
 
+        nameButton = Button()
+        nameButton.Text = "Replace"
+        nameButton.Location = Point(16, 220)
+
+        # Stage R-Alt Name
+        self.altNamePictureBox = PictureBox()
+        self.altNamePictureBox.Location = Point(16, 264)
+        self.altNamePictureBox.Width = 208
+        self.altNamePictureBox.Height = 56
+        self.altNamePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.altNamePictureBox.Image = self.cosmetics.altName
+
+        altLabel = Label()
+        altLabel.Text = "Alt Layout Name:"
+        altLabel.Location = Point(16, 248)
+
+        altDropDown = ComboBox()
+        altDropDown.DropDownStyle = ComboBoxStyle.DropDown
+        altDropDown.Location = Point(16, 324)
+
         # Stage Icon
         self.iconPictureBox = PictureBox()
-        self.iconPictureBox.Location = Point(0, 64)
+        self.iconPictureBox.Location = Point(240, 160)
         self.iconPictureBox.Width = 128
         self.iconPictureBox.Height = 112
         self.iconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         self.iconPictureBox.Image = self.cosmetics.stageIcon
 
+        iconButton = Button()
+        iconButton.Text = "Replace"
+        iconButton.Location = Point(240, 276)
+
         # Franchise Icon
         self.franchiseIconPictureBox = PictureBox()
-        self.franchiseIconPictureBox.Location = Point(128, 64)
+        self.franchiseIconPictureBox.Location = Point(16, 350)
         self.franchiseIconPictureBox.Width = 64
         self.franchiseIconPictureBox.Height = 64
         self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon
 
+        franchiseIconDropDown = ComboBox()
+        franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDown
+        franchiseIconDropDown.Location = Point(16, 418)
+
+        franchiseIconButton = Button()
+        franchiseIconButton.Text = "Add"
+        franchiseIconButton.Location = Point(16, 442)
+
         # Game Logo
         self.gameLogoPictureBox = PictureBox()
-        self.gameLogoPictureBox.Location = Point(128, 128)
+        self.gameLogoPictureBox.Location = Point(160, 350)
         self.gameLogoPictureBox.Width = 120
         self.gameLogoPictureBox.Height = 56
         self.gameLogoPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         self.gameLogoPictureBox.Image = self.cosmetics.gameLogo
 
+        gameLogoDropDown = ComboBox()
+        gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDown
+        gameLogoDropDown.Location = Point(160, 418)
+
+        gameLogoButton = Button()
+        gameLogoButton.Text = "Add"
+        gameLogoButton.Location = Point(160, 442)
+
         # Stage Preview
         self.previewPictureBox = PictureBox()
-        self.previewPictureBox.Location = Point(0, 192)
+        self.previewPictureBox.Location = Point(32, 16)
         self.previewPictureBox.Width = 312
         self.previewPictureBox.Height = 112
         self.previewPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         self.previewPictureBox.Image = self.cosmetics.stagePreview
 
-        aslIndicator = ASLIndicator()
-        aslIndicator.Location = Point(0, 256)
-        aslIndicator.TargetNode = self.alts[1]
+        previewButton = Button()
+        previewButton.Text = "Replace"
+        previewButton.Location = Point(32, 132)
 
-        self.Controls.Add(self.namePictureBox)
-        self.Controls.Add(self.iconPictureBox)
-        self.Controls.Add(self.franchiseIconPictureBox)
-        self.Controls.Add(self.gameLogoPictureBox)
-        self.Controls.Add(self.previewPictureBox)
-        self.Controls.Add(aslIndicator)
+        cosmeticsGroupBox.Controls.Add(self.previewPictureBox)
+        cosmeticsGroupBox.Controls.Add(previewButton)
+        cosmeticsGroupBox.Controls.Add(self.namePictureBox)
+        cosmeticsGroupBox.Controls.Add(nameButton)
+        cosmeticsGroupBox.Controls.Add(self.iconPictureBox)
+        cosmeticsGroupBox.Controls.Add(iconButton)
+        cosmeticsGroupBox.Controls.Add(self.altNamePictureBox)
+        cosmeticsGroupBox.Controls.Add(altLabel)
+        cosmeticsGroupBox.Controls.Add(altDropDown)
+        cosmeticsGroupBox.Controls.Add(self.franchiseIconPictureBox)
+        cosmeticsGroupBox.Controls.Add(franchiseIconDropDown)
+        cosmeticsGroupBox.Controls.Add(franchiseIconButton)
+        cosmeticsGroupBox.Controls.Add(self.gameLogoPictureBox)
+        cosmeticsGroupBox.Controls.Add(gameLogoDropDown)
+        cosmeticsGroupBox.Controls.Add(gameLogoButton)
+
+        # Stage Alt Listbox
+        self.stageAltListbox = ListBox()
+        self.stageAltListbox.DataSource = self.alts
+        self.stageAltListbox.DisplayMember = "aslEntry"
+        self.stageAltListbox.ValueMember = "aslEntry"
+        self.stageAltListbox.Location = Point(0, 320)
+        self.stageAltListbox.Width = 120
+        self.stageAltListbox.Height = 240
+        self.stageAltListbox.SelectedValueChanged += self.stageAltChanged
+
+        # Module textbox
+        self.textBox = TextBox()
+        self.textBox.Text = self.alts[0].module
+        self.textBox.Location = Point(520, 0)
+
+        # Button Checkboxes
+        self.aslIndicator = ASLIndicator()
+        self.aslIndicator.Location = Point(256, 256)
+        self.aslIndicator.TargetNode = self.alts[0].aslEntry
+
+        self.Controls.Add(cosmeticsGroupBox)
+        self.Controls.Add(self.aslIndicator)
+        self.Controls.Add(self.stageAltListbox)
+        self.Controls.Add(self.textBox)
+
+    def stageAltChanged(self, sender, args):
+        self.aslIndicator.TargetNode = self.stageAltListbox.SelectedValue
+        self.textBox.Text = self.stageAltListbox.SelectedItem.module
 
 #endregion
 

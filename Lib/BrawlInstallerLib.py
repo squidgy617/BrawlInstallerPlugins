@@ -4929,12 +4929,22 @@ class StageSlot:
 			self.name = name
 
 class StageCosmetics:
-		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo):
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName):
 			self.stageIcon = stageIcon
 			self.stagePreview = stagePreview
 			self.stageName = stageName
 			self.franchiseIcon = franchiseIcon
 			self.gameLogo = gameLogo
+			self.altName = altName
+
+class StageParams:
+		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank):
+			self.aslEntry = aslEntry
+			self.pacName = pacName
+			self.tracklist = tracklist
+			self.module = module
+			self.soundBank = soundBank
+			self.effectBank = effectBank
 
 #endregion CLASSES
 
@@ -5099,6 +5109,7 @@ def getStageCosmetics(cosmeticId):
 		stageName = 0
 		franchiseIcon = 0
 		gameLogo = 0
+		altName = 0
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac', False)
 		if fileOpened:
 			bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
@@ -5126,9 +5137,13 @@ def getStageCosmetics(cosmeticId):
 					gameLogoTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", int(cosmeticId, 16))
 					texNode = getChildByName(texFolder, gameLogoTextureName)
 					gameLogo = Bitmap(texNode.GetImage(0))
+					# R-alt Name
+					altNameTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM_start", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, altNameTextureName)
+					altName = Bitmap(texNode.GetImage(0))
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished getting cosmetics")
-		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo)
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName)
 
 # Get the texture associated with a pat0 entry by input frame index
 def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
@@ -5154,5 +5169,28 @@ def getStageAlts(stageId):
 			return nodes
 		writeLog("Couldn't find stage slot")
 		return 0
+
+# Get stage params for stage
+def getStageParams(aslEntry):
+		writeLog("Getting stage params for stage " + str(aslEntry.Name))
+		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + aslEntry.Name + '.param', False)
+		if fileOpened:
+			writeLog("Found stage params")
+			rootNode = BrawlAPI.RootNode
+			params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank)
+			BrawlAPI.ForceCloseFile()
+			return params
+		writeLog("Couldn't find stage params")
+		return 0
+
+# Get all info for all stage alts
+def getStageAltInfo(stageId):
+		writeLog("Getting all stage info for stage ID " + str(stageId))
+		stageAlts = getStageAlts(stageId)
+		stageParamList = []
+		for alt in stageAlts:
+			params = getStageParams(alt)
+			stageParamList.append(params)
+		return stageParamList
 
 #endregion STAGES
