@@ -210,8 +210,9 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 
 			# Extract throw release point
 			throwRelease = readThrowRelease(fighterId)
-			if throwRelease[0] != "0.0" and throwRelease[1] != "0.0":
-				fighterSettings.throwReleasePoint = throwRelease[0] + "," + throwRelease[1]
+			if throwRelease:
+				if throwRelease[0] != "0.0" and throwRelease[1] != "0.0":
+					fighterSettings.throwReleasePoint = throwRelease[0] + "," + throwRelease[1]
 
 			# Set credits theme ID if we didn't find a file
 			if creditsThemeId:
