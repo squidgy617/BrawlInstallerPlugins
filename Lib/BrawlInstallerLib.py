@@ -697,7 +697,7 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				node = getChildByName(rootNode, tex0BresName)
 			else:
@@ -822,7 +822,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				bresNode = getChildByName(rootNode, tex0BresName)
 			else:
@@ -1179,7 +1179,7 @@ def importFranchiseIconResult(franchiseIconId, image):
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Import icon
-			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
 			newNode = importTexture(node, image, WiiPixelFormat.CI4, sizeW=80)
 			newNode.Name = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
 			# Add 3D model
@@ -2632,7 +2632,7 @@ def subtractStockIcons(cosmeticId, startIndex, tex0BresName, pat0BresName, endIn
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				bresNode = getChildByName(rootNode, tex0BresName)
 			else:
@@ -2845,7 +2845,7 @@ def removeFranchiseIconResult(franchiseIconId):
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Remove icon
-			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
 			if textureNode:
@@ -2870,7 +2870,7 @@ def removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName="", filePa
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				node = getChildByName(rootNode, tex0BresName)
 			else:
@@ -3614,7 +3614,7 @@ def extractFranchiseIconResult(franchiseIconId):
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac', False)
 		if fileOpened:
 			# Extract icon
-			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
 			if textureNode:
@@ -3629,20 +3629,21 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
 		# Look for files matching naming scheme and extract them
-		while newId <= (cosmeticId * 50) + 50:
-			bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
-			if bpFile:
-				fileOpened = openFile(bpFile.FullName, False)
-				if fileOpened:
-					writeLog("Extracting BP file " + bpFile.FullName)
-					texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
-					if texFolder:
-						if texFolder.Children:
-							writeLog("Extracting texture " + texFolder.Children[0].Name)
-							exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
-							texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
-							writeLog("Extracted texture")
-					BrawlAPI.ForceCloseFile()
+		while ((newId <= (cosmeticId * 50) + 50) if fiftyCC == "true" else (newId <= cosmeticId + 10)):
+			if File.Exists(MainForm.BuildPath + '/pf/info/portrite/' + "InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres"):
+				bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
+				if bpFile:
+					fileOpened = openFile(bpFile.FullName, False)
+					if fileOpened:
+						writeLog("Extracting BP file " + bpFile.FullName)
+						texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+						if texFolder:
+							if texFolder.Children:
+								writeLog("Extracting texture " + texFolder.Children[0].Name)
+								exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
+								texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
+								writeLog("Extracted texture")
+						BrawlAPI.ForceCloseFile()
 			else:
 				# If no matching file exists, just exit
 				break
@@ -3675,27 +3676,28 @@ def extractSoundbank(soundBankId):
 # Extract song from tracklist
 def extractSong(songID, songDirectory='Victory!', tracklist='Results', exportFolder='VictoryTheme'):
 		writeLog("Extracting theme with song ID " + str(songID))
-		fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
 		success = False
-		if fileOpened:
-			node = BrawlAPI.RootNode
-			if node.Children:
-				for child in node.Children:
-					if child.SongID == songID:
-						childNode = child
-						break
-			if 'childNode' in locals():
-				if '/' in childNode.SongFileName:
-					# Get filename
-					path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
-					directory = Directory.CreateDirectory(path)
-					brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
-					if brstmFile:
-						writeLog("Extracting file " + brstmFile.FullName)
-						exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
-						copyFile(brstmFile.FullName, exportPath)
-						success = True
-			BrawlAPI.ForceCloseFile()
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst', False)
+			if fileOpened:
+				node = BrawlAPI.RootNode
+				if node.Children:
+					for child in node.Children:
+						if child.SongID == songID:
+							childNode = child
+							break
+				if 'childNode' in locals():
+					if '/' in childNode.SongFileName:
+						# Get filename
+						path = MainForm.BuildPath + '/pf/sound/strm/' + childNode.SongFileName.split('/')[0]
+						directory = Directory.CreateDirectory(path)
+						brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
+						if brstmFile:
+							writeLog("Extracting file " + brstmFile.FullName)
+							exportPath = createDirectory(AppPath + '/temp/' + exportFolder)
+							copyFile(brstmFile.FullName, exportPath)
+							success = True
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting theme")
 		return success
 
@@ -3831,8 +3833,10 @@ def extractEndingFiles(fighterName, cosmeticConfigId):
 # Extract credits song
 def extractCreditsSong(slotId):
 		writeLog("Extracting credits song for slot ID " + str(slotId))
+		songFound = False
 		songId = updateCreditsCode(slotId, "", read=True)
-		songFound = extractSong(int(songId, 16), 'Credits', 'Credits', 'CreditsTheme')
+		if songId:
+			songFound = extractSong(int(songId, 16), 'Credits', 'Credits', 'CreditsTheme')
 		if songFound:
 			return 0
 		else:
