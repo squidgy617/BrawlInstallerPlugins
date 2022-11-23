@@ -76,6 +76,12 @@ class StageEditor(Form):
         self.cosmetics = getStageCosmetics(fullId[2:4])
         self.alts = getStageAltInfo(fullId[0:2])
 
+        # Variables
+        self.newIcon = ""
+        self.newName = ""
+        self.newPreview = ""
+        self.cosmeticId = fullId[2:4]
+
         # Cosmetics Groupbox
         cosmeticsGroupBox = GroupBox()
         cosmeticsGroupBox.Location = Point(0,0)
@@ -94,6 +100,7 @@ class StageEditor(Form):
         nameButton = Button()
         nameButton.Text = "Replace"
         nameButton.Location = Point(16, 220)
+        nameButton.Click += self.nameButtonPressed
 
         # Stage R-Alt Name
         self.altNamePictureBox = PictureBox()
@@ -122,6 +129,7 @@ class StageEditor(Form):
         iconButton = Button()
         iconButton.Text = "Replace"
         iconButton.Location = Point(240, 276)
+        iconButton.Click += self.iconButtonPressed
 
         # Franchise Icon
         self.franchiseIconPictureBox = PictureBox()
@@ -166,6 +174,7 @@ class StageEditor(Form):
         previewButton = Button()
         previewButton.Text = "Replace"
         previewButton.Location = Point(32, 132)
+        previewButton.Click += self.previewButtonPressed
 
         cosmeticsGroupBox.Controls.Add(self.previewPictureBox)
         cosmeticsGroupBox.Controls.Add(previewButton)
@@ -301,8 +310,14 @@ class StageEditor(Form):
         parametersGroupBox.Controls.Add(self.effectBankTextBox)
         parametersGroupBox.Controls.Add(effectBankLabel)
 
+        saveButton = Button()
+        saveButton.Text = "Save"
+        saveButton.Location = Point(16, 500)
+        saveButton.Click += self.saveButtonPressed
+
         self.Controls.Add(cosmeticsGroupBox)
         self.Controls.Add(parametersGroupBox)
+        self.Controls.Add(saveButton)
 
     def stageAltChanged(self, sender, args):
         self.aslIndicator.TargetNode = self.stageAltListbox.SelectedValue
@@ -312,6 +327,22 @@ class StageEditor(Form):
         self.tracklistTextBox.Text = self.stageAltListbox.SelectedItem.tracklist
         self.soundBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.soundBank))
         self.effectBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.effectBank))
+
+    def saveButtonPressed(self, sender, args):
+        if self.newIcon or self.newName or self.newPreview:
+            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview)
+
+    def iconButtonPressed(self, sender, args):
+        self.newIcon = BrawlAPI.OpenFileDialog("Select your stage icon image", "PNG files|*.png")
+        self.iconPictureBox.Image = Bitmap(self.newIcon)
+
+    def nameButtonPressed(self, sender, args):
+        self.newName = BrawlAPI.OpenFileDialog("Select your stage name image", "PNG files|*.png")
+        self.namePictureBox.Image = Bitmap(self.newName) 
+
+    def previewButtonPressed(self, sender, args):
+        self.newPreview = BrawlAPI.OpenFileDialog("Select your stage preview image", "PNG files|*.png")
+        self.previewPictureBox.Image = Bitmap(self.newPreview) 
 
 #endregion
 

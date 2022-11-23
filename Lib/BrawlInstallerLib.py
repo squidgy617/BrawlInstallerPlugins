@@ -304,7 +304,7 @@ def createDirectory(path):
 		return path
 
 # Helper function that imports a texture automatically without prompting the user
-def importTexture(node, imageSource, format, sizeW=0, sizeH=0):
+def importTexture(node, imageSource, format, sizeW=0, sizeH=0, replace=False):
 		writeLog("Importing texture " + imageSource + " to node " + node.Name)
 		dlg = TextureConverterDialog()
 		dlg.ImageSource = imageSource
@@ -320,10 +320,13 @@ def importTexture(node, imageSource, format, sizeW=0, sizeH=0):
 				dlg.InitialSize = Size(sizeW, sizeW)
 		dlg.ShowDialog(MainForm.Instance, node)
 		dlg.Dispose()
-		texFolder = getChildByName(node, "Textures(NW4R)")
-		newNode = texFolder.Children[len(texFolder.Children) - 1]
 		writeLog("Texture " + imageSource + " imported successfully")
-		return newNode
+		if not replace:
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			newNode = texFolder.Children[len(texFolder.Children) - 1]
+			return newNode
+		else:
+			return node
 
 # Helper function that checks if the file passed in is opened in BrawlCrate
 def checkOpenFile(fileName):
@@ -5196,5 +5199,32 @@ def getStageAltInfo(stageId):
 			params = getStageParams(alt)
 			stageParamList.append(params)
 		return stageParamList
+
+# Import stage icon
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""):
+		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
+		if File.Exists(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac')
+			if fileOpened:
+				bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+				if bresNode:
+					anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+					texFolder = getChildByName(bresNode, "Textures(NW4R)")
+					if anmTexPatFolder and texFolder:
+						if stageIcon:
+							iconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapIcon", "iconM", int(cosmeticId, 16))
+							texNode = getChildByName(texFolder, iconTextureName)
+							importTexture(texNode, stageIcon, WiiPixelFormat.CI8, replace=True)
+						if stageName:
+							nameTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM", int(cosmeticId, 16))
+							texNode = getChildByName(texFolder, nameTextureName)
+							importTexture(texNode, stageName, WiiPixelFormat.I4, replace=True)
+						if stagePreview:
+							previewTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgM", int(cosmeticId, 16))
+							texNode = getChildByName(texFolder, previewTextureName)
+							importTexture(texNode, stagePreview, WiiPixelFormat.CMPR, replace=True)
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished importing stage cosmetics")
 
 #endregion STAGES
