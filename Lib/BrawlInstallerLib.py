@@ -685,7 +685,7 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				node = getChildByName(rootNode, tex0BresName)
 			else:
@@ -810,7 +810,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				bresNode = getChildByName(rootNode, tex0BresName)
 			else:
@@ -1167,7 +1167,7 @@ def importFranchiseIconResult(franchiseIconId, image):
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Import icon
-			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
 			newNode = importTexture(node, image, WiiPixelFormat.CI4, sizeW=80)
 			newNode.Name = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
 			# Add 3D model
@@ -2620,7 +2620,7 @@ def subtractStockIcons(cosmeticId, startIndex, tex0BresName, pat0BresName, endIn
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				bresNode = getChildByName(rootNode, tex0BresName)
 			else:
@@ -2833,7 +2833,7 @@ def removeFranchiseIconResult(franchiseIconId):
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Remove icon
-			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
 			if textureNode:
@@ -2858,7 +2858,7 @@ def removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName="", filePa
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
-				rootNode = getChildByName(BrawlAPI.RootNode, rootName)
+				rootNode = getChildrenByPrefix(BrawlAPI.RootNode, rootName)[0]
 			if tex0BresName != "":
 				node = getChildByName(rootNode, tex0BresName)
 			else:
@@ -3602,7 +3602,7 @@ def extractFranchiseIconResult(franchiseIconId):
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac', False)
 		if fileOpened:
 			# Extract icon
-			node = getChildByName(getChildByName(BrawlAPI.RootNode, "2"), "Misc Data [110]")
+			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
 			texFolder = getChildByName(node, "Textures(NW4R)")
 			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
 			if textureNode:
@@ -3819,8 +3819,10 @@ def extractEndingFiles(fighterName, cosmeticConfigId):
 # Extract credits song
 def extractCreditsSong(slotId):
 		writeLog("Extracting credits song for slot ID " + str(slotId))
+		songFound = False
 		songId = updateCreditsCode(slotId, "", read=True)
-		songFound = extractSong(int(songId, 16), 'Credits', 'Credits', 'CreditsTheme')
+		if songId:
+			songFound = extractSong(int(songId, 16), 'Credits', 'Credits', 'CreditsTheme')
 		if songFound:
 			return 0
 		else:
