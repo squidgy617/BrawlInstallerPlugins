@@ -246,7 +246,7 @@ class StageEditor(Form):
         self.pacNameTextBox.Width = 160
 
         pacNameLabel = Label()
-        pacNameLabel.Text = "PAC Name:"
+        pacNameLabel.Text = "PAC File:"
         pacNameLabel.Location = Point(104, 48)
         pacNameLabel.TextAlign = ContentAlignment.TopRight
 
