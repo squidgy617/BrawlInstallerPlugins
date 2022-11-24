@@ -80,6 +80,9 @@ class StageEditor(Form):
         self.newIcon = ""
         self.newName = ""
         self.newPreview = ""
+        self.newFranchiseIcon = ""
+        self.newGameLogo = ""
+        self.newAltName = ""
         self.cosmeticId = fullId[2:4]
 
         # Cosmetics Groupbox
@@ -108,15 +111,21 @@ class StageEditor(Form):
         self.altNamePictureBox.Width = 208
         self.altNamePictureBox.Height = 56
         self.altNamePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.altNamePictureBox.Image = self.cosmetics.altName
+        self.altNamePictureBox.Image = self.cosmetics.altName.image
 
         altLabel = Label()
         altLabel.Text = "Alt Layout Name:"
         altLabel.Location = Point(16, 248)
 
-        altDropDown = ComboBox()
-        altDropDown.DropDownStyle = ComboBoxStyle.DropDown
-        altDropDown.Location = Point(16, 324)
+        self.altDropDown = ComboBox()
+        self.altDropDown.DropDownStyle = ComboBoxStyle.DropDown
+        self.altDropDown.Location = Point(16, 324)
+        self.altDropDown.Width = 208
+        self.altDropDown.BindingContext = self.BindingContext
+        self.altDropDown.DataSource = self.cosmetics.stageNameList
+        self.altDropDown.DisplayMember = "name"
+        self.altDropDown.ValueMember = "image"
+        self.altDropDown.SelectedValueChanged += self.altDropDownChanged
 
         # Stage Icon
         self.iconPictureBox = PictureBox()
@@ -137,11 +146,16 @@ class StageEditor(Form):
         self.franchiseIconPictureBox.Width = 64
         self.franchiseIconPictureBox.Height = 64
         self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon
+        self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon.image
 
-        franchiseIconDropDown = ComboBox()
-        franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDown
-        franchiseIconDropDown.Location = Point(16, 418)
+        self.franchiseIconDropDown = ComboBox()
+        self.franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDown
+        self.franchiseIconDropDown.Location = Point(16, 418)
+        self.franchiseIconDropDown.BindingContext = self.BindingContext
+        self.franchiseIconDropDown.DataSource = self.cosmetics.franchiseIconList
+        self.franchiseIconDropDown.DisplayMember = "name"
+        self.franchiseIconDropDown.ValueMember = "image"
+        self.franchiseIconDropDown.SelectedValueChanged += self.franchiseIconDropDownChanged
 
         franchiseIconButton = Button()
         franchiseIconButton.Text = "Add"
@@ -153,11 +167,16 @@ class StageEditor(Form):
         self.gameLogoPictureBox.Width = 120
         self.gameLogoPictureBox.Height = 56
         self.gameLogoPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.gameLogoPictureBox.Image = self.cosmetics.gameLogo
+        self.gameLogoPictureBox.Image = self.cosmetics.gameLogo.image
 
-        gameLogoDropDown = ComboBox()
-        gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDown
-        gameLogoDropDown.Location = Point(160, 418)
+        self.gameLogoDropDown = ComboBox()
+        self.gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDown
+        self.gameLogoDropDown.Location = Point(160, 418)
+        self.gameLogoDropDown.BindingContext = self.BindingContext
+        self.gameLogoDropDown.DataSource = self.cosmetics.gameLogoList
+        self.gameLogoDropDown.DisplayMember = "name"
+        self.gameLogoDropDown.ValueMember = "image"
+        self.gameLogoDropDown.SelectedValueChanged += self.gameLogoDropDownChanged
 
         gameLogoButton = Button()
         gameLogoButton.Text = "Add"
@@ -184,12 +203,12 @@ class StageEditor(Form):
         cosmeticsGroupBox.Controls.Add(iconButton)
         cosmeticsGroupBox.Controls.Add(self.altNamePictureBox)
         cosmeticsGroupBox.Controls.Add(altLabel)
-        cosmeticsGroupBox.Controls.Add(altDropDown)
+        cosmeticsGroupBox.Controls.Add(self.altDropDown)
         cosmeticsGroupBox.Controls.Add(self.franchiseIconPictureBox)
-        cosmeticsGroupBox.Controls.Add(franchiseIconDropDown)
+        cosmeticsGroupBox.Controls.Add(self.franchiseIconDropDown)
         cosmeticsGroupBox.Controls.Add(franchiseIconButton)
         cosmeticsGroupBox.Controls.Add(self.gameLogoPictureBox)
-        cosmeticsGroupBox.Controls.Add(gameLogoDropDown)
+        cosmeticsGroupBox.Controls.Add(self.gameLogoDropDown)
         cosmeticsGroupBox.Controls.Add(gameLogoButton)
 
         # Parameters Groupbox
@@ -319,6 +338,28 @@ class StageEditor(Form):
         self.Controls.Add(parametersGroupBox)
         self.Controls.Add(saveButton)
 
+        self.setComboBoxes()
+
+    def setComboBoxes(self):
+        i = 0
+        while i < len(self.cosmetics.franchiseIconList):
+            if self.cosmetics.franchiseIconList[i].name == self.cosmetics.franchiseIcon.name:
+                self.franchiseIconDropDown.SelectedIndex = i
+                break
+            i += 1
+        i = 0
+        while i < len(self.cosmetics.stageNameList):
+            if self.cosmetics.stageNameList[i].name == self.cosmetics.altName.name:
+                self.altDropDown.SelectedIndex = i
+                break
+            i += 1
+        i = 0
+        while i < len(self.cosmetics.gameLogoList):
+            if self.cosmetics.gameLogoList[i].name == self.cosmetics.gameLogo.name:
+                self.gameLogoDropDown.SelectedIndex = i
+                break
+            i += 1
+
     def stageAltChanged(self, sender, args):
         self.aslIndicator.TargetNode = self.stageAltListbox.SelectedValue
         self.moduleTextBox.Text = self.stageAltListbox.SelectedItem.module
@@ -329,8 +370,9 @@ class StageEditor(Form):
         self.effectBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.effectBank))
 
     def saveButtonPressed(self, sender, args):
-        if self.newIcon or self.newName or self.newPreview:
-            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview)
+        if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
+            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName)
+            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, fileName='/pf/menu2/mu_menumain.pac')
 
     def iconButtonPressed(self, sender, args):
         self.newIcon = BrawlAPI.OpenFileDialog("Select your stage icon image", "PNG files|*.png")
@@ -343,6 +385,27 @@ class StageEditor(Form):
     def previewButtonPressed(self, sender, args):
         self.newPreview = BrawlAPI.OpenFileDialog("Select your stage preview image", "PNG files|*.png")
         self.previewPictureBox.Image = Bitmap(self.newPreview) 
+
+    def altDropDownChanged(self, sender, args):
+        self.altNamePictureBox.Image = Bitmap(self.altDropDown.SelectedValue)
+        if self.altDropDown.SelectedItem.name != self.cosmetics.altName.name:
+            self.newAltName = self.altDropDown.SelectedItem.name
+        else:
+            self.newAltName = ""
+
+    def franchiseIconDropDownChanged(self, sender, args):
+        self.franchiseIconPictureBox.Image = Bitmap(self.franchiseIconDropDown.SelectedValue)
+        if self.franchiseIconDropDown.SelectedItem.name != self.cosmetics.franchiseIcon.name:
+            self.newFranchiseIcon = self.franchiseIconDropDown.SelectedItem.name
+        else:
+            self.newFranchiseIcon = ""
+
+    def gameLogoDropDownChanged(self, sender, args):
+        self.gameLogoPictureBox.Image = Bitmap(self.gameLogoDropDown.SelectedValue)
+        if self.gameLogoDropDown.SelectedItem.name != self.cosmetics.gameLogo.name:
+            self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
+        else:
+            self.newGameLogo = ""
 
 #endregion
 

@@ -238,13 +238,13 @@ def getChildByFighterID(node, fighterId):
 		return 0
 
 # Get child node by frame index
-def getChildByFrameIndex(parentNode, index):
+def getChildByFrameIndex(parentNode, index, getNearest=True):
 		prevChild = 0
 		if parentNode.Children:
 			for child in parentNode.Children:
 				if child.FrameIndex == index:
 					return child
-				if child.FrameIndex > index:
+				if child.FrameIndex > index and getNearest:
 					return prevChild
 				prevChild = child
 		return 0
@@ -4936,13 +4936,16 @@ class StageSlot:
 			self.name = name
 
 class StageCosmetics:
-		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName):
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None):
 			self.stageIcon = stageIcon
 			self.stagePreview = stagePreview
 			self.stageName = stageName
 			self.franchiseIcon = franchiseIcon
 			self.gameLogo = gameLogo
 			self.altName = altName
+			self.stageNameList = stageNameList
+			self.franchiseIconList = franchiseIconList
+			self.gameLogoList = gameLogoList
 
 class StageParams:
 		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank):
@@ -4952,6 +4955,11 @@ class StageParams:
 			self.module = module
 			self.soundBank = soundBank
 			self.effectBank = effectBank
+
+class ImageNode:
+		def __init__(self, name, image):
+			self.name = name
+			self.image = image
 
 #endregion CLASSES
 
@@ -5117,6 +5125,9 @@ def getStageCosmetics(cosmeticId):
 		franchiseIcon = 0
 		gameLogo = 0
 		altName = 0
+		stageNameList = []
+		franchiseIconList = []
+		gameLogoList = []
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac', False)
 		if fileOpened:
 			bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
@@ -5139,18 +5150,26 @@ def getStageCosmetics(cosmeticId):
 					# Franchise Icon
 					franchiseIconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
 					texNode = getChildByName(texFolder, franchiseIconTextureName)
-					franchiseIcon = Bitmap(texNode.GetImage(0))
+					franchiseIcon = ImageNode(texNode.Name, Bitmap(texNode.GetImage(0)))
 					# Game Logo
 					gameLogoTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", int(cosmeticId, 16))
 					texNode = getChildByName(texFolder, gameLogoTextureName)
-					gameLogo = Bitmap(texNode.GetImage(0))
+					gameLogo = ImageNode(texNode.Name, Bitmap(texNode.GetImage(0)))
 					# R-alt Name
 					altNameTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM_start", int(cosmeticId, 16))
 					texNode = getChildByName(texFolder, altNameTextureName)
-					altName = Bitmap(texNode.GetImage(0))
+					altName = ImageNode(texNode.Name, Bitmap(texNode.GetImage(0)))
+					# Stage Names
+					for child in texFolder.Children:
+						if child.Name.startswith('MenSelmapFrontStname.'):
+							stageNameList.append(ImageNode(child.Name, child.GetImage(0)))
+						if child.Name.startswith('MenSelchrMark.'):
+							franchiseIconList.append(ImageNode(child.Name, child.GetImage(0)))
+						if child.Name.startswith('MenSelmapMark.'):
+							gameLogoList.append(ImageNode(child.Name, child.GetImage(0)))
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished getting cosmetics")
-		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName)
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList)
 
 # Get the texture associated with a pat0 entry by input frame index
 def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
@@ -5160,9 +5179,21 @@ def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
 			pat0Entry = getChildByName(pat0, entryName).Children[0]
 			if pat0Entry:
 				frame = getChildByFrameIndex(pat0Entry, frameIndex)
-				if frame:
+				if frame != False:
 					textureName = frame.Texture
 					return textureName
+		return 0
+
+# Get a pat0 entry by frame index
+def getPat0ByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
+		writeLog("Getting pat0 entry with frame index " + str(frameIndex))
+		pat0 = getChildByName(patFolder, pat0Name)
+		if pat0:
+			pat0Entry = getChildByName(pat0, entryName).Children[0]
+			if pat0Entry:
+				frame = getChildByFrameIndex(pat0Entry, frameIndex, False)
+				if frame:
+					return frame
 		return 0
 
 # Get the ASLEntry nodes for all stage alts for a single stage slot
@@ -5201,12 +5232,15 @@ def getStageAltInfo(stageId):
 		return stageParamList
 
 # Import stage icon
-def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""):
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", fileName='/pf/menu2/sc_selmap.pac'):
 		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
-		if File.Exists(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac'):
-			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac')
+		if File.Exists(MainForm.BuildPath + fileName):
+			fileOpened = openFile(MainForm.BuildPath + fileName)
 			if fileOpened:
-				bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+				if BrawlAPI.RootNode.Name.startswith("sc_selmap"):
+					bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+				else:
+					bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 				if bresNode:
 					anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
 					texFolder = getChildByName(bresNode, "Textures(NW4R)")
@@ -5223,6 +5257,29 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 							previewTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgM", int(cosmeticId, 16))
 							texNode = getChildByName(texFolder, previewTextureName)
 							importTexture(texNode, stagePreview, WiiPixelFormat.CMPR, replace=True)
+						if franchiseIconName:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "lambert113", franchiseIconName, franchiseIconName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = franchiseIconName
+						if gameLogoName:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnamelogoM", gameLogoName, gameLogoName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = gameLogoName
+						if altStageName:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM_start", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameM_start", altStageName, altStageName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = altStageName
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameshadowM_start", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameshadowM_start", altStageName, altStageName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = altStageName
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished importing stage cosmetics")
