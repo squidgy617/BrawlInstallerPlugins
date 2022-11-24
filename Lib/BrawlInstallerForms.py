@@ -84,6 +84,7 @@ class StageEditor(Form):
         self.newGameLogo = ""
         self.newAltName = ""
         self.cosmeticId = fullId[2:4]
+        self.stageId = fullId[0:2]
 
         # Cosmetics Groupbox
         cosmeticsGroupBox = GroupBox()
@@ -233,6 +234,7 @@ class StageEditor(Form):
         self.nameTextBox.Text = self.alts[0].aslEntry.Name
         self.nameTextBox.Location = Point(208, 16)
         self.nameTextBox.Width = 160
+        self.nameTextBox.TextChanged += self.nameTextChanged
 
         nameLabel = Label()
         nameLabel.Text = "Name:"
@@ -244,6 +246,7 @@ class StageEditor(Form):
         self.pacNameTextBox.Text = self.alts[0].pacName
         self.pacNameTextBox.Location = Point(208, 48)
         self.pacNameTextBox.Width = 160
+        self.pacNameTextBox.TextChanged += self.pacNameTextChanged
 
         pacNameLabel = Label()
         pacNameLabel.Text = "PAC File:"
@@ -259,6 +262,7 @@ class StageEditor(Form):
         self.moduleTextBox.Text = self.alts[0].module
         self.moduleTextBox.Location = Point(208, 80)
         self.moduleTextBox.Width = 160
+        self.moduleTextBox.TextChanged += self.moduleTextChanged
 
         moduleLabel = Label()
         moduleLabel.Text = "Module:"
@@ -274,6 +278,7 @@ class StageEditor(Form):
         self.tracklistTextBox.Text = self.alts[0].tracklist
         self.tracklistTextBox.Location = Point(208, 112)
         self.tracklistTextBox.Width = 160
+        self.tracklistTextBox.TextChanged += self.tracklistTextChanged
 
         tracklistLabel = Label()
         tracklistLabel.Text = "Tracklist:"
@@ -289,6 +294,7 @@ class StageEditor(Form):
         self.soundBankTextBox.Text = str(hexId(self.alts[0].soundBank))
         self.soundBankTextBox.Location = Point(208, 144)
         self.soundBankTextBox.Width = 160
+        self.soundBankTextBox.TextChanged += self.soundBankTextChanged
 
         soundBankLabel = Label()
         soundBankLabel.Text = "Sound Bank:"
@@ -300,6 +306,7 @@ class StageEditor(Form):
         self.effectBankTextBox.Text = str(hexId(self.alts[0].effectBank))
         self.effectBankTextBox.Location = Point(208, 176)
         self.effectBankTextBox.Width = 160
+        self.effectBankTextBox.TextChanged += self.effectBankTextChanged
 
         effectBankLabel = Label()
         effectBankLabel.Text = "Effect Bank:"
@@ -373,6 +380,8 @@ class StageEditor(Form):
         if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName)
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, fileName='/pf/menu2/mu_menumain.pac')
+        updateStageSlot(self.stageId, self.stageAltListbox.Items)
+        updateStageParams(self.stageId, self.stageAltListbox.Items)
 
     def iconButtonPressed(self, sender, args):
         self.newIcon = BrawlAPI.OpenFileDialog("Select your stage icon image", "PNG files|*.png")
@@ -406,6 +415,26 @@ class StageEditor(Form):
             self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
         else:
             self.newGameLogo = ""
+
+    def nameTextChanged(self, sender, args):
+        self.stageAltListbox.SelectedValue.Name = self.nameTextBox.Text
+
+    def pacNameTextChanged(self, sender, args):
+        self.stageAltListbox.SelectedItem.pacName = self.pacNameTextBox.Text
+
+    def moduleTextChanged(self, sender, args):
+        self.stageAltListbox.SelectedItem.module = self.moduleTextBox.Text
+
+    def tracklistTextChanged(self, sender, args):
+        self.stageAltListbox.SelectedItem.tracklist = self.tracklistTextBox.Text
+
+    def soundBankTextChanged(self, sender, args):
+        if hexId(self.soundBankTextBox.Text):
+            self.stageAltListbox.SelectedItem.soundBank = int(self.soundBankTextBox.Text.replace('0x', ''), 16)
+
+    def effectBankTextChanged(self, sender, args):
+        if hexId(self.effectBankTextBox.Text):
+            self.stageAltListbox.SelectedItem.effectBank = int(self.effectBankTextBox.Text.replace('0x', ''), 16)
 
 #endregion
 

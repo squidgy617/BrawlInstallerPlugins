@@ -533,6 +533,13 @@ def copyRenameFile(sourcePath, newName, destinationPath):
 		Directory.CreateDirectory(destinationPath)
 		File.Copy(sourcePath, destinationPath + '/' + newName, True)
 
+# Helper method to more easily rename files
+def renameFile(sourcePath, newName):
+		writeLog("Attempting to rename file " + sourcePath + " to " + newName)
+		createBackup(sourcePath)
+		fileInfo = getFileInfo(sourcePath)
+		File.Move(sourcePath, fileInfo.DirectoryName + '/' + newName)
+
 # Return the text version of a boolean value
 def boolText(boolVal):
 		if boolVal == True:
@@ -4948,13 +4955,14 @@ class StageCosmetics:
 			self.gameLogoList = gameLogoList
 
 class StageParams:
-		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank):
+		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName):
 			self.aslEntry = aslEntry
 			self.pacName = pacName
 			self.tracklist = tracklist
 			self.module = module
 			self.soundBank = soundBank
 			self.effectBank = effectBank
+			self.originalName = originalName
 
 class ImageNode:
 		def __init__(self, name, image):
@@ -5215,7 +5223,7 @@ def getStageParams(aslEntry):
 		if fileOpened:
 			writeLog("Found stage params")
 			rootNode = BrawlAPI.RootNode
-			params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank)
+			params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank, aslEntry.Name)
 			BrawlAPI.ForceCloseFile()
 			return params
 		writeLog("Couldn't find stage params")
@@ -5284,4 +5292,40 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished importing stage cosmetics")
 
+# Update stage slot
+def updateStageSlot(stageId, stageParamList):
+		writeLog("Updating stage slot for stage ID " + str(stageId))
+		if File.Exists(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl')
+			if fileOpened:
+				i = 0
+				while i < len(stageParamList):
+					if i > len(BrawlAPI.RootNode.Children):
+						BrawlAPI.RootNode.AddChild(ASLSEntryNode())
+					if BrawlAPI.RootNode.Children[i] != stageParamList[i].aslEntry:
+						BrawlAPI.RootNode.Children[i].Name = stageParamList[i].aslEntry.Name
+						BrawlAPI.RootNode.Children[i].ButtonFlags = stageParamList[i].aslEntry.ButtonFlags
+					i += 1
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished updating stage slot")
+
+# Update stage params
+def updateStageParams(stageId, stageParamList):
+		writeLog("Updating stage params for stage ID " + str(stageId))
+		for stageParam in stageParamList:
+			if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
+				if stageParam.originalName != stageParam.aslEntry.Name:
+					renameFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param', stageParam.aslEntry.Name + '.param')
+				if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param'):
+					fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
+					if fileOpened:
+						BrawlAPI.RootNode.StageName = stageParam.pacName
+						BrawlAPI.RootNode.TrackList = stageParam.tracklist
+						BrawlAPI.RootNode.Module = stageParam.module
+						BrawlAPI.RootNode.SoundBank = stageParam.soundBank
+						BrawlAPI.RootNode.EffectBank = stageParam.effectBank
+						BrawlAPI.SaveFile()
+						BrawlAPI.ForceCloseFile()
+		writeLog("Finished updating stage params")
 #endregion STAGES
