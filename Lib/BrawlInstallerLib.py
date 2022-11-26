@@ -4955,7 +4955,7 @@ class StageCosmetics:
 			self.gameLogoList = gameLogoList
 
 class StageParams:
-		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName):
+		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile=""):
 			self.aslEntry = aslEntry
 			self.pacName = pacName
 			self.tracklist = tracklist
@@ -4963,6 +4963,10 @@ class StageParams:
 			self.soundBank = soundBank
 			self.effectBank = effectBank
 			self.originalName = originalName
+			self.pacFile = pacFile
+			self.moduleFile = moduleFile
+			self.tracklistFile = tracklistFile
+			self.soundBankFile = soundBankFile
 
 class ImageNode:
 		def __init__(self, name, image):
@@ -5328,4 +5332,34 @@ def updateStageParams(stageId, stageParamList):
 						BrawlAPI.SaveFile()
 						BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating stage params")
+
+# Move stage files into build
+def moveStageFiles(pacFile="", pacFileName="", moduleFile="", moduleFileName="", tracklistFile="", tracklistFileName="", soundBankFile="", soundBankFileName=""):
+		writeLog("Moving stage files into build")
+		if pacFile:
+			if File.Exists(pacFile):
+				if pacFileName:
+					copyRenameFile(pacFile, "STG" + pacFileName.upper() + ".pac", MainForm.BuildPath + '/pf/stage/melee')
+				else:
+					copyFile(pacFile, MainForm.BuildPath + '/pf/stage/melee')
+		if moduleFile:
+			if File.Exists(moduleFile):
+				if moduleFileName:
+					copyRenameFile(moduleFile, moduleFileName, MainForm.BuildPath + '/pf/module')
+				else:
+					copyFile(moduleFile, MainForm.BuildPath + '/pf/module')
+		if tracklistFile:
+			if File.Exists(tracklistFile):
+				if tracklistFileName:
+					copyRenameFile(tracklistFile, tracklistFileName + ".tlst", MainForm.BuildPath + '/pf/sound/tracklist')
+				else:
+					copyFile(tracklistFile, MainForm.BuildPath + '/pf/sound/tracklist')
+		if soundBankFile:
+			if File.Exists(soundBankFile):
+				if soundBankFileName and soundBankFileName != "0xFFFF":
+					fileName = getFileInfo(soundBankFile).Name
+					copyRenameFile(soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(soundBankFileName.replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
+				else:
+					copyFile(soundBankFile, MainForm.BuildPath + '/pf/sound/tracklist')
+
 #endregion STAGES
