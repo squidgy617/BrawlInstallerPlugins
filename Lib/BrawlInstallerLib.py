@@ -494,6 +494,8 @@ def getVictoryThemeIDByFighterId(slotId):
 def copyFile(sourcePath, destinationPath):
 		writeLog("Copying file " + sourcePath + " to " + destinationPath)
 		Directory.CreateDirectory(destinationPath)
+		if File.Exists(destinationPath + '/' + getFileInfo(sourcePath).Name):
+			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
 # Helper method to create a backup of the provided file with correct folder structure
@@ -531,6 +533,8 @@ def openFile(filePath, backup=True):
 def copyRenameFile(sourcePath, newName, destinationPath):
 		writeLog("Attempting to copy file " + sourcePath + " to " + destinationPath + '/' + newName)
 		Directory.CreateDirectory(destinationPath)
+		if File.Exists(destinationPath + '/' + newName):
+			createBackup(destinationPath + '/' + newName)
 		File.Copy(sourcePath, destinationPath + '/' + newName, True)
 
 # Helper method to more easily rename files
