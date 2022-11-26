@@ -483,27 +483,31 @@ class StageEditor(Form):
 
     def pacNameButtonPressed(self, sender, args):
         self.stageAltListbox.SelectedItem.pacFile = BrawlAPI.OpenFileDialog("Select your stage PAC file", "PAC files|*.pac")
-        fileName = getFileInfo(self.stageAltListbox.SelectedItem.pacFile).Name
-        self.pacNameTextBox.Text = fileName.replace('STG', '').split('.')[0]
-        self.pacNameFileBox.Text = self.stageAltListbox.SelectedItem.pacFile
+        if self.stageAltListbox.SelectedItem.pacFile:
+            fileName = getFileInfo(self.stageAltListbox.SelectedItem.pacFile).Name
+            self.pacNameTextBox.Text = fileName.replace('STG', '').split('.')[0]
+            self.pacNameFileBox.Text = self.stageAltListbox.SelectedItem.pacFile
 
     def moduleButtonPressed(self, sender, args):
         self.stageAltListbox.SelectedItem.moduleFile = BrawlAPI.OpenFileDialog("Select your stage module file", "REL files|*.rel")
-        fileName = getFileInfo(self.stageAltListbox.SelectedItem.moduleFile).Name
-        self.moduleTextBox.Text = fileName
-        self.moduleFileBox.Text = self.stageAltListbox.SelectedItem.moduleFile
+        if self.stageAltListbox.SelectedItem.moduleFile:
+            fileName = getFileInfo(self.stageAltListbox.SelectedItem.moduleFile).Name
+            self.moduleTextBox.Text = fileName
+            self.moduleFileBox.Text = self.stageAltListbox.SelectedItem.moduleFile
 
     def tracklistButtonPressed(self, sender, args):
         self.stageAltListbox.SelectedItem.tracklistFile = BrawlAPI.OpenFileDialog("Select your tracklist file", "TLST files|*.tlst")
-        fileName = getFileInfo(self.stageAltListbox.SelectedItem.tracklistFile).Name
-        self.tracklistTextBox.Text = fileName.split('.')[0]
-        self.tracklistFileBox.Text = self.stageAltListbox.SelectedItem.tracklistFile
+        if self.stageAltListbox.SelectedItem.tracklistFile:
+            fileName = getFileInfo(self.stageAltListbox.SelectedItem.tracklistFile).Name
+            self.tracklistTextBox.Text = fileName.split('.')[0]
+            self.tracklistFileBox.Text = self.stageAltListbox.SelectedItem.tracklistFile
 
     def soundBankButtonPressed(self, sender, args):
         self.stageAltListbox.SelectedItem.soundBankFile = BrawlAPI.OpenFileDialog("Select your sawnd file", "SAWND files|*.sawnd")
-        fileName = getFileInfo(self.stageAltListbox.SelectedItem.soundBankFile).Name
-        self.soundBankTextBox.Text = '0x' + fileName.split('_')[0]
-        self.soundBankFileBox.Text = self.stageAltListbox.SelectedItem.soundBankFile
+        if self.stageAltListbox.SelectedItem.soundBankFile:
+            fileName = getFileInfo(self.stageAltListbox.SelectedItem.soundBankFile).Name
+            self.soundBankTextBox.Text = '0x' + fileName.split('_')[0]
+            self.soundBankFileBox.Text = self.stageAltListbox.SelectedItem.soundBankFile
 
 #endregion
 
