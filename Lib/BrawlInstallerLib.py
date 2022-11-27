@@ -5318,7 +5318,7 @@ def updateStageSlot(stageId, stageParamList):
 			if fileOpened:
 				i = 0
 				while i < len(stageParamList):
-					if i > len(BrawlAPI.RootNode.Children):
+					if i >= len(BrawlAPI.RootNode.Children):
 						BrawlAPI.RootNode.AddChild(ASLSEntryNode())
 					if BrawlAPI.RootNode.Children[i] != stageParamList[i].aslEntry:
 						BrawlAPI.RootNode.Children[i].Name = stageParamList[i].aslEntry.Name
@@ -5332,7 +5332,7 @@ def updateStageSlot(stageId, stageParamList):
 def updateStageParams(stageId, stageParamList):
 		writeLog("Updating stage params for stage ID " + str(stageId))
 		for stageParam in stageParamList:
-			if originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
+			if stageParam.originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
 				if stageParam.originalName != stageParam.aslEntry.Name:
 					renameFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param', stageParam.aslEntry.Name + '.param')
 			if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param'):
@@ -5348,39 +5348,40 @@ def updateStageParams(stageId, stageParamList):
 		writeLog("Finished updating stage params")
 
 # Move stage files into build
-def moveStageFiles(pacFile="", pacFileName="", moduleFile="", moduleFileName="", tracklistFile="", tracklistFileName="", soundBankFile="", soundBankFileName="", paramFile="", paramFileName=""):
+def moveStageFiles(stageParamList):
 		writeLog("Moving stage files into build")
-		if pacFile:
-			if File.Exists(pacFile):
-				if pacFileName:
-					copyRenameFile(pacFile, "STG" + pacFileName.upper() + ".pac", MainForm.BuildPath + '/pf/stage/melee')
-				else:
-					copyFile(pacFile, MainForm.BuildPath + '/pf/stage/melee')
-		if moduleFile:
-			if File.Exists(moduleFile):
-				if moduleFileName:
-					copyRenameFile(moduleFile, moduleFileName, MainForm.BuildPath + '/pf/module')
-				else:
-					copyFile(moduleFile, MainForm.BuildPath + '/pf/module')
-		if tracklistFile:
-			if File.Exists(tracklistFile):
-				if tracklistFileName:
-					copyRenameFile(tracklistFile, tracklistFileName + ".tlst", MainForm.BuildPath + '/pf/sound/tracklist')
-				else:
-					copyFile(tracklistFile, MainForm.BuildPath + '/pf/sound/tracklist')
-		if soundBankFile:
-			if File.Exists(soundBankFile):
-				if soundBankFileName and soundBankFileName != "0xFFFF":
-					fileName = getFileInfo(soundBankFile).Name
-					copyRenameFile(soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(soundBankFileName.replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
-				else:
-					copyFile(soundBankFile, MainForm.BuildPath + '/pf/sound/tracklist')
-		if paramFile:
-			if File.Exists(paramFile):
-				if paramFileName:
-					copyRenameFile(paramFile, paramFileName + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
-				else:
-					copyFile(paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
+		for stageParam in stageParamList:
+			if stageParam.pacFile:
+				if File.Exists(stageParam.pacFile):
+					if stageParam.pacName:
+						copyRenameFile(stageParam.pacFile, "STG" + stageParam.pacName.upper() + ".pac", MainForm.BuildPath + '/pf/stage/melee')
+					else:
+						copyFile(stageParam.pacFile, MainForm.BuildPath + '/pf/stage/melee')
+			if stageParam.moduleFile:
+				if File.Exists(stageParam.moduleFile):
+					if stageParam.module:
+						copyRenameFile(stageParam.moduleFile, stageParam.module, MainForm.BuildPath + '/pf/module')
+					else:
+						copyFile(stageParam.moduleFile, MainForm.BuildPath + '/pf/module')
+			if stageParam.tracklistFile:
+				if File.Exists(stageParam.tracklistFile):
+					if stageParam.tracklist:
+						copyRenameFile(stageParam.tracklistFile, stageParam.tracklist + ".tlst", MainForm.BuildPath + '/pf/sound/tracklist')
+					else:
+						copyFile(stageParam.tracklistFile, MainForm.BuildPath + '/pf/sound/tracklist')
+			if stageParam.soundBankFile:
+				if File.Exists(stageParam.soundBankFile):
+					if stageParam.soundBank and hexId(stageParam.soundBank) != "0xFFFF":
+						fileName = getFileInfo(stageParam.soundBankFile).Name
+						copyRenameFile(stageParam.soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
+					else:
+						copyFile(stageParam.soundBankFile, MainForm.BuildPath + '/pf/sound/tracklist')
+			if stageParam.paramFile:
+				if File.Exists(stageParam.paramFile):
+					if stageParam.aslEntry:
+						copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
+					else:
+						copyFile(stageParam.paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
 
 
 #endregion STAGES

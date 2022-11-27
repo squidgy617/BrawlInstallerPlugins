@@ -469,9 +469,7 @@ class StageEditor(Form):
         if len(self.alts) <= 0:
             BrawlAPI.ShowMessage("You must have at least one stage entry defined to continue!", "Add Stage Entries")
             return
-        # TODO: use stuff from the StageParams class, not visible text boxes, cause this'll only move the currently selected file stuff
-        if self.pacNameFileBox.Text or self.moduleFileBox.Text or self.tracklistFileBox.Text or self.soundBankFileBox.Text or self.stageAltFileBox.Text:
-            moveStageFiles(pacFile=self.pacNameFileBox.Text, pacFileName=self.pacNameTextBox.Text, moduleFile=self.moduleFileBox.Text, moduleFileName=self.moduleTextBox.Text, tracklistFile=self.tracklistFileBox.Text, tracklistFileName=self.tracklistTextBox.Text, soundBankFile=self.soundBankFileBox.Text, soundBankFileName=self.soundBankTextBox.Text, paramFile=self.stageAltFileBox.Text, paramFileName=self.nameTextBox.Text)
+        moveStageFiles(self.alts)
         if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName)
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, fileName='/pf/menu2/mu_menumain.pac')
