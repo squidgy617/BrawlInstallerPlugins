@@ -49,12 +49,22 @@ class StageList(Form):
         button.Dock = DockStyle.Bottom
         button.Click += self.buttonPressed
 
+        addButton = Button()
+        addButton.Dock = DockStyle.Bottom
+        addButton.Click += self.addButtonPressed
+
         self.Controls.Add(self.listBox)
         self.Controls.Add(button)
+        self.Controls.Add(addButton)
     
     def buttonPressed(self, sender, args):
-        fullId = str(self.listBox.SelectedValue)
-        form = StageEditor(fullId)
+        if not self.listBox.SelectedItem.name.startswith('--PAGE '):
+            fullId = str(self.listBox.SelectedValue)
+            form = StageEditor(fullId)
+            result = form.ShowDialog(MainForm.Instance)
+
+    def addButtonPressed(self, sender, args):
+        form = StageEditor('0000')
         result = form.ShowDialog(MainForm.Instance)
 
 #endregion
@@ -74,7 +84,8 @@ class StageEditor(Form):
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.cosmetics = getStageCosmetics(fullId[2:4])
-        self.alts = getStageAltInfo(fullId[0:2])
+        self.alts = BindingSource()
+        self.alts.DataSource = getStageAltInfo(fullId[0:2])
         #TODO: Import song BRSTMs (under the param listbox probably, or maybe as part of .tlst upload?), add new param entries/import .param files
         #add new stage slots
         #label cosmetics
@@ -230,15 +241,35 @@ class StageEditor(Form):
         self.stageAltListbox.ValueMember = "aslEntry"
         self.stageAltListbox.Location = Point(16, 16)
         self.stageAltListbox.Width = 120
-        self.stageAltListbox.Height = 240
+        self.stageAltListbox.Height = 120
         self.stageAltListbox.SelectedValueChanged += self.stageAltChanged
+
+        stageAltAddButton = Button()
+        stageAltAddButton.Text = "+"
+        stageAltAddButton.Location = Point(16, 128)
+        stageAltAddButton.Width = 16
+        stageAltAddButton.Height = 16
+        stageAltAddButton.Click += self.stageAltAddButtonPressed
+
+        stageAltImportButton = Button()
+        stageAltImportButton.Text = "Import Params"
+        stageAltImportButton.Location = Point(16, 152)
+        stageAltImportButton.Click += self.stageAltImportButtonPressed
+        stageAltImportButton.AutoSize = True
+        stageAltImportButton.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.stageAltFileBox = TextBox()
+        self.stageAltFileBox.Location = Point(16, 184)
+        self.stageAltFileBox.Width = 120
+        self.stageAltFileBox.ReadOnly = True
 
         # Name textbox
         self.nameTextBox = TextBox()
-        self.nameTextBox.Text = self.alts[0].aslEntry.Name
+        self.nameTextBox.Text = self.alts[0].aslEntry.Name if len(self.alts) > 0 else ""
         self.nameTextBox.Location = Point(208, 16)
         self.nameTextBox.Width = 160
         self.nameTextBox.TextChanged += self.nameTextChanged
+        self.nameTextBox.Enabled = True if len(self.alts) > 0 else False
 
         nameLabel = Label()
         nameLabel.Text = "Name:"
@@ -247,20 +278,22 @@ class StageEditor(Form):
 
         # PAC Name textbox
         self.pacNameTextBox = TextBox()
-        self.pacNameTextBox.Text = self.alts[0].pacName
+        self.pacNameTextBox.Text = self.alts[0].pacName if len(self.alts) > 0 else ""
         self.pacNameTextBox.Location = Point(208, 48)
         self.pacNameTextBox.Width = 160
         self.pacNameTextBox.TextChanged += self.pacNameTextChanged
+        self.pacNameTextBox.Enabled = True if len(self.alts) > 0 else False
 
         pacNameLabel = Label()
         pacNameLabel.Text = "PAC File:"
         pacNameLabel.Location = Point(104, 48)
         pacNameLabel.TextAlign = ContentAlignment.TopRight
 
-        pacNameButton = Button()
-        pacNameButton.Text = "Browse..."
-        pacNameButton.Location = Point(376, 47)
-        pacNameButton.Click += self.pacNameButtonPressed
+        self.pacNameButton = Button()
+        self.pacNameButton.Text = "Browse..."
+        self.pacNameButton.Location = Point(376, 47)
+        self.pacNameButton.Click += self.pacNameButtonPressed
+        self.pacNameButton.Enabled = True if len(self.alts) > 0 else False
 
         self.pacNameFileBox = TextBox()
         self.pacNameFileBox.Location = Point(208, 72)
@@ -269,20 +302,22 @@ class StageEditor(Form):
 
         # Module textbox
         self.moduleTextBox = TextBox()
-        self.moduleTextBox.Text = self.alts[0].module
+        self.moduleTextBox.Text = self.alts[0].module if len(self.alts) > 0 else ""
         self.moduleTextBox.Location = Point(208, 104)
         self.moduleTextBox.Width = 160
         self.moduleTextBox.TextChanged += self.moduleTextChanged
+        self.moduleTextBox.Enabled = True if len(self.alts) > 0 else False
 
         moduleLabel = Label()
         moduleLabel.Text = "Module:"
         moduleLabel.Location = Point(104, 104)
         moduleLabel.TextAlign = ContentAlignment.TopRight
 
-        moduleButton = Button()
-        moduleButton.Text = "Browse..."
-        moduleButton.Location = Point(376, 103)
-        moduleButton.Click += self.moduleButtonPressed
+        self.moduleButton = Button()
+        self.moduleButton.Text = "Browse..."
+        self.moduleButton.Location = Point(376, 103)
+        self.moduleButton.Click += self.moduleButtonPressed
+        self.moduleButton.Enabled = True if len(self.alts) > 0 else False
 
         self.moduleFileBox = TextBox()
         self.moduleFileBox.Location = Point(208, 128)
@@ -291,20 +326,22 @@ class StageEditor(Form):
 
         # Tracklist textbox
         self.tracklistTextBox = TextBox()
-        self.tracklistTextBox.Text = self.alts[0].tracklist
+        self.tracklistTextBox.Text = self.alts[0].tracklist if len(self.alts) > 0 else ""
         self.tracklistTextBox.Location = Point(208, 160)
         self.tracklistTextBox.Width = 160
         self.tracklistTextBox.TextChanged += self.tracklistTextChanged
+        self.tracklistTextBox.Enabled = True if len(self.alts) > 0 else False
 
         tracklistLabel = Label()
         tracklistLabel.Text = "Tracklist:"
         tracklistLabel.Location = Point(104, 160)
         tracklistLabel.TextAlign = ContentAlignment.TopRight
 
-        tracklistButton = Button()
-        tracklistButton.Text = "Browse..."
-        tracklistButton.Location = Point(376, 159)
-        tracklistButton.Click += self.tracklistButtonPressed
+        self.tracklistButton = Button()
+        self.tracklistButton.Text = "Browse..."
+        self.tracklistButton.Location = Point(376, 159)
+        self.tracklistButton.Click += self.tracklistButtonPressed
+        self.tracklistButton.Enabled = True if len(self.alts) > 0 else False
 
         self.tracklistFileBox = TextBox()
         self.tracklistFileBox.Location = Point(208, 184)
@@ -313,20 +350,22 @@ class StageEditor(Form):
 
         # Soundbank textbox
         self.soundBankTextBox = TextBox()
-        self.soundBankTextBox.Text = str(hexId(self.alts[0].soundBank))
+        self.soundBankTextBox.Text = str(hexId(self.alts[0].soundBank)) if len(self.alts) > 0 else "0xFFFF"
         self.soundBankTextBox.Location = Point(208, 216)
         self.soundBankTextBox.Width = 160
         self.soundBankTextBox.TextChanged += self.soundBankTextChanged
+        self.soundBankTextBox.Enabled = True if len(self.alts) > 0 else False
 
         soundBankLabel = Label()
         soundBankLabel.Text = "Sound Bank:"
         soundBankLabel.Location = Point(104, 216)
         soundBankLabel.TextAlign = ContentAlignment.TopRight
 
-        soundBankButton = Button()
-        soundBankButton.Text = "Browse..."
-        soundBankButton.Location = Point(376, 215)
-        soundBankButton.Click += self.soundBankButtonPressed
+        self.soundBankButton = Button()
+        self.soundBankButton.Text = "Browse..."
+        self.soundBankButton.Location = Point(376, 215)
+        self.soundBankButton.Click += self.soundBankButtonPressed
+        self.soundBankButton.Enabled = True if len(self.alts) > 0 else False
 
         self.soundBankFileBox = TextBox()
         self.soundBankFileBox.Location = Point(208, 240)
@@ -335,10 +374,11 @@ class StageEditor(Form):
 
         # Effectbank textbox
         self.effectBankTextBox = TextBox()
-        self.effectBankTextBox.Text = str(hexId(self.alts[0].effectBank))
+        self.effectBankTextBox.Text = str(hexId(self.alts[0].effectBank)) if len(self.alts) > 0 else "0xFFFF"
         self.effectBankTextBox.Location = Point(208, 272)
         self.effectBankTextBox.Width = 160
         self.effectBankTextBox.TextChanged += self.effectBankTextChanged
+        self.effectBankTextBox.Enabled = True if len(self.alts) > 0 else False
 
         effectBankLabel = Label()
         effectBankLabel.Text = "Effect Bank:"
@@ -348,26 +388,32 @@ class StageEditor(Form):
         # Button Checkboxes
         self.aslIndicator = ASLIndicator()
         self.aslIndicator.Location = Point(16, 320)
-        self.aslIndicator.TargetNode = self.alts[0].aslEntry
+        if len(self.alts) > 0:
+            self.aslIndicator.TargetNode = self.alts[0].aslEntry
+        else:
+            self.aslIndicator.Visible = False
 
         parametersGroupBox.Controls.Add(self.stageAltListbox)
+        parametersGroupBox.Controls.Add(stageAltAddButton)
+        parametersGroupBox.Controls.Add(stageAltImportButton)
+        parametersGroupBox.Controls.Add(self.stageAltFileBox)
         parametersGroupBox.Controls.Add(self.nameTextBox)
         parametersGroupBox.Controls.Add(nameLabel)
         parametersGroupBox.Controls.Add(self.pacNameTextBox)
         parametersGroupBox.Controls.Add(pacNameLabel)
-        parametersGroupBox.Controls.Add(pacNameButton)
+        parametersGroupBox.Controls.Add(self.pacNameButton)
         parametersGroupBox.Controls.Add(self.pacNameFileBox)
         parametersGroupBox.Controls.Add(self.moduleTextBox)
         parametersGroupBox.Controls.Add(moduleLabel)
-        parametersGroupBox.Controls.Add(moduleButton)
+        parametersGroupBox.Controls.Add(self.moduleButton)
         parametersGroupBox.Controls.Add(self.moduleFileBox)
         parametersGroupBox.Controls.Add(self.tracklistTextBox)
         parametersGroupBox.Controls.Add(tracklistLabel)
-        parametersGroupBox.Controls.Add(tracklistButton)
+        parametersGroupBox.Controls.Add(self.tracklistButton)
         parametersGroupBox.Controls.Add(self.tracklistFileBox)
         parametersGroupBox.Controls.Add(self.soundBankTextBox)
         parametersGroupBox.Controls.Add(soundBankLabel)
-        parametersGroupBox.Controls.Add(soundBankButton)
+        parametersGroupBox.Controls.Add(self.soundBankButton)
         parametersGroupBox.Controls.Add(self.soundBankFileBox)
         parametersGroupBox.Controls.Add(self.effectBankTextBox)
         parametersGroupBox.Controls.Add(effectBankLabel)
@@ -405,28 +451,36 @@ class StageEditor(Form):
             i += 1
 
     def stageAltChanged(self, sender, args):
-        self.aslIndicator.TargetNode = self.stageAltListbox.SelectedValue
-        self.moduleTextBox.Text = self.stageAltListbox.SelectedItem.module
-        self.nameTextBox.Text = self.stageAltListbox.SelectedValue.Name
-        self.pacNameTextBox.Text = self.stageAltListbox.SelectedItem.pacName
-        self.tracklistTextBox.Text = self.stageAltListbox.SelectedItem.tracklist
-        self.soundBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.soundBank))
-        self.effectBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.effectBank))
-        self.pacNameFileBox.Text = self.stageAltListbox.SelectedItem.pacFile
-        self.moduleFileBox.Text = self.stageAltListbox.SelectedItem.moduleFile
-        self.tracklistFileBox.Text = self.stageAltListbox.SelectedItem.tracklistFile
-        self.soundBankFileBox.Text = self.stageAltListbox.SelectedItem.soundBankFile
+        if len(self.alts) > 0:
+            self.aslIndicator.TargetNode = self.stageAltListbox.SelectedValue
+            self.moduleTextBox.Text = self.stageAltListbox.SelectedItem.module
+            self.nameTextBox.Text = self.stageAltListbox.SelectedValue.Name
+            self.pacNameTextBox.Text = self.stageAltListbox.SelectedItem.pacName
+            self.tracklistTextBox.Text = self.stageAltListbox.SelectedItem.tracklist
+            self.soundBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.soundBank))
+            self.effectBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.effectBank))
+            self.pacNameFileBox.Text = self.stageAltListbox.SelectedItem.pacFile
+            self.moduleFileBox.Text = self.stageAltListbox.SelectedItem.moduleFile
+            self.tracklistFileBox.Text = self.stageAltListbox.SelectedItem.tracklistFile
+            self.soundBankFileBox.Text = self.stageAltListbox.SelectedItem.soundBankFile
+            self.stageAltFileBox.Text = self.stageAltListbox.SelectedItem.paramFile
 
     def saveButtonPressed(self, sender, args):
-        if self.pacNameFileBox.Text or self.moduleFileBox.Text or self.tracklistFileBox.Text or self.soundBankFileBox.Text:
-            moveStageFiles(pacFile=self.pacNameFileBox.Text, pacFileName=self.pacNameTextBox.Text, moduleFile=self.moduleFileBox.Text, moduleFileName=self.moduleTextBox.Text, tracklistFile=self.tracklistFileBox.Text, tracklistFileName=self.tracklistTextBox.Text, soundBankFile=self.soundBankFileBox.Text, soundBankFileName=self.soundBankTextBox.Text)
+        if len(self.alts) <= 0:
+            BrawlAPI.ShowMessage("You must have at least one stage entry defined to continue!", "Add Stage Entries")
+            return
+        # TODO: use stuff from the StageParams class, not visible text boxes, cause this'll only move the currently selected file stuff
+        if self.pacNameFileBox.Text or self.moduleFileBox.Text or self.tracklistFileBox.Text or self.soundBankFileBox.Text or self.stageAltFileBox.Text:
+            moveStageFiles(pacFile=self.pacNameFileBox.Text, pacFileName=self.pacNameTextBox.Text, moduleFile=self.moduleFileBox.Text, moduleFileName=self.moduleTextBox.Text, tracklistFile=self.tracklistFileBox.Text, tracklistFileName=self.tracklistTextBox.Text, soundBankFile=self.soundBankFileBox.Text, soundBankFileName=self.soundBankTextBox.Text, paramFile=self.stageAltFileBox.Text, paramFileName=self.nameTextBox.Text)
         if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName)
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, fileName='/pf/menu2/mu_menumain.pac')
         updateStageSlot(self.stageId, self.stageAltListbox.Items)
         updateStageParams(self.stageId, self.stageAltListbox.Items)
-        self.Controls.Clear()
-        self.__init__(self.stageId + self.cosmeticId)
+        #self.Controls.Clear()
+        #self.__init__(self.stageId + self.cosmeticId)
+        self.DialogResult = DialogResult.OK
+        self.Close()
 
     def iconButtonPressed(self, sender, args):
         self.newIcon = BrawlAPI.OpenFileDialog("Select your stage icon image", "PNG files|*.png")
@@ -508,6 +562,37 @@ class StageEditor(Form):
             fileName = getFileInfo(self.stageAltListbox.SelectedItem.soundBankFile).Name
             self.soundBankTextBox.Text = '0x' + fileName.split('_')[0]
             self.soundBankFileBox.Text = self.stageAltListbox.SelectedItem.soundBankFile
+
+    def enableControls(self):
+        self.nameTextBox.Enabled = True
+        self.pacNameTextBox.Enabled = True
+        self.moduleTextBox.Enabled = True
+        self.tracklistTextBox.Enabled = True
+        self.soundBankTextBox.Enabled = True
+        self.effectBankTextBox.Enabled = True
+        self.pacNameButton.Enabled = True
+        self.moduleButton.Enabled = True
+        self.tracklistButton.Enabled = True
+        self.soundBankButton.Enabled = True
+        self.aslIndicator.Visible = True
+
+    def stageAltAddButtonPressed(self, sender, args):
+        newAslEntry = ASLSEntryNode()
+        newAslEntry.Name = "New_Stage"
+        newStageAlt = StageParams(newAslEntry, "", "", "", "0xFFFF", "0xFFFF", "")
+        self.alts.Add(newStageAlt)
+        self.enableControls()
+
+    def stageAltImportButtonPressed(self, sender, args):
+        file = BrawlAPI.OpenFileDialog("Select your stage parameter file", "PARAM files|*.param")
+        if file:
+            newAslEntry = ASLSEntryNode()
+            newAslEntry.Name = getFileInfo(file).Name.split('.')[0]
+            newStageAlt = getStageParams(newAslEntry, file)
+            newStageAlt.paramFile = file
+            self.stageAltFileBox.Text = file
+            self.alts.Add(newStageAlt)
+            self.enableControls()
 
 #endregion
 

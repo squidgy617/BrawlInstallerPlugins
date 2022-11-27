@@ -4959,7 +4959,7 @@ class StageCosmetics:
 			self.gameLogoList = gameLogoList
 
 class StageParams:
-		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile=""):
+		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile=""):
 			self.aslEntry = aslEntry
 			self.pacName = pacName
 			self.tracklist = tracklist
@@ -4971,6 +4971,7 @@ class StageParams:
 			self.moduleFile = moduleFile
 			self.tracklistFile = tracklistFile
 			self.soundBankFile = soundBankFile
+			self.paramFile = paramFile
 
 class ImageNode:
 		def __init__(self, name, image):
@@ -5154,7 +5155,10 @@ def getStageCosmetics(cosmeticId):
 					# Icon
 					iconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapIcon", "iconM", int(cosmeticId, 16))
 					texNode = getChildByName(texFolder, iconTextureName)
-					stageIcon = Bitmap(texNode.GetImage(0))
+					if texNode:
+						stageIcon = Bitmap(texNode.GetImage(0))
+					else:
+						stageIcon = ""
 					# Preview
 					previewTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgM", int(cosmeticId, 16))
 					texNode = getChildByName(texFolder, previewTextureName)
@@ -5215,25 +5219,31 @@ def getPat0ByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
 # Get the ASLEntry nodes for all stage alts for a single stage slot
 def getStageAlts(stageId):
 		writeLog("Getting all stage alts for stage with ID " + str(stageId))
-		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl', False)
-		if fileOpened:
-			writeLog("Found stage slot")
-			nodes = BrawlAPI.RootNode.Children
-			BrawlAPI.ForceCloseFile()
-			return nodes
+		if File.Exists(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl', False)
+			if fileOpened:
+				writeLog("Found stage slot")
+				nodes = BrawlAPI.RootNode.Children
+				BrawlAPI.ForceCloseFile()
+				return nodes
 		writeLog("Couldn't find stage slot")
-		return 0
+		return []
 
 # Get stage params for stage
-def getStageParams(aslEntry):
+def getStageParams(aslEntry, filePath=""):
 		writeLog("Getting stage params for stage " + str(aslEntry.Name))
-		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + aslEntry.Name + '.param', False)
-		if fileOpened:
-			writeLog("Found stage params")
-			rootNode = BrawlAPI.RootNode
-			params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank, aslEntry.Name)
-			BrawlAPI.ForceCloseFile()
-			return params
+		if filePath:
+			file = filePath
+		else:
+			file = MainForm.BuildPath + '/pf/stage/stageinfo/' + aslEntry.Name + '.param'
+		if File.Exists(file):
+			fileOpened = openFile(file, False)
+			if fileOpened:
+				writeLog("Found stage params")
+				rootNode = BrawlAPI.RootNode
+				params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank, aslEntry.Name)
+				BrawlAPI.ForceCloseFile()
+				return params
 		writeLog("Couldn't find stage params")
 		return 0
 
@@ -5322,23 +5332,23 @@ def updateStageSlot(stageId, stageParamList):
 def updateStageParams(stageId, stageParamList):
 		writeLog("Updating stage params for stage ID " + str(stageId))
 		for stageParam in stageParamList:
-			if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
+			if originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
 				if stageParam.originalName != stageParam.aslEntry.Name:
 					renameFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param', stageParam.aslEntry.Name + '.param')
-				if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param'):
-					fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
-					if fileOpened:
-						BrawlAPI.RootNode.StageName = stageParam.pacName
-						BrawlAPI.RootNode.TrackList = stageParam.tracklist
-						BrawlAPI.RootNode.Module = stageParam.module
-						BrawlAPI.RootNode.SoundBank = stageParam.soundBank
-						BrawlAPI.RootNode.EffectBank = stageParam.effectBank
-						BrawlAPI.SaveFile()
-						BrawlAPI.ForceCloseFile()
+			if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
+				if fileOpened:
+					BrawlAPI.RootNode.StageName = stageParam.pacName
+					BrawlAPI.RootNode.TrackList = stageParam.tracklist
+					BrawlAPI.RootNode.Module = stageParam.module
+					BrawlAPI.RootNode.SoundBank = stageParam.soundBank
+					BrawlAPI.RootNode.EffectBank = stageParam.effectBank
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating stage params")
 
 # Move stage files into build
-def moveStageFiles(pacFile="", pacFileName="", moduleFile="", moduleFileName="", tracklistFile="", tracklistFileName="", soundBankFile="", soundBankFileName=""):
+def moveStageFiles(pacFile="", pacFileName="", moduleFile="", moduleFileName="", tracklistFile="", tracklistFileName="", soundBankFile="", soundBankFileName="", paramFile="", paramFileName=""):
 		writeLog("Moving stage files into build")
 		if pacFile:
 			if File.Exists(pacFile):
@@ -5365,5 +5375,12 @@ def moveStageFiles(pacFile="", pacFileName="", moduleFile="", moduleFileName="",
 					copyRenameFile(soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(soundBankFileName.replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
 				else:
 					copyFile(soundBankFile, MainForm.BuildPath + '/pf/sound/tracklist')
+		if paramFile:
+			if File.Exists(paramFile):
+				if paramFileName:
+					copyRenameFile(paramFile, paramFileName + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
+				else:
+					copyFile(paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
+
 
 #endregion STAGES
