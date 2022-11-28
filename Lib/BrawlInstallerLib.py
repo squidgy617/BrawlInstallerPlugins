@@ -5079,6 +5079,64 @@ def getStageList():
 		writeLog("Finished getting stage list")
 		return tables
 
+# Write new stage list
+def updateStageList(stageList):
+		writeLog("Updating stage list")
+		createBackup(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		newText = []
+		stopWriting = False
+		# Create tables
+		tables = []
+		for item in stageList:
+			if item.name.startswith("--PAGE "):
+				tables.append([])
+		# Populate tables
+		i = -1
+		for item in stageList:
+			if item.name.startswith("--PAGE "):
+				i += 1
+				continue
+			tables[i].append(item)
+		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		for line in fileText:
+			if line.startswith(".GOTO->SkipStageTables"):
+				newText.append(line + "\n\n")
+				stopWriting = True
+				i = 0
+				for table in tables:
+					i += 1
+					newText.append("\nTABLE_" + str(i) + ":")
+					if len(table) > 0:
+						newText.append("\tbyte[" + str(len(table)) + "] |")
+					j = 0
+					for slot in table:
+						newText.append(slot.slotId + ("," if j < len(table) - 1 else "") + "\t| # " + slot.name)
+						j += 1
+					newText.append("\n")
+			elif line.startswith('byte '):
+				if '@ $806B929C' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[0])), 2) + ' @ $806B929C # Page 1'
+				elif '@ $806B92A4' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[1])), 2) + ' @ $806B92A4 # Page 2'
+				elif '@ $80496002' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[2])), 2) + ' @ $80496002 # Page 3'
+				elif '@ $80496003' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[3])), 2) + ' @ $80496003 # Page 4 (Unused)'
+				elif '@ $80496004' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[4])), 2) + ' @ $80496004 # Page 5 (Unused)'
+				elif '@ $800AF673' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[0]) + len(tables[1]) + len(tables[2]) + len(tables[3]) + len(tables[4])), 2) + ' @ $800AF673 # Stage Count'
+				else:
+					newLine = line
+				newText.append(newLine)
+			elif not stopWriting:
+				newText.append(line)
+			elif line.startswith("TABLE_STAGES:"):
+				stopWriting = False
+				newText.append(line)
+		File.WriteAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm", newText)
+		writeLog("Finished updating stage list")
+
 # Get first unused slot ID
 def getUnusedSlotId(slotList):
 	writeLog("Getting first available slot ID")
@@ -5116,10 +5174,55 @@ def getStageIds():
 				break
 			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
 			for item in splitLine:
-				tableValues.append(item)
+				tableValues.append(item.strip())
 			i += 1
 		writeLog("Got stage IDs")
 		return tableValues
+
+# Add stage ID pair to table
+def addStageId(fullId, stageName):
+		writeLog("Updating stage IDs")
+		createBackup(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		tableStart = 0
+		tableValues = []
+		# Find the stages table
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.startswith("TABLE_STAGES:"):
+				writeLog("Found stages table at line " + str(i))
+				tableStart = i + 3
+				break
+			i += 1
+		# Get to end of table
+		i = tableStart
+		while i < len(fileText):
+			line = fileText[i]
+			if len(line) <= 0 or line.startswith('TABLE'):
+				break
+			# Get a running list of IDs while we're at it (mostly for length check purposes later)
+			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			for item in splitLine:
+				tableValues.append(item)
+			i += 1
+		line = fileText[i - 1]
+		ids = list(filter(None, line.split('|')[0].strip().split(',')))
+		if len(ids) < 4:
+			splitLine = line.split('|')
+			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ splitLine[1] + ", " + stageName
+			fileText[i - 1] = newLine
+		else:
+			splitLine = line.split('|')
+			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + splitLine[1]
+			newLine = '0x' + fullId + '\t| #' + stageName
+			fileText[i] = newLine
+		# Update counter
+		counterLine = tableStart - 1
+		fileText[counterLine] = "half[" + str(len(tableValues) + 1) + "] |\t# Stage Count + 2"
+		File.WriteAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm", fileText)
+		writeLog("Finished updating stage IDs")
+		return len(tableValues)
 
 # Get stage IDs for specific stage number
 def getStageIdsByNumber(stageNumber):
@@ -5147,6 +5250,7 @@ def getStageName(stageId):
 				if node:
 					writeLog("Found stage name " + str(node.Name))
 					return node.Name
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished getting stage name")
 
 # Get stage cosmetics by cosmetic ID

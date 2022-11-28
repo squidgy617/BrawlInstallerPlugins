@@ -21,7 +21,10 @@ class StageList(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
-        self.stageSlots = []
+        self.stageSlots = BindingSource()
+        self.stageSlots.DataSource = []
+        self.unusedSlots = BindingSource()
+        self.unusedSlots.DataSource = []
         pageNumber = 0
         fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
         if fileOpened:
@@ -29,33 +32,77 @@ class StageList(Form):
             for page in pages:
                 pageNumber += 1
                 pageSlot = StageSlot('0x00', '00', '00', '0000', '--PAGE ' + str(pageNumber) + '--')
-                self.stageSlots.append(pageSlot)
+                self.stageSlots.Add(pageSlot)
                 for slotId in page:
                     stageIds = getStageIdsByNumber(slotId)
                     stageName = getStageName(stageIds[2:4])
                     stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
-                    self.stageSlots.append(stageSlot)
-            BrawlAPI.ForceCloseFile()
+                    self.stageSlots.Add(stageSlot)
+
+        # Get unused stages
+        i = 0
+        for stage in getStageIds():
+            append = True
+            for slot in self.stageSlots:
+                if slot.fullId == stage.replace('0x',''):
+                    append = False
+                    break
+            if append and stage != '0xFF64':
+                stageName = getStageName(stage[2:4])
+                if stageName:
+                    unusedSlot = StageSlot(hexId(i + 1), stage[2:4], stage[4:6], stage[2:6], stageName)
+                self.unusedSlots.Add(unusedSlot)
+            i += 1
+        BrawlAPI.ForceCloseFile()
 
         self.listBox = ListBox()
         self.listBox.Width = 120
         self.listBox.Height = 240
-        self.listBox.Location = Point(64, 0)
+        self.listBox.Location = Point(16, 16)
         self.listBox.DataSource = self.stageSlots
         self.listBox.DisplayMember = "name"
         self.listBox.ValueMember = "fullId"
 
+        self.unusedListbox = ListBox()
+        self.unusedListbox.Width = 120
+        self.unusedListbox.Height = 240
+        self.unusedListbox.Location = Point(256, 16)
+        self.unusedListbox.DataSource = self.unusedSlots
+        self.unusedListbox.DisplayMember = "name"
+        self.unusedListbox.ValueMember = "fullId"
+
         button = Button()
-        button.Dock = DockStyle.Bottom
+        button.Location = Point(144, 16)
+        button.Text = "Edit"
         button.Click += self.buttonPressed
 
         addButton = Button()
-        addButton.Dock = DockStyle.Bottom
+        addButton.Location = Point(144, 48)
+        addButton.Text = "Add"
         addButton.Click += self.addButtonPressed
+
+        moveLeftButton = Button()
+        moveLeftButton.Location = Point(144, 80)
+        moveLeftButton.Text = "<"
+        moveLeftButton.Click += self.moveLeftButtonPressed
+
+        moveUpButton = Button()
+        moveUpButton.Location = Point(144, 112)
+        moveUpButton.Text = "^"
+        moveUpButton.Click += self.moveUpButtonPressed
+
+        saveButton = Button()
+        saveButton.Location = Point(144, 144)
+        saveButton.Text = "Save"
+        saveButton.Click += self.saveButtonPressed
 
         self.Controls.Add(self.listBox)
         self.Controls.Add(button)
         self.Controls.Add(addButton)
+        self.Controls.Add(moveLeftButton)
+        self.Controls.Add(moveUpButton)
+        self.Controls.Add(saveButton)
+        self.Controls.Add(self.unusedListbox)
     
     def buttonPressed(self, sender, args):
         if not self.listBox.SelectedItem.name.startswith('--PAGE '):
@@ -64,14 +111,36 @@ class StageList(Form):
             result = form.ShowDialog(MainForm.Instance)
 
     def addButtonPressed(self, sender, args):
-        newSlotId = getUnusedSlotId(self.stageSlots)
-        BrawlAPI.ShowMessage(str(newSlotId), "")
+        #newSlotId = getUnusedSlotId(self.stageSlots)
+        #BrawlAPI.ShowMessage(str(newSlotId), "")
         newId = self.getFirstAvailableId()
+        #updateStageList(self.stageSlots)
         form = StageEditor(newId, True)
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
-            BrawlAPI.ShowMessage(form.alts[0].aslEntry.Name, "")
+            if form.newSlotNumber > -1:
+                self.unusedSlots.Add(StageSlot(hexId(form.newSlotNumber), newId[0:2], newId[2:4], newId[0:4], form.alts[0].aslEntry.Name))
             BrawlAPI.ShowMessage("Stage added successfully.", "Success")
+            #self.Controls.Clear()
+            #self.__init__()
+
+    def moveLeftButtonPressed(self, sender, args):
+        if len(self.unusedSlots) > 0:
+            #self.listBox.Add(self.unusedListbox.SelectedItem)
+            #self.unusedListbox.Remove(self.unusedListbox.SelectedItem)
+            self.stageSlots.Add(self.unusedListbox.SelectedItem)
+            self.unusedSlots.Remove(self.unusedListbox.SelectedItem)
+
+    def moveUpButtonPressed(self, sender, args):
+        aboveValue = self.stageSlots[self.listBox.SelectedIndex - 1]
+        selectedValue = self.stageSlots[self.listBox.SelectedIndex]
+        self.stageSlots[self.listBox.SelectedIndex - 1] = selectedValue
+        self.stageSlots[self.listBox.SelectedIndex] = aboveValue
+        self.listBox.SelectedIndex = self.listBox.SelectedIndex - 1
+
+    def saveButtonPressed(self, sender, args):
+        updateStageList(self.listBox.Items)
+        buildGct()
 
     def getFirstAvailableId(self):
         stageId = 1
@@ -117,6 +186,9 @@ class StageEditor(Form):
         #add new stage slots
         #label cosmetics
         #maybe BRSTMs can be another listbox, lists files from tracklist in build, if you add a file it will show the filepath instead, filepath ones get imported
+        #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
+        #run GCTR after all is done
+        #do step 4.3 in stage managing guide (incrementing numbers at bottom of thingy)
 
         # Variables
         self.newIcon = ""
@@ -128,6 +200,7 @@ class StageEditor(Form):
         self.cosmeticId = fullId[2:4]
         self.stageId = fullId[0:2]
         self.new = new
+        self.newSlotNumber = -1
 
         # Cosmetics Groupbox
         cosmeticsGroupBox = GroupBox()
@@ -520,6 +593,8 @@ class StageEditor(Form):
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, fileName='/pf/menu2/mu_menumain.pac')
         updateStageSlot(self.stageId, self.stageAltListbox.Items)
         updateStageParams(self.stageId, self.stageAltListbox.Items)
+        if self.new:
+            self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
         #self.Controls.Clear()
         #self.__init__(self.stageId + self.cosmeticId)
         self.DialogResult = DialogResult.OK
