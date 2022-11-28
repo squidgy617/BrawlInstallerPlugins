@@ -21,7 +21,7 @@ class StageList(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
-        stageSlots = []
+        self.stageSlots = []
         pageNumber = 0
         fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
         if fileOpened:
@@ -29,19 +29,19 @@ class StageList(Form):
             for page in pages:
                 pageNumber += 1
                 pageSlot = StageSlot('0x00', '00', '00', '0000', '--PAGE ' + str(pageNumber) + '--')
-                stageSlots.append(pageSlot)
+                self.stageSlots.append(pageSlot)
                 for slotId in page:
                     stageIds = getStageIdsByNumber(slotId)
                     stageName = getStageName(stageIds[2:4])
                     stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
-                    stageSlots.append(stageSlot)
+                    self.stageSlots.append(stageSlot)
             BrawlAPI.ForceCloseFile()
 
         self.listBox = ListBox()
         self.listBox.Width = 120
         self.listBox.Height = 240
         self.listBox.Location = Point(64, 0)
-        self.listBox.DataSource = stageSlots
+        self.listBox.DataSource = self.stageSlots
         self.listBox.DisplayMember = "name"
         self.listBox.ValueMember = "fullId"
 
@@ -64,8 +64,35 @@ class StageList(Form):
             result = form.ShowDialog(MainForm.Instance)
 
     def addButtonPressed(self, sender, args):
-        form = StageEditor('0000')
+        newSlotId = getUnusedSlotId(self.stageSlots)
+        BrawlAPI.ShowMessage(str(newSlotId), "")
+        newId = self.getFirstAvailableId()
+        form = StageEditor(newId, True)
         result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            BrawlAPI.ShowMessage(form.alts[0].aslEntry.Name, "")
+            BrawlAPI.ShowMessage("Stage added successfully.", "Success")
+
+    def getFirstAvailableId(self):
+        stageId = 1
+        i = 0
+        while True:
+            while i < len(self.stageSlots):
+                if hexId(stageId).replace('0x', '') == self.stageSlots[i].stageId:
+                    stageId += 1
+                    i = 0
+                i += 1
+            break
+        cosmeticId = 1
+        i = 0
+        while True:
+            while i < len(self.stageSlots):
+                if hexId(cosmeticId).replace('0x', '') == self.stageSlots[i].cosmeticId:
+                    cosmeticId += 1
+                    i = 0
+                i += 1
+            break
+        return hexId(stageId).replace('0x', '') + hexId(cosmeticId).replace('0x', '')
 
 #endregion
 
@@ -73,7 +100,7 @@ class StageList(Form):
 
 class StageEditor(Form):
 
-    def __init__(self, fullId):
+    def __init__(self, fullId, new=False):
         # Form parameters
         self.Text = 'Edit Stage'
         self.StartPosition = FormStartPosition.CenterParent
@@ -100,6 +127,7 @@ class StageEditor(Form):
         self.newAltName = ""
         self.cosmeticId = fullId[2:4]
         self.stageId = fullId[0:2]
+        self.new = new
 
         # Cosmetics Groupbox
         cosmeticsGroupBox = GroupBox()
@@ -114,7 +142,8 @@ class StageEditor(Form):
         self.namePictureBox.Width = 208
         self.namePictureBox.Height = 56
         self.namePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.namePictureBox.Image = self.cosmetics.stageName
+        if self.cosmetics.stageName and not self.new:
+            self.namePictureBox.Image = self.cosmetics.stageName
 
         nameButton = Button()
         nameButton.Text = "Import"
@@ -127,7 +156,8 @@ class StageEditor(Form):
         self.altNamePictureBox.Width = 208
         self.altNamePictureBox.Height = 56
         self.altNamePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.altNamePictureBox.Image = self.cosmetics.altName.image
+        if self.cosmetics.altName and not self.new:
+            self.altNamePictureBox.Image = self.cosmetics.altName.image
 
         altLabel = Label()
         altLabel.Text = "Alt Layout Name:"
@@ -149,7 +179,8 @@ class StageEditor(Form):
         self.iconPictureBox.Width = 128
         self.iconPictureBox.Height = 112
         self.iconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.iconPictureBox.Image = self.cosmetics.stageIcon
+        if self.cosmetics.stageIcon and not self.new:
+            self.iconPictureBox.Image = self.cosmetics.stageIcon
 
         iconButton = Button()
         iconButton.Text = "Import"
@@ -162,7 +193,8 @@ class StageEditor(Form):
         self.franchiseIconPictureBox.Width = 64
         self.franchiseIconPictureBox.Height = 64
         self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon.image
+        if self.cosmetics.franchiseIcon and not self.new:
+            self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon.image
 
         self.franchiseIconDropDown = ComboBox()
         self.franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDown
@@ -183,7 +215,8 @@ class StageEditor(Form):
         self.gameLogoPictureBox.Width = 120
         self.gameLogoPictureBox.Height = 56
         self.gameLogoPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.gameLogoPictureBox.Image = self.cosmetics.gameLogo.image
+        if self.cosmetics.gameLogo and not self.new:
+            self.gameLogoPictureBox.Image = self.cosmetics.gameLogo.image
 
         self.gameLogoDropDown = ComboBox()
         self.gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDown
@@ -204,7 +237,8 @@ class StageEditor(Form):
         self.previewPictureBox.Width = 312
         self.previewPictureBox.Height = 112
         self.previewPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
-        self.previewPictureBox.Image = self.cosmetics.stagePreview
+        if self.cosmetics.stagePreview and not self.new:
+            self.previewPictureBox.Image = self.cosmetics.stagePreview
 
         previewButton = Button()
         previewButton.Text = "Import"
@@ -431,24 +465,35 @@ class StageEditor(Form):
         self.setComboBoxes()
 
     def setComboBoxes(self):
-        i = 0
-        while i < len(self.cosmetics.franchiseIconList):
-            if self.cosmetics.franchiseIconList[i].name == self.cosmetics.franchiseIcon.name:
-                self.franchiseIconDropDown.SelectedIndex = i
-                break
-            i += 1
-        i = 0
-        while i < len(self.cosmetics.stageNameList):
-            if self.cosmetics.stageNameList[i].name == self.cosmetics.altName.name:
-                self.altDropDown.SelectedIndex = i
-                break
-            i += 1
-        i = 0
-        while i < len(self.cosmetics.gameLogoList):
-            if self.cosmetics.gameLogoList[i].name == self.cosmetics.gameLogo.name:
-                self.gameLogoDropDown.SelectedIndex = i
-                break
-            i += 1
+        if not self.new:
+            i = 0
+            while i < len(self.cosmetics.franchiseIconList):
+                if self.cosmetics.franchiseIconList[i].name == self.cosmetics.franchiseIcon.name:
+                    self.franchiseIconDropDown.SelectedIndex = i
+                    break
+                i += 1
+            i = 0
+            while i < len(self.cosmetics.stageNameList):
+                if self.cosmetics.stageNameList[i].name == self.cosmetics.altName.name:
+                    self.altDropDown.SelectedIndex = i
+                    break
+                i += 1
+            i = 0
+            while i < len(self.cosmetics.gameLogoList):
+                if self.cosmetics.gameLogoList[i].name == self.cosmetics.gameLogo.name:
+                    self.gameLogoDropDown.SelectedIndex = i
+                    break
+                i += 1
+        else:
+            self.franchiseIconDropDown.SelectedIndex = 0
+            self.franchiseIconPictureBox.Image = Bitmap(self.franchiseIconDropDown.SelectedValue)
+            self.newFranchiseIcon = self.franchiseIconDropDown.SelectedItem.name
+            self.altDropDown.SelectedIndex = 0
+            self.altNamePictureBox.Image = Bitmap(self.altDropDown.SelectedValue)
+            self.newAltName = self.altDropDown.SelectedItem.name
+            self.gameLogoDropDown.SelectedIndex = 0
+            self.gameLogoPictureBox.Image = Bitmap(self.gameLogoDropDown.SelectedValue)
+            self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
 
     def stageAltChanged(self, sender, args):
         if len(self.alts) > 0:
@@ -482,15 +527,18 @@ class StageEditor(Form):
 
     def iconButtonPressed(self, sender, args):
         self.newIcon = BrawlAPI.OpenFileDialog("Select your stage icon image", "PNG files|*.png")
-        self.iconPictureBox.Image = Bitmap(self.newIcon)
+        if self.newIcon:
+            self.iconPictureBox.Image = Bitmap(self.newIcon)
 
     def nameButtonPressed(self, sender, args):
         self.newName = BrawlAPI.OpenFileDialog("Select your stage name image", "PNG files|*.png")
-        self.namePictureBox.Image = Bitmap(self.newName) 
+        if self.newName:
+            self.namePictureBox.Image = Bitmap(self.newName) 
 
     def previewButtonPressed(self, sender, args):
         self.newPreview = BrawlAPI.OpenFileDialog("Select your stage preview image", "PNG files|*.png")
-        self.previewPictureBox.Image = Bitmap(self.newPreview) 
+        if self.newPreview:
+            self.previewPictureBox.Image = Bitmap(self.newPreview) 
 
     def altDropDownChanged(self, sender, args):
         self.altNamePictureBox.Image = Bitmap(self.altDropDown.SelectedValue)
@@ -577,7 +625,7 @@ class StageEditor(Form):
     def stageAltAddButtonPressed(self, sender, args):
         newAslEntry = ASLSEntryNode()
         newAslEntry.Name = "New_Stage"
-        newStageAlt = StageParams(newAslEntry, "", "", "", "0xFFFF", "0xFFFF", "")
+        newStageAlt = StageParams(newAslEntry, "", "", "", int("0xFFFF", 16), int("0xFFFF", 16), "")
         self.alts.Add(newStageAlt)
         self.enableControls()
 
