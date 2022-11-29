@@ -5088,12 +5088,12 @@ def updateStageList(stageList):
 		# Create tables
 		tables = []
 		for item in stageList:
-			if item.name.startswith("--PAGE "):
+			if item.name.startswith("|| PAGE "):
 				tables.append([])
 		# Populate tables
 		i = -1
 		for item in stageList:
-			if item.name.startswith("--PAGE "):
+			if item.name.startswith("|| PAGE "):
 				i += 1
 				continue
 			tables[i].append(item)
@@ -5393,11 +5393,11 @@ def getStageAltInfo(stageId):
 		return stageParamList
 
 # Get unused stage texture name
-def getStageTextureName(prefix, cosmeticId, texFolder):
+def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 		writeLog("Getting texture name for cosmetic ID " + str(cosmeticId))
 		foundName = getChildByName(texFolder, prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2))
-		if foundName:
-			return foundName
+		if foundName and not new:
+			return foundName.Name
 		else:
 			i = 0
 			newCosmeticId = 1
@@ -5425,7 +5425,7 @@ def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, pr
 		newNode.Name = textureName
 
 # Import stage icon
-def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", fileName='/pf/menu2/sc_selmap.pac'):
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac'):
 		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
 		if File.Exists(MainForm.BuildPath + fileName):
 			fileOpened = openFile(MainForm.BuildPath + fileName)
@@ -5444,6 +5444,16 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 							addStageCosmetic(cosmeticId, stageName, anmTexPatFolder, texFolder, bresNode, "MenSelmapFrontStname.", "MenSelmapPreview", "pasted__stnameM", WiiPixelFormat.I4)
 						if stagePreview:
 							addStageCosmetic(cosmeticId, stagePreview, anmTexPatFolder, texFolder, bresNode, "MenSelmapPrevbase.", "MenSelmapPreview", "basebgM", WiiPixelFormat.CMPR)
+						if franchiseIcons:
+							for franchiseIcon in franchiseIcons:
+								franchiseIconName = getStageTextureName('MenSelchrMark.', '00', texFolder, True)
+								franchiseNode = importTexture(bresNode, franchiseIcon, WiiPixelFormat.I4, 64, 64)
+								franchiseNode.Name = franchiseIconName
+						if gameLogos:
+							for gameLogo in gameLogos:
+								gameLogoName = getStageTextureName('MenSelmapMark.', '00', texFolder, True)
+								gameLogoNode = importTexture(bresNode, gameLogo, WiiPixelFormat.IA4)
+								gameLogoNode.Name = gameLogoName
 						if franchiseIconName:
 							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
 							if not pat0Entry:
@@ -5467,6 +5477,7 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameshadowM_start", altStageName, altStageName, int(cosmeticId, 16))
 							else:
 								pat0Entry.Texture = altStageName
+						texFolder.SortChildren()
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished importing stage cosmetics")

@@ -31,7 +31,7 @@ class StageList(Form):
             pages = getStageList()
             for page in pages:
                 pageNumber += 1
-                pageSlot = StageSlot('0x00', '00', '00', '0000', '--PAGE ' + str(pageNumber) + '--')
+                pageSlot = StageSlot('0x00', '00', '00', '0000', '|| PAGE ' + str(pageNumber) + ' ||')
                 self.stageSlots.Add(pageSlot)
                 for slotId in page:
                     stageIds = getStageIdsByNumber(slotId)
@@ -62,6 +62,8 @@ class StageList(Form):
         self.listBox.DataSource = self.stageSlots
         self.listBox.DisplayMember = "name"
         self.listBox.ValueMember = "fullId"
+        self.listBox.DrawMode = DrawMode.OwnerDrawFixed
+        self.listBox.DrawItem += self.listBoxDrawItem
 
         self.unusedListbox = ListBox()
         self.unusedListbox.Width = 120
@@ -103,35 +105,45 @@ class StageList(Form):
         self.Controls.Add(moveUpButton)
         self.Controls.Add(saveButton)
         self.Controls.Add(self.unusedListbox)
+
+    def listBoxDrawItem(self, sender, args):
+        args.DrawBackground()
+        if sender.Items[args.Index].name.startswith("|| PAGE"):
+            font = Font("Arial", 10, FontStyle.Bold)
+        else:
+            font = args.Font
+        selected = args.ForeColor == SystemColors.HighlightText
+        args.Graphics.DrawString(sender.Items[args.Index].name, font, Brushes.Black if not selected else Brushes.White, args.Bounds, StringFormat.GenericDefault)
+        args.DrawFocusRectangle
+        
     
     def buttonPressed(self, sender, args):
-        if not self.listBox.SelectedItem.name.startswith('--PAGE '):
+        if not self.listBox.SelectedItem.name.startswith('|| PAGE '):
             fullId = str(self.listBox.SelectedValue)
             form = StageEditor(fullId)
             result = form.ShowDialog(MainForm.Instance)
 
     def addButtonPressed(self, sender, args):
-        #newSlotId = getUnusedSlotId(self.stageSlots)
-        #BrawlAPI.ShowMessage(str(newSlotId), "")
         newId = self.getFirstAvailableId()
-        #updateStageList(self.stageSlots)
         form = StageEditor(newId, True)
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
+            newSlot = ""
             if form.newSlotNumber > -1:
-                self.unusedSlots.Add(StageSlot(hexId(form.newSlotNumber), newId[0:2], newId[2:4], newId[0:4], form.alts[0].aslEntry.Name))
+                newSlot = StageSlot(hexId(form.newSlotNumber), newId[0:2], newId[2:4], newId[0:4], form.alts[0].aslEntry.Name)
+                self.unusedSlots.Add(newSlot)
+                self.unusedListbox.SelectedItem = newSlot
             BrawlAPI.ShowMessage("Stage added successfully.", "Success")
-            #self.Controls.Clear()
-            #self.__init__()
 
     def moveLeftButtonPressed(self, sender, args):
         if len(self.unusedSlots) > 0:
-            #self.listBox.Add(self.unusedListbox.SelectedItem)
-            #self.unusedListbox.Remove(self.unusedListbox.SelectedItem)
             self.stageSlots.Add(self.unusedListbox.SelectedItem)
+            self.listBox.SelectedItem = self.unusedListbox.SelectedItem
             self.unusedSlots.Remove(self.unusedListbox.SelectedItem)
 
     def moveUpButtonPressed(self, sender, args):
+        if self.listBox.SelectedIndex == 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
+            return
         aboveValue = self.stageSlots[self.listBox.SelectedIndex - 1]
         selectedValue = self.stageSlots[self.listBox.SelectedIndex]
         self.stageSlots[self.listBox.SelectedIndex - 1] = selectedValue
@@ -197,10 +209,18 @@ class StageEditor(Form):
         self.newFranchiseIcon = ""
         self.newGameLogo = ""
         self.newAltName = ""
+        self.addedFranchiseIcons = []
+        self.addedGameLogos = []
         self.cosmeticId = fullId[2:4]
         self.stageId = fullId[0:2]
         self.new = new
         self.newSlotNumber = -1
+
+        self.franchiseIconList = BindingSource()
+        self.franchiseIconList.DataSource = self.cosmetics.franchiseIconList
+
+        self.gameLogoList = BindingSource()
+        self.gameLogoList.DataSource = self.cosmetics.gameLogoList
 
         # Cosmetics Groupbox
         cosmeticsGroupBox = GroupBox()
@@ -273,7 +293,7 @@ class StageEditor(Form):
         self.franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDown
         self.franchiseIconDropDown.Location = Point(16, 418)
         self.franchiseIconDropDown.BindingContext = self.BindingContext
-        self.franchiseIconDropDown.DataSource = self.cosmetics.franchiseIconList
+        self.franchiseIconDropDown.DataSource = self.franchiseIconList
         self.franchiseIconDropDown.DisplayMember = "name"
         self.franchiseIconDropDown.ValueMember = "image"
         self.franchiseIconDropDown.SelectedValueChanged += self.franchiseIconDropDownChanged
@@ -281,6 +301,7 @@ class StageEditor(Form):
         franchiseIconButton = Button()
         franchiseIconButton.Text = "Add"
         franchiseIconButton.Location = Point(16, 442)
+        franchiseIconButton.Click += self.franchiseIconButtonPressed
 
         # Game Logo
         self.gameLogoPictureBox = PictureBox()
@@ -295,7 +316,7 @@ class StageEditor(Form):
         self.gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDown
         self.gameLogoDropDown.Location = Point(160, 418)
         self.gameLogoDropDown.BindingContext = self.BindingContext
-        self.gameLogoDropDown.DataSource = self.cosmetics.gameLogoList
+        self.gameLogoDropDown.DataSource = self.gameLogoList
         self.gameLogoDropDown.DisplayMember = "name"
         self.gameLogoDropDown.ValueMember = "image"
         self.gameLogoDropDown.SelectedValueChanged += self.gameLogoDropDownChanged
@@ -303,6 +324,7 @@ class StageEditor(Form):
         gameLogoButton = Button()
         gameLogoButton.Text = "Add"
         gameLogoButton.Location = Point(160, 442)
+        gameLogoButton.Click += self.gameLogoButtonPressed
 
         # Stage Preview
         self.previewPictureBox = PictureBox()
@@ -589,8 +611,8 @@ class StageEditor(Form):
             return
         moveStageFiles(self.alts)
         if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
-            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName)
-            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, fileName='/pf/menu2/mu_menumain.pac')
+            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
+            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
         updateStageSlot(self.stageId, self.stageAltListbox.Items)
         updateStageParams(self.stageId, self.stageAltListbox.Items)
         if self.new:
@@ -635,6 +657,37 @@ class StageEditor(Form):
             self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
         else:
             self.newGameLogo = ""
+
+    def getUnusedTextureName(self, prefix, imageNodes):
+        for imageNode in imageNodes:
+            i = 0
+            newId = 1
+            while True:
+                while i < len(imageNodes):
+                    if imageNodes[i].name == prefix + addLeadingZeros(str(newId), 2):
+                        newId += 1
+                        i = 0
+                    i += 1
+                break
+            return prefix + addLeadingZeros(str(newId), 2)
+
+    def franchiseIconButtonPressed(self, sender, args):
+        newTexture = BrawlAPI.OpenFileDialog("Select your franchise icon PNG file", "PNG files|*.png")
+        if newTexture:
+            textureName = self.getUnusedTextureName('MenSelchrMark.', self.cosmetics.franchiseIconList)
+            newImageNode = ImageNode(textureName, Bitmap(newTexture))
+            self.franchiseIconList.Add(newImageNode)
+            self.addedFranchiseIcons.Add(newTexture)
+            self.franchiseIconDropDown.SelectedItem = newImageNode
+
+    def gameLogoButtonPressed(self, sender, args):
+        newTexture = BrawlAPI.OpenFileDialog("Select your game icon PNG file", "PNG files|*.png")
+        if newTexture:
+            textureName = self.getUnusedTextureName('MenSelmapMark.', self.cosmetics.gameLogoList)
+            newImageNode = ImageNode(textureName, Bitmap(newTexture))
+            self.gameLogoList.Add(newImageNode)
+            self.addedGameLogos.Add(newTexture)
+            self.gameLogoDropDown.SelectedItem = newImageNode
 
     def nameTextChanged(self, sender, args):
         self.stageAltListbox.SelectedValue.Name = self.nameTextBox.Text
