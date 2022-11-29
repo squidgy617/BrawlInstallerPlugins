@@ -4292,6 +4292,14 @@ def getClonedModuleName(filePath):
 		closeModule()
 		return name
 
+# Copy list of ImportedFile objects into build
+def importFiles(fileList):
+		writeLog("Importing files into build")
+		for file in fileList:
+			if File.Exists(file.filePath):
+				copyFile(file.filePath, file.outputPath)
+		writeLog("Finished importing files")
+
 # Increment index on BP names within specific range
 def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="true"):
 		writeLog("Adjusting index of BPs for cosmetic ID " + str(cosmeticId))
@@ -4980,6 +4988,11 @@ class ImageNode:
 			self.name = name
 			self.image = image
 
+class ImportedFile:
+		def __init__(self, filePath, outputPath):
+			self.filePath = filePath
+			self.outputPath = outputPath
+
 #endregion CLASSES
 
 #region COLOR PROMPT
@@ -5530,7 +5543,7 @@ def updateStageParams(stageId, stageParamList):
 		writeLog("Finished updating stage params")
 
 # Move stage files into build
-def moveStageFiles(stageParamList):
+def moveStageFiles(stageParamList, brstmFiles=[]):
 		writeLog("Moving stage files into build")
 		for stageParam in stageParamList:
 			if stageParam.pacFile:
@@ -5564,6 +5577,7 @@ def moveStageFiles(stageParamList):
 						copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
 					else:
 						copyFile(stageParam.paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
+		writeLog("Finished moving stage files")
 
 
 #endregion STAGES

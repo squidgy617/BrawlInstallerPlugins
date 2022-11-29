@@ -50,7 +50,7 @@ class StageList(Form):
             if append and stage != '0xFF64':
                 stageName = getStageName(stage[2:4])
                 if stageName:
-                    unusedSlot = StageSlot(hexId(i + 1), stage[2:4], stage[4:6], stage[2:6], stageName)
+                    unusedSlot = StageSlot(hexId(i), stage[2:4], stage[4:6], stage[2:6], stageName)
                 self.unusedSlots.Add(unusedSlot)
             i += 1
         BrawlAPI.ForceCloseFile()
@@ -194,6 +194,8 @@ class StageEditor(Form):
         self.cosmetics = getStageCosmetics(fullId[2:4])
         self.alts = BindingSource()
         self.alts.DataSource = getStageAltInfo(fullId[0:2])
+        self.addedTracks = BindingSource()
+        self.addedTracks.DataSource = []
         #TODO: Import song BRSTMs (under the param listbox probably, or maybe as part of .tlst upload?), add new param entries/import .param files
         #add new stage slots
         #label cosmetics
@@ -201,6 +203,8 @@ class StageEditor(Form):
         #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
         #run GCTR after all is done
         #do step 4.3 in stage managing guide (incrementing numbers at bottom of thingy)
+        #add progress bars everywhere
+        #ensure backups are always made
 
         # Variables
         self.newIcon = ""
@@ -392,6 +396,19 @@ class StageEditor(Form):
         self.stageAltFileBox.Width = 120
         self.stageAltFileBox.ReadOnly = True
 
+        self.trackListBox = ListBox()
+        self.trackListBox.Location = Point(16, 216)
+        self.trackListBox.DataSource = self.addedTracks
+        self.trackListBox.DisplayMember = "filePath"
+        self.trackListBox.HorizontalScrollbar = True
+
+        self.trackAddButton = Button()
+        self.trackAddButton.Text = "Import BRSTMs"
+        self.trackAddButton.Location = Point(16, 320)
+        self.trackAddButton.AutoSize = True
+        self.trackAddButton.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.trackAddButton.Click += self.trackAddButtonPressed
+
         # Name textbox
         self.nameTextBox = TextBox()
         self.nameTextBox.Text = self.alts[0].aslEntry.Name if len(self.alts) > 0 else ""
@@ -516,7 +533,7 @@ class StageEditor(Form):
 
         # Button Checkboxes
         self.aslIndicator = ASLIndicator()
-        self.aslIndicator.Location = Point(16, 320)
+        self.aslIndicator.Location = Point(16, 352)
         if len(self.alts) > 0:
             self.aslIndicator.TargetNode = self.alts[0].aslEntry
         else:
@@ -526,6 +543,8 @@ class StageEditor(Form):
         parametersGroupBox.Controls.Add(stageAltAddButton)
         parametersGroupBox.Controls.Add(stageAltImportButton)
         parametersGroupBox.Controls.Add(self.stageAltFileBox)
+        parametersGroupBox.Controls.Add(self.trackListBox)
+        parametersGroupBox.Controls.Add(self.trackAddButton)
         parametersGroupBox.Controls.Add(self.nameTextBox)
         parametersGroupBox.Controls.Add(nameLabel)
         parametersGroupBox.Controls.Add(self.pacNameTextBox)
@@ -615,10 +634,11 @@ class StageEditor(Form):
             importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
         updateStageSlot(self.stageId, self.stageAltListbox.Items)
         updateStageParams(self.stageId, self.stageAltListbox.Items)
+        if self.addedTracks:
+            importFiles(self.addedTracks)
         if self.new:
             self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
-        #self.Controls.Clear()
-        #self.__init__(self.stageId + self.cosmeticId)
+        buildGct()
         self.DialogResult = DialogResult.OK
         self.Close()
 
@@ -767,6 +787,14 @@ class StageEditor(Form):
             self.stageAltFileBox.Text = file
             self.alts.Add(newStageAlt)
             self.enableControls()
+    
+    def trackAddButtonPressed(self, sender, args):
+        addedTracks = BrawlAPI.OpenMultiFileDialog("Select your BRSTM files", "BRSTM files|*.brstm")
+        if addedTracks:
+            outputDirectory = BrawlAPI.OpenFolderDialog("Select output directory")
+            if outputDirectory:
+                for track in addedTracks:
+                    self.addedTracks.Add(ImportedFile(track, outputDirectory))
 
 #endregion
 
