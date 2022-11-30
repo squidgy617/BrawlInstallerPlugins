@@ -122,6 +122,7 @@ class StageList(Form):
             fullId = str(self.listBox.SelectedValue)
             form = StageEditor(fullId)
             result = form.ShowDialog(MainForm.Instance)
+            form.Dispose()
 
     def addButtonPressed(self, sender, args):
         newId = self.getFirstAvailableId()
@@ -134,6 +135,7 @@ class StageList(Form):
                 self.unusedSlots.Add(newSlot)
                 self.unusedListbox.SelectedItem = newSlot
             BrawlAPI.ShowMessage("Stage added successfully.", "Success")
+        form.Dispose()
 
     def moveLeftButtonPressed(self, sender, args):
         if len(self.unusedSlots) > 0:
@@ -226,6 +228,10 @@ class StageEditor(Form):
         self.gameLogoList = BindingSource()
         self.gameLogoList.DataSource = self.cosmetics.gameLogoList
 
+        self.pacFiles = self.getPacs()
+        self.relFiles = self.getRels()
+        self.tracklistFiles = self.getTracklists()
+
         # Cosmetics Groupbox
         cosmeticsGroupBox = GroupBox()
         cosmeticsGroupBox.Location = Point(0,0)
@@ -235,21 +241,26 @@ class StageEditor(Form):
 
         # Stage Name
         self.namePictureBox = PictureBox()
-        self.namePictureBox.Location = Point(16, 160)
+        self.namePictureBox.Location = Point(16, 192)
         self.namePictureBox.Width = 208
         self.namePictureBox.Height = 56
         self.namePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         if self.cosmetics.stageName and not self.new:
             self.namePictureBox.Image = self.cosmetics.stageName
 
+        nameLabel = Label()
+        nameLabel.Text = "Name:"
+        nameLabel.Location = Point(16, 176)
+        nameLabel.Height = 16
+
         nameButton = Button()
         nameButton.Text = "Import"
-        nameButton.Location = Point(16, 220)
+        nameButton.Location = Point(16, 252)
         nameButton.Click += self.nameButtonPressed
 
         # Stage R-Alt Name
         self.altNamePictureBox = PictureBox()
-        self.altNamePictureBox.Location = Point(16, 264)
+        self.altNamePictureBox.Location = Point(16, 296)
         self.altNamePictureBox.Width = 208
         self.altNamePictureBox.Height = 56
         self.altNamePictureBox.SizeMode = PictureBoxSizeMode.CenterImage
@@ -258,11 +269,11 @@ class StageEditor(Form):
 
         altLabel = Label()
         altLabel.Text = "Alt Layout Name:"
-        altLabel.Location = Point(16, 248)
+        altLabel.Location = Point(16, 280)
 
         self.altDropDown = ComboBox()
-        self.altDropDown.DropDownStyle = ComboBoxStyle.DropDown
-        self.altDropDown.Location = Point(16, 324)
+        self.altDropDown.DropDownStyle = ComboBoxStyle.DropDownList
+        self.altDropDown.Location = Point(16, 356)
         self.altDropDown.Width = 208
         self.altDropDown.BindingContext = self.BindingContext
         self.altDropDown.DataSource = self.cosmetics.stageNameList
@@ -272,30 +283,40 @@ class StageEditor(Form):
 
         # Stage Icon
         self.iconPictureBox = PictureBox()
-        self.iconPictureBox.Location = Point(240, 160)
+        self.iconPictureBox.Location = Point(240, 192)
         self.iconPictureBox.Width = 128
         self.iconPictureBox.Height = 112
         self.iconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         if self.cosmetics.stageIcon and not self.new:
             self.iconPictureBox.Image = self.cosmetics.stageIcon
 
+        iconLabel = Label()
+        iconLabel.Text = "Icon:"
+        iconLabel.Location = Point(240, 176)
+        iconLabel.Height = 16
+
         iconButton = Button()
         iconButton.Text = "Import"
-        iconButton.Location = Point(240, 276)
+        iconButton.Location = Point(240, 308)
         iconButton.Click += self.iconButtonPressed
 
         # Franchise Icon
         self.franchiseIconPictureBox = PictureBox()
-        self.franchiseIconPictureBox.Location = Point(16, 350)
+        self.franchiseIconPictureBox.Location = Point(16, 398)
         self.franchiseIconPictureBox.Width = 64
         self.franchiseIconPictureBox.Height = 64
         self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         if self.cosmetics.franchiseIcon and not self.new:
             self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon.image
 
+        franchiseIconLabel = Label()
+        franchiseIconLabel.Text = "Franchise Icon:"
+        franchiseIconLabel.Location = Point(16, 382)
+        franchiseIconLabel.Height = 16
+
         self.franchiseIconDropDown = ComboBox()
-        self.franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDown
-        self.franchiseIconDropDown.Location = Point(16, 418)
+        self.franchiseIconDropDown.DropDownStyle = ComboBoxStyle.DropDownList
+        self.franchiseIconDropDown.Location = Point(16, 466)
         self.franchiseIconDropDown.BindingContext = self.BindingContext
         self.franchiseIconDropDown.DataSource = self.franchiseIconList
         self.franchiseIconDropDown.DisplayMember = "name"
@@ -304,21 +325,26 @@ class StageEditor(Form):
 
         franchiseIconButton = Button()
         franchiseIconButton.Text = "Add"
-        franchiseIconButton.Location = Point(16, 442)
+        franchiseIconButton.Location = Point(16, 490)
         franchiseIconButton.Click += self.franchiseIconButtonPressed
 
         # Game Logo
         self.gameLogoPictureBox = PictureBox()
-        self.gameLogoPictureBox.Location = Point(160, 350)
+        self.gameLogoPictureBox.Location = Point(160, 398)
         self.gameLogoPictureBox.Width = 120
         self.gameLogoPictureBox.Height = 56
         self.gameLogoPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         if self.cosmetics.gameLogo and not self.new:
             self.gameLogoPictureBox.Image = self.cosmetics.gameLogo.image
 
+        gameLogoLabel = Label()
+        gameLogoLabel.Text = "Game Icon:"
+        gameLogoLabel.Location = Point(160, 382)
+        gameLogoLabel.Height = 16
+
         self.gameLogoDropDown = ComboBox()
-        self.gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDown
-        self.gameLogoDropDown.Location = Point(160, 418)
+        self.gameLogoDropDown.DropDownStyle = ComboBoxStyle.DropDownList
+        self.gameLogoDropDown.Location = Point(160, 466)
         self.gameLogoDropDown.BindingContext = self.BindingContext
         self.gameLogoDropDown.DataSource = self.gameLogoList
         self.gameLogoDropDown.DisplayMember = "name"
@@ -327,35 +353,45 @@ class StageEditor(Form):
 
         gameLogoButton = Button()
         gameLogoButton.Text = "Add"
-        gameLogoButton.Location = Point(160, 442)
+        gameLogoButton.Location = Point(160, 490)
         gameLogoButton.Click += self.gameLogoButtonPressed
 
         # Stage Preview
         self.previewPictureBox = PictureBox()
-        self.previewPictureBox.Location = Point(32, 16)
+        self.previewPictureBox.Location = Point(32, 32)
         self.previewPictureBox.Width = 312
         self.previewPictureBox.Height = 112
         self.previewPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
         if self.cosmetics.stagePreview and not self.new:
             self.previewPictureBox.Image = self.cosmetics.stagePreview
 
+        previewLabel = Label()
+        previewLabel.Text = "Preview:"
+        previewLabel.Location = Point(32, 16)
+        previewLabel.Height = 16
+
         previewButton = Button()
         previewButton.Text = "Import"
-        previewButton.Location = Point(32, 132)
+        previewButton.Location = Point(32, 148)
         previewButton.Click += self.previewButtonPressed
 
+        cosmeticsGroupBox.Controls.Add(previewLabel)
         cosmeticsGroupBox.Controls.Add(self.previewPictureBox)
         cosmeticsGroupBox.Controls.Add(previewButton)
         cosmeticsGroupBox.Controls.Add(self.namePictureBox)
+        cosmeticsGroupBox.Controls.Add(nameLabel)
         cosmeticsGroupBox.Controls.Add(nameButton)
+        cosmeticsGroupBox.Controls.Add(iconLabel)
         cosmeticsGroupBox.Controls.Add(self.iconPictureBox)
         cosmeticsGroupBox.Controls.Add(iconButton)
         cosmeticsGroupBox.Controls.Add(self.altNamePictureBox)
         cosmeticsGroupBox.Controls.Add(altLabel)
         cosmeticsGroupBox.Controls.Add(self.altDropDown)
+        cosmeticsGroupBox.Controls.Add(franchiseIconLabel)
         cosmeticsGroupBox.Controls.Add(self.franchiseIconPictureBox)
         cosmeticsGroupBox.Controls.Add(self.franchiseIconDropDown)
         cosmeticsGroupBox.Controls.Add(franchiseIconButton)
+        cosmeticsGroupBox.Controls.Add(gameLogoLabel)
         cosmeticsGroupBox.Controls.Add(self.gameLogoPictureBox)
         cosmeticsGroupBox.Controls.Add(self.gameLogoDropDown)
         cosmeticsGroupBox.Controls.Add(gameLogoButton)
@@ -367,11 +403,18 @@ class StageEditor(Form):
         parametersGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
         parametersGroupBox.Text = "Parameters"
 
+        aslIndicatorGroupBox = GroupBox()
+        aslIndicatorGroupBox.Location = Point(16, 352)
+        aslIndicatorGroupBox.AutoSize = True
+        aslIndicatorGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        aslIndicatorGroupBox.Text = "Button Combination"
+
         # Stage Alt Listbox
         self.stageAltListbox = ListBox()
-        self.stageAltListbox.DataSource = self.alts
         self.stageAltListbox.DisplayMember = "aslEntry"
         self.stageAltListbox.ValueMember = "aslEntry"
+        self.stageAltListbox.DataSource = self.alts
+        self.stageAltListbox.BindingContext = self.BindingContext
         self.stageAltListbox.Location = Point(16, 16)
         self.stageAltListbox.Width = 120
         self.stageAltListbox.Height = 120
@@ -408,6 +451,7 @@ class StageEditor(Form):
         self.trackAddButton.AutoSize = True
         self.trackAddButton.AutoSizeMode = AutoSizeMode.GrowAndShrink
         self.trackAddButton.Click += self.trackAddButtonPressed
+        self.trackAddButton.Enabled = True if len(self.alts) > 0 else False
 
         # Name textbox
         self.nameTextBox = TextBox()
@@ -423,7 +467,10 @@ class StageEditor(Form):
         nameLabel.TextAlign = ContentAlignment.TopRight
 
         # PAC Name textbox
-        self.pacNameTextBox = TextBox()
+        self.pacNameTextBox = ComboBox()
+        self.pacNameTextBox.BindingContext = self.BindingContext
+        self.pacNameTextBox.DropDownStyle = ComboBoxStyle.DropDown
+        self.pacNameTextBox.DataSource = self.pacFiles
         self.pacNameTextBox.Text = self.alts[0].pacName if len(self.alts) > 0 else ""
         self.pacNameTextBox.Location = Point(208, 48)
         self.pacNameTextBox.Width = 160
@@ -447,7 +494,10 @@ class StageEditor(Form):
         self.pacNameFileBox.ReadOnly = True
 
         # Module textbox
-        self.moduleTextBox = TextBox()
+        self.moduleTextBox = ComboBox()
+        self.moduleTextBox.BindingContext = self.BindingContext
+        self.moduleTextBox.DropDownStyle = ComboBoxStyle.DropDown
+        self.moduleTextBox.DataSource = self.relFiles
         self.moduleTextBox.Text = self.alts[0].module if len(self.alts) > 0 else ""
         self.moduleTextBox.Location = Point(208, 104)
         self.moduleTextBox.Width = 160
@@ -471,7 +521,10 @@ class StageEditor(Form):
         self.moduleFileBox.ReadOnly = True
 
         # Tracklist textbox
-        self.tracklistTextBox = TextBox()
+        self.tracklistTextBox = ComboBox()
+        self.tracklistTextBox.BindingContext = self.BindingContext
+        self.tracklistTextBox.DropDownStyle = ComboBoxStyle.DropDown
+        self.tracklistTextBox.DataSource = self.tracklistFiles
         self.tracklistTextBox.Text = self.alts[0].tracklist if len(self.alts) > 0 else ""
         self.tracklistTextBox.Location = Point(208, 160)
         self.tracklistTextBox.Width = 160
@@ -533,11 +586,23 @@ class StageEditor(Form):
 
         # Button Checkboxes
         self.aslIndicator = ASLIndicator()
-        self.aslIndicator.Location = Point(16, 352)
+        self.aslIndicator.Location = Point(16, 16)
         if len(self.alts) > 0:
             self.aslIndicator.TargetNode = self.alts[0].aslEntry
         else:
             self.aslIndicator.Visible = False
+        aslIndicatorGroupBox.Controls.Add(self.aslIndicator)
+
+        saveButton = Button()
+        saveButton.Text = "Save and Close"
+        saveButton.Location = Point(336, 704)
+        saveButton.Click += self.saveButtonPressed
+        saveButton.Width = 96
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(440, 704)
+        cancelButton.Click += self.cancelButtonPressed
 
         parametersGroupBox.Controls.Add(self.stageAltListbox)
         parametersGroupBox.Controls.Add(stageAltAddButton)
@@ -565,18 +630,36 @@ class StageEditor(Form):
         parametersGroupBox.Controls.Add(self.soundBankFileBox)
         parametersGroupBox.Controls.Add(self.effectBankTextBox)
         parametersGroupBox.Controls.Add(effectBankLabel)
-        parametersGroupBox.Controls.Add(self.aslIndicator)
-
-        saveButton = Button()
-        saveButton.Text = "Save"
-        saveButton.Location = Point(16, 500)
-        saveButton.Click += self.saveButtonPressed
+        parametersGroupBox.Controls.Add(aslIndicatorGroupBox)
+        parametersGroupBox.Controls.Add(saveButton)
+        parametersGroupBox.Controls.Add(cancelButton)
 
         self.Controls.Add(cosmeticsGroupBox)
         self.Controls.Add(parametersGroupBox)
-        self.Controls.Add(saveButton)
+        #self.Controls.Add(saveButton)
 
         self.setComboBoxes()
+
+    def getPacs(self):
+        pacFiles = []
+        directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/stage/melee')
+        for file in directory.GetFiles("STG*.pac"):
+            pacFiles.append(file.Name[3:len(file.Name)].split('.')[0])
+        return pacFiles
+
+    def getRels(self):
+        relFiles = []
+        directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/module')
+        for file in directory.GetFiles("st_*.rel"):
+            relFiles.append(file.Name)
+        return relFiles
+
+    def getTracklists(self):
+        tracklistFiles = []
+        directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sound/tracklist')
+        for file in directory.GetFiles("*.tlst"):
+            tracklistFiles.append(file.Name.split('.')[0])
+        return tracklistFiles
 
     def setComboBoxes(self):
         if not self.new:
@@ -598,6 +681,24 @@ class StageEditor(Form):
                     self.gameLogoDropDown.SelectedIndex = i
                     break
                 i += 1
+            i = 0
+            while i < len(self.pacFiles):
+                if self.pacFiles[i] == self.stageAltListbox.SelectedItem.pacName:
+                    self.pacNameTextBox.SelectedIndex = i
+                    break
+                i += 1
+            i = 0
+            while i < len(self.relFiles):
+                if self.relFiles[i] == self.stageAltListbox.SelectedItem.module:
+                    self.moduleTextBox.SelectedIndex = i
+                    break
+                i += 1
+            i = 0
+            while i < len(self.tracklistFiles):
+                if self.tracklistFiles[i] == self.stageAltListbox.SelectedItem.tracklist:
+                    self.tracklistTextBox.SelectedIndex = i
+                    break
+                i += 1
         else:
             self.franchiseIconDropDown.SelectedIndex = 0
             self.franchiseIconPictureBox.Image = Bitmap(self.franchiseIconDropDown.SelectedValue)
@@ -608,6 +709,9 @@ class StageEditor(Form):
             self.gameLogoDropDown.SelectedIndex = 0
             self.gameLogoPictureBox.Image = Bitmap(self.gameLogoDropDown.SelectedValue)
             self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
+            self.pacNameTextBox.SelectedIndex = -1
+            self.moduleTextBox.SelectedIndex = -1
+            self.tracklistTextBox.SelectedIndex = -1
 
     def stageAltChanged(self, sender, args):
         if len(self.alts) > 0:
@@ -640,6 +744,10 @@ class StageEditor(Form):
             self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
         buildGct()
         self.DialogResult = DialogResult.OK
+        self.Close()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
         self.Close()
 
     def iconButtonPressed(self, sender, args):
@@ -769,6 +877,7 @@ class StageEditor(Form):
         self.tracklistButton.Enabled = True
         self.soundBankButton.Enabled = True
         self.aslIndicator.Visible = True
+        self.trackAddButton.Enabled = True
 
     def stageAltAddButtonPressed(self, sender, args):
         newAslEntry = ASLSEntryNode()
