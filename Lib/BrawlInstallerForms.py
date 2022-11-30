@@ -17,7 +17,7 @@ class StageList(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
-        self.MinimumSize = Size(250,128)
+        self.MinimumSize = Size(411,375)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
@@ -58,53 +58,85 @@ class StageList(Form):
         self.listBox = ListBox()
         self.listBox.Width = 120
         self.listBox.Height = 240
-        self.listBox.Location = Point(16, 16)
+        self.listBox.Location = Point(16, 32)
         self.listBox.DataSource = self.stageSlots
         self.listBox.DisplayMember = "name"
         self.listBox.ValueMember = "fullId"
         self.listBox.DrawMode = DrawMode.OwnerDrawFixed
         self.listBox.DrawItem += self.listBoxDrawItem
 
+        listBoxLabel = Label()
+        listBoxLabel.Text = "Current Stages"
+        listBoxLabel.Height = 16
+        listBoxLabel.Location = Point(16, 8)
+
         self.unusedListbox = ListBox()
         self.unusedListbox.Width = 120
         self.unusedListbox.Height = 240
-        self.unusedListbox.Location = Point(256, 16)
+        self.unusedListbox.Location = Point(259, 32)
         self.unusedListbox.DataSource = self.unusedSlots
         self.unusedListbox.DisplayMember = "name"
         self.unusedListbox.ValueMember = "fullId"
 
+        unusedListBoxLabel = Label()
+        unusedListBoxLabel.Text = "Unused Stages"
+        unusedListBoxLabel.Height = 16
+        unusedListBoxLabel.Location = Point(259, 8)
+
         button = Button()
-        button.Location = Point(144, 16)
+        button.Location = Point(16, 276)
         button.Text = "Edit"
         button.Click += self.buttonPressed
 
         addButton = Button()
-        addButton.Location = Point(144, 48)
+        addButton.Location = Point(16, 304)
         addButton.Text = "Add"
         addButton.Click += self.addButtonPressed
 
         moveLeftButton = Button()
-        moveLeftButton.Location = Point(144, 80)
-        moveLeftButton.Text = "<"
+        moveLeftButton.Location = Point(160, 120)
+        moveLeftButton.Text = "←"
         moveLeftButton.Click += self.moveLeftButtonPressed
 
+        moveRightButton = Button()
+        moveRightButton.Location = Point(160, 152)
+        moveRightButton.Text = "→"
+        moveRightButton.Click += self.moveRightButtonPressed
+
         moveUpButton = Button()
-        moveUpButton.Location = Point(144, 112)
-        moveUpButton.Text = "^"
+        moveUpButton.Location = Point(136, 31)
+        moveUpButton.Text = "↑"
+        moveUpButton.Size = Size(16, 32)
         moveUpButton.Click += self.moveUpButtonPressed
 
+        moveDownButton = Button()
+        moveDownButton.Location = Point(136, 63)
+        moveDownButton.Text = "↓"
+        moveDownButton.Size = Size(16, 32)
+        moveDownButton.Click += self.moveDownButtonPressed
+
         saveButton = Button()
-        saveButton.Location = Point(144, 144)
+        saveButton.Location = Point(304, 276)
         saveButton.Text = "Save"
         saveButton.Click += self.saveButtonPressed
 
+        cancelButton = Button()
+        cancelButton.Location = Point(304, 304)
+        cancelButton.Text = "Cancel"
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(listBoxLabel)
         self.Controls.Add(self.listBox)
         self.Controls.Add(button)
         self.Controls.Add(addButton)
-        self.Controls.Add(moveLeftButton)
         self.Controls.Add(moveUpButton)
-        self.Controls.Add(saveButton)
+        self.Controls.Add(moveDownButton)
+        self.Controls.Add(moveLeftButton)
+        self.Controls.Add(moveRightButton)
         self.Controls.Add(self.unusedListbox)
+        self.Controls.Add(unusedListBoxLabel)
+        self.Controls.Add(saveButton)
+        self.Controls.Add(cancelButton)
 
     def listBoxDrawItem(self, sender, args):
         args.DrawBackground()
@@ -116,7 +148,6 @@ class StageList(Form):
         args.Graphics.DrawString(sender.Items[args.Index].name, font, Brushes.Black if not selected else Brushes.White, args.Bounds, StringFormat.GenericDefault)
         args.DrawFocusRectangle
         
-    
     def buttonPressed(self, sender, args):
         if not self.listBox.SelectedItem.name.startswith('|| PAGE '):
             fullId = str(self.listBox.SelectedValue)
@@ -138,10 +169,16 @@ class StageList(Form):
         form.Dispose()
 
     def moveLeftButtonPressed(self, sender, args):
-        if len(self.unusedSlots) > 0:
+        if len(self.unusedSlots) > 0 and not self.unusedListbox.SelectedItem.name.startswith('|| PAGE'):
             self.stageSlots.Add(self.unusedListbox.SelectedItem)
             self.listBox.SelectedItem = self.unusedListbox.SelectedItem
             self.unusedSlots.Remove(self.unusedListbox.SelectedItem)
+
+    def moveRightButtonPressed(self, sender, args):
+        if len(self.stageSlots) > 0 and not self.listBox.SelectedItem.name.startswith('|| PAGE'):
+            self.unusedSlots.Add(self.listBox.SelectedItem)
+            self.unusedListbox.SelectedItem = self.listBox.SelectedItem
+            self.stageSlots.Remove(self.listBox.SelectedItem)
 
     def moveUpButtonPressed(self, sender, args):
         if self.listBox.SelectedIndex == 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
@@ -152,9 +189,22 @@ class StageList(Form):
         self.stageSlots[self.listBox.SelectedIndex] = aboveValue
         self.listBox.SelectedIndex = self.listBox.SelectedIndex - 1
 
+    def moveDownButtonPressed(self, sender, args):
+        if self.listBox.SelectedIndex >= len(self.listBox.Items) - 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
+            return
+        belowValue = self.stageSlots[self.listBox.SelectedIndex + 1]
+        selectedValue = self.stageSlots[self.listBox.SelectedIndex]
+        self.stageSlots[self.listBox.SelectedIndex + 1] = selectedValue
+        self.stageSlots[self.listBox.SelectedIndex] = belowValue
+        self.listBox.SelectedIndex = self.listBox.SelectedIndex + 1
+
     def saveButtonPressed(self, sender, args):
         updateStageList(self.listBox.Items)
         buildGct()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
 
     def getFirstAvailableId(self):
         stageId = 1
@@ -198,13 +248,8 @@ class StageEditor(Form):
         self.alts.DataSource = getStageAltInfo(fullId[0:2])
         self.addedTracks = BindingSource()
         self.addedTracks.DataSource = []
-        #TODO: Import song BRSTMs (under the param listbox probably, or maybe as part of .tlst upload?), add new param entries/import .param files
-        #add new stage slots
-        #label cosmetics
-        #maybe BRSTMs can be another listbox, lists files from tracklist in build, if you add a file it will show the filepath instead, filepath ones get imported
+        #TODO:
         #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
-        #run GCTR after all is done
-        #do step 4.3 in stage managing guide (incrementing numbers at bottom of thingy)
         #add progress bars everywhere
         #ensure backups are always made
 
@@ -603,6 +648,7 @@ class StageEditor(Form):
         cancelButton.Text = "Cancel"
         cancelButton.Location = Point(440, 704)
         cancelButton.Click += self.cancelButtonPressed
+        cancelButton.Width = 96
 
         parametersGroupBox.Controls.Add(self.stageAltListbox)
         parametersGroupBox.Controls.Add(stageAltAddButton)
@@ -728,9 +774,25 @@ class StageEditor(Form):
             self.soundBankFileBox.Text = self.stageAltListbox.SelectedItem.soundBankFile
             self.stageAltFileBox.Text = self.stageAltListbox.SelectedItem.paramFile
 
-    def saveButtonPressed(self, sender, args):
+    def validate(self):
+        validationText = ""
+        if not (self.previewPictureBox.Image and self.namePictureBox.Image and self.iconPictureBox.Image):
+            validationText += "\nYou must set images for the stage preview, name, and icon."
         if len(self.alts) <= 0:
-            BrawlAPI.ShowMessage("You must have at least one stage entry defined to continue!", "Add Stage Entries")
+            validationText += "\nYou must have at least one stage entry defined."
+        elif len(self.alts) > 0:
+            missingParams = False
+            for alt in self.alts:
+                if not (alt.aslEntry.Name and alt.pacName and alt.module and alt.tracklist and alt.soundBank and alt.effectBank):
+                    missingParams = True
+            if missingParams:
+                validationText += "\nSome stage entries are missing parameters. Please ensure all parameter fields are filled in for all stage entries."
+        return validationText
+
+    def saveButtonPressed(self, sender, args):
+        validationText = self.validate()
+        if validationText:
+            BrawlAPI.ShowMessage("The following errors were found:\n" + validationText + "\n\nPlease resolve these issues to continue.", "Validation Failed")
             return
         moveStageFiles(self.alts)
         if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
