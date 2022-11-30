@@ -251,7 +251,8 @@ class StageEditor(Form):
         #TODO:
         #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
         #add progress bars everywhere
-        #ensure backups are always made
+        #add proper error handling
+        #netplay support
 
         # Variables
         self.newIcon = ""
@@ -682,7 +683,6 @@ class StageEditor(Form):
 
         self.Controls.Add(cosmeticsGroupBox)
         self.Controls.Add(parametersGroupBox)
-        #self.Controls.Add(saveButton)
 
         self.setComboBoxes()
 
