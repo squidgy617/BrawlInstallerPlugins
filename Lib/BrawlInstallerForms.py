@@ -154,6 +154,9 @@ class StageList(Form):
             form = StageEditor(fullId)
             result = form.ShowDialog(MainForm.Instance)
             form.Dispose()
+            if result == DialogResult.Abort:
+                self.DialogResult = DialogResult.Abort
+                self.Close()
 
     def addButtonPressed(self, sender, args):
         newId = self.getFirstAvailableId()
@@ -166,7 +169,11 @@ class StageList(Form):
                 self.unusedSlots.Add(newSlot)
                 self.unusedListbox.SelectedItem = newSlot
             BrawlAPI.ShowMessage("Stage added successfully.", "Success")
-        form.Dispose()
+            form.Dispose()
+        elif result == DialogResult.Abort:
+            form.Dispose()
+            self.DialogResult = DialogResult.Abort
+            self.Close()
 
     def moveLeftButtonPressed(self, sender, args):
         if len(self.unusedSlots) > 0 and not self.unusedListbox.SelectedItem.name.startswith('|| PAGE'):
@@ -199,8 +206,17 @@ class StageList(Form):
         self.listBox.SelectedIndex = self.listBox.SelectedIndex + 1
 
     def saveButtonPressed(self, sender, args):
-        updateStageList(self.listBox.Items)
-        buildGct()
+        try:
+            updateStageList(self.listBox.Items)
+            buildGct()
+        except Exception as e:
+            writeLog("ERROR " + str(e))
+            if 'progressBar' in locals():
+                progressBar.Finish()
+            BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+            BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
+            self.DialogResult = DialogResult.Abort
+            self.Close()
 
     def cancelButtonPressed(self, sender, args):
         self.DialogResult = DialogResult.Cancel
@@ -251,7 +267,6 @@ class StageEditor(Form):
         #TODO:
         #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
         #add progress bars everywhere
-        #add proper error handling
         #netplay support
 
         # Variables
@@ -790,23 +805,32 @@ class StageEditor(Form):
         return validationText
 
     def saveButtonPressed(self, sender, args):
-        validationText = self.validate()
-        if validationText:
-            BrawlAPI.ShowMessage("The following errors were found:\n" + validationText + "\n\nPlease resolve these issues to continue.", "Validation Failed")
-            return
-        moveStageFiles(self.alts)
-        if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
-            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
-            importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
-        updateStageSlot(self.stageId, self.stageAltListbox.Items)
-        updateStageParams(self.stageId, self.stageAltListbox.Items)
-        if self.addedTracks:
-            importFiles(self.addedTracks)
-        if self.new:
-            self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
-        buildGct()
-        self.DialogResult = DialogResult.OK
-        self.Close()
+        try:
+            validationText = self.validate()
+            if validationText:
+                BrawlAPI.ShowMessage("The following errors were found:\n" + validationText + "\n\nPlease resolve these issues to continue.", "Validation Failed")
+                return
+            moveStageFiles(self.alts)
+            if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
+                importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
+                importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
+            updateStageSlot(self.stageId, self.stageAltListbox.Items)
+            updateStageParams(self.stageId, self.stageAltListbox.Items)
+            if self.addedTracks:
+                importFiles(self.addedTracks)
+            if self.new:
+                self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
+            buildGct()
+            self.DialogResult = DialogResult.OK
+            self.Close()
+        except Exception as e:
+            writeLog("ERROR " + str(e))
+            if 'progressBar' in locals():
+                progressBar.Finish()
+            BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+            BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
+            self.DialogResult = DialogResult.Abort
+            self.Close()
 
     def cancelButtonPressed(self, sender, args):
         self.DialogResult = DialogResult.Cancel
