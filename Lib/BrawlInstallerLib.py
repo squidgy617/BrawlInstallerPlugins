@@ -1195,13 +1195,16 @@ def updateModule(file, directory, fighterId, fighterName):
 		BrawlAPI.OpenFile(file.FullName)
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [8]")
+		node.Export(directory.FullName + "/Section [8]")
+		sectionFile = directory.FullName + "/Section [8]"
+		with open(sectionFile,  mode='r+b') as readFile:
+			data = str(binascii.hexlify(readFile.read(3)))
+			readFile.close()
 		# Ex modules only have 8 sections, so any with more is a different type of module
-		if node and not getChildByName(BrawlAPI.RootNode, "Section [9]"):
+		if node and data == '000000':
 			writeLog("Modifying Section [8] of module file")
-			node.Export(directory.FullName + "/Section [8]")
 			closeModule()
 			# Get the exported section 8 file
-			sectionFile = directory.FullName + "/Section [8]"
 			editModule(fighterId, file, sectionFile, [0x00])
 		else:
 			writeLog("Module does not have Section [8]. Modifying Section [1] instead.")
