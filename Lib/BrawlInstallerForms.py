@@ -209,6 +209,7 @@ class StageList(Form):
         try:
             updateStageList(self.listBox.Items)
             buildGct()
+            BrawlAPI.ShowMessage("Saved successfully.", "Success")
         except Exception as e:
             writeLog("ERROR " + str(e))
             if 'progressBar' in locals():
@@ -783,19 +784,38 @@ class StageEditor(Form):
             if validationText:
                 BrawlAPI.ShowMessage("The following errors were found:\n" + validationText + "\n\nPlease resolve these issues to continue.", "Validation Failed")
                 return
+            # Set up progressbar
+            progressCounter = 0
+            progressBar = ProgressWindow(MainForm.Instance, "Saving...", "Saving Stage", False)
+            progressBar.Begin(0, 5, progressCounter)
+
             for stageEntry in self.removeSlots:
                 removeStageEntry(stageEntry)
+
+            progressCounter += 1
+            progressBar.Update(progressCounter)
+
             moveStageFiles(self.alts)
+
+            progressCounter += 1
+            progressBar.Update(progressCounter)
             if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
                 importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
                 importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
+            progressCounter += 1
+            progressBar.Update(progressCounter)
             updateStageSlot(self.stageId, self.stageAltListbox.Items)
             updateStageParams(self.stageId, self.stageAltListbox.Items)
+            progressCounter += 1
+            progressBar.Update(progressCounter)
             if self.addedTracks:
                 importFiles(self.addedTracks)
             if self.new:
                 self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
             buildGct()
+            progressCounter += 1
+            progressBar.Update(progressCounter)
+            progressBar.Finish()
             self.DialogResult = DialogResult.OK
             self.Close()
         except Exception as e:
