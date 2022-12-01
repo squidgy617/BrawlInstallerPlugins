@@ -17,12 +17,15 @@ class StageList(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
-        self.MinimumSize = Size(411,375)
+        self.MaximizeBox = False
+        self.MinimumSize = Size(411,400)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.stageSlots = BindingSource()
         self.stageSlots.DataSource = []
+        self.netplaySlots = BindingSource()
+        self.netplaySlots.DataSource = []
         self.unusedSlots = BindingSource()
         self.unusedSlots.DataSource = []
         pageNumber = 0
@@ -38,6 +41,17 @@ class StageList(Form):
                     stageName = getStageName(stageIds[2:4])
                     stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
                     self.stageSlots.Add(stageSlot)
+            pageNumber = 0
+            pages = getStageList(True)
+            for page in pages:
+                pageNumber += 1
+                pageSlot = StageSlot('0x00', '00', '00', '0000', '|| PAGE ' + str(pageNumber) + ' ||')
+                self.netplaySlots.Add(pageSlot)
+                for slotId in page:
+                    stageIds = getStageIdsByNumber(slotId)
+                    stageName = getStageName(stageIds[2:4])
+                    stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
+                    self.netplaySlots.Add(stageSlot)
 
         # Get unused stages
         i = 0
@@ -55,6 +69,17 @@ class StageList(Form):
             i += 1
         BrawlAPI.ForceCloseFile()
 
+        self.tabControl = TabControl()
+        self.tabControl.Dock = DockStyle.Fill
+
+        offlineTab = TabPage()
+        offlineTab.Text = 'Standard'
+        self.tabControl.Controls.Add(offlineTab)
+
+        netplayTab = TabPage()
+        netplayTab.Text = 'Netplay'
+        self.tabControl.Controls.Add(netplayTab)
+
         self.listBox = ListBox()
         self.listBox.Width = 120
         self.listBox.Height = 240
@@ -64,6 +89,16 @@ class StageList(Form):
         self.listBox.ValueMember = "fullId"
         self.listBox.DrawMode = DrawMode.OwnerDrawFixed
         self.listBox.DrawItem += self.listBoxDrawItem
+
+        self.netplayListBox = ListBox()
+        self.netplayListBox.Width = 120
+        self.netplayListBox.Height = 240
+        self.netplayListBox.Location = Point(16, 32)
+        self.netplayListBox.DataSource = self.netplaySlots
+        self.netplayListBox.DisplayMember = "name"
+        self.netplayListBox.ValueMember = "fullId"
+        self.netplayListBox.DrawMode = DrawMode.OwnerDrawFixed
+        self.netplayListBox.DrawItem += self.listBoxDrawItem
 
         listBoxLabel = Label()
         listBoxLabel.Text = "Current Stages"
@@ -125,18 +160,22 @@ class StageList(Form):
         cancelButton.Text = "Cancel"
         cancelButton.Click += self.cancelButtonPressed
 
-        self.Controls.Add(listBoxLabel)
-        self.Controls.Add(self.listBox)
-        self.Controls.Add(button)
-        self.Controls.Add(addButton)
-        self.Controls.Add(moveUpButton)
-        self.Controls.Add(moveDownButton)
-        self.Controls.Add(moveLeftButton)
-        self.Controls.Add(moveRightButton)
-        self.Controls.Add(self.unusedListbox)
-        self.Controls.Add(unusedListBoxLabel)
-        self.Controls.Add(saveButton)
-        self.Controls.Add(cancelButton)
+        self.Controls.Add(self.tabControl)
+
+        offlineTab.Controls.Add(listBoxLabel)
+        offlineTab.Controls.Add(self.listBox)
+        offlineTab.Controls.Add(button)
+        offlineTab.Controls.Add(addButton)
+        offlineTab.Controls.Add(moveUpButton)
+        offlineTab.Controls.Add(moveDownButton)
+        offlineTab.Controls.Add(moveLeftButton)
+        offlineTab.Controls.Add(moveRightButton)
+        offlineTab.Controls.Add(self.unusedListbox)
+        offlineTab.Controls.Add(unusedListBoxLabel)
+        offlineTab.Controls.Add(saveButton)
+        offlineTab.Controls.Add(cancelButton)
+
+        netplayTab.Controls.Add(self.netplayListBox)
 
     def listBoxDrawItem(self, sender, args):
         args.DrawBackground()
@@ -220,6 +259,8 @@ class StageList(Form):
             self.Close()
 
     def cancelButtonPressed(self, sender, args):
+        #self.Controls.Clear()
+        #self.__init__()
         self.DialogResult = DialogResult.Cancel
         self.Close()
 
@@ -256,6 +297,7 @@ class StageEditor(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MaximizeBox = False
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -267,7 +309,6 @@ class StageEditor(Form):
         self.addedTracks.DataSource = []
         #TODO:
         #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
-        #add progress bars everywhere
         #netplay support
 
         # Variables

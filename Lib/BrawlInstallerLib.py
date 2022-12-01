@@ -5070,9 +5070,12 @@ class ColorPrompt(Form):
 #region STAGES
 
 # Get list of stages
-def getStageList():
+def getStageList(netplay=False):
 		writeLog("Reading stage list")
-		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		if not netplay:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		else:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm")
 		tables = []
 		tableStarts = []
 		# Find the tables
