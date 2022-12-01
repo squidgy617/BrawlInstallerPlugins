@@ -278,6 +278,7 @@ class StageEditor(Form):
         self.newAltName = ""
         self.addedFranchiseIcons = []
         self.addedGameLogos = []
+        self.removeSlots = []
         self.cosmeticId = fullId[2:4]
         self.stageId = fullId[0:2]
         self.new = new
@@ -289,8 +290,6 @@ class StageEditor(Form):
         self.gameLogoList = BindingSource()
         self.gameLogoList.DataSource = self.cosmetics.gameLogoList
 
-        self.pacFiles = self.getPacs()
-        self.relFiles = self.getRels()
         self.tracklistFiles = self.getTracklists()
 
         # Cosmetics Groupbox
@@ -488,6 +487,13 @@ class StageEditor(Form):
         stageAltAddButton.Height = 16
         stageAltAddButton.Click += self.stageAltAddButtonPressed
 
+        stageAltRemoveButton = Button()
+        stageAltRemoveButton.Text = "-"
+        stageAltRemoveButton.Location = Point(32, 128)
+        stageAltRemoveButton.Width = 16
+        stageAltRemoveButton.Height = 16
+        stageAltRemoveButton.Click += self.stageAltRemoveButtonPressed
+
         stageAltImportButton = Button()
         stageAltImportButton.Text = "Import Params"
         stageAltImportButton.Location = Point(16, 152)
@@ -528,10 +534,7 @@ class StageEditor(Form):
         nameLabel.TextAlign = ContentAlignment.TopRight
 
         # PAC Name textbox
-        self.pacNameTextBox = ComboBox()
-        self.pacNameTextBox.BindingContext = self.BindingContext
-        self.pacNameTextBox.DropDownStyle = ComboBoxStyle.DropDown
-        self.pacNameTextBox.DataSource = self.pacFiles
+        self.pacNameTextBox = TextBox()
         self.pacNameTextBox.Text = self.alts[0].pacName if len(self.alts) > 0 else ""
         self.pacNameTextBox.Location = Point(208, 48)
         self.pacNameTextBox.Width = 160
@@ -555,10 +558,7 @@ class StageEditor(Form):
         self.pacNameFileBox.ReadOnly = True
 
         # Module textbox
-        self.moduleTextBox = ComboBox()
-        self.moduleTextBox.BindingContext = self.BindingContext
-        self.moduleTextBox.DropDownStyle = ComboBoxStyle.DropDown
-        self.moduleTextBox.DataSource = self.relFiles
+        self.moduleTextBox = TextBox()
         self.moduleTextBox.Text = self.alts[0].module if len(self.alts) > 0 else ""
         self.moduleTextBox.Location = Point(208, 104)
         self.moduleTextBox.Width = 160
@@ -668,6 +668,7 @@ class StageEditor(Form):
 
         parametersGroupBox.Controls.Add(self.stageAltListbox)
         parametersGroupBox.Controls.Add(stageAltAddButton)
+        parametersGroupBox.Controls.Add(stageAltRemoveButton)
         parametersGroupBox.Controls.Add(stageAltImportButton)
         parametersGroupBox.Controls.Add(self.stageAltFileBox)
         parametersGroupBox.Controls.Add(self.trackListBox)
@@ -701,20 +702,6 @@ class StageEditor(Form):
 
         self.setComboBoxes()
 
-    def getPacs(self):
-        pacFiles = []
-        directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/stage/melee')
-        for file in directory.GetFiles("STG*.pac"):
-            pacFiles.append(file.Name[3:len(file.Name)].split('.')[0])
-        return pacFiles
-
-    def getRels(self):
-        relFiles = []
-        directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/module')
-        for file in directory.GetFiles("st_*.rel"):
-            relFiles.append(file.Name)
-        return relFiles
-
     def getTracklists(self):
         tracklistFiles = []
         directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sound/tracklist')
@@ -743,18 +730,6 @@ class StageEditor(Form):
                     break
                 i += 1
             i = 0
-            while i < len(self.pacFiles):
-                if self.pacFiles[i] == self.stageAltListbox.SelectedItem.pacName:
-                    self.pacNameTextBox.SelectedIndex = i
-                    break
-                i += 1
-            i = 0
-            while i < len(self.relFiles):
-                if self.relFiles[i] == self.stageAltListbox.SelectedItem.module:
-                    self.moduleTextBox.SelectedIndex = i
-                    break
-                i += 1
-            i = 0
             while i < len(self.tracklistFiles):
                 if self.tracklistFiles[i] == self.stageAltListbox.SelectedItem.tracklist:
                     self.tracklistTextBox.SelectedIndex = i
@@ -770,8 +745,6 @@ class StageEditor(Form):
             self.gameLogoDropDown.SelectedIndex = 0
             self.gameLogoPictureBox.Image = Bitmap(self.gameLogoDropDown.SelectedValue)
             self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
-            self.pacNameTextBox.SelectedIndex = -1
-            self.moduleTextBox.SelectedIndex = -1
             self.tracklistTextBox.SelectedIndex = -1
 
     def stageAltChanged(self, sender, args):
@@ -810,6 +783,8 @@ class StageEditor(Form):
             if validationText:
                 BrawlAPI.ShowMessage("The following errors were found:\n" + validationText + "\n\nPlease resolve these issues to continue.", "Validation Failed")
                 return
+            for stageEntry in self.removeSlots:
+                removeStageEntry(stageEntry)
             moveStageFiles(self.alts)
             if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
                 importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
@@ -971,6 +946,12 @@ class StageEditor(Form):
         newStageAlt = StageParams(newAslEntry, "", "", "", int("0xFFFF", 16), int("0xFFFF", 16), "")
         self.alts.Add(newStageAlt)
         self.enableControls()
+
+    def stageAltRemoveButtonPressed(self, sender, args):
+        if len(self.alts) <= 0:
+            return
+        self.removeSlots.append(self.stageAltListbox.SelectedItem)
+        self.alts.Remove(self.stageAltListbox.SelectedItem)
 
     def stageAltImportButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select your stage parameter file", "PARAM files|*.param")

@@ -4972,7 +4972,7 @@ class StageCosmetics:
 			self.gameLogoList = gameLogoList
 
 class StageParams:
-		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile=""):
+		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile="", originalPacName="", originalModule="", originalTracklist="", originalSoundBank=""):
 			self.aslEntry = aslEntry
 			self.pacName = pacName
 			self.tracklist = tracklist
@@ -4985,6 +4985,10 @@ class StageParams:
 			self.tracklistFile = tracklistFile
 			self.soundBankFile = soundBankFile
 			self.paramFile = paramFile
+			self.originalPacName = originalPacName
+			self.originalModule = originalModule
+			self.originalTracklist = originalTracklist
+			self.originalSoundBank = originalSoundBank
 
 class ImageNode:
 		def __init__(self, name, image):
@@ -5392,7 +5396,7 @@ def getStageParams(aslEntry, filePath=""):
 			if fileOpened:
 				writeLog("Found stage params")
 				rootNode = BrawlAPI.RootNode
-				params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank, aslEntry.Name)
+				params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank, aslEntry.Name, originalPacName=rootNode.StageName, originalModule=rootNode.Module, originalTracklist=rootNode.TrackList, originalSoundBank=rootNode.SoundBank)
 				BrawlAPI.ForceCloseFile()
 				return params
 		writeLog("Couldn't find stage params")
@@ -5581,6 +5585,46 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 					else:
 						copyFile(stageParam.paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
 		writeLog("Finished moving stage files")
+
+# Remove stage entry
+def removeStageEntry(stageParam):
+		writeLog("Removing stage entries")
+		messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
+		title = "Remove file?"
+		removePac = False
+		removeModule = False
+		removeTracklist = False
+		removeSoundbank = False
+		if stageParam.originalPacName:
+			pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
+			if File.Exists(pacFile):
+				removePac = BrawlAPI.ShowYesNoPrompt(messageText + "STG" + stageParam.originalPacName + ".pac", title)
+		if stageParam.originalModule:
+			moduleFile = MainForm.BuildPath + '/pf/module/' + stageParam.originalModule
+			if File.Exists(moduleFile):
+				removeModule = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalModule, title)
+		if stageParam.originalTracklist:
+			tracklistFile = MainForm.BuildPath + '/pf/sound/tracklist/' + stageParam.originalTracklist + ".tlst"
+			if File.Exists(tracklistFile):
+				removeTracklist = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalTracklist + ".tlst", title)
+		if stageParam.originalSoundBank:
+			directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
+			files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
+			if len(files) > 0:
+				removeSoundbank = BrawlAPI.ShowYesNoPrompt(messageText + files[0].Name, title)
+		if removePac:
+			File.Delete(pacFile)
+		if removeModule:
+			File.Delete(moduleFile)
+		if removeTracklist:
+			File.Delete(tracklistFile)
+		if removeSoundbank:
+			File.Delete(files[0].FullName)
+		if stageParam.originalName:
+			paramFile = MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + ".param"
+			if File.Exists(paramFile):
+				File.Delete(paramFile)
+		writeLog("Finished removing stage entries")
 
 
 #endregion STAGES
