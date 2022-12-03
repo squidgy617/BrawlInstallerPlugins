@@ -26,8 +26,8 @@ class StageList(Form):
         self.stageSlots.DataSource = []
         self.netplaySlots = BindingSource()
         self.netplaySlots.DataSource = []
-        #self.unusedSlots = BindingSource()
-        #self.unusedSlots.DataSource = []
+        self.removeSlots = []
+
         pageNumber = 0
         fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
         if fileOpened:
@@ -195,6 +195,11 @@ class StageList(Form):
         saveButton.Text = "Save"
         saveButton.Click += self.saveButtonPressed
 
+        removeButton = Button()
+        removeButton.Location = Point(304, 290)
+        removeButton.Text = "Remove"
+        removeButton.Click += self.removeButtonPressed
+
         netplaySaveButton = Button()
         netplaySaveButton.Location = Point(304, 276)
         netplaySaveButton.Text = "Save"
@@ -223,6 +228,7 @@ class StageList(Form):
         offlineTab.Controls.Add(self.unusedListbox)
         offlineTab.Controls.Add(unusedListBoxLabel)
         offlineTab.Controls.Add(saveButton)
+        offlineTab.Controls.Add(removeButton)
         offlineTab.Controls.Add(cancelButton)
 
         netplayTab.Controls.Add(netplayListBoxLabel)
@@ -265,6 +271,30 @@ class StageList(Form):
         if result == DialogResult.Abort:
             self.DialogResult = DialogResult.Abort
             self.Close()
+
+    def removeButtonPressed(self, sender, args):
+        if self.tabControl.SelectedIndex == 0:
+            if self.listBox.SelectedItem.name.startswith('|| PAGE '):
+                return
+            else:
+                i = 0
+                while i < len(self.netplaySlots):
+                    if self.netplaySlots[i].fullId == self.listBox.SelectedItem.fullId:
+                        self.netplaySlots.Remove(self.netplaySlots[i])
+                    i += 1
+                self.removeSlots.append(self.listBox.SelectedItem)
+                self.stageSlots.Remove(self.listBox.SelectedItem)
+        elif self.tabControl.SelectedIndex == 1:
+            if self.netplayListBox.SelectedItem.name.startswith('|| PAGE '):
+                return
+            else:
+                i = 0
+                while i < len(self.stageSlots):
+                    if self.stageSlots[i].fullId == self.netplayListBox.SelectedItem.fullId:
+                        self.stageSlots.Remove(self.stageSlots[i])
+                    i += 1
+                self.removeSlots.append(self.netplayListBox.SelectedItem)
+                self.netplaySlots.Remove(self.netplayListBox.SelectedItem)
 
     def addButtonPressed(self, sender, args):
         newId = self.getFirstAvailableId()
@@ -348,6 +378,12 @@ class StageList(Form):
 
     def saveButtonPressed(self, sender, args):
         try:
+            if len(self.removeSlots) > 0:
+                removeStageSlot(self.removeSlots)
+            for slot in self.removeSlots:
+            #TODO: fix this
+                if File.Exists(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.slotId.replace('0x',''), 2) + ".asl"):
+                    File.Delete(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.slotId.replace('0x',''), 2) + ".asl")
             updateStageList(self.listBox.Items)
             updateStageList(self.netplayListBox.Items, True)
             buildGct()
@@ -933,8 +969,7 @@ class StageEditor(Form):
             progressBar = ProgressWindow(MainForm.Instance, "Saving...", "Saving Stage", False)
             progressBar.Begin(0, 5, progressCounter)
 
-            for stageEntry in self.removeSlots:
-                removeStageEntry(stageEntry)
+            removeStageEntry(self.removeSlots)
 
             progressCounter += 1
             progressBar.Update(progressCounter)
