@@ -5103,9 +5103,13 @@ def getStageList(netplay=False):
 		return tables
 
 # Write new stage list
-def updateStageList(stageList):
+def updateStageList(stageList, netplay=False):
 		writeLog("Updating stage list")
-		createBackup(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		if not netplay:
+			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
+		else:
+			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		createBackup(file)
 		newText = []
 		stopWriting = False
 		# Create tables
@@ -5120,7 +5124,7 @@ def updateStageList(stageList):
 				i += 1
 				continue
 			tables[i].append(item)
-		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		fileText = File.ReadAllLines(file)
 		for line in fileText:
 			if line.startswith(".GOTO->SkipStageTables"):
 				newText.append(line + "\n\n")
@@ -5157,7 +5161,7 @@ def updateStageList(stageList):
 			elif line.startswith("TABLE_STAGES:"):
 				stopWriting = False
 				newText.append(line)
-		File.WriteAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm", newText)
+		File.WriteAllLines(file, newText)
 		writeLog("Finished updating stage list")
 
 # Get first unused slot ID
@@ -5175,9 +5179,12 @@ def getUnusedSlotId(slotList):
 	return hexId(newSlotId)
 
 # Get stage IDs
-def getStageIds():
+def getStageIds(netplay=False):
 		writeLog("Getting stage IDs")
-		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		if not netplay:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		else:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm")
 		tableValues = []
 		tableStart = 0
 		# Find the stages table
@@ -5203,10 +5210,14 @@ def getStageIds():
 		return tableValues
 
 # Add stage ID pair to table
-def addStageId(fullId, stageName):
+def addStageId(fullId, stageName, netplay=False):
 		writeLog("Updating stage IDs")
-		createBackup(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
-		fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		if not netplay:
+			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
+		else:
+			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		createBackup(file)
+		fileText = File.ReadAllLines(file)
 		tableStart = 0
 		tableValues = []
 		# Find the stages table
@@ -5243,7 +5254,7 @@ def addStageId(fullId, stageName):
 		# Update counter
 		counterLine = tableStart - 1
 		fileText[counterLine] = "half[" + str(len(tableValues) + 1) + "] |\t# Stage Count + 2"
-		File.WriteAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm", fileText)
+		File.WriteAllLines(file, fileText)
 		writeLog("Finished updating stage IDs")
 		return len(tableValues)
 
@@ -5386,6 +5397,26 @@ def getStageAlts(stageId):
 				return nodes
 		writeLog("Couldn't find stage slot")
 		return []
+
+# Get unused stages
+def getUnusedStageSlots(stageSlots, netplay=False):
+		writeLog("Getting unused stage slots")
+		i = 0
+		unusedSlots = []
+		for stage in getStageIds(netplay):
+			append = True
+			for slot in stageSlots:
+				if slot.fullId == stage.replace('0x',''):
+					append = False
+					break
+			if append and stage != '0xFF64':
+				stageName = getStageName(stage[2:4])
+				if stageName:
+					unusedSlot = StageSlot(hexId(i), stage[2:4], stage[4:6], stage[2:6], stageName)
+				unusedSlots.append(unusedSlot)
+			i += 1
+		writeLog("Finished getting unused stage slots")
+		return unusedSlots
 
 # Get stage params for stage
 def getStageParams(aslEntry, filePath=""):

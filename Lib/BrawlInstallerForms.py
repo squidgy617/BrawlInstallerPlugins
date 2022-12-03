@@ -26,8 +26,8 @@ class StageList(Form):
         self.stageSlots.DataSource = []
         self.netplaySlots = BindingSource()
         self.netplaySlots.DataSource = []
-        self.unusedSlots = BindingSource()
-        self.unusedSlots.DataSource = []
+        #self.unusedSlots = BindingSource()
+        #self.unusedSlots.DataSource = []
         pageNumber = 0
         fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
         if fileOpened:
@@ -53,20 +53,10 @@ class StageList(Form):
                     stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
                     self.netplaySlots.Add(stageSlot)
 
-        # Get unused stages
-        i = 0
-        for stage in getStageIds():
-            append = True
-            for slot in self.stageSlots:
-                if slot.fullId == stage.replace('0x',''):
-                    append = False
-                    break
-            if append and stage != '0xFF64':
-                stageName = getStageName(stage[2:4])
-                if stageName:
-                    unusedSlot = StageSlot(hexId(i), stage[2:4], stage[4:6], stage[2:6], stageName)
-                self.unusedSlots.Add(unusedSlot)
-            i += 1
+        self.unusedSlots = BindingSource()
+        self.unusedSlots.DataSource = getUnusedStageSlots(self.stageSlots)
+        self.unusedNetplaySlots = BindingSource()
+        self.unusedNetplaySlots.DataSource = getUnusedStageSlots(self.netplaySlots)
         BrawlAPI.ForceCloseFile()
 
         self.tabControl = TabControl()
@@ -105,6 +95,11 @@ class StageList(Form):
         listBoxLabel.Height = 16
         listBoxLabel.Location = Point(16, 8)
 
+        netplayListBoxLabel = Label()
+        netplayListBoxLabel.Text = "Current Stages"
+        netplayListBoxLabel.Height = 16
+        netplayListBoxLabel.Location = Point(16, 8)
+
         self.unusedListbox = ListBox()
         self.unusedListbox.Width = 120
         self.unusedListbox.Height = 240
@@ -113,30 +108,63 @@ class StageList(Form):
         self.unusedListbox.DisplayMember = "name"
         self.unusedListbox.ValueMember = "fullId"
 
+        self.unusedNetplayListbox = ListBox()
+        self.unusedNetplayListbox.Width = 120
+        self.unusedNetplayListbox.Height = 240
+        self.unusedNetplayListbox.Location = Point(259, 32)
+        self.unusedNetplayListbox.DataSource = self.unusedNetplaySlots
+        self.unusedNetplayListbox.DisplayMember = "name"
+        self.unusedNetplayListbox.ValueMember = "fullId"
+
         unusedListBoxLabel = Label()
         unusedListBoxLabel.Text = "Unused Stages"
         unusedListBoxLabel.Height = 16
         unusedListBoxLabel.Location = Point(259, 8)
+
+        unusedNetplayListBoxLabel = Label()
+        unusedNetplayListBoxLabel.Text = "Unused Stages"
+        unusedNetplayListBoxLabel.Height = 16
+        unusedNetplayListBoxLabel.Location = Point(259, 8)
 
         button = Button()
         button.Location = Point(16, 276)
         button.Text = "Edit"
         button.Click += self.buttonPressed
 
+        netplayButton = Button()
+        netplayButton.Location = Point(16, 276)
+        netplayButton.Text = "Edit"
+        netplayButton.Click += self.buttonPressed
+
         addButton = Button()
         addButton.Location = Point(16, 304)
         addButton.Text = "Add"
         addButton.Click += self.addButtonPressed
+
+        netplayAddButton = Button()
+        netplayAddButton.Location = Point(16, 304)
+        netplayAddButton.Text = "Add"
+        netplayAddButton.Click += self.addButtonPressed
 
         moveLeftButton = Button()
         moveLeftButton.Location = Point(160, 120)
         moveLeftButton.Text = "←"
         moveLeftButton.Click += self.moveLeftButtonPressed
 
+        netplayMoveLeftButton = Button()
+        netplayMoveLeftButton.Location = Point(160, 120)
+        netplayMoveLeftButton.Text = "←"
+        netplayMoveLeftButton.Click += self.moveLeftButtonPressed
+
         moveRightButton = Button()
         moveRightButton.Location = Point(160, 152)
         moveRightButton.Text = "→"
         moveRightButton.Click += self.moveRightButtonPressed
+
+        netplayMoveRightButton = Button()
+        netplayMoveRightButton.Location = Point(160, 152)
+        netplayMoveRightButton.Text = "→"
+        netplayMoveRightButton.Click += self.moveRightButtonPressed
 
         moveUpButton = Button()
         moveUpButton.Location = Point(136, 31)
@@ -144,21 +172,43 @@ class StageList(Form):
         moveUpButton.Size = Size(16, 32)
         moveUpButton.Click += self.moveUpButtonPressed
 
+        netplayMoveUpButton = Button()
+        netplayMoveUpButton.Location = Point(136, 31)
+        netplayMoveUpButton.Text = "↑"
+        netplayMoveUpButton.Size = Size(16, 32)
+        netplayMoveUpButton.Click += self.moveUpButtonPressed
+
         moveDownButton = Button()
         moveDownButton.Location = Point(136, 63)
         moveDownButton.Text = "↓"
         moveDownButton.Size = Size(16, 32)
         moveDownButton.Click += self.moveDownButtonPressed
 
+        netplayMoveDownButton = Button()
+        netplayMoveDownButton.Location = Point(136, 63)
+        netplayMoveDownButton.Text = "↓"
+        netplayMoveDownButton.Size = Size(16, 32)
+        netplayMoveDownButton.Click += self.moveDownButtonPressed
+
         saveButton = Button()
         saveButton.Location = Point(304, 276)
         saveButton.Text = "Save"
         saveButton.Click += self.saveButtonPressed
 
+        netplaySaveButton = Button()
+        netplaySaveButton.Location = Point(304, 276)
+        netplaySaveButton.Text = "Save"
+        netplaySaveButton.Click += self.saveButtonPressed
+
         cancelButton = Button()
         cancelButton.Location = Point(304, 304)
         cancelButton.Text = "Cancel"
         cancelButton.Click += self.cancelButtonPressed
+
+        netplayCancelButton = Button()
+        netplayCancelButton.Location = Point(304, 304)
+        netplayCancelButton.Text = "Cancel"
+        netplayCancelButton.Click += self.cancelButtonPressed
 
         self.Controls.Add(self.tabControl)
 
@@ -175,7 +225,18 @@ class StageList(Form):
         offlineTab.Controls.Add(saveButton)
         offlineTab.Controls.Add(cancelButton)
 
+        netplayTab.Controls.Add(netplayListBoxLabel)
         netplayTab.Controls.Add(self.netplayListBox)
+        netplayTab.Controls.Add(netplayButton)
+        netplayTab.Controls.Add(netplayAddButton)
+        netplayTab.Controls.Add(netplayMoveUpButton)
+        netplayTab.Controls.Add(netplayMoveDownButton)
+        netplayTab.Controls.Add(netplayMoveLeftButton)
+        netplayTab.Controls.Add(netplayMoveRightButton)
+        netplayTab.Controls.Add(self.unusedNetplayListbox)
+        netplayTab.Controls.Add(unusedNetplayListBoxLabel)
+        netplayTab.Controls.Add(netplaySaveButton)
+        netplayTab.Controls.Add(netplayCancelButton)
 
     def listBoxDrawItem(self, sender, args):
         args.DrawBackground()
@@ -188,14 +249,22 @@ class StageList(Form):
         args.DrawFocusRectangle
         
     def buttonPressed(self, sender, args):
-        if not self.listBox.SelectedItem.name.startswith('|| PAGE '):
-            fullId = str(self.listBox.SelectedValue)
-            form = StageEditor(fullId)
-            result = form.ShowDialog(MainForm.Instance)
-            form.Dispose()
-            if result == DialogResult.Abort:
-                self.DialogResult = DialogResult.Abort
-                self.Close()
+        if self.tabControl.SelectedIndex == 0:
+            if self.listBox.SelectedItem.name.startswith('|| PAGE '):
+                return
+            else:
+                fullId = str(self.listBox.SelectedValue)
+        elif self.tabControl.SelectedIndex == 1:
+            if self.netplayListBox.SelectedItem.name.startswith('|| PAGE '):
+                return
+            else:
+                fullId = str(self.netplayListBox.SelectedValue)
+        form = StageEditor(fullId)
+        result = form.ShowDialog(MainForm.Instance)
+        form.Dispose()
+        if result == DialogResult.Abort:
+            self.DialogResult = DialogResult.Abort
+            self.Close()
 
     def addButtonPressed(self, sender, args):
         newId = self.getFirstAvailableId()
@@ -203,10 +272,13 @@ class StageList(Form):
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
             newSlot = ""
-            if form.newSlotNumber > -1:
-                newSlot = StageSlot(hexId(form.newSlotNumber), newId[0:2], newId[2:4], newId[0:4], form.alts[0].aslEntry.Name)
+            if form.newSlotNumber != -1:
+                newSlot = StageSlot(hexId(form.newSlotNumber[0]), newId[0:2], newId[2:4], newId[0:4], form.alts[0].aslEntry.Name)
                 self.unusedSlots.Add(newSlot)
                 self.unusedListbox.SelectedItem = newSlot
+                newNetplaySlot = StageSlot(hexId(form.newSlotNumber[1]), newId[0:2], newId[2:4], newId[0:4], form.alts[0].aslEntry.Name)
+                self.unusedNetplaySlots.Add(newNetplaySlot)
+                self.unusedNetplayListbox.SelectedItem = newNetplaySlot
             BrawlAPI.ShowMessage("Stage added successfully.", "Success")
             form.Dispose()
         elif result == DialogResult.Abort:
@@ -215,38 +287,69 @@ class StageList(Form):
             self.Close()
 
     def moveLeftButtonPressed(self, sender, args):
-        if len(self.unusedSlots) > 0 and not self.unusedListbox.SelectedItem.name.startswith('|| PAGE'):
-            self.stageSlots.Add(self.unusedListbox.SelectedItem)
-            self.listBox.SelectedItem = self.unusedListbox.SelectedItem
-            self.unusedSlots.Remove(self.unusedListbox.SelectedItem)
+        if self.tabControl.SelectedIndex == 0:
+            if len(self.unusedSlots) > 0 and not self.unusedListbox.SelectedItem.name.startswith('|| PAGE'):
+                self.stageSlots.Add(self.unusedListbox.SelectedItem)
+                self.listBox.SelectedItem = self.unusedListbox.SelectedItem
+                self.unusedSlots.Remove(self.unusedListbox.SelectedItem)
+        else:
+            if len(self.unusedNetplaySlots) > 0 and not self.unusedNetplayListbox.SelectedItem.name.startswith('|| PAGE'):
+                self.netplaySlots.Add(self.unusedNetplayListbox.SelectedItem)
+                self.netplayListBox.SelectedItem = self.unusedNetplayListbox.SelectedItem
+                self.unusedNetplaySlots.Remove(self.unusedNetplayListbox.SelectedItem)
 
     def moveRightButtonPressed(self, sender, args):
-        if len(self.stageSlots) > 0 and not self.listBox.SelectedItem.name.startswith('|| PAGE'):
-            self.unusedSlots.Add(self.listBox.SelectedItem)
-            self.unusedListbox.SelectedItem = self.listBox.SelectedItem
-            self.stageSlots.Remove(self.listBox.SelectedItem)
+        if self.tabControl.SelectedIndex == 0:
+            if len(self.stageSlots) > 0 and not self.listBox.SelectedItem.name.startswith('|| PAGE'):
+                self.unusedSlots.Add(self.listBox.SelectedItem)
+                self.unusedListbox.SelectedItem = self.listBox.SelectedItem
+                self.stageSlots.Remove(self.listBox.SelectedItem)
+        else:
+            if len(self.netplaySlots) > 0 and not self.netplayListBox.SelectedItem.name.startswith('|| PAGE'):
+                self.unusedNetplaySlots.Add(self.netplayListBox.SelectedItem)
+                self.unusedNetplayListbox.SelectedItem = self.netplayListBox.SelectedItem
+                self.netplaySlots.Remove(self.netplayListBox.SelectedItem)
 
     def moveUpButtonPressed(self, sender, args):
-        if self.listBox.SelectedIndex == 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
-            return
-        aboveValue = self.stageSlots[self.listBox.SelectedIndex - 1]
-        selectedValue = self.stageSlots[self.listBox.SelectedIndex]
-        self.stageSlots[self.listBox.SelectedIndex - 1] = selectedValue
-        self.stageSlots[self.listBox.SelectedIndex] = aboveValue
-        self.listBox.SelectedIndex = self.listBox.SelectedIndex - 1
+        if self.tabControl.SelectedIndex == 0:
+            if self.listBox.SelectedIndex == 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
+                return
+            aboveValue = self.stageSlots[self.listBox.SelectedIndex - 1]
+            selectedValue = self.stageSlots[self.listBox.SelectedIndex]
+            self.stageSlots[self.listBox.SelectedIndex - 1] = selectedValue
+            self.stageSlots[self.listBox.SelectedIndex] = aboveValue
+            self.listBox.SelectedIndex = self.listBox.SelectedIndex - 1
+        else:
+            if self.netplayListBox.SelectedIndex == 1 or self.netplayListBox.SelectedItem.name.startswith('|| PAGE'):
+                return
+            aboveValue = self.netplaySlots[self.netplayListBox.SelectedIndex - 1]
+            selectedValue = self.netplaySlots[self.netplayListBox.SelectedIndex]
+            self.netplaySlots[self.netplayListBox.SelectedIndex - 1] = selectedValue
+            self.netplaySlots[self.netplayListBox.SelectedIndex] = aboveValue
+            self.netplayListBox.SelectedIndex = self.netplayListBox.SelectedIndex - 1
 
     def moveDownButtonPressed(self, sender, args):
-        if self.listBox.SelectedIndex >= len(self.listBox.Items) - 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
-            return
-        belowValue = self.stageSlots[self.listBox.SelectedIndex + 1]
-        selectedValue = self.stageSlots[self.listBox.SelectedIndex]
-        self.stageSlots[self.listBox.SelectedIndex + 1] = selectedValue
-        self.stageSlots[self.listBox.SelectedIndex] = belowValue
-        self.listBox.SelectedIndex = self.listBox.SelectedIndex + 1
+        if self.tabControl.SelectedIndex == 0:
+            if self.listBox.SelectedIndex >= len(self.listBox.Items) - 1 or self.listBox.SelectedItem.name.startswith('|| PAGE'):
+                return
+            belowValue = self.stageSlots[self.listBox.SelectedIndex + 1]
+            selectedValue = self.stageSlots[self.listBox.SelectedIndex]
+            self.stageSlots[self.listBox.SelectedIndex + 1] = selectedValue
+            self.stageSlots[self.listBox.SelectedIndex] = belowValue
+            self.listBox.SelectedIndex = self.listBox.SelectedIndex + 1
+        else:
+            if self.netplayListBox.SelectedIndex >= len(self.netplayListBox.Items) - 1 or self.netplayListBox.SelectedItems.name.startswith('|| PAGE'):
+                return
+            belowValue = self.netplaySlots[self.netplayListBox.SelectedIndex + 1]
+            selectedValue = self.netplaySlots[self.netplayListBox.SelectedIndex]
+            self.netplaySlots[self.netplayListBox.SelectedIndex + 1] = selectedValue
+            self.netplaySlots[self.netplayListBox.SelectedIndex] = belowValue
+            self.netplayListBox.SelectedIndex = self.netplayListBox.SelectedIndex + 1
 
     def saveButtonPressed(self, sender, args):
         try:
             updateStageList(self.listBox.Items)
+            updateStageList(self.netplayListBox.Items, True)
             buildGct()
             BrawlAPI.ShowMessage("Saved successfully.", "Success")
         except Exception as e:
@@ -269,7 +372,7 @@ class StageList(Form):
         i = 0
         while True:
             while i < len(self.stageSlots):
-                if hexId(stageId).replace('0x', '') == self.stageSlots[i].stageId:
+                if hexId(stageId).replace('0x', '') == self.stageSlots[i].stageId or hexId(stageId).replace('0x', '') == self.netplaySlots[i].stageId:
                     stageId += 1
                     i = 0
                 i += 1
@@ -278,7 +381,7 @@ class StageList(Form):
         i = 0
         while True:
             while i < len(self.stageSlots):
-                if hexId(cosmeticId).replace('0x', '') == self.stageSlots[i].cosmeticId:
+                if hexId(cosmeticId).replace('0x', '') == self.stageSlots[i].cosmeticId or hexId(cosmeticId).replace('0x', '') == self.netplaySlots[i].cosmeticId:
                     cosmeticId += 1
                     i = 0
                 i += 1
@@ -852,7 +955,9 @@ class StageEditor(Form):
             if self.addedTracks:
                 importFiles(self.addedTracks)
             if self.new:
-                self.newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
+                newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
+                newNetplaySlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name, True)
+                self.newSlotNumber = (newSlotNumber, newNetplaySlotNumber)
             buildGct()
             progressCounter += 1
             progressBar.Update(progressCounter)
