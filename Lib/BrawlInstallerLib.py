@@ -237,6 +237,18 @@ def getChildByFighterID(node, fighterId):
 					return child
 		return 0
 
+# Get child node by frame index
+def getChildByFrameIndex(parentNode, index, getNearest=True):
+		prevChild = 0
+		if parentNode.Children:
+			for child in parentNode.Children:
+				if child.FrameIndex == index:
+					return child
+				if child.FrameIndex > index and getNearest:
+					return prevChild
+				prevChild = child
+		return 0
+
 # Helper function to sort PAT0Entry nodes by FrameIndex
 def sortChildrenByFrameIndex(parentNode):
 		childList = []
@@ -298,6 +310,7 @@ def importTexture(node, imageSource, format, sizeW=0, sizeH=0):
 		dlg.ImageSource = imageSource
 		dlg.InitialFormat = format
 		dlg.Automatic = 1
+		replace = node.GetType() == TEX0Node
 		# Resize image if sizes are passed in
 		if sizeW != 0:
 			if sizeH != 0:
@@ -308,10 +321,13 @@ def importTexture(node, imageSource, format, sizeW=0, sizeH=0):
 				dlg.InitialSize = Size(sizeW, sizeW)
 		dlg.ShowDialog(MainForm.Instance, node)
 		dlg.Dispose()
-		texFolder = getChildByName(node, "Textures(NW4R)")
-		newNode = texFolder.Children[len(texFolder.Children) - 1]
 		writeLog("Texture " + imageSource + " imported successfully")
-		return newNode
+		if not replace:
+			texFolder = getChildByName(node, "Textures(NW4R)")
+			newNode = texFolder.Children[len(texFolder.Children) - 1]
+			return newNode
+		else:
+			return node
 
 # Helper function that checks if the file passed in is opened in BrawlCrate
 def checkOpenFile(fileName):
@@ -357,7 +373,7 @@ def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameInd
 		pat0texNode.AddChild(pat0texEntryNode)
 		# Palette gets screwed up for some reason if we don't do it this way
 		if palette != "":
-			pat0texEntryNode = getChildByName(pat0texNode, name)
+			pat0texEntryNode = getChildByFrameIndex(pat0texNode, frameIndex, False)
 			pat0texEntryNode.Palette = palette
 		sortChildrenByFrameIndex(pat0texNode)
 		if overrideFrameCount > pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset:
@@ -365,6 +381,7 @@ def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameInd
 		elif frameCountOffset != 0:
 			pat0Node.FrameCount = pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset
 		writeLog("PAT0 entry added successfully")
+		return pat0texEntryNode
 
 # Helper function to remove pat0TexEntry from specified pat0
 def removeFromPat0(parentNode, pat0NodeName, pat0texNodeName, name, frameCountOffset=0, overrideFrameCount=0):
@@ -479,6 +496,8 @@ def getVictoryThemeIDByFighterId(slotId):
 def copyFile(sourcePath, destinationPath):
 		writeLog("Copying file " + sourcePath + " to " + destinationPath)
 		Directory.CreateDirectory(destinationPath)
+		if File.Exists(destinationPath + '/' + getFileInfo(sourcePath).Name):
+			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
 # Helper method to create a backup of the provided file with correct folder structure
@@ -516,7 +535,16 @@ def openFile(filePath, backup=True):
 def copyRenameFile(sourcePath, newName, destinationPath):
 		writeLog("Attempting to copy file " + sourcePath + " to " + destinationPath + '/' + newName)
 		Directory.CreateDirectory(destinationPath)
+		if File.Exists(destinationPath + '/' + newName):
+			createBackup(destinationPath + '/' + newName)
 		File.Copy(sourcePath, destinationPath + '/' + newName, True)
+
+# Helper method to more easily rename files
+def renameFile(sourcePath, newName):
+		writeLog("Attempting to rename file " + sourcePath + " to " + newName)
+		createBackup(sourcePath)
+		fileInfo = getFileInfo(sourcePath)
+		File.Move(sourcePath, fileInfo.DirectoryName + '/' + newName)
 
 # Return the text version of a boolean value
 def boolText(boolVal):
@@ -4267,6 +4295,14 @@ def getClonedModuleName(filePath):
 		closeModule()
 		return name
 
+# Copy list of ImportedFile objects into build
+def importFiles(fileList):
+		writeLog("Importing files into build")
+		for file in fileList:
+			if File.Exists(file.filePath):
+				copyFile(file.filePath, file.outputPath)
+		writeLog("Finished importing files")
+
 # Increment index on BP names within specific range
 def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="true"):
 		writeLog("Adjusting index of BPs for cosmetic ID " + str(cosmeticId))
@@ -4915,6 +4951,55 @@ class SlotConfigInfo:
 			self.redirect = redirect
 			self.redirectId = redirectId
 
+class StageSlot:
+		def __init__(self, slotId, stageId, cosmeticId, fullId, name):
+			self.slotId = slotId
+			self.stageId = stageId
+			self.cosmeticId = cosmeticId
+			self.fullId = fullId
+			self.name = name
+
+class StageCosmetics:
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None):
+			self.stageIcon = stageIcon
+			self.stagePreview = stagePreview
+			self.stageName = stageName
+			self.franchiseIcon = franchiseIcon
+			self.gameLogo = gameLogo
+			self.altName = altName
+			self.stageNameList = stageNameList
+			self.franchiseIconList = franchiseIconList
+			self.gameLogoList = gameLogoList
+
+class StageParams:
+		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile="", originalPacName="", originalModule="", originalTracklist="", originalSoundBank=""):
+			self.aslEntry = aslEntry
+			self.pacName = pacName
+			self.tracklist = tracklist
+			self.module = module
+			self.soundBank = soundBank
+			self.effectBank = effectBank
+			self.originalName = originalName
+			self.pacFile = pacFile
+			self.moduleFile = moduleFile
+			self.tracklistFile = tracklistFile
+			self.soundBankFile = soundBankFile
+			self.paramFile = paramFile
+			self.originalPacName = originalPacName
+			self.originalModule = originalModule
+			self.originalTracklist = originalTracklist
+			self.originalSoundBank = originalSoundBank
+
+class ImageNode:
+		def __init__(self, name, image):
+			self.name = name
+			self.image = image
+
+class ImportedFile:
+		def __init__(self, filePath, outputPath):
+			self.filePath = filePath
+			self.outputPath = outputPath
+
 #endregion CLASSES
 
 #region COLOR PROMPT
@@ -4982,4 +5067,783 @@ class ColorPrompt(Form):
 
 #endregion
 
-#region COSTUME PROMPT
+#region STAGES
+
+# Get list of stages
+def getStageList(netplay=False):
+		writeLog("Reading stage list")
+		if not netplay:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		else:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm")
+		tables = []
+		tableStarts = []
+		# Find the tables
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.StartsWith("TABLE_") and "STAGES" not in line:
+				writeLog("Found stage table at line " + str(i))
+				tableStarts.append(i + 2)
+			i += 1
+		# Get all values in each table
+		for tableStart in tableStarts:
+			i = tableStart
+			tableValues = []
+			while i < len(fileText):
+				line = fileText[i]
+				if len(line) <= 0 or line.startswith('TABLE'):
+					break
+				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				for item in splitLine:
+					tableValues.append(item.strip())
+				i += 1
+			tables.append(tableValues)
+		writeLog("Finished getting stage list")
+		return tables
+
+# Write new stage list
+def updateStageList(stageList, netplay=False):
+		writeLog("Updating stage list")
+		if not netplay:
+			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
+		else:
+			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		createBackup(file)
+		newText = []
+		stopWriting = False
+		# Create tables
+		tables = []
+		for item in stageList:
+			if item.name.startswith("|| PAGE "):
+				tables.append([])
+		# Populate tables
+		i = -1
+		for item in stageList:
+			if item.name.startswith("|| PAGE "):
+				i += 1
+				continue
+			tables[i].append(item)
+		fileText = File.ReadAllLines(file)
+		for line in fileText:
+			if line.startswith(".GOTO->SkipStageTables"):
+				newText.append(line + "\n\n")
+				stopWriting = True
+				i = 0
+				for table in tables:
+					i += 1
+					newText.append("\nTABLE_" + str(i) + ":")
+					if len(table) > 0:
+						newText.append("\tbyte[" + str(len(table)) + "] |")
+					j = 0
+					for slot in table:
+						newText.append(slot.slotId + ("," if j < len(table) - 1 else "") + "\t| # " + slot.name)
+						j += 1
+					newText.append("\n")
+			elif line.startswith('byte '):
+				if '@ $806B929C' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[0])), 2) + ' @ $806B929C # Page 1'
+				elif '@ $806B92A4' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[1])), 2) + ' @ $806B92A4 # Page 2'
+				elif '@ $80496002' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[2])), 2) + ' @ $80496002 # Page 3'
+				elif '@ $80496003' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[3])), 2) + ' @ $80496003 # Page 4 (Unused)'
+				elif '@ $80496004' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[4])), 2) + ' @ $80496004 # Page 5 (Unused)'
+				elif '@ $800AF673' in line:
+					newLine = 'byte ' + addLeadingZeros(str(len(tables[0]) + len(tables[1]) + len(tables[2]) + len(tables[3]) + len(tables[4])), 2) + ' @ $800AF673 # Stage Count'
+				else:
+					newLine = line
+				newText.append(newLine)
+			elif not stopWriting:
+				newText.append(line)
+			elif line.startswith("TABLE_STAGES:"):
+				stopWriting = False
+				newText.append(line)
+		File.WriteAllLines(file, newText)
+		writeLog("Finished updating stage list")
+
+# Get first unused slot ID
+def getUnusedSlotId(slotList):
+	writeLog("Getting first available slot ID")
+	i = 0
+	newSlotId = 0
+	while True:
+		while i < len(slotList):
+			if hexId(newSlotId) == slotList[i].slotId.strip():
+				newSlotId += 1
+				i = 0
+			i += 1
+		break
+	return hexId(newSlotId)
+
+# Get stage IDs
+def getStageIds(netplay=False):
+		writeLog("Getting stage IDs")
+		if not netplay:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
+		else:
+			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm")
+		tableValues = []
+		tableStart = 0
+		# Find the stages table
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.startswith("TABLE_STAGES:"):
+				writeLog("Found stages table at line " + str(i))
+				tableStart = i + 3
+				break
+			i += 1
+		# Get all values in table
+		i = tableStart
+		while i < len(fileText):
+			line = fileText[i]
+			if len(line) <= 0 or line.startswith('TABLE'):
+				break
+			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			for item in splitLine:
+				tableValues.append(item.strip())
+			i += 1
+		writeLog("Got stage IDs")
+		return tableValues
+
+# Add stage ID pair to table
+def addStageId(fullId, stageName, netplay=False):
+		writeLog("Updating stage IDs")
+		if not netplay:
+			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
+		else:
+			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		createBackup(file)
+		fileText = File.ReadAllLines(file)
+		tableStart = 0
+		tableValues = []
+		# Find the stages table
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.startswith("TABLE_STAGES:"):
+				writeLog("Found stages table at line " + str(i))
+				tableStart = i + 3
+				break
+			i += 1
+		# Get to end of table
+		i = tableStart
+		while i < len(fileText):
+			line = fileText[i]
+			if len(line) <= 0 or line.startswith('TABLE'):
+				break
+			# Get a running list of IDs while we're at it (mostly for length check purposes later)
+			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			for item in splitLine:
+				tableValues.append(item)
+			i += 1
+		line = fileText[i - 1]
+		ids = list(filter(None, line.split('|')[0].strip().split(',')))
+		if len(ids) < 4:
+			splitLine = line.split('|')
+			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ splitLine[1] + ", " + stageName
+			fileText[i - 1] = newLine
+		else:
+			splitLine = line.split('|')
+			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + splitLine[1]
+			newLine = '0x' + fullId + '\t| #' + stageName
+			fileText[i] = newLine
+		# Update counter
+		counterLine = tableStart - 1
+		fileText[counterLine] = "half[" + str(len(tableValues) + 1) + "] |\t# Stage Count + 2"
+		File.WriteAllLines(file, fileText)
+		writeLog("Finished updating stage IDs")
+		return len(tableValues)
+
+# Remove stage ID pair from table
+# This function is a mess, please do not look too close at it
+def removeStageId(fullId, netplay=False):
+		writeLog("Removing stage ID " + str(fullId))
+		if not netplay:
+			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
+		else:
+			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		createBackup(file)
+		fileText = File.ReadAllLines(file)
+		tableStart = 0
+		tableLines = []
+		tableValues = []
+		# Find the stages table
+		i = 0
+		while i < len(fileText):
+			line = fileText[i]
+			if line.startswith("TABLE_STAGES:"):
+				writeLog("Found stages table at line " + str(i))
+				tableStart = i + 3
+				break
+			i += 1
+		# Get all table lines
+		writeLog("Getting all table lines")
+		i = tableStart
+		while i < len(fileText):
+			line = fileText[i]
+			if len(line) <= 0 or line.startswith('TABLE'):
+				break
+			# Get a running list of IDs while we're at it (mostly for length check purposes later)
+			checkLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			for item in checkLine:
+				tableValues.append(item)
+			# Store the whole line
+			tableLines.append(line)
+			i += 1
+		k = 0
+		while k < len(tableLines):
+			splitLine = list(filter(None, tableLines[k].split('|')[0].strip().split(',')))
+			i = 0
+			# Check for stage ID on this line and replace if found
+			found = False
+			while i < len(splitLine):
+				if splitLine[i].strip() == '0x' + fullId:
+					splitLine[i] = '0xFF64'
+					found = True
+					break
+				i += 1
+			# If we found a match, update the comments to change stage name to NONE
+			if found and '|' in tableLines[k]:
+				commentLine = list(filter(None, tableLines[k].split('|')[1].strip().split(',')))
+				if i <= len(commentLine):
+					commentLine[i] = 'NOTHING'
+			else:
+				commentLine = ""
+			if found:
+				writeLog("Found match")
+				newLine = ""
+				j = 0
+				while j < len(splitLine):
+					newLine += splitLine[j].strip() + ("," if k != len(tableLines) - 1 else "") + "\t"
+					j += 1
+				newLine += "| "
+				j = 0
+				while j < len(commentLine):
+					newLine += (commentLine[j].strip() if j <= len(commentLine) else "NOTHING") + ("," if j != len(commentLine) - 1 else "") + " "
+					j += 1
+				tableLines[k] = newLine
+			k += 1
+		# Write text
+		writeLog("Writing text")
+		writeText = []
+		i = 0
+		while i < len(fileText):
+			if i == tableStart - 1:
+				writeText.append("half[" + str(len(tableValues) - 1) + "] |\t# Stage Count + 2")
+				i += 1
+				continue
+			elif i == tableStart:
+				for tableLine in tableLines:
+					writeText.append(tableLine)
+				while len(fileText[i]) > 0 and not fileText[i].startswith('TABLE'):
+					i += 1
+			line = fileText[i]
+			writeText.append(line)
+			i += 1
+		File.WriteAllLines(file, writeText)
+		writeLog("Finished removing stage ID")
+
+# Remove stage slot entirely
+def removeStageSlot(stageSlots):
+	writeLog("Removing stage slots")
+	for stageSlot in stageSlots:
+		writeLog("Removing stage slot " + stageSlot.name)
+		stageId = stageSlot.fullId[0:2]
+		cosmeticId = stageSlot.fullId[2:4]
+		removeFranchiseIcon = BrawlAPI.ShowYesNoPrompt("Would you like to remove " + stageSlot.name + "'s franchise icon?\n\nNOTE: Only do this if no other stages use the franchise icon.", "Remove Franchise Icon?")
+		removeGameLogo = BrawlAPI.ShowYesNoPrompt("Would you like to remove " + stageSlot.name + "'s game icon?\n\nNOTE: Only do this if no other stages use the game icon.", "Remove Game Icon?")
+		stageAlts = getStageAltInfo(stageId)
+		removeStageEntry(stageAlts)
+		removeStageCosmetics(cosmeticId, removeFranchiseIcon=removeFranchiseIcon, removeGameLogo=removeGameLogo)
+		removeStageCosmetics(cosmeticId, 'pf/menu2/mu_menumain.pac', removeFranchiseIcon=removeFranchiseIcon, removeGameLogo=removeGameLogo)
+		fileOpened = checkOpenFile('sc_selmap')
+		if not fileOpened:
+			fileOpened = checkOpenFile('mu_menumain')
+		if fileOpened:
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		removeStageId(stageSlot.fullId)
+		removeStageId(stageSlot.fullId, True)
+		writeLog("Finished removing stage slot")
+
+# Get stage IDs for specific stage number
+def getStageIdsByNumber(stageNumber):
+		writeLog("Getting stage ID by slot ID " + str(stageNumber))
+		stageIds = getStageIds()
+		i = 0
+		for stageId in stageIds:
+			if hexId(i) == stageNumber:
+				writeLog("Found stage ID " + str(stageId))
+				return stageId.strip()
+			i += 1
+		writeLog("No stage ID found")
+		return -1
+
+# Get stage name by stage ID
+def getStageName(stageId):
+		writeLog("Getting stage name by stage ID " + str(stageId))
+		fileOpened = checkOpenFile("stageslot")
+		if not fileOpened:
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/stage/stageslot/')
+		if fileOpened:
+			folder = getChildByName(BrawlAPI.RootNode, str(stageId).replace('0x', ''))
+			if folder:
+				node = folder.Children[0]
+				if node:
+					writeLog("Found stage name " + str(node.Name))
+					return node.Name
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting stage name")
+
+# Get stage cosmetics by cosmetic ID
+def getStageCosmetics(cosmeticId):
+		writeLog("Getting cosmetics for stage with cosmetic ID " + str(cosmeticId))
+		stageIcon = 0
+		stagePreview = 0
+		stageName = 0
+		franchiseIcon = 0
+		gameLogo = 0
+		altName = 0
+		stageNameList = []
+		franchiseIconList = []
+		gameLogoList = []
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac', False)
+		if fileOpened:
+			bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+			if bresNode:
+				anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+				texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				if anmTexPatFolder and texFolder:
+					# Icon
+					iconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapIcon", "iconM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, iconTextureName)
+					if texNode:
+						stageIcon = Bitmap(texNode.GetImage(0))
+					else:
+						stageIcon = ""
+					# Preview
+					previewTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, previewTextureName)
+					if texNode:
+						stagePreview = Bitmap(texNode.GetImage(0))
+					else:
+						stagePreview = ""
+					# Name
+					nameTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, nameTextureName)
+					if texNode:
+						stageName = Bitmap(texNode.GetImage(0))
+					else:
+						stageName = ""
+					# Franchise Icon
+					franchiseIconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, franchiseIconTextureName)
+					if texNode:
+						franchiseIcon = ImageNode(texNode.Name, Bitmap(texNode.GetImage(0)))
+					else:
+						franchiseIcon = ""
+					# Game Logo
+					gameLogoTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, gameLogoTextureName)
+					if texNode:
+						gameLogo = ImageNode(texNode.Name, Bitmap(texNode.GetImage(0)))
+					else:
+						gameLogo = ""
+					# R-alt Name
+					altNameTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM_start", int(cosmeticId, 16))
+					texNode = getChildByName(texFolder, altNameTextureName)
+					if texNode:
+						altName = ImageNode(texNode.Name, Bitmap(texNode.GetImage(0)))
+					else:
+						altName = ""
+					# Stage Names
+					for child in texFolder.Children:
+						if child.Name.startswith('MenSelmapFrontStname.'):
+							stageNameList.append(ImageNode(child.Name, child.GetImage(0)))
+						if child.Name.startswith('MenSelchrMark.'):
+							franchiseIconList.append(ImageNode(child.Name, child.GetImage(0)))
+						if child.Name.startswith('MenSelmapMark.'):
+							gameLogoList.append(ImageNode(child.Name, child.GetImage(0)))
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished getting cosmetics")
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList)
+
+# Get the texture associated with a pat0 entry by input frame index
+def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
+		writeLog("Getting textures for pat0 entry with frame index " + str(frameIndex))
+		pat0 = getChildByName(patFolder, pat0Name)
+		if pat0:
+			pat0Entry = getChildByName(pat0, entryName).Children[0]
+			if pat0Entry:
+				frame = getChildByFrameIndex(pat0Entry, frameIndex)
+				if frame != False:
+					textureName = frame.Texture
+					return textureName
+		return 0
+
+# Get a pat0 entry by frame index
+def getPat0ByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
+		writeLog("Getting pat0 entry with frame index " + str(frameIndex))
+		pat0 = getChildByName(patFolder, pat0Name)
+		if pat0:
+			pat0Entry = getChildByName(pat0, entryName).Children[0]
+			if pat0Entry:
+				frame = getChildByFrameIndex(pat0Entry, frameIndex, False)
+				if frame:
+					return frame
+		return 0
+
+# Get the ASLEntry nodes for all stage alts for a single stage slot
+def getStageAlts(stageId):
+		writeLog("Getting all stage alts for stage with ID " + str(stageId))
+		if File.Exists(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl', False)
+			if fileOpened:
+				writeLog("Found stage slot")
+				nodes = BrawlAPI.RootNode.Children
+				BrawlAPI.ForceCloseFile()
+				return nodes
+		writeLog("Couldn't find stage slot")
+		return []
+
+# Get unused stages
+def getUnusedStageSlots(stageSlots, netplay=False):
+		writeLog("Getting unused stage slots")
+		i = 0
+		unusedSlots = []
+		for stage in getStageIds(netplay):
+			append = True
+			for slot in stageSlots:
+				if slot.fullId == stage.replace('0x',''):
+					append = False
+					break
+			if append and stage != '0xFF64':
+				stageName = getStageName(stage[2:4])
+				if stageName:
+					unusedSlot = StageSlot(hexId(i), stage[2:4], stage[4:6], stage[2:6], stageName)
+				unusedSlots.append(unusedSlot)
+			i += 1
+		writeLog("Finished getting unused stage slots")
+		return unusedSlots
+
+# Get stage params for stage
+def getStageParams(aslEntry, filePath=""):
+		writeLog("Getting stage params for stage " + str(aslEntry.Name))
+		if filePath:
+			file = filePath
+		else:
+			file = MainForm.BuildPath + '/pf/stage/stageinfo/' + aslEntry.Name + '.param'
+		if File.Exists(file):
+			fileOpened = openFile(file, False)
+			if fileOpened:
+				writeLog("Found stage params")
+				rootNode = BrawlAPI.RootNode
+				params = StageParams(aslEntry, rootNode.StageName, rootNode.TrackList, rootNode.Module, rootNode.SoundBank, rootNode.EffectBank, aslEntry.Name, originalPacName=rootNode.StageName, originalModule=rootNode.Module, originalTracklist=rootNode.TrackList, originalSoundBank=rootNode.SoundBank)
+				BrawlAPI.ForceCloseFile()
+				return params
+		writeLog("Couldn't find stage params")
+		return 0
+
+# Get all info for all stage alts
+def getStageAltInfo(stageId):
+		writeLog("Getting all stage info for stage ID " + str(stageId))
+		stageAlts = getStageAlts(stageId)
+		stageParamList = []
+		for alt in stageAlts:
+			params = getStageParams(alt)
+			stageParamList.append(params)
+		return stageParamList
+
+# Get unused stage texture name
+def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
+		writeLog("Getting texture name for cosmetic ID " + str(cosmeticId))
+		foundName = getChildByName(texFolder, prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2))
+		if foundName and not new:
+			return foundName.Name
+		else:
+			i = 0
+			newCosmeticId = 1
+			while True:
+				while i < len(texFolder.Children):
+					if texFolder.Children[i].Name == prefix + addLeadingZeros(str(newCosmeticId), 2):
+						newCosmeticId += 1
+						i = 0
+					i += 1
+				break
+			return prefix + addLeadingZeros(str(newCosmeticId), 2)
+		
+# Generic functiont to add stage cosmetics
+def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, prefix, pat0Name, entryName, format):
+		pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, pat0Name, entryName, int(cosmeticId, 16))
+		if not pat0Entry:
+			textureName = getStageTextureName(prefix, cosmeticId, texFolder)
+			pat0Entry = addToPat0(bresNode, pat0Name, entryName, textureName, textureName, int(cosmeticId, 16), textureName)
+			if prefix == "MenSelmapIcon.":
+				newPat0 = addToPat0(bresNode, pat0Name, entryName, textureName, textureName, int(cosmeticId, 16) + 400, textureName)
+			if prefix == "MenSelmapFrontStname.":
+				addToPat0(bresNode, pat0Name, "pasted__stnameshadowM", textureName, textureName, int(cosmeticId, 16), textureName)
+			if prefix == "MenSelmapPrevbase.":
+				addToPat0(bresNode, pat0Name, "basebgMShadow", textureName, textureName, int(cosmeticId, 16), textureName)
+		else:
+			textureName = pat0Entry.Texture
+		texNode = getChildByName(texFolder, textureName)
+		newNode = importTexture(texNode if texNode else bresNode, image, format)
+		newNode.Name = textureName
+
+# Import stage cosmetics
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac'):
+		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
+		if File.Exists(MainForm.BuildPath + fileName):
+			fileOpened = openFile(MainForm.BuildPath + fileName)
+			if fileOpened:
+				if BrawlAPI.RootNode.Name.startswith("sc_selmap"):
+					bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+				else:
+					bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+				if bresNode:
+					anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+					texFolder = getChildByName(bresNode, "Textures(NW4R)")
+					if anmTexPatFolder and texFolder:
+						if stageIcon:
+							addStageCosmetic(cosmeticId, stageIcon, anmTexPatFolder, texFolder, bresNode, "MenSelmapIcon.", "MenSelmapIcon", "iconM", WiiPixelFormat.CI8)
+						if stageName:
+							addStageCosmetic(cosmeticId, stageName, anmTexPatFolder, texFolder, bresNode, "MenSelmapFrontStname.", "MenSelmapPreview", "pasted__stnameM", WiiPixelFormat.I4)
+						if stagePreview:
+							addStageCosmetic(cosmeticId, stagePreview, anmTexPatFolder, texFolder, bresNode, "MenSelmapPrevbase.", "MenSelmapPreview", "basebgM", WiiPixelFormat.CMPR)
+						if franchiseIcons:
+							for franchiseIcon in franchiseIcons:
+								franchiseIconName = getStageTextureName('MenSelchrMark.', '00', texFolder, True)
+								franchiseNode = importTexture(bresNode, franchiseIcon, WiiPixelFormat.I4, 64, 64)
+								franchiseNode.Name = franchiseIconName
+						if gameLogos:
+							for gameLogo in gameLogos:
+								gameLogoName = getStageTextureName('MenSelmapMark.', '00', texFolder, True)
+								gameLogoNode = importTexture(bresNode, gameLogo, WiiPixelFormat.IA4)
+								gameLogoNode.Name = gameLogoName
+						if franchiseIconName:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "lambert113", franchiseIconName, franchiseIconName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = franchiseIconName
+						if gameLogoName:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnamelogoM", gameLogoName, gameLogoName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = gameLogoName
+						if altStageName:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM_start", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameM_start", altStageName, altStageName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = altStageName
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameshadowM_start", int(cosmeticId, 16))
+							if not pat0Entry:
+								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameshadowM_start", altStageName, altStageName, int(cosmeticId, 16))
+							else:
+								pat0Entry.Texture = altStageName
+						texFolder.SortChildren()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished importing stage cosmetics")
+
+# Remove stage cosmetics
+def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeFranchiseIcon=False, removeGameLogo=False):
+		writeLog("Removing stage cosmetics for cosmetic ID " + str(cosmeticId))
+		if File.Exists(MainForm.BuildPath + fileName):
+			fileOpened = openFile(MainForm.BuildPath + fileName)
+			if fileOpened:
+				cosmeticId = int(cosmeticId, 16)
+				if BrawlAPI.RootNode.Name.startswith("sc_selmap"):
+					bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+				else:
+					bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+				if bresNode:
+					removeTexNodes = []
+					anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+					texFolder = getChildByName(bresNode, "Textures(NW4R)")
+					if anmTexPatFolder and texFolder:
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapIcon", "iconM", cosmeticId)
+						if pat0Entry:
+							removeTexNodes.append(pat0Entry.Texture)
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapIcon", "iconM", cosmeticId + 400)
+						if pat0Entry:
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameM", cosmeticId)
+						if pat0Entry:
+							removeTexNodes.append(pat0Entry.Texture)
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnameshadowM", cosmeticId)
+						if pat0Entry:
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgM", cosmeticId)
+						if pat0Entry:
+							removeTexNodes.append(pat0Entry.Texture)
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgMShadow", cosmeticId)
+						if pat0Entry:
+							pat0Entry.Remove()
+						if removeFranchiseIcon:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", cosmeticId)
+							if pat0Entry:
+								removeTexNodes.append(pat0Entry.Texture)
+								pat0Entry.Remove()
+						if removeGameLogo:
+							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM", cosmeticId)
+							if pat0Entry:
+								removeTexNodes.append(pat0Entry.Texture)
+								pat0Entry.Remove()
+						for nodeName in removeTexNodes:
+							texNode = getChildByName(texFolder, nodeName)
+							texNode.Remove(True)
+		writeLog("Finished removing cosmetics")
+
+# Update stage slot
+def updateStageSlot(stageId, stageParamList):
+		writeLog("Updating stage slot for stage ID " + str(stageId))
+		if File.Exists(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl'):
+			fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl')
+		else: 
+			fileOpened = BrawlAPI.New[ASLSNode]()
+			BrawlAPI.RootNode.Name = str(stageId)
+		if fileOpened:
+			i = 0
+			while i < len(BrawlAPI.RootNode.Children):
+				BrawlAPI.RootNode.Children[i].Remove()
+			i = 0
+			while i < len(stageParamList):
+				BrawlAPI.RootNode.AddChild(ASLSEntryNode())
+				if BrawlAPI.RootNode.Children[i] != stageParamList[i].aslEntry:
+					BrawlAPI.RootNode.Children[i].Name = stageParamList[i].aslEntry.Name
+					BrawlAPI.RootNode.Children[i].ButtonFlags = stageParamList[i].aslEntry.ButtonFlags
+				i += 1
+			BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/stage/stageslot/' + str(stageId) + '.asl')
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished updating stage slot")
+
+# Update stage params
+def updateStageParams(stageId, stageParamList):
+		writeLog("Updating stage params for stage ID " + str(stageId))
+		for stageParam in stageParamList:
+			if stageParam.originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
+				if stageParam.originalName != stageParam.aslEntry.Name:
+					renameFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param', stageParam.aslEntry.Name + '.param')
+			if stageParam.paramFile:
+				copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
+			if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
+			else:
+				fileOpened = BrawlAPI.New[STEXNode]()
+				BrawlAPI.RootNode.Name = stageParam.aslEntry.Name
+			if fileOpened:
+				BrawlAPI.RootNode.StageName = stageParam.pacName
+				BrawlAPI.RootNode.TrackList = stageParam.tracklist
+				BrawlAPI.RootNode.Module = stageParam.module
+				BrawlAPI.RootNode.SoundBank = stageParam.soundBank
+				BrawlAPI.RootNode.EffectBank = stageParam.effectBank
+				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
+				BrawlAPI.ForceCloseFile()
+		writeLog("Finished updating stage params")
+
+# Move stage files into build
+def moveStageFiles(stageParamList, brstmFiles=[]):
+		writeLog("Moving stage files into build")
+		for stageParam in stageParamList:
+			if stageParam.pacFile:
+				if File.Exists(stageParam.pacFile):
+					if stageParam.pacName:
+						copyRenameFile(stageParam.pacFile, "STG" + stageParam.pacName.upper() + ".pac", MainForm.BuildPath + '/pf/stage/melee')
+					else:
+						copyFile(stageParam.pacFile, MainForm.BuildPath + '/pf/stage/melee')
+			if stageParam.moduleFile:
+				if File.Exists(stageParam.moduleFile):
+					if stageParam.module:
+						copyRenameFile(stageParam.moduleFile, stageParam.module, MainForm.BuildPath + '/pf/module')
+					else:
+						copyFile(stageParam.moduleFile, MainForm.BuildPath + '/pf/module')
+			if stageParam.tracklistFile:
+				if File.Exists(stageParam.tracklistFile):
+					if stageParam.tracklist:
+						copyRenameFile(stageParam.tracklistFile, stageParam.tracklist + ".tlst", MainForm.BuildPath + '/pf/sound/tracklist')
+					else:
+						copyFile(stageParam.tracklistFile, MainForm.BuildPath + '/pf/sound/tracklist')
+			if stageParam.soundBankFile:
+				if File.Exists(stageParam.soundBankFile):
+					if stageParam.soundBank and hexId(stageParam.soundBank) != "0xFFFF":
+						fileName = getFileInfo(stageParam.soundBankFile).Name
+						copyRenameFile(stageParam.soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
+					else:
+						copyFile(stageParam.soundBankFile, MainForm.BuildPath + '/pf/sound/tracklist')
+			if stageParam.paramFile:
+				if File.Exists(stageParam.paramFile):
+					if stageParam.aslEntry:
+						copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
+					else:
+						copyFile(stageParam.paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
+		writeLog("Finished moving stage files")
+
+# Remove stage entry
+def removeStageEntry(stageParams):
+		writeLog("Removing stage entries")
+		title = "Remove file?"
+		removePac = False
+		removeModule = False
+		removeTracklist = False
+		removeSoundbank = False
+		reviewedFiles = []
+		for stageParam in stageParams:
+			messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
+			if stageParam.originalPacName:
+				pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
+				if File.Exists(pacFile) and pacFile not in reviewedFiles:
+					removePac = BrawlAPI.ShowYesNoPrompt(messageText + "STG" + stageParam.originalPacName + ".pac", title)
+					reviewedFiles.append(pacFile)
+				elif pacFile in reviewedFiles:
+					removePac = False
+			if stageParam.originalModule:
+				moduleFile = MainForm.BuildPath + '/pf/module/' + stageParam.originalModule
+				if File.Exists(moduleFile) and moduleFile not in reviewedFiles:
+					removeModule = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalModule, title)
+					reviewedFiles.append(moduleFile)
+				elif moduleFile in reviewedFiles:
+					removeModule = False
+			if stageParam.originalTracklist:
+				tracklistFile = MainForm.BuildPath + '/pf/sound/tracklist/' + stageParam.originalTracklist + ".tlst"
+				if File.Exists(tracklistFile) and tracklistFile not in reviewedFiles:
+					removeTracklist = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalTracklist + ".tlst", title)
+					reviewedFiles.append(tracklistFile)
+				elif tracklistFile in reviewedFiles:
+					removeTracklist = False
+			if stageParam.originalSoundBank:
+				directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
+				files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
+				if len(files) > 0:
+					if files[0].FullName not in reviewedFiles:
+						removeSoundbank = BrawlAPI.ShowYesNoPrompt(messageText + files[0].Name, title)
+						reviewedFiles.append(files[0].FullName)
+					elif files[0].FullName in reviewedFiles:
+						removeSoundbank = False
+				else:
+					removeSoundbank = False
+			if removePac:
+				File.Delete(pacFile)
+			if removeModule:
+				File.Delete(moduleFile)
+			if removeTracklist:
+				File.Delete(tracklistFile)
+			if removeSoundbank:
+				File.Delete(files[0].FullName)
+			if stageParam.originalName:
+				paramFile = MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + ".param"
+				if File.Exists(paramFile):
+					File.Delete(paramFile)
+		writeLog("Finished removing stage entries")
+
+
+#endregion STAGES
