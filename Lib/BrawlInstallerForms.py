@@ -382,8 +382,9 @@ class StageList(Form):
                 removeStageSlot(self.removeSlots)
             for slot in self.removeSlots:
             #TODO: fix this
-                if File.Exists(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.slotId.replace('0x',''), 2) + ".asl"):
-                    File.Delete(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.slotId.replace('0x',''), 2) + ".asl")
+                BrawlAPI.ShowMessage(addLeadingZeros(slot.stageId.replace('0x',''), 2), "")
+                if File.Exists(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl"):
+                    File.Delete(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl")
             updateStageList(self.listBox.Items)
             updateStageList(self.netplayListBox.Items, True)
             buildGct()
