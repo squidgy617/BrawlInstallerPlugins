@@ -1767,7 +1767,7 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 
 # Add song to tracklist
 def addSong(file, songDirectory="Victory!", tracklist="Results"):
-		writeLog("Adding victory theme file " + file)
+		writeLog("Adding song file " + file)
 		# Move to strm directory
 		file = getFileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory + '/' + file.Name
@@ -1775,7 +1775,7 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		createBackup(path)
 		getFileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
-		writeLog("Opening Results.tlst")
+		writeLog("Opening tracklist " + tracklist)
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		# Back up tracklist
 		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
@@ -1802,7 +1802,7 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		BrawlAPI.RootNode.AddChild(newNode)
 		BrawlAPI.SaveFile()
 		BrawlAPI.ForceCloseFile()
-		writeLog("Finished adding victory theme.")
+		writeLog("Finished adding song.")
 		return currentSongId
 
 # Add fighter to code menu
@@ -5001,9 +5001,10 @@ class ImportedFile:
 			self.outputPath = outputPath
 
 class Song:
-		def __init__(self, songNode, name, brstmFile=""):
+		def __init__(self, songNode, name, brstmFile="", originalBrstm=""):
 			self.songNode = songNode
 			self.brstmFile = brstmFile
+			self.originalBrstm = originalBrstm
 
 #endregion CLASSES
 
@@ -5873,9 +5874,58 @@ def getTracklistSongs(tracklistFile):
 		fileOpened = openFile(tracklistFile, False)
 		if fileOpened:
 			for node in BrawlAPI.RootNode.Children:
-				newSongNode = Song(node, node.Name)
+				newSongNode = Song(node, node.Name, originalBrstm=node.rstmPath)
 				songNodes.append(newSongNode)
 			BrawlAPI.ForceCloseFile()
 	return songNodes
+
+# Update tracklist
+def updateTracklist(tracklistFile, songs):
+	writeLog("Updating tracklist file " + tracklistFile)
+	if File.Exists(tracklistFile):
+		fileOpened = openFile(tracklistFile)
+		if fileOpened:
+			i = 0
+			rootNode = BrawlAPI.RootNode
+			while len(rootNode.Children) > 0:
+				rootNode.Children[i].Remove()
+			for song in songs:
+				rootNode.AddChild(song.songNode)
+				if song.brstmFile:
+					createBackup(song.songNode.rstmPath)
+					File.Copy(song.brstmFile, song.songNode.rstmPath)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+	writeLog("Finished updating tracklist file")
+
+# Delete brstms
+def deleteBrstms(brstmFiles):
+	writeLog("Deleting brstm files")
+	reviewedFiles = []
+	title = "Delete file?"
+	for brstmFile in brstmFiles:
+		message = "Would you like to delete the file " + brstmFile + "?\n\nNOTE: Only do this if the file isn't used by other tracklists."
+		writeLog("HOOPLA " + brstmFile)
+		if File.Exists(brstmFile) and brstmFile not in reviewedFiles:
+			reviewedFiles.append(brstmFile)
+			removeBrstm = BrawlAPI.ShowYesNoPrompt(message, title)
+			if removeBrstm:
+				createBackup(brstmFile)
+				File.Delete(brstmFile)
+	writeLog("Finished deleting brstm files")
+
+# Get song ID
+def getSongIdFromSongList(songs):
+	writeLog("Getting first unused song IDs")
+	currentSongId = 61440
+	i = 0
+	while i < len(songs):
+		if songs[i].songNode.SongID == currentSongId:
+			currentSongId += 1
+			i = 0
+			continue
+		else:
+			i += 1
+	return currentSongId
 
 #endregion MUSIC

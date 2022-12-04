@@ -92,6 +92,8 @@ class TracklistEditor(Form):
         self.songs = BindingSource()
         self.songs.DataSource = getTracklistSongs(self.tracklistFile)
 
+        self.removeBrstms = []
+
         self.songListBox = ListBox()
         self.songListBox.Width = 120
         self.songListBox.Height = 240
@@ -99,6 +101,25 @@ class TracklistEditor(Form):
         self.songListBox.DataSource = self.songs
         self.songListBox.ValueMember = "songNode"
         self.songListBox.SelectedValueChanged += self.songChanged
+
+        addButton = Button()
+        addButton.Text = "+"
+        addButton.Location = Point(16, 272)
+        addButton.Width = 16
+        addButton.Height = 16
+        addButton.Click += self.addButtonPressed
+
+        removeButton = Button()
+        removeButton.Text = "-"
+        removeButton.Location = Point(32, 272)
+        removeButton.Width = 16
+        removeButton.Height = 16
+        removeButton.Click += self.removeButtonPressed
+
+        importButton = Button()
+        importButton.Text = "Import"
+        importButton.Location = Point(16, 292)
+        importButton.Click += self.importButtonPressed
 
         listBoxLabel = Label()
         listBoxLabel.Text = "Songs"
@@ -211,7 +232,7 @@ class TracklistEditor(Form):
         self.stockPinchCheckbox.CheckedChanged += self.stockPinchCheckChanged
 
         self.audioPlayer = AudioPlaybackPanel()
-        self.audioPlayer.Location = Point(32, 320)
+        self.audioPlayer.Location = Point(32, 328)
         self.audioPlayer.TargetSource = self.songs[0].songNode
         self.audioPlayer.Visible = False
 
@@ -219,6 +240,7 @@ class TracklistEditor(Form):
         saveButton.Location = Point(256, 466)
         saveButton.Text = "Save and Close"
         saveButton.Width = 96
+        saveButton.Click += self.saveButtonPressed
 
         cancelButton = Button()
         cancelButton.Text = "Cancel"
@@ -228,6 +250,9 @@ class TracklistEditor(Form):
 
         self.Controls.Add(self.songListBox)
         self.Controls.Add(listBoxLabel)
+        self.Controls.Add(addButton)
+        self.Controls.Add(removeButton)
+        self.Controls.Add(importButton)
         self.Controls.Add(self.nameTextBox)
         self.Controls.Add(nameLabel)
         self.Controls.Add(self.songTextBox)
@@ -245,9 +270,9 @@ class TracklistEditor(Form):
         self.Controls.Add(self.songSwitchText)
         self.Controls.Add(songSwitchLabel)
         self.Controls.Add(self.stockPinchCheckbox)
-        self.Controls.Add(self.audioPlayer)
         self.Controls.Add(saveButton)
         self.Controls.Add(cancelButton)
+        self.Controls.Add(self.audioPlayer)
 
         #self.setDefaults()
 
@@ -292,11 +317,20 @@ class TracklistEditor(Form):
         if self.songListBox.SelectedValue:
             self.songListBox.SelectedValue.Name = self.nameTextBox.Text
 
+    def initializeAudioPlayer(self):
+        self.audioPlayer.Dispose()
+        self.audioPlayer = AudioPlaybackPanel()
+        self.audioPlayer.Location = Point(32, 328)
+        self.audioPlayer.TargetSource = self.songs[self.songListBox.SelectedIndex].songNode
+        self.setAudioPlayerVisibility()
+        self.Controls.Add(self.audioPlayer)
+
     def songTextChanged(self, sender, args):
         if self.songListBox.SelectedValue:
             self.songListBox.SelectedValue.SongFileName = self.songTextBox.Text
-            self.audioPlayer.TargetSource = self.songListBox.SelectedValue
-            self.setAudioPlayerVisibility()
+            if not self.songListBox.SelectedItem.originalBrstm:
+                self.songListBox.SelectedItem.originalBrstm = self.songListBox.SelectedValue.rstmPath
+            self.initializeAudioPlayer()
 
     def volumeBarChanged(self, sender, args):
         self.volumeText.Text = str(self.volumeBar.Value)
@@ -345,6 +379,7 @@ class TracklistEditor(Form):
     def songFileButtonPressed(self, sender, args):
         if self.songListBox.SelectedValue:
             brstmFile = BrawlAPI.OpenFileDialog("Select your BRSTM file", "BRSTM files|*.brstm")
+            brstmFolder = ""
             brstmPath = MainForm.BuildPath + '\\pf\\sound\\strm\\'
             newFile = ""
             if brstmFile:
@@ -359,11 +394,66 @@ class TracklistEditor(Form):
                     else:
                         break
             self.songListBox.SelectedValue.SongFileName = newFile
-            self.songListBox.SelectedItem.brstmFile = brstmFile
-            self.songFileBox.Text = brstmFile
+            if not File.Exists(self.songListBox.SelectedValue.rstmPath):
+                self.songListBox.SelectedItem.brstmFile = brstmFile
+                self.songFileBox.Text = brstmFile
             self.songTextBox.Text = newFile
-            self.songListBox.SelectedItem = self.songListBox.SelectedItem
 
+    def saveButtonPressed(self, sender, args):
+        updateTracklist(self.tracklistFile, self.songs)
+        for song in self.songListBox.Items:
+            if song.originalBrstm and song.originalBrstm != song.songNode.rstmPath:
+                self.removeBrstms.append(song.originalBrstm)
+        deleteBrstms(self.removeBrstms)
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+    def addButtonPressed(self, sender, args):
+        newSong = TLSTEntryNode()
+        newSong.SongID = getSongIdFromSongList(self.songs)
+        newSong.Name = "New_Song"
+        newSong.Volume = 80
+        newSong.Frequency = 40
+        song = Song(newSong, newSong.Name)
+        self.songs.Add(song)
+        self.songListBox.SelectedItem = song
+
+    def removeButtonPressed(self, sender, args):
+        if len(self.songs) > 1:
+            self.removeBrstms.append(self.songListBox.SelectedItem.originalBrstm)
+            self.songs.Remove(self.songListBox.SelectedItem)
+
+    def importButtonPressed(self, sender, args):
+        files = BrawlAPI.OpenMultiFileDialog("Select your BRSTM files", "BRSTM files|*.brstm")
+        brstmPath = MainForm.BuildPath + '\\pf\\sound\\strm\\'
+        brstmFolder = ""
+        while True:
+            brstmFolder = BrawlAPI.OpenFolderDialog("Select the folder you would like to place these BRSTM files")
+            if brstmFolder:
+                if brstmPath in brstmFolder:
+                    break
+                else:
+                    BrawlAPI.ShowMessage("This folder is not in the strm folder in your build! Please choose a folder in the correct location.", "Incorrect Folder Placement")
+            else:
+                break
+        for brstmFile in files:
+            newFile = ""
+            fileInfo = getFileInfo(brstmFile)
+            if brstmFile:
+                if brstmPath in brstmFolder:
+                    newFile = brstmFolder.replace(brstmPath, '') + '/' + getFileInfo(brstmFile).Name.split('.')[0]
+            newSong = TLSTEntryNode()
+            newSong.SongID = getSongIdFromSongList(self.songs)
+            newSong.Name = fileInfo.Name.split('.brstm')[0]
+            newSong.Volume = 80
+            newSong.Frequency = 40
+            song = Song(newSong, newSong.Name)
+            if not File.Exists(brstmPath + newFile + '.brstm'):
+                BrawlAPI.ShowMessage(brstmPath + newFile, "")
+                song.brstmFile = brstmFile
+            song.songNode.SongFileName = newFile
+            self.songs.Add(song)
+            self.songListBox.SelectedItem = song
 
 #endregion
 
@@ -1252,7 +1342,7 @@ class StageEditor(Form):
         tracklistFiles = []
         directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sound/tracklist')
         for file in directory.GetFiles("*.tlst"):
-            tracklistFiles.append(file.Name.split('.')[0])
+            tracklistFiles.append(file.Name.split('.tlst')[0])
         return tracklistFiles
 
     def setComboBoxes(self):
