@@ -5819,13 +5819,6 @@ def removeStageEntry(stageParams):
 					reviewedFiles.append(moduleFile)
 				elif moduleFile in reviewedFiles:
 					removeModule = False
-			if stageParam.originalTracklist:
-				tracklistFile = MainForm.BuildPath + '/pf/sound/tracklist/' + stageParam.originalTracklist + ".tlst"
-				if File.Exists(tracklistFile) and tracklistFile not in reviewedFiles:
-					removeTracklist = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalTracklist + ".tlst", title)
-					reviewedFiles.append(tracklistFile)
-				elif tracklistFile in reviewedFiles:
-					removeTracklist = False
 			if stageParam.originalSoundBank:
 				directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
 				files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
@@ -5880,9 +5873,14 @@ def getTracklistSongs(tracklistFile):
 	return songNodes
 
 # Update tracklist
-def updateTracklist(tracklistFile, songs):
+def updateTracklist(tracklistFile, songs, netplay=False):
 	writeLog("Updating tracklist file " + tracklistFile)
 	new = False
+	newName = ""
+	if not netplay:
+		tracklistPath = MainForm.BuildPath + '/pf/sound/tracklist/'
+	else:
+		tracklistPath = MainForm.BuildPath + '/pf/sound/netplaylist/'
 	if File.Exists(tracklistFile):
 		fileOpened = openFile(tracklistFile)
 	else:
@@ -5902,9 +5900,11 @@ def updateTracklist(tracklistFile, songs):
 			BrawlAPI.SaveFile()
 		else:
 			newName = BrawlAPI.UserStringInput("Enter the name for your new tracklist")
-			BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/sound/tracklist/' + newName + '.tlst')
+			createBackup(tracklistPath + newName.split('.tlst')[0] + '.tlst')
+			BrawlAPI.SaveFileAs(tracklistPath + newName.split('.tlst')[0] + '.tlst')
 		BrawlAPI.ForceCloseFile()
 	writeLog("Finished updating tracklist file")
+	return newName
 
 # Delete brstms
 def deleteBrstms(brstmFiles):
@@ -5913,7 +5913,6 @@ def deleteBrstms(brstmFiles):
 	title = "Delete file?"
 	for brstmFile in brstmFiles:
 		message = "Would you like to delete the file " + brstmFile + "?\n\nNOTE: Only do this if the file isn't used by other tracklists."
-		writeLog("HOOPLA " + brstmFile)
 		if File.Exists(brstmFile) and brstmFile not in reviewedFiles:
 			reviewedFiles.append(brstmFile)
 			removeBrstm = BrawlAPI.ShowYesNoPrompt(message, title)
@@ -5935,5 +5934,19 @@ def getSongIdFromSongList(songs):
 		else:
 			i += 1
 	return currentSongId
+
+# Delete tracklist and possibly associated BRSTMs
+def deleteTracklist(tracklistFile):
+	removeFiles = []
+	if File.Exists(tracklistFile.FullName):
+		writeLog("Deleting tracklist file " + tracklistFile.FullName)
+		fileOpened = openFile(tracklistFile.FullName)
+		if fileOpened:
+			for node in BrawlAPI.RootNode.Children:
+				removeFiles.append(node.rstmPath)
+			BrawlAPI.ForceCloseFile()
+			deleteBrstms(removeFiles)
+		File.Delete(tracklistFile.FullName)
+		writeLog("Finished deleting tracklist file")
 
 #endregion MUSIC
