@@ -5882,20 +5882,28 @@ def getTracklistSongs(tracklistFile):
 # Update tracklist
 def updateTracklist(tracklistFile, songs):
 	writeLog("Updating tracklist file " + tracklistFile)
+	new = False
 	if File.Exists(tracklistFile):
 		fileOpened = openFile(tracklistFile)
-		if fileOpened:
-			i = 0
-			rootNode = BrawlAPI.RootNode
-			while len(rootNode.Children) > 0:
-				rootNode.Children[i].Remove()
-			for song in songs:
-				rootNode.AddChild(song.songNode)
-				if song.brstmFile:
-					createBackup(song.songNode.rstmPath)
-					File.Copy(song.brstmFile, song.songNode.rstmPath)
+	else:
+		new = True
+		fileOpened = BrawlAPI.New[TLSTNode]()
+	if fileOpened:
+		i = 0
+		rootNode = BrawlAPI.RootNode
+		while len(rootNode.Children) > 0:
+			rootNode.Children[i].Remove()
+		for song in songs:
+			rootNode.AddChild(song.songNode)
+			if song.brstmFile:
+				createBackup(song.songNode.rstmPath)
+				File.Copy(song.brstmFile, song.songNode.rstmPath)
+		if not new:
 			BrawlAPI.SaveFile()
-			BrawlAPI.ForceCloseFile()
+		else:
+			newName = BrawlAPI.UserStringInput("Enter the name for your new tracklist")
+			BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/sound/tracklist/' + newName + '.tlst')
+		BrawlAPI.ForceCloseFile()
 	writeLog("Finished updating tracklist file")
 
 # Delete brstms

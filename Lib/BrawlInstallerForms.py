@@ -51,6 +51,11 @@ class MusicList(Form):
         editButton.Text = "Edit"
         editButton.Click += self.editButtonPressed
 
+        addButton = Button()
+        addButton.Location = Point(152, 60)
+        addButton.Text = "Add"
+        addButton.Click += self.addButtonPressed
+
         listBoxLabel = Label()
         listBoxLabel.Text = "Tracklists"
         listBoxLabel.Height = 16
@@ -59,12 +64,21 @@ class MusicList(Form):
         offlineTab.Controls.Add(self.tracklistBox)
         offlineTab.Controls.Add(listBoxLabel)
         offlineTab.Controls.Add(editButton)
+        offlineTab.Controls.Add(addButton)
 
         self.Controls.Add(self.tabControl)
 
     def editButtonPressed(self, sender, args):
         tracklistFile = self.tracklistBox.SelectedValue
         form = TracklistEditor(tracklistFile)
+        result = form.ShowDialog(MainForm.Instance)
+        form.Dispose()
+        if result == DialogResult.Abort:
+            self.DialogResult = DialogResult.Abort
+            self.Close()
+    
+    def addButtonPressed(self, sender, args):
+        form = TracklistEditor("")
         result = form.ShowDialog(MainForm.Instance)
         form.Dispose()
         if result == DialogResult.Abort:
@@ -90,7 +104,13 @@ class TracklistEditor(Form):
 
         self.tracklistFile = tracklistFile
         self.songs = BindingSource()
-        self.songs.DataSource = getTracklistSongs(self.tracklistFile)
+        if self.tracklistFile:
+            self.songs.DataSource = getTracklistSongs(self.tracklistFile)
+        else:
+            newTlstEntry = TLSTEntryNode()
+            newTlstEntry.Name = "New_Song"
+            newTlstEntry.SongID = 61440
+            self.songs.DataSource = [ Song(newTlstEntry, newTlstEntry.Name)]
 
         self.removeBrstms = []
 
@@ -233,7 +253,8 @@ class TracklistEditor(Form):
 
         self.audioPlayer = AudioPlaybackPanel()
         self.audioPlayer.Location = Point(32, 328)
-        self.audioPlayer.TargetSource = self.songs[0].songNode
+        if len(self.songs) > 0:
+            self.audioPlayer.TargetSource = self.songs[0].songNode
         self.audioPlayer.Visible = False
 
         saveButton = Button()
