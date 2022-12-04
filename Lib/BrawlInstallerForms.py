@@ -530,20 +530,16 @@ class TracklistEditor(Form):
         self.Controls.Add(cancelButton)
         self.Controls.Add(self.audioPlayer)
 
-        #self.setDefaults()
-
-    def setDefaults(self):
-        if len(self.songs) > 0:
-            self.nameTextBox.Text = self.songs[0].songNode.Name
-            self.volumeBar.Value = self.songs[0].songNode.Volume
-            self.volumeText.Text = str(self.songs[0].songNode.Volume)
-            self.frequencyBar.Value = self.songs[0].songNode.Frequency
-            self.frequencyText.Text = str(self.songs[0].songNode.Frequency)
-            self.songDelayText.Text = str(self.songs[0].songNode.SongDelay)
-            self.songSwitchText.Text = str(self.songs[0].songNode.SongSwitch)
-            if self.songs[0].songNode.SongFileName and '/' in self.songs[0].songNode.SongFileName:
-                if File.Exists(MainForm.BuildPath + '/pf/sound/strm/' + self.songs[0].songNode.SongFileName + '.brstm'):
-                    self.audioPlayer.Visible = True
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(listBoxLabel, "The songs in this tracklist")
+        toolTip.SetToolTip(nameLabel, "The name of the song as it appears in-game")
+        toolTip.SetToolTip(songLabel, "The folder and filename for this song e.g. a song called Mario in the Super Mario folder would be written as Super Mario/Mario")
+        toolTip.SetToolTip(volumeLabel, "The volume the song plays at in-game")
+        toolTip.SetToolTip(frequencyLabel, "The frequency the song will appear in-game")
+        toolTip.SetToolTip(songDelayLabel, "The number of frames to wait before playing the song on match start")
+        toolTip.SetToolTip(songSwitchLabel, "The time (in frames) remaining in a match to switch to another track, if one is set")
+        toolTip.SetToolTip(self.stockPinchCheckbox, "If checked, alternate track will play without players being low on stocks during a match, if one is set")
 
     def songChanged(self, sender, args):
         self.audioPlayer.TargetSource = self.songListBox.SelectedValue
@@ -965,6 +961,13 @@ class StageList(Form):
         netplayTab.Controls.Add(netplaySaveButton)
         netplayTab.Controls.Add(netplayCancelButton)
 
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(listBoxLabel, "Stage slots currently in stage list")
+        toolTip.SetToolTip(unusedListBoxLabel, "Stage slots not added to stage list")
+        toolTip.SetToolTip(netplayListBoxLabel, "Stage slots currently in stage list")
+        toolTip.SetToolTip(unusedNetplayListBoxLabel, "Stage slots not added to stage list")
+
     def listBoxDrawItem(self, sender, args):
         args.DrawBackground()
         if sender.Items[args.Index].name.startswith("|| PAGE"):
@@ -1118,8 +1121,6 @@ class StageList(Form):
             self.Close()
 
     def cancelButtonPressed(self, sender, args):
-        #self.Controls.Clear()
-        #self.__init__()
         self.DialogResult = DialogResult.Cancel
         self.Close()
 
@@ -1166,9 +1167,6 @@ class StageEditor(Form):
         self.alts.DataSource = getStageAltInfo(fullId[0:2])
         self.addedTracks = BindingSource()
         self.addedTracks.DataSource = []
-        #TODO:
-        #removing a stage will not remove the pair in TABLE_STAGES, it will just set them to 0xFF64
-        #netplay support
 
         # Variables
         self.newIcon = ""
@@ -1209,10 +1207,10 @@ class StageEditor(Form):
         if self.cosmetics.stageName and not self.new:
             self.namePictureBox.Image = self.cosmetics.stageName
 
-        nameLabel = Label()
-        nameLabel.Text = "Name:"
-        nameLabel.Location = Point(16, 176)
-        nameLabel.Height = 16
+        nameImageLabel = Label()
+        nameImageLabel.Text = "Name:"
+        nameImageLabel.Location = Point(16, 176)
+        nameImageLabel.Height = 16
 
         nameButton = Button()
         nameButton.Text = "Import"
@@ -1340,7 +1338,7 @@ class StageEditor(Form):
         cosmeticsGroupBox.Controls.Add(self.previewPictureBox)
         cosmeticsGroupBox.Controls.Add(previewButton)
         cosmeticsGroupBox.Controls.Add(self.namePictureBox)
-        cosmeticsGroupBox.Controls.Add(nameLabel)
+        cosmeticsGroupBox.Controls.Add(nameImageLabel)
         cosmeticsGroupBox.Controls.Add(nameButton)
         cosmeticsGroupBox.Controls.Add(iconLabel)
         cosmeticsGroupBox.Controls.Add(self.iconPictureBox)
@@ -1571,6 +1569,22 @@ class StageEditor(Form):
 
         self.Controls.Add(cosmeticsGroupBox)
         self.Controls.Add(parametersGroupBox)
+
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(previewLabel, "The stage preview that displays on the stage select screen")
+        toolTip.SetToolTip(nameImageLabel, "The name of the stage that shows on the stage select screen")
+        toolTip.SetToolTip(iconLabel, "The stage icon that shows on the stage select screen")
+        toolTip.SetToolTip(altLabel, "The name for the alternate stage layout that displays on the stage select screen")
+        toolTip.SetToolTip(franchiseIconLabel, "The franchise icon for the stage that displays on the stage select screen")
+        toolTip.SetToolTip(gameLogoLabel, "The game icon for the stage that displays on the stage select screen")
+        toolTip.SetToolTip(nameLabel, "The internal name to use for this stage entry")
+        toolTip.SetToolTip(pacNameLabel, "The name used in the .pac file for this stage entry, e.g. PeachCastle if your pac is STGPEACHCASTLE.pac")
+        toolTip.SetToolTip(moduleLabel, "The name of the module file used by the stage entry, including the .rel extension")
+        toolTip.SetToolTip(tracklistLabel, "The tracklist file to use for this stage entry")
+        toolTip.SetToolTip(soundBankLabel, "The ID, in hexadecimal (e.g. 0x21) format, of the soundbank to use for this stage entry")
+        toolTip.SetToolTip(effectBankLabel, "The ID, in hexadecimal (e.g. 0x21) format, of the effect bank to use for this stage entry")
+        toolTip.SetToolTip(aslIndicatorGroupBox, "The button combination that must be held when selected on the stage select screen to play this stage entry")
 
         self.setComboBoxes()
 
