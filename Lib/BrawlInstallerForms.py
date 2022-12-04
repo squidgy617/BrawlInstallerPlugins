@@ -7,6 +7,366 @@ from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
 
+#region MUSIC LIST
+
+class MusicList(Form):
+
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Tracklists'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MaximizeBox = False
+        self.MinimumSize = Size(411,400)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.tracklists = BindingSource()
+        self.tracklists.DataSource = getTracklists()
+        self.netplaylists = BindingSource()
+        self.netplaylists.DataSource = getTracklists(True)
+
+        self.tabControl = TabControl()
+        self.tabControl.Dock = DockStyle.Fill
+
+        offlineTab = TabPage()
+        offlineTab.Text = 'Standard'
+        self.tabControl.Controls.Add(offlineTab)
+
+        netplayTab = TabPage()
+        netplayTab.Text = 'Netplay'
+        self.tabControl.Controls.Add(netplayTab)
+
+        self.tracklistBox = ListBox()
+        self.tracklistBox.Width = 120
+        self.tracklistBox.Height = 240
+        self.tracklistBox.Location = Point(16, 32)
+        self.tracklistBox.DataSource = self.tracklists
+        self.tracklistBox.DisplayMember = "Name"
+        self.tracklistBox.ValueMember = "FullName"
+
+        editButton = Button()
+        editButton.Location = Point(152, 32)
+        editButton.Text = "Edit"
+        editButton.Click += self.editButtonPressed
+
+        listBoxLabel = Label()
+        listBoxLabel.Text = "Tracklists"
+        listBoxLabel.Height = 16
+        listBoxLabel.Location = Point(16, 8)
+
+        offlineTab.Controls.Add(self.tracklistBox)
+        offlineTab.Controls.Add(listBoxLabel)
+        offlineTab.Controls.Add(editButton)
+
+        self.Controls.Add(self.tabControl)
+
+    def editButtonPressed(self, sender, args):
+        tracklistFile = self.tracklistBox.SelectedValue
+        form = TracklistEditor(tracklistFile)
+        result = form.ShowDialog(MainForm.Instance)
+        form.Dispose()
+        if result == DialogResult.Abort:
+            self.DialogResult = DialogResult.Abort
+            self.Close()
+
+#endregion
+
+#region TRACKLIST EDITOR
+
+class TracklistEditor(Form):
+
+    def __init__(self, tracklistFile):
+        # Form parameters
+        self.Text = 'Tracklist Editor'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MaximizeBox = False
+        self.MinimumSize = Size(411,400)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.tracklistFile = tracklistFile
+        self.songs = BindingSource()
+        self.songs.DataSource = getTracklistSongs(self.tracklistFile)
+
+        self.songListBox = ListBox()
+        self.songListBox.Width = 120
+        self.songListBox.Height = 240
+        self.songListBox.Location = Point(16, 32)
+        self.songListBox.DataSource = self.songs
+        self.songListBox.ValueMember = "songNode"
+        self.songListBox.SelectedValueChanged += self.songChanged
+
+        listBoxLabel = Label()
+        listBoxLabel.Text = "Songs"
+        listBoxLabel.Height = 16
+        listBoxLabel.Location = Point(16, 8)
+
+        self.nameTextBox = TextBox()
+        self.nameTextBox.Location = Point(248, 32)
+        self.nameTextBox.TextChanged += self.nameTextChanged
+
+        nameLabel = Label()
+        nameLabel.Text = "Name:"
+        nameLabel.Location = Point(136, 32)
+        nameLabel.Height = 16
+        nameLabel.TextAlign = ContentAlignment.TopRight
+
+        self.songTextBox = TextBox()
+        self.songTextBox.Location = Point(248, 64)
+        self.songTextBox.TextChanged += self.songTextChanged
+
+        songLabel = Label()
+        songLabel.Text = "Song File Name:"
+        songLabel.Location = Point(136, 64)
+        songLabel.Height = 16
+        songLabel.TextAlign = ContentAlignment.TopRight
+
+        self.songFileBox = TextBox()
+        self.songFileBox.Location = Point(248, 88)
+        self.songFileBox.ReadOnly = True
+
+        songFileButton = Button()
+        songFileButton.Location = Point(355, 63)
+        songFileButton.Text = "Browse..."
+        songFileButton.Click += self.songFileButtonPressed
+
+        self.volumeBar = TrackBar()
+        self.volumeBar.Minimum = 0
+        self.volumeBar.Maximum = 127
+        self.volumeBar.Location = Point(248, 128)
+        self.volumeBar.TickFrequency = 9
+        self.volumeBar.TickStyle = TickStyle.BottomRight
+        self.volumeBar.SmallChange = 1
+        self.volumeBar.LargeChange = 9
+        self.volumeBar.ValueChanged += self.volumeBarChanged
+
+        volumeLabel = Label()
+        volumeLabel.Text = "Volume:"
+        volumeLabel.Location = Point(136, 128)
+        volumeLabel.Height = 16
+        volumeLabel.TextAlign = ContentAlignment.TopRight
+
+        self.volumeText = NumericUpDown()
+        self.volumeText.Location = Point(360, 128)
+        self.volumeText.Width = 48
+        self.volumeText.Maximum = 127
+        self.volumeText.Minimum = 0
+        self.volumeText.TextChanged += self.volumeTextChanged
+
+        self.frequencyBar = TrackBar()
+        self.frequencyBar.Minimum = 0
+        self.frequencyBar.Maximum = 100
+        self.frequencyBar.Location = Point(248, 176)
+        self.frequencyBar.TickFrequency = 10
+        self.frequencyBar.TickStyle = TickStyle.BottomRight
+        self.frequencyBar.SmallChange = 1
+        self.frequencyBar.LargeChange = 10
+        self.frequencyBar.ValueChanged += self.frequencyBarChanged
+
+        frequencyLabel = Label()
+        frequencyLabel.Text = "Frequency:"
+        frequencyLabel.Location = Point(136, 176)
+        frequencyLabel.Height = 16
+        frequencyLabel.TextAlign = ContentAlignment.TopRight
+
+        self.frequencyText = NumericUpDown()
+        self.frequencyText.Location = Point(360, 176)
+        self.frequencyText.Width = 48
+        self.frequencyText.Maximum = 100
+        self.frequencyText.Minimum = 0
+        self.frequencyText.TextChanged += self.frequencyTextChanged
+
+        self.songDelayText = NumericUpDown()
+        self.songDelayText.Location = Point(248, 224)
+        self.songDelayText.Width = 48
+        self.songDelayText.Minimum = -1
+        self.songDelayText.TextChanged += self.songDelayTextChanged
+
+        songDelayLabel = Label()
+        songDelayLabel.Location = Point(136, 224)
+        songDelayLabel.Height = 16
+        songDelayLabel.Text = "Delay:"
+        songDelayLabel.TextAlign = ContentAlignment.TopRight
+
+        self.songSwitchText = NumericUpDown()
+        self.songSwitchText.Location = Point(360, 224)
+        self.songSwitchText.Width = 48
+        self.songSwitchText.Minimum = 0
+        self.songSwitchText.TextChanged += self.songSwitchTextChanged
+
+        songSwitchLabel = Label()
+        songSwitchLabel.Location = Point(248, 224)
+        songSwitchLabel.Height = 16
+        songSwitchLabel.Text = "Switch:"
+        songSwitchLabel.TextAlign = ContentAlignment.TopRight
+
+        self.stockPinchCheckbox = CheckBox()
+        self.stockPinchCheckbox.Location = Point(248, 256)
+        self.stockPinchCheckbox.Text = "Disable Stock Pinch?"
+        self.stockPinchCheckbox.Height = 32
+        self.stockPinchCheckbox.CheckedChanged += self.stockPinchCheckChanged
+
+        self.audioPlayer = AudioPlaybackPanel()
+        self.audioPlayer.Location = Point(32, 320)
+        self.audioPlayer.TargetSource = self.songs[0].songNode
+        self.audioPlayer.Visible = False
+
+        saveButton = Button()
+        saveButton.Location = Point(256, 466)
+        saveButton.Text = "Save and Close"
+        saveButton.Width = 96
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(360, 466)
+        cancelButton.Click += self.cancelButtonPressed
+        cancelButton.Width = 96
+
+        self.Controls.Add(self.songListBox)
+        self.Controls.Add(listBoxLabel)
+        self.Controls.Add(self.nameTextBox)
+        self.Controls.Add(nameLabel)
+        self.Controls.Add(self.songTextBox)
+        self.Controls.Add(songLabel)
+        self.Controls.Add(songFileButton)
+        self.Controls.Add(self.songFileBox)
+        self.Controls.Add(self.volumeBar)
+        self.Controls.Add(volumeLabel)
+        self.Controls.Add(self.volumeText)
+        self.Controls.Add(frequencyLabel)
+        self.Controls.Add(self.frequencyBar)
+        self.Controls.Add(self.frequencyText)
+        self.Controls.Add(self.songDelayText)
+        self.Controls.Add(songDelayLabel)
+        self.Controls.Add(self.songSwitchText)
+        self.Controls.Add(songSwitchLabel)
+        self.Controls.Add(self.stockPinchCheckbox)
+        self.Controls.Add(self.audioPlayer)
+        self.Controls.Add(saveButton)
+        self.Controls.Add(cancelButton)
+
+        #self.setDefaults()
+
+    def setDefaults(self):
+        if len(self.songs) > 0:
+            self.nameTextBox.Text = self.songs[0].songNode.Name
+            self.volumeBar.Value = self.songs[0].songNode.Volume
+            self.volumeText.Text = str(self.songs[0].songNode.Volume)
+            self.frequencyBar.Value = self.songs[0].songNode.Frequency
+            self.frequencyText.Text = str(self.songs[0].songNode.Frequency)
+            self.songDelayText.Text = str(self.songs[0].songNode.SongDelay)
+            self.songSwitchText.Text = str(self.songs[0].songNode.SongSwitch)
+            if self.songs[0].songNode.SongFileName and '/' in self.songs[0].songNode.SongFileName:
+                if File.Exists(MainForm.BuildPath + '/pf/sound/strm/' + self.songs[0].songNode.SongFileName + '.brstm'):
+                    self.audioPlayer.Visible = True
+
+    def songChanged(self, sender, args):
+        self.audioPlayer.TargetSource = self.songListBox.SelectedValue
+        self.setAudioPlayerVisibility()
+        self.songTextBox.Text = self.songListBox.SelectedValue.SongFileName
+        self.nameTextBox.Text = self.songListBox.SelectedValue.Name
+        self.volumeBar.Value = self.songListBox.SelectedValue.Volume
+        self.volumeText.Text = str(self.songListBox.SelectedValue.Volume)
+        self.frequencyBar.Value = self.songListBox.SelectedValue.Frequency
+        self.frequencyText.Text = str(self.songListBox.SelectedValue.Frequency)
+        self.songDelayText.Text = str(self.songListBox.SelectedValue.SongDelay)
+        self.songSwitchText.Text = str(self.songListBox.SelectedValue.SongSwitch)
+        self.stockPinchCheckbox.Checked = self.songListBox.SelectedValue.DisableStockPinch
+        self.songFileBox.Text = self.songListBox.SelectedItem.brstmFile
+    
+    def setAudioPlayerVisibility(self):
+        if not self.songListBox.SelectedValue.SongFileName:
+            self.audioPlayer.Visible = False
+        elif '/' not in self.songListBox.SelectedValue.SongFileName:
+            self.audioPlayer.Visible = False
+        elif not File.Exists(MainForm.BuildPath + '/pf/sound/strm/' + self.songListBox.SelectedValue.SongFileName + '.brstm'):
+            self.audioPlayer.Visible = False
+        else:
+            self.audioPlayer.Visible = True
+
+    def nameTextChanged(self, sender, args):
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.Name = self.nameTextBox.Text
+
+    def songTextChanged(self, sender, args):
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.SongFileName = self.songTextBox.Text
+            self.audioPlayer.TargetSource = self.songListBox.SelectedValue
+            self.setAudioPlayerVisibility()
+
+    def volumeBarChanged(self, sender, args):
+        self.volumeText.Text = str(self.volumeBar.Value)
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.Volume = self.volumeBar.Value
+    
+    def volumeTextChanged(self, sender, args):
+        if int(self.volumeText.Text) > self.volumeText.Maximum:
+            self.volumeText.Text = str(self.volumeText.Maximum)
+        if int(self.volumeText.Text) <= self.volumeText.Minimum:
+            self.volumeText.Text = str(self.volumeText.Minimum)
+        self.volumeBar.Value = int(self.volumeText.Text)
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.Volume = int(self.volumeText.Text)
+
+    def frequencyBarChanged(self, sender, args):
+        self.frequencyText.Text = str(self.frequencyBar.Value)
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.Frequency = self.frequencyBar.Value
+    
+    def frequencyTextChanged(self, sender, args):
+        if int(self.frequencyText.Text) > self.frequencyText.Maximum:
+            self.frequencyText.Text = str(self.frequencyText.Maximum)
+        if int(self.frequencyText.Text) <= self.frequencyText.Minimum:
+            self.frequencyText.Text = str(self.frequencyText.Minimum)
+        self.frequencyBar.Value = int(self.frequencyText.Text)
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.Frequency = int(self.frequencyText.Text)
+
+    def songDelayTextChanged(self, sender, args):
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.SongDelay = int(self.songDelayText.Text)
+
+    def songSwitchTextChanged(self, sender, args):
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.SongSwitch = int(self.songSwitchText.Text)
+
+    def stockPinchCheckChanged(self, sender, args):
+        if self.songListBox.SelectedValue:
+            self.songListBox.SelectedValue.DisableStockPinch = self.stockPinchCheckbox.Checked
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+    def songFileButtonPressed(self, sender, args):
+        if self.songListBox.SelectedValue:
+            brstmFile = BrawlAPI.OpenFileDialog("Select your BRSTM file", "BRSTM files|*.brstm")
+            brstmPath = MainForm.BuildPath + '\\pf\\sound\\strm\\'
+            newFile = ""
+            if brstmFile:
+                while True:
+                    brstmFolder = BrawlAPI.OpenFolderDialog("Select the folder you would like to place this BRSTM file")
+                    if brstmFolder:
+                        if brstmPath in brstmFolder:
+                            newFile = brstmFolder.replace(brstmPath, '') + '/' + getFileInfo(brstmFile).Name.split('.')[0]
+                            break
+                        else:
+                            BrawlAPI.ShowMessage("This folder is not in the strm folder in your build! Please choose a folder in the correct location.", "Incorrect Folder Placement")
+                    else:
+                        break
+            self.songListBox.SelectedValue.SongFileName = newFile
+            self.songListBox.SelectedItem.brstmFile = brstmFile
+            self.songFileBox.Text = brstmFile
+            self.songTextBox.Text = newFile
+            self.songListBox.SelectedItem = self.songListBox.SelectedItem
+
+
+#endregion
+
 #region STAGE LIST
 
 class StageList(Form):
@@ -18,7 +378,7 @@ class StageList(Form):
         self.ShowIcon = False
         self.AutoSize = True
         self.MaximizeBox = False
-        self.MinimumSize = Size(411,400)
+        self.MinimumSize = Size(411,432)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
@@ -137,14 +497,24 @@ class StageList(Form):
         netplayButton.Click += self.buttonPressed
 
         addButton = Button()
-        addButton.Location = Point(16, 304)
+        addButton.Location = Point(16, 332)
         addButton.Text = "Add"
         addButton.Click += self.addButtonPressed
 
+        removeButton = Button()
+        removeButton.Location = Point(16, 304)
+        removeButton.Text = "Remove"
+        removeButton.Click += self.removeButtonPressed
+
         netplayAddButton = Button()
-        netplayAddButton.Location = Point(16, 304)
+        netplayAddButton.Location = Point(16, 332)
         netplayAddButton.Text = "Add"
         netplayAddButton.Click += self.addButtonPressed
+
+        netplayRemoveButton = Button()
+        netplayRemoveButton.Location = Point(16, 304)
+        netplayRemoveButton.Text = "Remove"
+        netplayRemoveButton.Click += self.removeButtonPressed
 
         moveLeftButton = Button()
         moveLeftButton.Location = Point(160, 120)
@@ -191,28 +561,23 @@ class StageList(Form):
         netplayMoveDownButton.Click += self.moveDownButtonPressed
 
         saveButton = Button()
-        saveButton.Location = Point(304, 276)
+        saveButton.Location = Point(304, 304)
         saveButton.Text = "Save"
         saveButton.Click += self.saveButtonPressed
 
-        removeButton = Button()
-        removeButton.Location = Point(304, 290)
-        removeButton.Text = "Remove"
-        removeButton.Click += self.removeButtonPressed
-
         netplaySaveButton = Button()
-        netplaySaveButton.Location = Point(304, 276)
+        netplaySaveButton.Location = Point(304, 304)
         netplaySaveButton.Text = "Save"
         netplaySaveButton.Click += self.saveButtonPressed
 
         cancelButton = Button()
-        cancelButton.Location = Point(304, 304)
-        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(304, 332)
+        cancelButton.Text = "Close"
         cancelButton.Click += self.cancelButtonPressed
 
         netplayCancelButton = Button()
-        netplayCancelButton.Location = Point(304, 304)
-        netplayCancelButton.Text = "Cancel"
+        netplayCancelButton.Location = Point(304, 332)
+        netplayCancelButton.Text = "Close"
         netplayCancelButton.Click += self.cancelButtonPressed
 
         self.Controls.Add(self.tabControl)
@@ -220,6 +585,7 @@ class StageList(Form):
         offlineTab.Controls.Add(listBoxLabel)
         offlineTab.Controls.Add(self.listBox)
         offlineTab.Controls.Add(button)
+        offlineTab.Controls.Add(removeButton)
         offlineTab.Controls.Add(addButton)
         offlineTab.Controls.Add(moveUpButton)
         offlineTab.Controls.Add(moveDownButton)
@@ -228,12 +594,12 @@ class StageList(Form):
         offlineTab.Controls.Add(self.unusedListbox)
         offlineTab.Controls.Add(unusedListBoxLabel)
         offlineTab.Controls.Add(saveButton)
-        offlineTab.Controls.Add(removeButton)
         offlineTab.Controls.Add(cancelButton)
 
         netplayTab.Controls.Add(netplayListBoxLabel)
         netplayTab.Controls.Add(self.netplayListBox)
         netplayTab.Controls.Add(netplayButton)
+        netplayTab.Controls.Add(netplayRemoveButton)
         netplayTab.Controls.Add(netplayAddButton)
         netplayTab.Controls.Add(netplayMoveUpButton)
         netplayTab.Controls.Add(netplayMoveDownButton)
@@ -381,8 +747,6 @@ class StageList(Form):
             if len(self.removeSlots) > 0:
                 removeStageSlot(self.removeSlots)
             for slot in self.removeSlots:
-            #TODO: fix this
-                BrawlAPI.ShowMessage(addLeadingZeros(slot.stageId.replace('0x',''), 2), "")
                 if File.Exists(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl"):
                     File.Delete(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl")
             updateStageList(self.listBox.Items)
@@ -1150,7 +1514,7 @@ class StageEditor(Form):
         self.enableControls()
 
     def stageAltRemoveButtonPressed(self, sender, args):
-        if len(self.alts) <= 0:
+        if len(self.alts) <= 1:
             return
         self.removeSlots.append(self.stageAltListbox.SelectedItem)
         self.alts.Remove(self.stageAltListbox.SelectedItem)

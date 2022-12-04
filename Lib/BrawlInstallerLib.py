@@ -5000,6 +5000,11 @@ class ImportedFile:
 			self.filePath = filePath
 			self.outputPath = outputPath
 
+class Song:
+		def __init__(self, songNode, name, brstmFile=""):
+			self.songNode = songNode
+			self.brstmFile = brstmFile
+
 #endregion CLASSES
 
 #region COLOR PROMPT
@@ -5847,3 +5852,30 @@ def removeStageEntry(stageParams):
 
 
 #endregion STAGES
+
+#region MUSIC
+
+# Get all tracklists
+def getTracklists(netplay=False):
+	tracklists = []
+	if not netplay:
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sound/tracklist')
+	else:
+		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sound/netplaylist')
+	for file in directory.GetFiles("*.tlst"):
+		tracklists.append(file)
+	return tracklists
+
+# Get all nodes from a tracklist file
+def getTracklistSongs(tracklistFile):
+	songNodes = []
+	if File.Exists(tracklistFile):
+		fileOpened = openFile(tracklistFile, False)
+		if fileOpened:
+			for node in BrawlAPI.RootNode.Children:
+				newSongNode = Song(node, node.Name)
+				songNodes.append(newSongNode)
+			BrawlAPI.ForceCloseFile()
+	return songNodes
+
+#endregion MUSIC
