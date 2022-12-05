@@ -1129,18 +1129,34 @@ class StageList(Form):
         i = 0
         while True:
             while i < len(self.stageSlots):
-                if hexId(stageId).replace('0x', '') == self.stageSlots[i].stageId or hexId(stageId).replace('0x', '') == self.netplaySlots[i].stageId:
+                if hexId(stageId).replace('0x', '') == self.stageSlots[i].stageId:
                     stageId += 1
                     i = 0
+                i += 1
+            break
+        setStage = i
+        while True:
+            while i < len(self.netplaySlots):
+                if hexId(stageId).replace('0x', '') == self.netplaySlots[i].stageId:
+                    stageId += 1
+                    i = setStage
                 i += 1
             break
         cosmeticId = 1
         i = 0
         while True:
             while i < len(self.stageSlots):
-                if hexId(cosmeticId).replace('0x', '') == self.stageSlots[i].cosmeticId or hexId(cosmeticId).replace('0x', '') == self.netplaySlots[i].cosmeticId:
+                if hexId(cosmeticId).replace('0x', '') == self.stageSlots[i].cosmeticId:
                     cosmeticId += 1
                     i = 0
+                i += 1
+            break
+        setCosmetics = i
+        while True:
+            while i < len(self.netplaySlots):
+                if hexId(cosmeticId).replace('0x', '') == self.netplaySlots[i].cosmeticId:
+                    cosmeticId += 1
+                    i = setCosmetics
                 i += 1
             break
         return hexId(stageId).replace('0x', '') + hexId(cosmeticId).replace('0x', '')
@@ -1471,7 +1487,6 @@ class StageEditor(Form):
         self.tracklistTextBox.BindingContext = self.BindingContext
         self.tracklistTextBox.DropDownStyle = ComboBoxStyle.DropDownList
         self.tracklistTextBox.DataSource = self.tracklistFiles
-        self.tracklistTextBox.Text = self.alts[0].tracklist if len(self.alts) > 0 else ""
         self.tracklistTextBox.Location = Point(208, 160)
         self.tracklistTextBox.Width = 160
         self.tracklistTextBox.SelectedValueChanged += self.tracklistDropDownChanged
@@ -1508,7 +1523,7 @@ class StageEditor(Form):
 
         # Effectbank textbox
         self.effectBankTextBox = TextBox()
-        self.effectBankTextBox.Text = str(hexId(self.alts[0].effectBank)) if len(self.alts) > 0 else "0xFFFF"
+        self.effectBankTextBox.Text = str(hexId(self.alts[0].effectBank)) if len(self.alts) > 0 else "0x0032"
         self.effectBankTextBox.Location = Point(208, 247)
         self.effectBankTextBox.Width = 160
         self.effectBankTextBox.TextChanged += self.effectBankTextChanged
@@ -1631,7 +1646,7 @@ class StageEditor(Form):
             self.gameLogoDropDown.SelectedIndex = 0
             self.gameLogoPictureBox.Image = Bitmap(self.gameLogoDropDown.SelectedValue)
             self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
-            self.tracklistTextBox.SelectedIndex = -1
+            self.tracklistTextBox.SelectedIndex = 0
 
     def stageAltChanged(self, sender, args):
         if len(self.alts) > 0:
@@ -1639,7 +1654,7 @@ class StageEditor(Form):
             self.moduleTextBox.Text = self.stageAltListbox.SelectedItem.module
             self.nameTextBox.Text = self.stageAltListbox.SelectedValue.Name
             self.pacNameTextBox.Text = self.stageAltListbox.SelectedItem.pacName
-            self.tracklistTextBox.Text = self.stageAltListbox.SelectedItem.tracklist
+            self.tracklistTextBox.SelectedItem = self.stageAltListbox.SelectedItem.tracklist
             self.soundBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.soundBank))
             self.effectBankTextBox.Text = str(hexId(self.stageAltListbox.SelectedItem.effectBank))
             self.pacNameFileBox.Text = self.stageAltListbox.SelectedItem.pacFile
@@ -1840,9 +1855,10 @@ class StageEditor(Form):
     def stageAltAddButtonPressed(self, sender, args):
         newAslEntry = ASLSEntryNode()
         newAslEntry.Name = "New_Stage"
-        newStageAlt = StageParams(newAslEntry, "", "", "", int("0xFFFF", 16), int("0xFFFF", 16), "")
+        newStageAlt = StageParams(newAslEntry, "", "Battlefield", "", int("0xFFFF", 16), int("0x0032", 16), "")
         self.alts.Add(newStageAlt)
         self.enableControls()
+        self.stageAltListbox.SelectedIndex = len(self.alts) - 1
 
     def stageAltRemoveButtonPressed(self, sender, args):
         if len(self.alts) <= 1:

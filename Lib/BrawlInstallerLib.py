@@ -22,6 +22,7 @@ from System.Diagnostics import Process
 from System.Drawing import *
 from System.Collections.Generic import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
+from BrawlLib.SSBB.ResourceNodes.ProjectPlus.STEXNode import VariantType
 from System.IO.Compression import ZipFile
 from System.Windows.Forms import *
 
@@ -5628,8 +5629,9 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 						if gameLogos:
 							for gameLogo in gameLogos:
 								gameLogoName = getStageTextureName('MenSelmapMark.', '00', texFolder, True)
-								gameLogoNode = importTexture(bresNode, gameLogo, WiiPixelFormat.IA4)
-								gameLogoNode.Name = gameLogoName
+								if fileName == '/pf/menu2/sc_selmap.pac':
+									gameLogoNode = importTexture(bresNode, gameLogo, WiiPixelFormat.IA4)
+									gameLogoNode.Name = gameLogoName
 						if franchiseIconName:
 							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", int(cosmeticId, 16))
 							if not pat0Entry:
@@ -5736,6 +5738,7 @@ def updateStageSlot(stageId, stageParamList):
 # Update stage params
 def updateStageParams(stageId, stageParamList):
 		writeLog("Updating stage params for stage ID " + str(stageId))
+		new = False
 		for stageParam in stageParamList:
 			if stageParam.originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
 				if stageParam.originalName != stageParam.aslEntry.Name:
@@ -5747,12 +5750,15 @@ def updateStageParams(stageId, stageParamList):
 			else:
 				fileOpened = BrawlAPI.New[STEXNode]()
 				BrawlAPI.RootNode.Name = stageParam.aslEntry.Name
+				new = True
 			if fileOpened:
 				BrawlAPI.RootNode.StageName = stageParam.pacName
 				BrawlAPI.RootNode.TrackList = stageParam.tracklist
 				BrawlAPI.RootNode.Module = stageParam.module
 				BrawlAPI.RootNode.SoundBank = stageParam.soundBank
 				BrawlAPI.RootNode.EffectBank = stageParam.effectBank
+				if new:
+					BrawlAPI.RootNode.SubstageVarianceType = VariantType.None
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating stage params")
