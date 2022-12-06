@@ -854,7 +854,7 @@ class StageList(Form):
 
         removeButton = Button()
         removeButton.Location = Point(16, 304)
-        removeButton.Text = "Remove"
+        removeButton.Text = "Delete"
         removeButton.Click += self.removeButtonPressed
 
         netplayAddButton = Button()
@@ -864,7 +864,7 @@ class StageList(Form):
 
         netplayRemoveButton = Button()
         netplayRemoveButton.Location = Point(16, 304)
-        netplayRemoveButton.Text = "Remove"
+        netplayRemoveButton.Text = "Delete"
         netplayRemoveButton.Click += self.removeButtonPressed
 
         moveLeftButton = Button()
