@@ -121,6 +121,13 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   
 </details>
 
+<details>
+  <summary><b>The stage/music manager doesn't work for me.</b></summary>
+  
+  The most likely reason for this is that your build does not use the modern Project+ tracklist and stage systems. Only the Project+ tracklist and stage systems are supported by BrawlInstallers stage and music managers. Most modern builds use this system, but some older builds may not.
+  
+</details>
+
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
