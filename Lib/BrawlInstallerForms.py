@@ -1689,6 +1689,7 @@ class StageEditor(Form):
             progressBar.Begin(0, 5, progressCounter)
 
             removeStageEntry(self.removeSlots)
+            removeStageEntry(self.alts, False)
 
             progressCounter += 1
             progressBar.Update(progressCounter)
