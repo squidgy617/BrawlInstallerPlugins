@@ -6,13 +6,14 @@ A BrawlCrate plugin suite for easy installation of Brawl mods into BrawlEX build
 
 This tool was made possible by:
 - Soopercool101, Kryal, BlackJax96, and libertyernie for BrawlLib, BrawlBox, and BrawlCrate. Extra thanks to Soopercool101 for making additions to BrawlCrate to support features needed for the BrawlInstaller plugins.
-- markymawk, for their basic guide to writing plug-ins and for their plug-ins which served as a great learning resource.
+- markymawk, for their basic guide to writing plug-ins and for their plug-ins which served as a great learning resource, as well as their stage and music managing guides for Project+ which were a valuable resource.
 - Kapedani, for providing files and assistance with Subspace Emissary Ex implementation.
 - QuickLava and codes, for the various tools they created that these plugins are able to interact with.
 - KingJigglypuff for providing detailed information on currently supported non-Ex modules.
 - CaliKingz01, who provided the PSA for X to use as an example character package.
 - Shy, who created the cosmetics used for X.
 - Hatyaro, for helping with some coding challenges.
+- The Project+ team, for the advancements made to Brawl modding that made this all possible.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
 - The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
@@ -22,6 +23,7 @@ If you find any bugs or issues with the plugins, please submit them as an issue 
 
 ## Features
 - Install or uninstall fully playable characters and costumes into a build of Super Smash Bros. Brawl in just a few clicks.
+- Add, edit, and manage stages and music for your build using intuitive forms.
 - Extract characters from a build as fully installable packages - either individually or en masse.
 - Installed characters playable in all modes, including support for [Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases).
 - Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
@@ -54,6 +56,8 @@ The plugins create backups of your files during execution, but they do not clean
 **LINK**: [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
 
 If you're just looking to get started in using these plugins to package and install character mods, you can use this guide to get started. It's designed to hopefully get both newbies to modding, as well as people who are just new to the plugins, get started with creating and installing character packages.
+
+In addition, you may want to check out the guides to [managing music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Music) and [managing stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Stages) for a detailed breakdown on working with these aspects of BrawlInstaller.
 
 # Character Packages
 
@@ -120,5 +124,4 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
-- Stage Installer plugin
 - Extract vanilla characters from builds
