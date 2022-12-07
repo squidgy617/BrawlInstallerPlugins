@@ -722,7 +722,7 @@ class TracklistEditor(Form):
 
 class StageList(Form):
 
-    def __init__(self):
+    def __init__(self, stageLists):
         # Form parameters
         self.Text = 'Stage List'
         self.StartPosition = FormStartPosition.CenterParent
@@ -733,28 +733,7 @@ class StageList(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
-        self.stageLists = []
-
-        settings = None
-
-        if File.Exists(MainForm.BuildPath + '/settings.ini'):
-            settings = getSettings()
-
-        if File.Exists(MainForm.BuildPath + '/Source/Project+/StageFiles.asm'):
-            self.stageLists.append('/Source/Project+/StageFiles.asm')
-        if File.Exists(MainForm.BuildPath + '/Source/Netplay/Net-StageFiles.asm'):
-            self.stageLists.append('/Source/Netplay/Net-StageFiles.asm')
-
-        if settings:
-            if settings.customStageLists:
-                customStageLists = settings.customStageLists.split(',').replace(MainForm.BuildPath, '')
-                for stageList in customStageLists:
-                    self.stageLists.append(stageList)
-
-        if len(self.stageLists) <= 0:
-            BrawlAPI.ShowMessage('No stage lists could be found. If your build uses a custom style of stage lists, please run the "Configure Settings" plugin to set up stagelist paths.')
-            self.DialogResult = DialogResult.Cancel
-            self.Close()
+        self.stageLists = stageLists
 
         self.length = len(self.stageLists)
 
@@ -779,7 +758,7 @@ class StageList(Form):
                     pageSlot = StageSlot('0x00', '00', '00', '0000', '|| PAGE ' + str(pageNumber) + ' ||')
                     self.stageSlots[i].Add(pageSlot)
                     for slotId in page:
-                        stageIds = getStageIdsByNumber(slotId)
+                        stageIds = getStageIdsByNumber(slotId, self.stageLists[i])
                         stageName = getStageName(stageIds[2:4])
                         stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
                         self.stageSlots[i].Add(stageSlot)
@@ -816,6 +795,8 @@ class StageList(Form):
                 tabPageName = 'Standard'
             elif self.stageLists[i] == '/Source/Netplay/Net-StageFiles.asm':
                 tabPageName = 'Netplay'
+            elif File.Exists(MainForm.BuildPath + self.stageLists[i]):
+                tabPageName = getFileInfo(MainForm.BuildPath + self.stageLists[i]).Name.replace('.asm','')
             else:
                 tabPageName = self.stageLists[i]
 
@@ -972,7 +953,7 @@ class StageList(Form):
 
     def addButtonPressed(self, sender, args):
         newId = self.getFirstAvailableId()
-        form = StageEditor(newId, True)
+        form = StageEditor(newId, True, self.stageLists)
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
             newSlot = None
@@ -1027,7 +1008,7 @@ class StageList(Form):
     def saveButtonPressed(self, sender, args):
         try:
             if len(self.removeSlots) > 0:
-                removeStageSlot(self.removeSlots)
+                removeStageSlot(self.removeSlots, self.stageLists)
             for slot in self.removeSlots:
                 if File.Exists(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl"):
                     File.Delete(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl")
@@ -1036,7 +1017,10 @@ class StageList(Form):
                 updateStageList(self.listBox[i].Items, self.stageLists[i])
                 i += 1
             buildGct()
+            self.removeSlots = []
             BrawlAPI.ShowMessage("Saved successfully.", "Success")
+            #self.DialogResult = DialogResult.OK
+            #self.Close()
         except Exception as e:
             writeLog("ERROR " + str(e))
             if 'progressBar' in locals():
@@ -1051,34 +1035,34 @@ class StageList(Form):
         self.Close()
 
     def getFirstAvailableId(self):
+        # Compile stage IDs
+        usedStageIds = []
+        for stageList in self.stageSlots:
+            for stageSlot in stageList:
+                usedStageIds.append(stageSlot.stageId)
+        for stageList in self.unusedSlots:
+            for stageSlot in stageList:
+                usedStageIds.append(stageSlot.stageId)
+        for stageSlot in self.removeSlots:
+            usedStageIds.append(stageSlot.stageId)
+        # Get first available
         stageId = 1
-        setStage = 0
-        j = 0
-        while j < self.length:
-            i = 0
-            while True:
-                while i < len(self.stageSlots[j]):
-                    if hexId(stageId).replace('0x', '') == self.stageSlots[j][i].stageId:
-                        stageId += 1
-                        i = setStage
-                    i += 1
-                break
-            setStage = i
-            j += 1
+        while hexId(stageId).replace('0x','') in usedStageIds:
+            stageId += 1
+        # Compile cosmetic IDs
+        usedCosmeticIds = []
+        for stageList in self.stageSlots:
+            for stageSlot in stageList:
+                usedCosmeticIds.append(stageSlot.cosmeticId)
+        for stageList in self.unusedSlots:
+            for stageSlot in stageList:
+                usedCosmeticIds.append(stageSlot.cosmeticId)
+        for stageSlot in self.removeSlots:
+            usedCosmeticIds.append(stageSlot.cosmeticId)
+        # Get first available
         cosmeticId = 1
-        setCosmetics = 0
-        j = 0
-        while j < self.length:
-            i = 0
-            while True:
-                while i < len(self.stageSlots[j]):
-                    if hexId(cosmeticId).replace('0x', '') == self.stageSlots[j][i].cosmeticId:
-                        cosmeticId += 1
-                        i = 0
-                    i += 1
-                break
-            setCosmetics = i
-            j += 1
+        while hexId(cosmeticId).replace('0x','') in usedCosmeticIds:
+            cosmeticId += 1
         return hexId(stageId).replace('0x', '') + hexId(cosmeticId).replace('0x', '')
 
 #endregion
@@ -1633,8 +1617,7 @@ class StageEditor(Form):
                 importFiles(self.addedTracks)
             if self.new:
                 for stageList in self.stageLists:
-                    newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name)
-                    #newNetplaySlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name, True)
+                    newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name, stageList)
                     self.newSlotNumber.append(newSlotNumber)
             buildGct()
             progressCounter += 1

@@ -15,7 +15,30 @@ def main():
 			return
 		createLogFile()
 		backupCheck()
-		form = StageList()
+
+		settings = None
+		stageLists = []
+
+		if File.Exists(MainForm.BuildPath + '/settings.ini'):
+			settings = getSettings()
+
+		if File.Exists(MainForm.BuildPath + '/Source/Project+/StageFiles.asm'):
+			stageLists.append('/Source/Project+/StageFiles.asm')
+		if File.Exists(MainForm.BuildPath + '/Source/Netplay/Net-StageFiles.asm'):
+			stageLists.append('/Source/Netplay/Net-StageFiles.asm')
+
+		if settings:
+			if settings.customStageLists:
+				customStageLists = settings.customStageLists.split(',')
+				for stageList in customStageLists:
+					if File.Exists(MainForm.BuildPath + stageList.replace(MainForm.BuildPath, '')):
+						stageLists.append(stageList.replace(MainForm.BuildPath, ''))
+
+		if len(stageLists) <= 0:
+			BrawlAPI.ShowMessage('No stage lists could be found. If your build uses a custom style of stage lists, please run the "Configure Settings" plugin to set up stagelist paths.', 'No Stage Lists Found')
+			return
+
+		form = StageList(stageLists)
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.Abort:
 			restoreBackup()

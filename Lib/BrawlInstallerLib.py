@@ -4508,6 +4508,7 @@ def getSettings():
 		settings.installToSse = readValueFromKey(fileText, "installToSse")
 		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
 		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
+		settings.customStageLists = readValueFromKey(fileText, "customStageLists")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -4852,14 +4853,15 @@ def initialSetup():
 		else:
 			settings.sseUnlockStage = "end"
 		settings.installTrophies = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install character trophies when they are available?\n\nAlthough adding trophies appears to be stable, added trophies are still not fully understood, so this feature is considered experimental.", title))
-		setStageLists = boolText(BrawlAPI.YesNoPrompt("Does your build use any custom stage list files in addition to StageFiles.asm and Net-StageFiles.asm? (If you don't know what this means, the answer is probably 'No').", title))
+		setStageLists = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use any custom stage list files in addition to StageFiles.asm and Net-StageFiles.asm? (If you don't know what this means, the answer is probably 'No').", title))
 		if setStageLists:
 			customStageLists = BrawlAPI.OpenMultiFileDialog("Select the stage list .asm files", "Assembly files|*.asm")
 			customStageText = ""
 			i = 0
 			while i < len(customStageLists):
-				customStageText += customStageLists[i] + "," if i != len(customStageLists) - 1 else ""
+				customStageText += customStageLists[i] + ("," if i != len(customStageLists) - 1 else "")
 				settings.customStageLists = customStageText
+				i += 1
 		else:
 			settings.customStageLists = ""
 		attrs = vars(settings)
@@ -5191,12 +5193,9 @@ def getUnusedSlotId(slotList):
 	return hexId(newSlotId)
 
 # Get stage IDs
-def getStageIds(netplay=False):
+def getStageIds(path="/Source/Project+/StageFiles.asm"):
 		writeLog("Getting stage IDs")
-		if not netplay:
-			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
-		else:
-			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm")
+		fileText = File.ReadAllLines(MainForm.BuildPath + path)
 		tableValues = []
 		tableStart = 0
 		# Find the stages table
@@ -5222,12 +5221,9 @@ def getStageIds(netplay=False):
 		return tableValues
 
 # Add stage ID pair to table
-def addStageId(fullId, stageName, netplay=False):
+def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Updating stage IDs")
-		if not netplay:
-			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
-		else:
-			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		file = MainForm.BuildPath + path
 		createBackup(file)
 		fileText = File.ReadAllLines(file)
 		tableStart = 0
@@ -5272,12 +5268,9 @@ def addStageId(fullId, stageName, netplay=False):
 
 # Remove stage ID pair from table
 # This function is a mess, please do not look too close at it
-def removeStageId(fullId, netplay=False):
+def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Removing stage ID " + str(fullId))
-		if not netplay:
-			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
-		else:
-			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		file = MainForm.BuildPath + path
 		createBackup(file)
 		fileText = File.ReadAllLines(file)
 		tableStart = 0
@@ -5330,7 +5323,7 @@ def removeStageId(fullId, netplay=False):
 				newLine = ""
 				j = 0
 				while j < len(splitLine):
-					newLine += splitLine[j].strip() + ("," if j != len(tableLines) - 1 else "") + "\t"
+					newLine += splitLine[j].strip() + ("," if j != len(splitLine) - 1 else "") + "\t"
 					j += 1
 				newLine += "| "
 				j = 0
@@ -5360,7 +5353,7 @@ def removeStageId(fullId, netplay=False):
 		writeLog("Finished removing stage ID")
 
 # Remove stage slot entirely
-def removeStageSlot(stageSlots):
+def removeStageSlot(stageSlots, stageLists):
 	writeLog("Removing stage slots")
 	for stageSlot in stageSlots:
 		writeLog("Removing stage slot " + stageSlot.name)
@@ -5369,7 +5362,7 @@ def removeStageSlot(stageSlots):
 		removeFranchiseIcon = BrawlAPI.ShowYesNoPrompt("Would you like to remove " + stageSlot.name + "'s franchise icon?\n\nNOTE: Only do this if no other stages use the franchise icon.", "Remove Franchise Icon?")
 		removeGameLogo = BrawlAPI.ShowYesNoPrompt("Would you like to remove " + stageSlot.name + "'s game icon?\n\nNOTE: Only do this if no other stages use the game icon.", "Remove Game Icon?")
 		stageAlts = getStageAltInfo(stageId)
-		removeStageEntry(stageAlts)
+		removeStageEntry(stageAlts, forceDelete=True)
 		removeStageCosmetics(cosmeticId, removeFranchiseIcon=removeFranchiseIcon, removeGameLogo=removeGameLogo)
 		removeStageCosmetics(cosmeticId, 'pf/menu2/mu_menumain.pac', removeFranchiseIcon=removeFranchiseIcon, removeGameLogo=removeGameLogo)
 		fileOpened = checkOpenFile('sc_selmap')
@@ -5378,14 +5371,14 @@ def removeStageSlot(stageSlots):
 		if fileOpened:
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
-		removeStageId(stageSlot.fullId)
-		removeStageId(stageSlot.fullId, True)
+		for stageList in stageLists:
+			removeStageId(stageSlot.fullId, stageList)
 		writeLog("Finished removing stage slot")
 
 # Get stage IDs for specific stage number
-def getStageIdsByNumber(stageNumber):
+def getStageIdsByNumber(stageNumber, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Getting stage ID by slot ID " + str(stageNumber))
-		stageIds = getStageIds()
+		stageIds = getStageIds(path)
 		i = 0
 		for stageId in stageIds:
 			if hexId(i) == stageNumber:
@@ -5806,7 +5799,7 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 		writeLog("Finished moving stage files")
 
 # Remove stage entry
-def removeStageEntry(stageParams, deleteParam=True):
+def removeStageEntry(stageParams, deleteParam=True, forceDelete=False):
 		writeLog("Removing stage entries")
 		title = "Remove file?"
 		removePac = False
@@ -5816,21 +5809,21 @@ def removeStageEntry(stageParams, deleteParam=True):
 		reviewedFiles = []
 		for stageParam in stageParams:
 			messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
-			if stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName:
+			if (stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName) or forceDelete:
 				pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
 				if File.Exists(pacFile) and pacFile not in reviewedFiles:
 					removePac = BrawlAPI.ShowYesNoPrompt(messageText + "STG" + stageParam.originalPacName + ".pac", title)
 					reviewedFiles.append(pacFile)
 				elif pacFile in reviewedFiles:
 					removePac = False
-			if stageParam.originalModule and stageParam.originalModule != stageParam.module:
+			if (stageParam.originalModule and stageParam.originalModule != stageParam.module) or forceDelete:
 				moduleFile = MainForm.BuildPath + '/pf/module/' + stageParam.originalModule
 				if File.Exists(moduleFile) and moduleFile not in reviewedFiles:
 					removeModule = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalModule, title)
 					reviewedFiles.append(moduleFile)
 				elif moduleFile in reviewedFiles:
 					removeModule = False
-			if stageParam.originalSoundBank and stageParam.originalSoundBank != stageParam.soundBank:
+			if (stageParam.originalSoundBank and stageParam.originalSoundBank != stageParam.soundBank) or forceDelete:
 				directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
 				files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
 				if len(files) > 0:
