@@ -5077,12 +5077,9 @@ class ColorPrompt(Form):
 #region STAGES
 
 # Get list of stages
-def getStageList(netplay=False):
+def getStageList(path="/Source/Project+/StageFiles.asm"):
 		writeLog("Reading stage list")
-		if not netplay:
-			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Project+/StageFiles.asm")
-		else:
-			fileText = File.ReadAllLines(MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm")
+		fileText = File.ReadAllLines(MainForm.BuildPath + path)
 		tables = []
 		tableStarts = []
 		# Find the tables
@@ -5110,12 +5107,9 @@ def getStageList(netplay=False):
 		return tables
 
 # Write new stage list
-def updateStageList(stageList, netplay=False):
+def updateStageList(stageList, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Updating stage list")
-		if not netplay:
-			file = MainForm.BuildPath + "/Source/Project+/StageFiles.asm"
-		else:
-			file = MainForm.BuildPath + "/Source/Netplay/Net-StageFiles.asm"
+		file = MainForm.BuildPath + path
 		createBackup(file)
 		newText = []
 		stopWriting = False
@@ -5518,11 +5512,11 @@ def getStageAlts(stageId):
 		return []
 
 # Get unused stages
-def getUnusedStageSlots(stageSlots, netplay=False):
+def getUnusedStageSlots(stageSlots, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Getting unused stage slots")
 		i = 0
 		unusedSlots = []
-		for stage in getStageIds(netplay):
+		for stage in getStageIds(path):
 			append = True
 			for slot in stageSlots:
 				if slot.fullId == stage.replace('0x',''):
