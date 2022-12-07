@@ -733,7 +733,28 @@ class StageList(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
-        self.stageLists = ['/Source/Project+/StageFiles.asm', '/Source/Netplay/Net-StageFiles.asm']
+        self.stageLists = []
+
+        settings = None
+
+        if File.Exists(MainForm.BuildPath + '/settings.ini'):
+            settings = getSettings()
+
+        if File.Exists(MainForm.BuildPath + '/Source/Project+/StageFiles.asm'):
+            self.stageLists.append('/Source/Project+/StageFiles.asm')
+        if File.Exists(MainForm.BuildPath + '/Source/Netplay/Net-StageFiles.asm'):
+            self.stageLists.append('/Source/Netplay/Net-StageFiles.asm')
+
+        if settings:
+            if settings.customStageLists:
+                customStageLists = settings.customStageLists.split(',').replace(MainForm.BuildPath, '')
+                for stageList in customStageLists:
+                    self.stageLists.append(stageList)
+
+        if len(self.stageLists) <= 0:
+            BrawlAPI.ShowMessage('No stage lists could be found. If your build uses a custom style of stage lists, please run the "Configure Settings" plugin to set up stagelist paths.'):
+            self.DialogResult = DialogResult.Cancel
+            self.Close()
 
         self.length = len(self.stageLists)
 

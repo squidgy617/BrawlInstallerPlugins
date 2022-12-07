@@ -4852,6 +4852,16 @@ def initialSetup():
 		else:
 			settings.sseUnlockStage = "end"
 		settings.installTrophies = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install character trophies when they are available?\n\nAlthough adding trophies appears to be stable, added trophies are still not fully understood, so this feature is considered experimental.", title))
+		setStageLists = boolText(BrawlAPI.YesNoPrompt("Does your build use any custom stage list files in addition to StageFiles.asm and Net-StageFiles.asm? (If you don't know what this means, the answer is probably 'No').", title))
+		if setStageLists:
+			customStageLists = BrawlAPI.OpenMultiFileDialog("Select the stage list .asm files", "Assembly files|*.asm")
+			customStageText = ""
+			i = 0
+			while i < len(customStageLists):
+				customStageText += customStageLists[i] + "," if i != len(customStageLists) - 1 else ""
+				settings.customStageLists = customStageText
+		else:
+			settings.customStageLists = ""
 		attrs = vars(settings)
 		File.WriteAllText(RESOURCE_PATH + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
 		BrawlAPI.ShowMessage("Setup complete.", title)
@@ -4891,6 +4901,7 @@ class Settings:
 		installToSse = "false"
 		sseUnlockStage = "end"
 		installTrophies = "false"
+		customStageLists = ""
 
 class FighterSettings:
 		lucarioBoneId = ""
