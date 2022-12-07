@@ -752,7 +752,7 @@ class StageList(Form):
                     self.stageLists.append(stageList)
 
         if len(self.stageLists) <= 0:
-            BrawlAPI.ShowMessage('No stage lists could be found. If your build uses a custom style of stage lists, please run the "Configure Settings" plugin to set up stagelist paths.'):
+            BrawlAPI.ShowMessage('No stage lists could be found. If your build uses a custom style of stage lists, please run the "Configure Settings" plugin to set up stagelist paths.')
             self.DialogResult = DialogResult.Cancel
             self.Close()
 
