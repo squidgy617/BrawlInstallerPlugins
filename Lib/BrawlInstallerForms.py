@@ -1520,19 +1520,19 @@ class StageEditor(Form):
         if not self.new:
             i = 0
             while i < len(self.cosmetics.franchiseIconList):
-                if self.cosmetics.franchiseIconList[i].name == self.cosmetics.franchiseIcon.name:
+                if self.cosmetics.franchiseIcon and self.cosmetics.franchiseIconList[i].name == self.cosmetics.franchiseIcon.name:
                     self.franchiseIconDropDown.SelectedIndex = i
                     break
                 i += 1
             i = 0
             while i < len(self.cosmetics.stageNameList):
-                if self.cosmetics.stageNameList[i].name == self.cosmetics.altName.name:
+                if self.cosmetics.altName and self.cosmetics.stageNameList[i].name == self.cosmetics.altName.name:
                     self.altDropDown.SelectedIndex = i
                     break
                 i += 1
             i = 0
             while i < len(self.cosmetics.gameLogoList):
-                if self.cosmetics.gameLogoList[i].name == self.cosmetics.gameLogo.name:
+                if self.cosmetics.gameLogo and self.cosmetics.gameLogoList[i].name == self.cosmetics.gameLogo.name:
                     self.gameLogoDropDown.SelectedIndex = i
                     break
                 i += 1
@@ -1657,19 +1657,25 @@ class StageEditor(Form):
         self.altNamePictureBox.Image = Bitmap(self.altDropDown.SelectedValue)
         if self.altDropDown.SelectedItem.name != self.cosmetics.altName.name:
             self.newAltName = self.altDropDown.SelectedItem.name
+        elif not self.cosmetics.altName:
+            self.newAltName = self.altDropDown.SelectedItem.name
         else:
             self.newAltName = ""
 
     def franchiseIconDropDownChanged(self, sender, args):
         self.franchiseIconPictureBox.Image = Bitmap(self.franchiseIconDropDown.SelectedValue)
-        if self.franchiseIconDropDown.SelectedItem.name != self.cosmetics.franchiseIcon.name:
+        if self.cosmetics.franchiseIcon and self.franchiseIconDropDown.SelectedItem.name != self.cosmetics.franchiseIcon.name:
+            self.newFranchiseIcon = self.franchiseIconDropDown.SelectedItem.name
+        elif not self.cosmetics.franchiseIcon:
             self.newFranchiseIcon = self.franchiseIconDropDown.SelectedItem.name
         else:
             self.newFranchiseIcon = ""
 
     def gameLogoDropDownChanged(self, sender, args):
         self.gameLogoPictureBox.Image = Bitmap(self.gameLogoDropDown.SelectedValue)
-        if self.gameLogoDropDown.SelectedItem.name != self.cosmetics.gameLogo.name:
+        if self.cosmetics.gameLogo and self.gameLogoDropDown.SelectedItem.name != self.cosmetics.gameLogo.name:
+            self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
+        elif not self.cosmetics.gameLogo:
             self.newGameLogo = self.gameLogoDropDown.SelectedItem.name
         else:
             self.newGameLogo = ""
