@@ -5530,7 +5530,7 @@ def getUnusedStageSlots(stageSlots, path="/Source/Project+/StageFiles.asm"):
 				stageName = getStageName(stage[2:4])
 				if stageName:
 					unusedSlot = StageSlot(hexId(i), stage[2:4], stage[4:6], stage[2:6], stageName)
-				unusedSlots.append(unusedSlot)
+					unusedSlots.append(unusedSlot)
 			i += 1
 		writeLog("Finished getting unused stage slots")
 		return unusedSlots
