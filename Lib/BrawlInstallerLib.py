@@ -2703,7 +2703,7 @@ def subtractStockIcons(cosmeticId, startIndex, tex0BresName, pat0BresName, endIn
 				if lastId != -1:
 					i = lastId + 1
 				else:
-					i = startId
+					i = startId + 1
 				while i < newEnd:
 					# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
 					frameCount = 9201 if fiftyCC == "true" else 501
