@@ -23,16 +23,22 @@ def main():
 			settings = getSettings()
 
 		if File.Exists(MainForm.BuildPath + '/Source/Project+/StageFiles.asm'):
-			stageLists.append('/Source/Project+/StageFiles.asm')
+			stageListEntries = getStageList('/Source/Project+/StageFiles.asm')
+			if len(stageListEntries) > 0:
+				stageLists.append('/Source/Project+/StageFiles.asm')
 		if File.Exists(MainForm.BuildPath + '/Source/Netplay/Net-StageFiles.asm'):
-			stageLists.append('/Source/Netplay/Net-StageFiles.asm')
+			stageListEntries = getStageList('/Source/Netplay/Net-StageFiles.asm')
+			if len(stageListEntries) > 0:
+				stageLists.append('/Source/Netplay/Net-StageFiles.asm')
 
 		if settings:
 			if settings.customStageLists:
 				customStageLists = settings.customStageLists.split(',')
 				for stageList in customStageLists:
 					if File.Exists(MainForm.BuildPath + stageList.replace(MainForm.BuildPath, '')):
-						stageLists.append(stageList.replace(MainForm.BuildPath, ''))
+						stageListEntries = getStageList(stageList.replace(MainForm.BuildPath, ''))
+						if len(stageListEntries) > 0:
+							stageLists.append(stageList.replace(MainForm.BuildPath, ''))
 
 		if len(stageLists) <= 0:
 			BrawlAPI.ShowMessage('No stage lists could be found. If your build uses a custom style of stage lists, please run the "Configure Settings" plugin to set up stagelist paths.', 'No Stage Lists Found')

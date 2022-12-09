@@ -4856,7 +4856,7 @@ def initialSetup():
 		else:
 			settings.sseUnlockStage = "end"
 		settings.installTrophies = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install character trophies when they are available?\n\nAlthough adding trophies appears to be stable, added trophies are still not fully understood, so this feature is considered experimental.", title))
-		setStageLists = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use any custom stage list files in addition to StageFiles.asm and Net-StageFiles.asm? (If you don't know what this means, the answer is probably 'No').", title))
+		setStageLists = BrawlAPI.ShowYesNoPrompt("Does your build use any custom stage list files in addition to StageFiles.asm and Net-StageFiles.asm? (If you don't know what this means, the answer is probably 'No').", title)
 		if setStageLists:
 			customStageLists = BrawlAPI.OpenMultiFileDialog("Select the stage list .asm files", "Assembly files|*.asm")
 			customStageText = ""
@@ -5094,7 +5094,7 @@ class ColorPrompt(Form):
 
 # Get list of stages
 def getStageList(path="/Source/Project+/StageFiles.asm"):
-		writeLog("Reading stage list")
+		writeLog("Reading stage list for path " + path)
 		fileText = File.ReadAllLines(MainForm.BuildPath + path)
 		tables = []
 		tableStarts = []
@@ -5114,7 +5114,7 @@ def getStageList(path="/Source/Project+/StageFiles.asm"):
 				line = fileText[i]
 				if len(line) <= 0 or line.startswith('TABLE'):
 					break
-				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+				splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 				for item in splitLine:
 					tableValues.append(item.strip())
 				i += 1
@@ -5216,7 +5216,7 @@ def getStageIds(path="/Source/Project+/StageFiles.asm"):
 			line = fileText[i]
 			if len(line) <= 0 or line.startswith('TABLE'):
 				break
-			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 			for item in splitLine:
 				tableValues.append(item.strip())
 			i += 1
@@ -5247,12 +5247,12 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 			if len(line) <= 0 or line.startswith('TABLE'):
 				break
 			# Get a running list of IDs while we're at it (mostly for length check purposes later)
-			splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+			splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 			for item in splitLine:
 				tableValues.append(item)
 			i += 1
 		line = fileText[i - 1]
-		ids = list(filter(None, line.split('|')[0].strip().split(',')))
+		ids = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 		if len(ids) < 4:
 			splitLine = line.split('|')
 			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ splitLine[1] + ", " + stageName
