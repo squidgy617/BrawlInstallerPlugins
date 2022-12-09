@@ -5770,35 +5770,42 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 		for stageParam in stageParamList:
 			if stageParam.pacFile:
 				if File.Exists(stageParam.pacFile):
-					if stageParam.pacName:
-						copyRenameFile(stageParam.pacFile, "STG" + stageParam.pacName.upper() + ".pac", MainForm.BuildPath + '/pf/stage/melee')
-					else:
-						copyFile(stageParam.pacFile, MainForm.BuildPath + '/pf/stage/melee')
+					if not File.Exists(MainForm.BuildPath + "/pf/stage/melee/" + getFileInfo("STG" + stageParam.pacName.upper() + ".pac").Name):
+						if stageParam.pacName:
+							copyRenameFile(stageParam.pacFile, "STG" + stageParam.pacName.upper() + ".pac", MainForm.BuildPath + '/pf/stage/melee')
+						else:
+							copyFile(stageParam.pacFile, MainForm.BuildPath + '/pf/stage/melee')
 			if stageParam.moduleFile:
 				if File.Exists(stageParam.moduleFile):
-					if stageParam.module:
-						copyRenameFile(stageParam.moduleFile, stageParam.module, MainForm.BuildPath + '/pf/module')
-					else:
-						copyFile(stageParam.moduleFile, MainForm.BuildPath + '/pf/module')
+					if not File.Exists(MainForm.BuildPath + "/pf/module/" + getFileInfo(stageParam.moduleFile).Name):
+						if stageParam.module:
+							copyRenameFile(stageParam.moduleFile, stageParam.module, MainForm.BuildPath + '/pf/module')
+						else:
+							copyFile(stageParam.moduleFile, MainForm.BuildPath + '/pf/module')
 			if stageParam.tracklistFile:
 				if File.Exists(stageParam.tracklistFile):
-					if stageParam.tracklist:
-						copyRenameFile(stageParam.tracklistFile, stageParam.tracklist + ".tlst", MainForm.BuildPath + '/pf/sound/tracklist')
-					else:
-						copyFile(stageParam.tracklistFile, MainForm.BuildPath + '/pf/sound/tracklist')
+					if not File.Exists(MainForm.BuildPath + "/pf/sound/tracklist/" + getFileInfo(stageParam.tracklist + ".tlst").Name):
+						if stageParam.tracklist:
+							copyRenameFile(stageParam.tracklistFile, stageParam.tracklist + ".tlst", MainForm.BuildPath + '/pf/sound/tracklist')
+						else:
+							copyFile(stageParam.tracklistFile, MainForm.BuildPath + '/pf/sound/tracklist')
 			if stageParam.soundBankFile:
 				if File.Exists(stageParam.soundBankFile):
 					if stageParam.soundBank and hexId(stageParam.soundBank) != "0xFFFF":
 						fileName = getFileInfo(stageParam.soundBankFile).Name
-						copyRenameFile(stageParam.soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
-					else:
-						copyFile(stageParam.soundBankFile, MainForm.BuildPath + '/pf/sound/tracklist')
+						if not File.Exists(MainForm.BuildPath + "/pf/sfx/" + fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3))):
+							copyRenameFile(stageParam.soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
+					elif hexId(stageParam.soundBank != "0xFFFF"):
+						fileName = getFileInfo(stageParam.soundBankFile).Name
+						if not File.Exists(MainForm.BuildPath + "/pf/sfx/" + fileName):
+							copyFile(stageParam.soundBankFile, MainForm.BuildPath + '/pf/sfx')
 			if stageParam.paramFile:
 				if File.Exists(stageParam.paramFile):
-					if stageParam.aslEntry:
-						copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
-					else:
-						copyFile(stageParam.paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
+					if not File.Exists(MainForm.BuildPath + "/pf/stage/stageinfo/" + getFileInfo(stageParam.aslEntry.Name + ".param").Name):
+						if stageParam.aslEntry:
+							copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
+						else:
+							copyFile(stageParam.paramFile, MainForm.BuildPath + '/pf/stage/stageinfo')
 		writeLog("Finished moving stage files")
 
 # Remove stage entry
