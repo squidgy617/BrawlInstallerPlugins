@@ -100,7 +100,7 @@ Assuming you have QuickLava's Kirby Hat Manager set up correctly, this is not so
 </details>
 
 <details>
-<summary><b>I added my character but don't see them on the character select screen/SSE character select.</b></summary>
+<summary><b>I added my character but don't see them on the character select screen/SSE character select, or their position on the screen is incorrect.</b></summary>
 
 This usually means one of two things - one, your build is not configured to use CSSRoster.dat, or two, you ran out of animated CSS slots in your build. If you're using P+Ex, the roster will only automatically expand up to a certain number of slots, and other builds may not even have the roster automatically expanding. In such a case, you'll have to expand it manually, which can be done in a similar manner to the steps outlined in [this guide](https://docs.google.com/document/d/1NN7X98xdoatzcnKabUq6TIhZrPTda84RmFp1La16GiQ/edit).
 
@@ -118,6 +118,13 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   <summary><b>I get an error about "color smashing", and/or the character portraits in game look messed up.</b></summary>
   
   This usually means you provided bad cosmetics, or you put cosmetics together in a folder when they shouldn't have been. Verify that all of your folders in the "CSPs" and "StockIcons" directories of your character package contain only cosmetics that are recolors of each other, and ensure any provided images are the right size and are color smashable.
+  
+</details>
+
+<details>
+  <summary><b>I get errors with the code menu/strange behavior after installing a character.</b></summary>
+  
+  Usually this means the build you have uses a code menu that is not compatible with BrawlInstaller. BrawlInstaller only supports QuickLava's code menu. If you are using a build with it's own code menu that is not configured the same way as QuickLava's, you will need to make code menu edits manually, and likely you should set BrawlInstaller not to make code menu changes.
   
 </details>
 
