@@ -44,6 +44,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					creditsFolder = getDirectoryByName("CreditsTheme", fighterDir)
 					classicIntro = getDirectoryByName("ClassicIntro", fighterDir)
 					trophyFolder = getDirectoryByName("Trophy", fighterDir)
+					codeFolder = getDirectoryByName("Codes", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -166,6 +167,30 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								creditsThemeName = getFileInfo(Directory.GetFiles(folder + '/CreditsTheme', "*.brstm")[0]).Name
 								if oldCreditsThemeName != creditsThemeName.split('.brstm')[0]:
 									uninstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a credits theme with a different name. Do you want to remove it?", "Remove existing credits theme?")
+
+					if codeFolder:
+						asmFiles = codeFolder.GetFiles("*.asm")
+						if len(asmFiles) > 0:
+							messageText = "This fighter comes with the following .asm files:\n"
+							for asmFile in asmFiles:
+								messageText += "\n" + asmFile.Name
+							messageText += "\n\nWould you like to install these into your build?"
+							installAsm = BrawlAPI.ShowYesNoPrompt(messageText, "Install .asm files?")
+							if installAsm:
+								matchFiles = []
+								continueInstall = True
+								for asmFile in asmFiles:
+									codeMatches = checkGct(asmFile.FullName)
+									if len(codeMatches) > 0:
+										matchFiles.append(codeMatches)
+								if len(matchFiles) > 0:
+									messageText = "The following codes to install were found already installed in your build:\n"
+									for matchFile in matchFiles:
+										messageText += ""
+										for matchCode in matchFile:
+											messageText += "\n" + matchCode
+									messageText += "\n\nWould you like to install codes anyway?"
+									continueInstall = BrawlAPI.ShowYesNoPrompt(messageText, "Codes Found")
 						
 					# Check if soundbank is already in use
 					if soundbankFolder:
@@ -729,7 +754,9 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					#region Code Edits
 
-					#addCodeMacro(fighterInfo.characterName, fighterId, "StockException", [ "0x" + str(fighterId), "0x" + str(fighterId) ], 0)
+					# Install any codes included with the fighter
+					if continueInstall:
+						installAsms(asmFiles)
 
 					# Make code changes to add a throw release point
 					if fighterSettings.throwReleasePoint:
