@@ -66,6 +66,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					overwriteFighterName = ""
 					changeEffectId = False
 					oldEffectId = ""
+					continueInstall = False
 
 					#region USER INPUT/PRELIMINARY CHECKS
 
