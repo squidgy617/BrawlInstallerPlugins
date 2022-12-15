@@ -1872,6 +1872,38 @@ def buildGct():
 			writeLog("Finished running GCTRealMate.exe")
 		writeLog("Finished building GCT files")
 
+# Check if codes from .asm file already exist in build
+def checkGct(filePath):
+		writeLog("Checking for existing gecko codes")
+		codeMatches = []
+		if not File.Exists(MainForm.BuildPath + '/log.txt'):
+			buildGct()
+		if File.Exists(MainForm.BuildPath + '/log.txt'):
+			existingLines = File.ReadAllLines(MainForm.BuildPath + '/log.txt')
+			newLines = File.ReadAllLines(filePath)
+			for existingLine in existingLines:
+				for newLine in newLines:
+					if existingLine.strip() == newLine.strip() and newLine.strip() not in codeMatches:
+						codeMatches.append(newLine.strip())
+		writeLog("Finished checking gecko codes")
+		return codeMatches
+
+# Install .asm files
+def installAsms(asmFiles):
+		writeLog("Installing asm files into build")
+		codePath = MainForm.BuildPath + '/Source/BrawlInstaller'
+		createDirectory(codePath)
+		boostText = ""
+		if File.Exists(MainForm.BuildPath + '/BOOST.txt'):
+			createBackup(MainForm.BuildPath + '/BOOST.txt')
+			boostText = File.ReadAllLines(MainForm.BuildPath + '/BOOST.txt')
+		for asmFile in asmFiles:
+			copyFile(asmFile.FullName, codePath)
+			text = '\n.include Source/BrawlInstaller/' + asmFile.Name
+			if boostText and (text not in boostText):
+				File.AppendAllText(MainForm.BuildPath + '/BOOST.txt', text)
+		writeLog("Finished installing asm files")
+
 # Helper function to generate a value string for code macros
 def getValueString(values, copiedValue=""):
 		# Get string out of values
