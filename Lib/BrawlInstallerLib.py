@@ -4558,9 +4558,10 @@ def getFighterSettings():
 			fighterSettings.jigglypuffEFLSId = hexId(readValueFromKey(fileText, "jigglypuffEFLSId"))
 			jigglypuffSfxIds = readValueFromKey(fileText, "jigglypuffSfxIds").split(',')
 			if jigglypuffSfxIds:
-				fighterSettings.jigglypuffSfxIds = []
-				for id in jigglypuffSfxIds:
-					fighterSettings.jigglypuffSfxIds.append(hexId(id))
+				if jigglypuffSfxIds[0]:
+					fighterSettings.jigglypuffSfxIds = []
+					for id in jigglypuffSfxIds:
+						fighterSettings.jigglypuffSfxIds.append(hexId(id))
 			fighterSettings.bowserBoneId = hexId(readValueFromKey(fileText, "bowserBoneId"))
 			throwReleasePoint = readValueFromKey(fileText, "throwReleasePoint")
 			if throwReleasePoint:

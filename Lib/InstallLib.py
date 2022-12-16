@@ -67,6 +67,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					changeEffectId = False
 					oldEffectId = ""
 					continueInstall = False
+					changeSoundbankId = False
 
 					#region USER INPUT/PRELIMINARY CHECKS
 
@@ -783,7 +784,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if fighterSettings.jigglypuffEFLSId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneGFX", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))), fighterSettings.jigglypuffEFLSId, "copy" ], 0, True)
 						# Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
-						if fighterSettings.jigglypuffSfxIds:
+						if len(fighterSettings.jigglypuffSfxIds) > 0:
 							if changeSoundbankId:
 								i = 0
 								while i < len(fighterSettings.jigglypuffSfxIds):
