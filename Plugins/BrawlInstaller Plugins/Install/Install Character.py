@@ -44,6 +44,10 @@ def autoInstall(baseCssSlotId, zipfile):
 		if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'):
 			while True:
 				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "*.brres"):
+					# This ID causes stock icons to show incorrectly in SSE, so skip it
+					if cosmeticId == 62:
+						cosmeticId += 1
+						continue
 					foundId = int(getFileInfo(file).Name.replace('MenSelchrFaceB', '').replace('0.brres', ''))
 					if foundId == cosmeticId:
 						cosmeticId += 1
