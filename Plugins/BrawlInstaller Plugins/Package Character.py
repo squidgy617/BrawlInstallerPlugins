@@ -129,6 +129,9 @@ def main():
 			BrawlAPI.ShowMessage("You will be prompted to choose a value for your character's series. Enter an integer corresponding to one of the below options.\n0 : Super Smash Bros.\n1 : The Subspace Emissary\n2 : Super Mario Bros.\n3 : Donkey Kong\n4 : The Legend of Zelda\n5 : Metroid\n6 : Yoshi's Island\n7 : Kirby Super Star\n8 : Star Fox\n9 : Pokemon\n10 : F-Zero\n11 : Mother\n12 : Ice Climber\n13 : Fire Emblem\n14 : Kid Icarus\n15 : WarioWare\n16 : Pikmin\n17 : Animal Crossing\n18 : Game & Watch\n19 : Others\n20 : Metal Gear Solid\n21 : Sonic the Hedgehog", title)
 			trophySettings.seriesIndex = BrawlAPI.UserIntegerInput(title, "Series Option: ", 0, 0, 21)
 
+		# Codes
+		codeFiles = BrawlAPI.OpenMultiFileDialog("Select .asm code files", "ASM files|*.asm")
+
 		# Stage directory
 		Directory.CreateDirectory(AppPath + '/temp')
 
@@ -240,6 +243,10 @@ def main():
 			writeString = '\n'.join("%s = %s" % item for item in attrs.items())
 			if writeString:
 				File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', writeString)
+		
+		if codeFiles:
+			for codeFile in codeFiles:
+				copyFile(codeFile, AppPath + '/temp/Codes')
 
 		fighterSettings = FighterSettings()
 		setThrowRelease = BrawlAPI.ShowYesNoPrompt("Would you like to set a throw release point for your fighter? (This step is optional.)", title)
@@ -258,7 +265,7 @@ def main():
 				if setLucarioCodes:
 					fighterSettings.lucarioBoneId = showIdPrompt("Bone ID - Aura Sphere Fix")
 					fighterSettings.lucarioKirbyEffectId = showIdPrompt("Kirby Effect.pac ID - Aura Sphere Fix")
-			if moduleName != 'ft_purin':
+			if moduleName == 'ft_purin':
 				setJigglypuffCodes = BrawlAPI.ShowYesNoPrompt("This character appears to be a Jigglypuff clone. Would you like to set values for the Jigglypuff code fixes used in P+Ex?", title)
 				if setJigglypuffCodes:
 					fighterSettings.jigglypuffBoneId = showIdPrompt("Bone ID - Rollout Fix")
