@@ -10,7 +10,8 @@ def autoInstall(baseCssSlotId, zipfile):
 		id = 63
 		while True:
 			# These IDs are reserved for SSE characters so skip them
-			if id == 72 or id == 73 or id == 74:
+			# 69/0x45 is an ID that does not work with the Kirby Hat EX system, so skip that as well
+			if id == 72 or id == 73 or id == 74 or id == 69:
 				id += 1
 				continue
 			foundId = searchForExConfig('Fighter', hexId(id))
@@ -47,7 +48,6 @@ def autoInstall(baseCssSlotId, zipfile):
 					# This ID causes stock icons to show incorrectly in SSE, so skip it
 					if cosmeticId == 62:
 						cosmeticId += 1
-						continue
 					foundId = int(getFileInfo(file).Name.replace('MenSelchrFaceB', '').replace('0.brres', ''))
 					if foundId == cosmeticId:
 						cosmeticId += 1
