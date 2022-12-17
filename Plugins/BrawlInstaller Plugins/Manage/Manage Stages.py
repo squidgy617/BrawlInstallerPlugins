@@ -49,5 +49,7 @@ def main():
 		if result == DialogResult.Abort:
 			restoreBackup()
 			archiveBackup()
+		else:
+			archiveBackup()
 
 main()
