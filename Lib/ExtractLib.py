@@ -194,7 +194,9 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 			creditsThemeId = extractCreditsSong(slotId)
 
 			# Extract trophy stuff
-			extractTrophy(slotId)
+			trophyId = extractTrophy(slotId)
+			if trophyId <= 630:
+				fighterSettings.trophyId = str(hexId(trophyId))
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

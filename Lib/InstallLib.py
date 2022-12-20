@@ -693,6 +693,10 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if Directory.GetFiles(creditsFolder.FullName, "*.brstm"):
 							installCreditsTheme(Directory.GetFiles(creditsFolder.FullName, "*.brstm")[0], slotConfigId)
 
+					# Assign trophy if applicable
+					if fighterSettings.trophyId:
+						assignTrophy(slotConfigId, fighterSettings.trophyId, fighterInfo.fighterName, settings.installToSse)
+
 					# Install trophy if one exists
 					if trophyFolder and settings.installTrophies == "true":
 						trophySettings = getTrophySettings()
