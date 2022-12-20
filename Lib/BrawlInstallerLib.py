@@ -3427,13 +3427,14 @@ def uninstallTrophy(slotId, uninstallFromSse):
 			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
 		else:
 			trophyIdInt = -1
-		if trophyIdInt != -1:
+		# 630 is last vanilla trophy ID, so only remove if it's NOT a vanilla trophy
+		if trophyIdInt > 630:
 			bresName = removeTrophy(trophyIdInt)
 			removeTrophyThumbnail(trophyIdInt)
 			updateTrophyCode(slotId, hexId(trophyIdInt), "", True)
-		if bresName:
+		if bresName and trophyIdInt > 630:
 			deleteTrophyModel(bresName)
-		if uninstallFromSse and trophyIdInt != -1:
+		if uninstallFromSse and trophyIdInt > 630:
 			updateTrophySSE(slotId, hexId(trophyIdInt).replace('0x', ''), True)
 
 # Remove an L-load code entry
@@ -4023,6 +4024,7 @@ def extractTrophy(slotId):
 				createDirectory(AppPath + '/temp/Trophy')
 				File.WriteAllText(AppPath + '/temp/Trophy/TrophySettings.txt', '\n'.join("%s = %s" % item for item in attrs.items()))
 			writeLog("Finished extracting trophy")
+		return trophyId
 
 #endregion
 
@@ -4140,8 +4142,16 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings,
 				removeTrophyThumbnail(returnedTrophyId)
 				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
 			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
-		if installToSse:
+		if installToSse == "true":
 			updateTrophySSE(slotId, hexId(returnedTrophyId).replace('0x', ''))
+
+# Assign trophy ID for existing trophies
+def assignTrophy(slotId, trophyId, fighterName, installToSse):
+		writeLog("Assigning trophy ID " + str(trophyId) + " to slot ID " + str(slotId))
+		updateTrophyCode(slotId, hexId(trophyId), fighterName)
+		if installToSse == "true":
+			updateTrophySSE(slotId, hexId(trophyId).replace('0x', ''))
+		writeLog("Finished assigning trophy ID")
 
 #endregion INSTALLER FUNCTIONS
 
@@ -4569,6 +4579,7 @@ def getFighterSettings():
 				for id in throwReleasePoint.split(','):
 					fighterSettings.throwReleasePoint.append(id)
 			fighterSettings.creditsThemeId = hexId(readValueFromKey(fileText, "creditsThemeId"))
+			fighterSettings.trophyId = hexId(readValueFromKey(fileText, "trophyId"))
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
@@ -4950,6 +4961,7 @@ class FighterSettings:
 		bowserBoneId = ""
 		throwReleasePoint = []
 		creditsThemeId = ""
+		trophyId = ""
 
 class TrophySettings:
 		trophyName = ""
