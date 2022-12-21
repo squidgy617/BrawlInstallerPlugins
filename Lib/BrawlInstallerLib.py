@@ -2424,7 +2424,7 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 						nameIndex = i
 						i += 1
 					elif gameIndex != -1 and i == gameIndex:
-						newFileText.append(gameName1 + ("<br/>" + gameName2) if gameName2 != "" else "")
+						newFileText.append(gameName1 + (("<br/>" + gameName2) if gameName2 != "" else ""))
 						textWritten2 = True
 						gameIndex = i
 						i += 1
@@ -2435,7 +2435,7 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 					newFileText.append(trophyName)
 					nameIndex = i
 				if not textWritten2:
-					newFileText.append(gameName1 + ("<br/>" + gameName2) if gameName2 != "" else "")
+					newFileText.append(gameName1 + (("<br/>" + gameName2) if gameName2 != "" else ""))
 					gameIndex = i + 1
 				File.WriteAllLines(AppPath + '/temp/ty_fig_name_list.txt', newFileText)
 				BrawlAPI.RootNode.Replace(AppPath + '/temp/ty_fig_name_list.txt')
