@@ -65,7 +65,8 @@ def autoInstall(baseCssSlotId, zipfile):
 					if texFolder:
 						while True:
 							foundNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
-							if foundNode:
+							# Skip 30 because that is the franchise icon for Random
+							if foundNode or franchiseIconId == 30:
 								franchiseIconId += 1
 								continue
 							break
