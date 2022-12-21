@@ -702,7 +702,7 @@ class TracklistEditor(Form):
             fileInfo = getFileInfo(brstmFile)
             if brstmFile:
                 if brstmPath in brstmFolder:
-                    newFile = brstmFolder.replace(brstmPath, '') + '/' + getFileInfo(brstmFile).Name.split('.')[0]
+                    newFile = brstmFolder.replace(brstmPath, '') + '/' + getFileInfo(brstmFile).Name.split('.brstm')[0]
             newSong = TLSTEntryNode()
             newSong.SongID = getSongIdFromSongList(self.songs)
             newSong.Name = fileInfo.Name.split('.brstm')[0]
