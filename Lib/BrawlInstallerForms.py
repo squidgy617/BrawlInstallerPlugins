@@ -2370,7 +2370,7 @@ class CostumeForm(Form):
             self.index += 1
             while self.index in self.skipPositions:
                 self.index += 1
-            if self.index >= self.imageCount - 1:
+            if self.index > self.imageCount - 1:
                 self.index = 0
         else:
             self.index = 0
