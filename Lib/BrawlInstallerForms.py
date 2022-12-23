@@ -2370,6 +2370,8 @@ class CostumeForm(Form):
             self.index += 1
             while self.index in self.skipPositions:
                 self.index += 1
+            if self.index >= self.imageCount - 1:
+                self.index = 0
         else:
             self.index = 0
         if self.labelIndex < self.length - 1:
@@ -2385,8 +2387,14 @@ class CostumeForm(Form):
             self.index -= 1
             while self.index in self.skipPositions:
                 self.index -= 1
+            if self.index < 0:
+                self.index = 0
         else:
             self.index = self.imageCount - 1
+            while self.index in self.skipPositions:
+                self.index -= 1
+            if self.index < 0:
+                self.index = 0
         if self.labelIndex > 0:
             self.labelIndex -= 1
         else:
