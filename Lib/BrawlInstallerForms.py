@@ -639,7 +639,7 @@ class TracklistEditor(Form):
                     brstmFolder = BrawlAPI.OpenFolderDialog("Select the folder you would like to place this BRSTM file")
                     if brstmFolder:
                         if brstmPath in brstmFolder:
-                            newFile = brstmFolder.replace(brstmPath, '') + '/' + getFileInfo(brstmFile).Name.split('.')[0]
+                            newFile = brstmFolder.replace(brstmPath, '') + '/' + getFileInfo(brstmFile).Name.split('.brstm')[0]
                             break
                         else:
                             BrawlAPI.ShowMessage("This folder is not in the strm folder in your build! Please choose a folder in the correct location.", "Incorrect Folder Placement")
