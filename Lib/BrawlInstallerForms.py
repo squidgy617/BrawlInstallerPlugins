@@ -2028,6 +2028,161 @@ class CostumePrompt(Form):
 
 #endregion COSTUME PROMPT
 
+#region SETTINGS FORM
+
+class SettingsForm(Form):
+
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Build Settings'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.Height = 128
+        self.AutoSize = True
+        self.MinimumSize = Size(250,128)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.settings = Settings()
+
+        # Cosmetic settings group
+        cosmeticGroupBox = GroupBox()
+        cosmeticGroupBox.Location = Point(0,0)
+        cosmeticGroupBox.Text = "Cosmetic Settings"
+        cosmeticGroupBox.AutoSize = True
+        cosmeticGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        # RSP Loading
+        self.rspCheck = CheckBox()
+        self.rspCheck.Text = "RSP Loading"
+        self.rspCheck.Location = Point(16, 16)
+        self.rspCheck.Width = 90
+
+        # Fifty Costume Code
+        self.fiftyCCCheck = CheckBox()
+        self.fiftyCCCheck.Text = "Fifty CC"
+        self.fiftyCCCheck.Location = Point(112, 16)
+        # CSS Icon Style
+        cssIconGroup = GroupBox()
+        cssIconGroup.Location = Point(4, 48)
+        cssIconGroup.Text = "CSS Icon Style"
+        cssIconGroup.AutoSize = True
+        cssIconGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.pPlusRadioButton = RadioButton()
+        self.pPlusRadioButton.Text = "P+"
+        self.pPlusRadioButton.Location = Point(16, 16)
+        self.pPlusRadioButton.Width = 48
+
+        self.vBrawlRadioButton = RadioButton()
+        self.vBrawlRadioButton.Text = "vBrawl"
+        self.vBrawlRadioButton.Location = Point(64, 16)
+        self.vBrawlRadioButton.Width = 64
+
+        self.PMRadioButton = RadioButton()
+        self.PMRadioButton.Text = "PM"
+        self.PMRadioButton.Location = Point(128, 16)
+        self.PMRadioButton.Width = 48
+
+        self.remixRadioButton = RadioButton()
+        self.remixRadioButton.Text = "REMIX"
+        self.remixRadioButton.Location = Point(176, 16)
+        self.remixRadioButton.Width = 64
+
+        cssIconGroup.Controls.Add(self.pPlusRadioButton)
+        cssIconGroup.Controls.Add(self.vBrawlRadioButton)
+        cssIconGroup.Controls.Add(self.PMRadioButton)
+        cssIconGroup.Controls.Add(self.remixRadioButton)
+
+        # BP Style
+        bpGroup = GroupBox()
+        bpGroup.Location = Point(4, 112)
+        bpGroup.Text = "BP Style"
+        bpGroup.AutoSize = True
+        bpGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.vBrawlBPRadioButton = RadioButton()
+        self.vBrawlBPRadioButton.Text = "vBrawl"
+        self.vBrawlBPRadioButton.Location = Point(16, 16)
+        self.vBrawlBPRadioButton.Width = 64
+
+        self.remixBPRadioButton = RadioButton()
+        self.remixBPRadioButton.Text = "REMIX"
+        self.remixBPRadioButton.Location = Point(80, 16)
+        self.remixBPRadioButton.Width = 64
+
+        bpGroup.Controls.Add(self.vBrawlBPRadioButton)
+        bpGroup.Controls.Add(self.remixBPRadioButton)
+
+        # Portrait Name Style
+        nameGroup = GroupBox()
+        nameGroup.Location = Point(4, 176)
+        nameGroup.Text = "Portrait Name Style"
+        nameGroup.AutoSize = True
+        nameGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.vBrawlNameRadioButton = RadioButton()
+        self.vBrawlNameRadioButton.Text = "vBrawl"
+        self.vBrawlNameRadioButton.Location = Point(16, 16)
+        self.vBrawlNameRadioButton.Width = 64
+
+        self.PMNameRadioButton = RadioButton()
+        self.PMNameRadioButton.Text = "PM"
+        self.PMNameRadioButton.Location = Point(80, 16)
+        self.PMNameRadioButton.Width = 64
+
+        nameGroup.Controls.Add(self.vBrawlNameRadioButton)
+        nameGroup.Controls.Add(self.PMNameRadioButton)
+
+        # Stock locations
+        stockGroupBox = GroupBox()
+        stockGroupBox.AutoSize = True
+        stockGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        stockGroupBox.Location = Point(4, 240)
+        stockGroupBox.Text = "Stock Icon Install Locations"
+
+        stockCssCheckbox = CheckBox()
+        stockCssCheckbox.Text = "Character Select"
+        stockCssCheckbox.Location = Point(16, 16)
+        stockCssCheckbox.Width = 112
+
+        stockSssCheckbox = CheckBox()
+        stockSssCheckbox.Text = "Stage Select"
+        stockSssCheckbox.Location = Point(128, 16)
+        stockSssCheckbox.Width = 112
+
+        stockResultCheckbox = CheckBox()
+        stockResultCheckbox.Text = "Result Screen"
+        stockResultCheckbox.Location = Point(16, 40)
+        stockResultCheckbox.Width = 112
+
+        stockRotationCheckbox = CheckBox()
+        stockRotationCheckbox.Text = "Rotation Mode"
+        stockRotationCheckbox.Location = Point(128, 40)
+        stockRotationCheckbox.Width = 112
+
+        stockBattleCheckbox = CheckBox()
+        stockBattleCheckbox.Text = "Battle UI"
+        stockBattleCheckbox.Location = Point(16, 64)
+        stockBattleCheckbox.Width = 112
+        
+        stockGroupBox.Controls.Add(stockCssCheckbox)
+        stockGroupBox.Controls.Add(stockSssCheckbox)
+        stockGroupBox.Controls.Add(stockResultCheckbox)
+        stockGroupBox.Controls.Add(stockRotationCheckbox)
+        stockGroupBox.Controls.Add(stockBattleCheckbox)
+
+        cosmeticGroupBox.Controls.Add(self.rspCheck)
+        cosmeticGroupBox.Controls.Add(self.fiftyCCCheck)
+        cosmeticGroupBox.Controls.Add(cssIconGroup)
+        cosmeticGroupBox.Controls.Add(bpGroup)
+        cosmeticGroupBox.Controls.Add(nameGroup)
+        cosmeticGroupBox.Controls.Add(stockGroupBox)
+
+        self.Controls.Add(cosmeticGroupBox)
+
+#endregion
+
 #region CHARACTER FORM
 
 class CharacterForm(Form):
