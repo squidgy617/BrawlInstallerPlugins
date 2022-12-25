@@ -2062,6 +2062,7 @@ class SettingsForm(Form):
         self.fiftyCCCheck = CheckBox()
         self.fiftyCCCheck.Text = "Fifty CC"
         self.fiftyCCCheck.Location = Point(112, 16)
+
         # CSS Icon Style
         cssIconGroup = GroupBox()
         cssIconGroup.Location = Point(4, 48)
@@ -2172,14 +2173,197 @@ class SettingsForm(Form):
         stockGroupBox.Controls.Add(stockRotationCheckbox)
         stockGroupBox.Controls.Add(stockBattleCheckbox)
 
+        # Other cosmetic install options
+        portraitNameCheckBox = CheckBox()
+        portraitNameCheckBox.Text = "Install Portrait Names"
+        portraitNameCheckBox.Width = 140
+        portraitNameCheckBox.Location = Point(16, 348)
+
+        bpNameCheckbox = CheckBox()
+        bpNameCheckbox.Text = "Install BP Names"
+        bpNameCheckbox.Width = 140
+        bpNameCheckbox.Location = Point(16, 372)
+
+        singlePlayerCheckBox = CheckBox()
+        singlePlayerCheckBox.Text = "Install Single Player Cosmetics"
+        singlePlayerCheckBox.Width = 200
+        singlePlayerCheckBox.Location = Point(16, 396)
+
+        franchiseIconSizeLabel = Label()
+        franchiseIconSizeLabel.Location = Point(16, 428)
+        franchiseIconSizeLabel.Text = "Franchise Icon Size:"
+        franchiseIconSizeLabel.Width = 112
+
+        self.franchiseIconSizeText = NumericUpDown()
+        self.franchiseIconSizeText.Location = Point(128, 428)
+        self.franchiseIconSizeText.Width = 48
+        self.franchiseIconSizeText.Maximum = 256
+        self.franchiseIconSizeText.Minimum = 0
+
         cosmeticGroupBox.Controls.Add(self.rspCheck)
         cosmeticGroupBox.Controls.Add(self.fiftyCCCheck)
         cosmeticGroupBox.Controls.Add(cssIconGroup)
         cosmeticGroupBox.Controls.Add(bpGroup)
         cosmeticGroupBox.Controls.Add(nameGroup)
         cosmeticGroupBox.Controls.Add(stockGroupBox)
+        cosmeticGroupBox.Controls.Add(portraitNameCheckBox)
+        cosmeticGroupBox.Controls.Add(bpNameCheckbox)
+        cosmeticGroupBox.Controls.Add(singlePlayerCheckBox)
+        cosmeticGroupBox.Controls.Add(franchiseIconSizeLabel)
+        cosmeticGroupBox.Controls.Add(self.franchiseIconSizeText)
+
+        # Configuration settings group
+        configGroupBox = GroupBox()
+        configGroupBox.Location = Point(264,0)
+        configGroupBox.Text = "Configuration Settings"
+        configGroupBox.AutoSize = True
+        configGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        # Kirby group
+        kirbyGroupBox = GroupBox()
+        kirbyGroupBox.Location = Point(16, 16)
+        kirbyGroupBox.Text = "Kirby Hats"
+        kirbyGroupBox.AutoSize = True
+        kirbyGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.kirbyExeFileBox = TextBox()
+        self.kirbyExeFileBox.Location = Point(76, 16)
+        self.kirbyExeFileBox.Width = 160
+        self.kirbyExeFileBox.ReadOnly = True
+
+        kirbyExeLabel = Label()
+        kirbyExeLabel.Text = "lKHM .exe:"
+        kirbyExeLabel.Location = Point(4, 16)
+        kirbyExeLabel.TextAlign = ContentAlignment.TopRight
+        kirbyExeLabel.Width = 64
+
+        kirbyExeButton = Button()
+        kirbyExeButton.Text = "Browse..."
+        kirbyExeButton.Location = Point(240, 15)
+
+        defaultKirbyHatLabel = Label()
+        defaultKirbyHatLabel.Text = "Default Kirby Hat ID:"
+        defaultKirbyHatLabel.Location = Point(4, 48)
+        defaultKirbyHatLabel.TextAlign = ContentAlignment.TopRight
+        defaultKirbyHatLabel.Width = 112
+
+        defaultKirbyHatText = TextBox()
+        defaultKirbyHatText.Location = Point(120, 48)
+
+        kirbyGroupBox.Controls.Add(kirbyExeLabel)
+        kirbyGroupBox.Controls.Add(self.kirbyExeFileBox)
+        kirbyGroupBox.Controls.Add(kirbyExeButton)
+        kirbyGroupBox.Controls.Add(defaultKirbyHatLabel)
+        kirbyGroupBox.Controls.Add(defaultKirbyHatText)
+
+        # Code menu group
+        codeMenuGroupBox = GroupBox()
+        codeMenuGroupBox.Location = Point(16, 112)
+        codeMenuGroupBox.Text = "Code Menu"
+        codeMenuGroupBox.AutoSize = True
+        codeMenuGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.codeMenuFileBox = TextBox()
+        self.codeMenuFileBox.Location = Point(76, 16)
+        self.codeMenuFileBox.Width = 160
+        self.codeMenuFileBox.ReadOnly = True
+
+        codeMenuLabel = Label()
+        codeMenuLabel.Text = "PowerPC\n.exe:"
+        codeMenuLabel.Location = Point(4, 16)
+        codeMenuLabel.TextAlign = ContentAlignment.TopRight
+        codeMenuLabel.Width = 64
+
+        codeMenuButton = Button()
+        codeMenuButton.Text = "Browse..."
+        codeMenuButton.Location = Point(240, 15)
+
+        codeMenuGroupBox.Controls.Add(self.codeMenuFileBox)
+        codeMenuGroupBox.Controls.Add(codeMenuLabel)
+        codeMenuGroupBox.Controls.Add(codeMenuButton)
+
+        # Soundbank group
+        soundbankGroupBox = GroupBox()
+        soundbankGroupBox.Location = Point(16, 176)
+        soundbankGroupBox.Text = "Soundbanks"
+        soundbankGroupBox.AutoSize = True
+        soundbankGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.sawndReplaceExeText = TextBox()
+        self.sawndReplaceExeText.Location = Point(76, 16)
+        self.sawndReplaceExeText.Width = 160
+        self.sawndReplaceExeText.ReadOnly = True
+
+        sawndReplaceExeLabel = Label()
+        sawndReplaceExeLabel.Text = "lSIDRA\n.exe:"
+        sawndReplaceExeLabel.Location = Point(4, 16)
+        sawndReplaceExeLabel.TextAlign = ContentAlignment.TopRight
+        sawndReplaceExeLabel.Width = 64
+
+        sawndReplaceExeButton = Button()
+        sawndReplaceExeButton.Text = "Browse..."
+        sawndReplaceExeButton.Location = Point(240, 15)
+
+        self.sfxChangeExeText = TextBox()
+        self.sfxChangeExeText.Location = Point(76, 48)
+        self.sfxChangeExeText.Width = 160
+        self.sfxChangeExeText.ReadOnly = True
+
+        sfxChangeExeLabel = Label()
+        sfxChangeExeLabel.Text = "sfxchange\n.exe:"
+        sfxChangeExeLabel.Location = Point(4, 48)
+        sfxChangeExeLabel.TextAlign = ContentAlignment.TopRight
+        sfxChangeExeLabel.Width = 64
+
+        sfxChangeExeButton = Button()
+        sfxChangeExeButton.Text = "Browse..."
+        sfxChangeExeButton.Location = Point(240, 47)
+
+        soundbankFormatGroup = GroupBox()
+        soundbankFormatGroup.Location = Point(16, 80)
+        soundbankFormatGroup.Text = "Soundbank Format"
+        soundbankFormatGroup.AutoSize = True
+        soundbankFormatGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.decimalRadioButton = RadioButton()
+        self.decimalRadioButton.Text = "Decimal"
+        self.decimalRadioButton.Location = Point(16, 16)
+        self.decimalRadioButton.Width = 64
+
+        self.hexRadioButton = RadioButton()
+        self.hexRadioButton.Text = "Hex"
+        self.hexRadioButton.Location = Point(80, 16)
+        self.hexRadioButton.Width = 64
+
+        soundbankFormatGroup.Controls.Add(self.decimalRadioButton)
+        soundbankFormatGroup.Controls.Add(self.hexRadioButton)
+
+        self.incrementSoundbankIdCheck = CheckBox()
+        self.incrementSoundbankIdCheck.Text = "Increment Soundbank IDs by 7"
+        self.incrementSoundbankIdCheck.Width = 196
+        self.incrementSoundbankIdCheck.Location = Point(16, 144)
+
+        self.incrementSoundbankNameCheck = CheckBox()
+        self.incrementSoundbankNameCheck.Text = "Increment Soundbank names by 7"
+        self.incrementSoundbankNameCheck.Width = 196
+        self.incrementSoundbankNameCheck.Location = Point(16, 164)
+
+        soundbankGroupBox.Controls.Add(self.sawndReplaceExeText)
+        soundbankGroupBox.Controls.Add(sawndReplaceExeLabel)
+        soundbankGroupBox.Controls.Add(sawndReplaceExeButton)
+        soundbankGroupBox.Controls.Add(self.sfxChangeExeText)
+        soundbankGroupBox.Controls.Add(sfxChangeExeLabel)
+        soundbankGroupBox.Controls.Add(sfxChangeExeButton)
+        soundbankGroupBox.Controls.Add(soundbankFormatGroup)
+        soundbankGroupBox.Controls.Add(self.incrementSoundbankIdCheck)
+        soundbankGroupBox.Controls.Add(self.incrementSoundbankNameCheck)
+        
+        configGroupBox.Controls.Add(kirbyGroupBox)
+        configGroupBox.Controls.Add(codeMenuGroupBox)
+        configGroupBox.Controls.Add(soundbankGroupBox)
 
         self.Controls.Add(cosmeticGroupBox)
+        self.Controls.Add(configGroupBox)
 
 #endregion
 
