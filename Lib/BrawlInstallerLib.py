@@ -554,6 +554,13 @@ def boolText(boolVal):
 		else:
 			return "false"
 
+# Return the bool version of a text value
+def textBool(boolVal):
+		if boolVal == "true":
+			return True
+		else:
+			return False
+
 # Ensure an ID is hexadecimal whether it was passed in as decimal or hex
 def hexId(id):
 		if str(id).startswith('0x'):

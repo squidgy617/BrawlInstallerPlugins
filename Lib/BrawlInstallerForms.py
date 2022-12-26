@@ -2043,7 +2043,10 @@ class SettingsForm(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
-        self.settings = Settings()
+        if File.Exists(MainForm.BuildPath + '/settings.ini'):
+            self.settings = getSettings()
+        else:
+            self.settings = Settings()
 
         # Cosmetic settings group
         cosmeticGroupBox = GroupBox()
@@ -2212,6 +2215,32 @@ class SettingsForm(Form):
         cosmeticGroupBox.Controls.Add(franchiseIconSizeLabel)
         cosmeticGroupBox.Controls.Add(self.franchiseIconSizeText)
 
+        # Stage Settings group
+        stageGroupBox = GroupBox()
+        stageGroupBox.Location = Point(0,475)
+        stageGroupBox.Text = "Custom Stage Lists"
+        stageGroupBox.AutoSize = True
+        stageGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.stageListBox = ListBox()
+        self.stageListBox.Width = 120
+        self.stageListBox.Height = 80
+        self.stageListBox.Location = Point(16, 16)
+
+        stageListAddButton = Button()
+        stageListAddButton.Text = "+"
+        stageListAddButton.Size = Size(16,16)
+        stageListAddButton.Location = Point(138, 15)
+
+        stageListRemoveButton = Button()
+        stageListRemoveButton.Text = "-"
+        stageListRemoveButton.Size = Size(16,16)
+        stageListRemoveButton.Location = Point(138, 32)
+
+        stageGroupBox.Controls.Add(self.stageListBox)
+        stageGroupBox.Controls.Add(stageListAddButton)
+        stageGroupBox.Controls.Add(stageListRemoveButton)
+
         # Configuration settings group
         configGroupBox = GroupBox()
         configGroupBox.Location = Point(264,0)
@@ -2357,13 +2386,89 @@ class SettingsForm(Form):
         soundbankGroupBox.Controls.Add(soundbankFormatGroup)
         soundbankGroupBox.Controls.Add(self.incrementSoundbankIdCheck)
         soundbankGroupBox.Controls.Add(self.incrementSoundbankNameCheck)
+
+        # GFX group
+        gfxGroupBox = GroupBox()
+        gfxGroupBox.Location = Point(16, 390)
+        gfxGroupBox.Text = "Effect Banks"
+        gfxGroupBox.AutoSize = True
+        gfxGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.gfxChangeExeText = TextBox()
+        self.gfxChangeExeText.Location = Point(76, 16)
+        self.gfxChangeExeText.Width = 160
+        self.gfxChangeExeText.ReadOnly = True
+
+        gfxChangeExeLabel = Label()
+        gfxChangeExeLabel.Text = "gfxchange\n.exe:"
+        gfxChangeExeLabel.Location = Point(4, 16)
+        gfxChangeExeLabel.TextAlign = ContentAlignment.TopRight
+        gfxChangeExeLabel.Width = 64
+
+        gfxChangeExeButton = Button()
+        gfxChangeExeButton.Text = "Browse..."
+        gfxChangeExeButton.Location = Point(240, 15)
+
+        gfxGroupBox.Controls.Add(self.gfxChangeExeText)
+        gfxGroupBox.Controls.Add(gfxChangeExeLabel)
+        gfxGroupBox.Controls.Add(gfxChangeExeButton)
+
+        # Other settings
+        otherGroupBox = GroupBox()
+        otherGroupBox.Location = Point(16, 450)
+        otherGroupBox.Text = "Misc Settings"
+        otherGroupBox.AutoSize = True
+        otherGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.sseCheck = CheckBox()
+        self.sseCheck.Text = "Install Fighters to SSE"
+        self.sseCheck.Location = Point(16, 16)
+        self.sseCheck.Width = 138
+
+        self.trophyCheck = CheckBox()
+        self.trophyCheck.Text = "Install Trophies"
+        self.trophyCheck.Location = Point(160, 16)
+        self.trophyCheck.Width = 138
+
+        # SSE Unlock Stage
+        sseGroup = GroupBox()
+        sseGroup.Location = Point(4, 48)
+        sseGroup.Text = "SSE Unlock Stage"
+        sseGroup.AutoSize = True
+        sseGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.unlockStartRadioButton = RadioButton()
+        self.unlockStartRadioButton.Text = "Start"
+        self.unlockStartRadioButton.Location = Point(16, 16)
+        self.unlockStartRadioButton.Width = 64
+
+        self.unlockEndRadioButton = RadioButton()
+        self.unlockEndRadioButton.Text = "End"
+        self.unlockEndRadioButton.Location = Point(80, 16)
+        self.unlockEndRadioButton.Width = 64
+
+        sseGroup.Controls.Add(self.unlockStartRadioButton)
+        sseGroup.Controls.Add(self.unlockEndRadioButton)
+
+        otherGroupBox.Controls.Add(self.sseCheck)
+        otherGroupBox.Controls.Add(self.trophyCheck)
+        otherGroupBox.Controls.Add(sseGroup)
         
         configGroupBox.Controls.Add(kirbyGroupBox)
         configGroupBox.Controls.Add(codeMenuGroupBox)
         configGroupBox.Controls.Add(soundbankGroupBox)
+        configGroupBox.Controls.Add(gfxGroupBox)
+        configGroupBox.Controls.Add(otherGroupBox)
 
         self.Controls.Add(cosmeticGroupBox)
+        self.Controls.Add(stageGroupBox)
         self.Controls.Add(configGroupBox)
+
+        self.initializeControls()
+
+    def initializeControls(self):
+        self.rspCheck.Checked = textBool(self.settings.rspLoading)
+        self.fiftyCCCheck.Checked = textBool(self.settings.fiftyCostumeCode)
 
 #endregion
 
