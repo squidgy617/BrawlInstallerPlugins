@@ -2048,6 +2048,12 @@ class SettingsForm(Form):
         else:
             self.settings = Settings()
 
+        self.customStageLists = BindingSource()
+        if len(self.settings.customStageLists.split(',')) > 0 and self.settings.customStageLists.split(',')[0] != "" :
+            self.customStageLists.DataSource = self.settings.customStageLists.split(',')
+        else:
+            self.customStageLists.DataSource = []
+
         # Cosmetic settings group
         cosmeticGroupBox = GroupBox()
         cosmeticGroupBox.Location = Point(0,0)
@@ -2063,7 +2069,7 @@ class SettingsForm(Form):
 
         # Fifty Costume Code
         self.fiftyCCCheck = CheckBox()
-        self.fiftyCCCheck.Text = "Fifty CC"
+        self.fiftyCCCheck.Text = "50CC"
         self.fiftyCCCheck.Location = Point(112, 16)
 
         # CSS Icon Style
@@ -2145,52 +2151,52 @@ class SettingsForm(Form):
         stockGroupBox.Location = Point(4, 240)
         stockGroupBox.Text = "Stock Icon Install Locations"
 
-        stockCssCheckbox = CheckBox()
-        stockCssCheckbox.Text = "Character Select"
-        stockCssCheckbox.Location = Point(16, 16)
-        stockCssCheckbox.Width = 112
+        self.stockCssCheckbox = CheckBox()
+        self.stockCssCheckbox.Text = "Character Select"
+        self.stockCssCheckbox.Location = Point(16, 16)
+        self.stockCssCheckbox.Width = 112
 
-        stockSssCheckbox = CheckBox()
-        stockSssCheckbox.Text = "Stage Select"
-        stockSssCheckbox.Location = Point(128, 16)
-        stockSssCheckbox.Width = 112
+        self.stockSssCheckbox = CheckBox()
+        self.stockSssCheckbox.Text = "Stage Select"
+        self.stockSssCheckbox.Location = Point(128, 16)
+        self.stockSssCheckbox.Width = 112
 
-        stockResultCheckbox = CheckBox()
-        stockResultCheckbox.Text = "Result Screen"
-        stockResultCheckbox.Location = Point(16, 40)
-        stockResultCheckbox.Width = 112
+        self.stockResultCheckbox = CheckBox()
+        self.stockResultCheckbox.Text = "Result Screen"
+        self.stockResultCheckbox.Location = Point(16, 40)
+        self.stockResultCheckbox.Width = 112
 
-        stockRotationCheckbox = CheckBox()
-        stockRotationCheckbox.Text = "Rotation Mode"
-        stockRotationCheckbox.Location = Point(128, 40)
-        stockRotationCheckbox.Width = 112
+        self.stockRotationCheckbox = CheckBox()
+        self.stockRotationCheckbox.Text = "Rotation Mode"
+        self.stockRotationCheckbox.Location = Point(128, 40)
+        self.stockRotationCheckbox.Width = 112
 
-        stockBattleCheckbox = CheckBox()
-        stockBattleCheckbox.Text = "Battle UI"
-        stockBattleCheckbox.Location = Point(16, 64)
-        stockBattleCheckbox.Width = 112
+        self.stockBattleCheckbox = CheckBox()
+        self.stockBattleCheckbox.Text = "Battle UI"
+        self.stockBattleCheckbox.Location = Point(16, 64)
+        self.stockBattleCheckbox.Width = 112
         
-        stockGroupBox.Controls.Add(stockCssCheckbox)
-        stockGroupBox.Controls.Add(stockSssCheckbox)
-        stockGroupBox.Controls.Add(stockResultCheckbox)
-        stockGroupBox.Controls.Add(stockRotationCheckbox)
-        stockGroupBox.Controls.Add(stockBattleCheckbox)
+        stockGroupBox.Controls.Add(self.stockCssCheckbox)
+        stockGroupBox.Controls.Add(self.stockSssCheckbox)
+        stockGroupBox.Controls.Add(self.stockResultCheckbox)
+        stockGroupBox.Controls.Add(self.stockRotationCheckbox)
+        stockGroupBox.Controls.Add(self.stockBattleCheckbox)
 
         # Other cosmetic install options
-        portraitNameCheckBox = CheckBox()
-        portraitNameCheckBox.Text = "Install Portrait Names"
-        portraitNameCheckBox.Width = 140
-        portraitNameCheckBox.Location = Point(16, 348)
+        self.portraitNameCheckBox = CheckBox()
+        self.portraitNameCheckBox.Text = "Install Portrait Names"
+        self.portraitNameCheckBox.Width = 140
+        self.portraitNameCheckBox.Location = Point(16, 348)
 
-        bpNameCheckbox = CheckBox()
-        bpNameCheckbox.Text = "Install BP Names"
-        bpNameCheckbox.Width = 140
-        bpNameCheckbox.Location = Point(16, 372)
+        self.bpNameCheckbox = CheckBox()
+        self.bpNameCheckbox.Text = "Install BP Names"
+        self.bpNameCheckbox.Width = 140
+        self.bpNameCheckbox.Location = Point(16, 372)
 
-        singlePlayerCheckBox = CheckBox()
-        singlePlayerCheckBox.Text = "Install Single Player Cosmetics"
-        singlePlayerCheckBox.Width = 200
-        singlePlayerCheckBox.Location = Point(16, 396)
+        self.singlePlayerCheckBox = CheckBox()
+        self.singlePlayerCheckBox.Text = "Install Single Player Cosmetics"
+        self.singlePlayerCheckBox.Width = 200
+        self.singlePlayerCheckBox.Location = Point(16, 396)
 
         franchiseIconSizeLabel = Label()
         franchiseIconSizeLabel.Location = Point(16, 428)
@@ -2209,9 +2215,9 @@ class SettingsForm(Form):
         cosmeticGroupBox.Controls.Add(bpGroup)
         cosmeticGroupBox.Controls.Add(nameGroup)
         cosmeticGroupBox.Controls.Add(stockGroupBox)
-        cosmeticGroupBox.Controls.Add(portraitNameCheckBox)
-        cosmeticGroupBox.Controls.Add(bpNameCheckbox)
-        cosmeticGroupBox.Controls.Add(singlePlayerCheckBox)
+        cosmeticGroupBox.Controls.Add(self.portraitNameCheckBox)
+        cosmeticGroupBox.Controls.Add(self.bpNameCheckbox)
+        cosmeticGroupBox.Controls.Add(self.singlePlayerCheckBox)
         cosmeticGroupBox.Controls.Add(franchiseIconSizeLabel)
         cosmeticGroupBox.Controls.Add(self.franchiseIconSizeText)
 
@@ -2226,6 +2232,7 @@ class SettingsForm(Form):
         self.stageListBox.Width = 120
         self.stageListBox.Height = 80
         self.stageListBox.Location = Point(16, 16)
+        self.stageListBox.DataSource = []
 
         stageListAddButton = Button()
         stageListAddButton.Text = "+"
@@ -2240,6 +2247,18 @@ class SettingsForm(Form):
         stageGroupBox.Controls.Add(self.stageListBox)
         stageGroupBox.Controls.Add(stageListAddButton)
         stageGroupBox.Controls.Add(stageListRemoveButton)
+
+        pPlusDefaultsButton = Button()
+        pPlusDefaultsButton.Text = "P+Ex Defaults"
+        pPlusDefaultsButton.Location = Point(4, 600)
+        pPlusDefaultsButton.Width = 90
+        pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
+
+        remixDefaultsButton = Button()
+        remixDefaultsButton.Text = "REMIX Defaults"
+        remixDefaultsButton.Location = Point(98, 600)
+        remixDefaultsButton.Width = 95
+        remixDefaultsButton.Click += self.remixDefaultsButtonPressed
 
         # Configuration settings group
         configGroupBox = GroupBox()
@@ -2276,14 +2295,14 @@ class SettingsForm(Form):
         defaultKirbyHatLabel.TextAlign = ContentAlignment.TopRight
         defaultKirbyHatLabel.Width = 112
 
-        defaultKirbyHatText = TextBox()
-        defaultKirbyHatText.Location = Point(120, 48)
+        self.defaultKirbyHatText = TextBox()
+        self.defaultKirbyHatText.Location = Point(120, 48)
 
         kirbyGroupBox.Controls.Add(kirbyExeLabel)
         kirbyGroupBox.Controls.Add(self.kirbyExeFileBox)
         kirbyGroupBox.Controls.Add(kirbyExeButton)
         kirbyGroupBox.Controls.Add(defaultKirbyHatLabel)
-        kirbyGroupBox.Controls.Add(defaultKirbyHatText)
+        kirbyGroupBox.Controls.Add(self.defaultKirbyHatText)
 
         # Code menu group
         codeMenuGroupBox = GroupBox()
@@ -2460,15 +2479,164 @@ class SettingsForm(Form):
         configGroupBox.Controls.Add(gfxGroupBox)
         configGroupBox.Controls.Add(otherGroupBox)
 
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(525, 600)
+        #cancelButton.Width = 90
+        #pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
+
+        saveButton = Button()
+        saveButton.Text = "Save"
+        saveButton.Location = Point(445, 600)
+        saveButton.Click += self.saveButtonPressed
+
         self.Controls.Add(cosmeticGroupBox)
         self.Controls.Add(stageGroupBox)
+        self.Controls.Add(pPlusDefaultsButton)
+        self.Controls.Add(remixDefaultsButton)
         self.Controls.Add(configGroupBox)
+        self.Controls.Add(saveButton)
+        self.Controls.Add(cancelButton)
 
         self.initializeControls()
 
     def initializeControls(self):
         self.rspCheck.Checked = textBool(self.settings.rspLoading)
         self.fiftyCCCheck.Checked = textBool(self.settings.fiftyCostumeCode)
+        self.pPlusRadioButton.Checked = self.settings.cssIconStyle == "P+"
+        self.vBrawlRadioButton.Checked = self.settings.cssIconStyle == "vBrawl"
+        self.PMRadioButton.Checked = self.settings.cssIconStyle == "PM"
+        self.remixRadioButton.Checked = self.settings.cssIconStyle == "REMIX"
+        self.vBrawlBPRadioButton.Checked = self.settings.bpStyle == "vBrawl"
+        self.remixBPRadioButton.Checked = self.settings.bpStyle == "REMIX"
+        self.vBrawlNameRadioButton.Checked = self.settings.portraitNameStyle == "vBrawl"
+        self.PMNameRadioButton.Checked = self.settings.portraitNameStyle == "PM"
+        self.stockCssCheckbox.Checked = textBool(self.settings.installStocksToCSS)
+        self.stockSssCheckbox.Checked = textBool(self.settings.installStocksToSSS)
+        self.stockResultCheckbox.Checked = textBool(self.settings.installStockIconsToResult)
+        self.stockRotationCheckbox.Checked = textBool(self.settings.installStocksToStockFaceTex)
+        self.stockBattleCheckbox.Checked = textBool(self.settings.installStocksToInfo)
+        self.bpNameCheckbox.Checked = textBool(self.settings.installBPNames)
+        self.singlePlayerCheckBox.Checked = textBool(self.settings.installSingleplayerCosmetics)
+        self.franchiseIconSizeText.Text = self.settings.franchiseIconSizeCSS
+        self.kirbyExeFileBox.Text = self.settings.kirbyHatExe
+        self.defaultKirbyHatText.Text = self.settings.defaultKirbyHat
+        self.codeMenuFileBox.Text = self.settings.assemblyFunctionsExe
+        self.sawndReplaceExeText.Text = self.settings.sawndReplaceExe
+        self.sfxChangeExeText.Text = self.settings.sfxChangeExe
+        self.hexRadioButton.Checked = self.settings.soundbankStyle == "hex"
+        self.decimalRadioButton.Checked = self.settings.soundbankStyle == "dec"
+        self.incrementSoundbankIdCheck.Checked = textBool(self.settings.addSevenToSoundbankIds)
+        self.incrementSoundbankNameCheck.Checked = textBool(self.settings.addSevenToSoundbankName)
+        self.gfxChangeExeText.Text = self.settings.gfxChangeExe
+        self.sseCheck.Checked = textBool(self.settings.installToSse)
+        self.trophyCheck.Checked = textBool(self.settings.installTrophies)
+        self.unlockStartRadioButton.Checked = self.settings.sseUnlockStage == "start"
+        self.unlockEndRadioButton.Checked = self.settings.sseUnlockStage == "end"
+        self.stageListBox.DataSource = self.customStageLists
+
+    def pPlusDefaultsButtonPressed(self, sender, args):
+        settings = Settings()
+        settings.rspLoading = "false"
+        settings.cssIconStyle = "P+"
+        settings.bpStyle = "vBrawl"
+        settings.installPortraitNames = "false"
+        settings.portraitNameStyle = "vBrawl"
+        settings.franchiseIconSizeCSS = str(128)
+        settings.installStocksToCSS = "true"
+        settings.installStocksToInfo = "true"
+        settings.installStockIconsToResult = "true"
+        settings.installStocksToStockFaceTex = "true"
+        settings.fiftyCostumeCode = "true"
+        settings.soundbankStyle = "hex"
+        settings.addSevenToSoundbankName = "false"
+        settings.addSevenToSoundbankIds = "true"
+        settings.installVictoryThemes = "true"
+        settings.installBPNames = "false"
+        settings.installSingleplayerCosmetics = "true"
+
+        self.settings = settings
+        self.initializeControls()
+
+    def remixDefaultsButtonPressed(self, sender, args):
+        settings = Settings()
+        settings.rspLoading = "true"
+        settings.cssIconStyle = "REMIX"
+        settings.bpStyle = "REMIX"
+        settings.installPortraitNames = "true"
+        settings.portraitNameStyle = "PM"
+        settings.franchiseIconSizeCSS = str(64)
+        settings.installStocksToCSS = "false"
+        settings.installStocksToInfo = "false"
+        settings.installStockIconsToResult = "false"
+        settings.installStocksToStockFaceTex = "false"
+        settings.fiftyCostumeCode = "true"
+        settings.soundbankStyle = "hex"
+        settings.addSevenToSoundbankName = "false"
+        settings.addSevenToSoundbankIds = "true"
+        settings.installVictoryThemes = "true"
+        settings.installBPNames = "false"
+        settings.installSingleplayerCosmetics = "false"
+
+        self.settings = settings
+        self.initializeControls()
+    
+    def saveButtonPressed(self, sender, args):
+        settings = Settings()
+        settings.fiftyCostumeCode = boolText(self.fiftyCCCheck.Checked)
+        if self.pPlusRadioButton.Checked:
+            settings.cssIconStyle = "P+"
+        elif self.vBrawlRadioButton.Checked:
+            settings.cssIconStyle = "vBrawl"
+        elif self.PMRadioButton.Checked:
+            settings.cssIconStyle = "PM"
+        elif self.remixRadioButton.Checked:
+            settings.cssIconStyle = "REMIX"
+        if self.remixBPRadioButton.Checked:
+            settings.bpStyle = "REMIX"
+        elif self.vBrawlBPRadioButton.Checked:
+            settings.bpStyle = "vBrawl"
+        if self.vBrawlNameRadioButton.Checked:
+            settings.portraitNameStyle = "vBrawl"
+        elif self.PMNameRadioButton.Checked:
+            settings.portraitNameStyle = "PM"
+        settings.installStocksToCSS = boolText(self.stockCssCheckbox.Checked)
+        settings.installStocksToSSS = boolText(self.stockSssCheckbox.Checked)
+        settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
+        settings.installStocksToStockFaceTex = boolText(self.stockResultCheckbox.Checked)
+        settings.installStocksToInfo = boolText(self.stockBattleCheckbox.Checked)
+        settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
+        settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
+        settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
+        settings.kirbyHatExe = self.kirbyExeFileBox.Text
+        settings.defaultKirbyHat = self.defaultKirbyHatText.Text
+        settings.assemblyFunctionsExe = self.codeMenuFileBox.Text
+        settings.sawndReplaceExe = self.sawndReplaceExeText.Text
+        settings.sfxChangeExe = self.sfxChangeExeText.Text
+        if self.hexRadioButton.Checked:
+            settings.soundbankStyle = "hex"
+        elif self.decimalRadioButton.Checked:
+            settings.soundbankStyle = "dec"
+        settings.addSevenToSoundbankIds = boolText(self.incrementSoundbankIdCheck.Checked)
+        settings.addSevenToSoundbankName = boolText(self.incrementSoundbankNameCheck.Checked)
+        settings.gfxChangeExe = self.gfxChangeExeText.Text
+        settings.installToSse = boolText(self.sseCheck.Checked)
+        settings.installTrophies = boolText(self.trophyCheck.Checked)
+        if self.unlockStartRadioButton.Checked:
+            settings.sseUnlockStage = "start"
+        elif self.unlockEndRadioButton.Checked:
+            settings.sseUnlockStage = "end"
+        stageListSetting = ""
+        i = 0
+        while i < len(self.customStageLists):
+            stageListSetting += str(self.customStageLists[i])
+            if i != len(self.customStageLists) - 1:
+                stageListSetting += ","
+            i += 1
+        settings.customStageLists = stageListSetting
+        attrs = vars(settings)
+        File.WriteAllText(MainForm.BuildPath + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
+        BrawlAPI.ShowMessage("Settings saved.", "Success")
 
 #endregion
 
