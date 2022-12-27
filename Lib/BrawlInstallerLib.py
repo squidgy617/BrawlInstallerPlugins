@@ -1718,6 +1718,9 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		# Start back up all kirby files
 		createBackup(kirbyHatPath + '/codeset.txt')
 		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
+		createBackup(kirbyHatPath + '/ft_kirby.rel')
+		createBackup(kirbyHatPath + '/KirbyHat.kbx')
+		createBackup(kirbyHatPath + '/KirbyHatEX.asm')
 		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
 		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
 		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
@@ -1726,6 +1729,20 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
+		# Copy necessary files from build if not present
+		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
+			if kirbyRel:
+				copyFile(kirbyRel, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
+			if kirbyKbx:
+				copyFile(kirbyKbx, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
+			if kirbyAsm:
+				copyFile(kirbyAsm, kirbyHatPath)
+		# End copy necessary files
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		writeLog("Reading EX_KirbyHats.txt")
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
@@ -3113,6 +3130,20 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
+		# Copy necessary files from build if not present
+		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
+			if kirbyRel:
+				copyFile(kirbyRel, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
+			if kirbyKbx:
+				copyFile(kirbyKbx, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
+			if kirbyAsm:
+				copyFile(kirbyAsm, kirbyHatPath)
+		# End copy necessary files
 		writeLog("Reading EX_KirbyHats.txt")
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
