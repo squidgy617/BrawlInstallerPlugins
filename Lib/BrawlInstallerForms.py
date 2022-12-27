@@ -2233,16 +2233,19 @@ class SettingsForm(Form):
         self.stageListBox.Height = 80
         self.stageListBox.Location = Point(16, 16)
         self.stageListBox.DataSource = []
+        self.stageListBox.HorizontalScrollbar = True
 
         stageListAddButton = Button()
         stageListAddButton.Text = "+"
         stageListAddButton.Size = Size(16,16)
         stageListAddButton.Location = Point(138, 15)
+        stageListAddButton.Click += self.stageListAddButtonPressed
 
         stageListRemoveButton = Button()
         stageListRemoveButton.Text = "-"
         stageListRemoveButton.Size = Size(16,16)
         stageListRemoveButton.Location = Point(138, 32)
+        stageListRemoveButton.Click += self.stageListRemoveButtonPressed
 
         stageGroupBox.Controls.Add(self.stageListBox)
         stageGroupBox.Controls.Add(stageListAddButton)
@@ -2483,7 +2486,7 @@ class SettingsForm(Form):
         cancelButton.Text = "Cancel"
         cancelButton.Location = Point(525, 600)
         #cancelButton.Width = 90
-        #pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
+        cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
         saveButton.Text = "Save"
@@ -2580,6 +2583,19 @@ class SettingsForm(Form):
 
         self.settings = settings
         self.initializeControls()
+
+    def stageListAddButtonPressed(self, sender, args):
+        newFile = BrawlAPI.OpenFileDialog("Select your stagelist ASM file", "ASM files|*.asm")
+        if newFile:
+            self.customStageLists.Add(newFile)
+
+    def stageListRemoveButtonPressed(self, sender, args):
+        if len(self.stageListBox.Items) > 0 and self.stageListBox.SelectedItem:
+            self.customStageLists.Remove(self.stageListBox.SelectedItem)
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
     
     def saveButtonPressed(self, sender, args):
         settings = Settings()
