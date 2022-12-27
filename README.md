@@ -34,7 +34,24 @@ If you find any bugs or issues with the plugins, please submit them as an issue 
 - Support for Ex modules and several non-Ex modules (Lucario, Marth, Sonic, and Pit's patched PM module).
 
 # Installation
-## Prerequisites
+## Simple Installation
+1. If you do not already have BrawlCrate, download and install the [latest release](https://github.com/soopercool101/BrawlCrate/releases/latest).
+2. Navigate to the [latest BrawlInstaller release](https://github.com/squidgy617/BrawlInstallerPlugins/releases/latest) and download the "BrawlInstaller Tools Setup.exe". Run this installer and follow the on-screen instructions.
+3. In BrawlCrate, navigate to Tools > Settings > General and modify the "Default Build Path" to match the path you chose for the tools in step 2.
+4. In BrawlCrate, navigate to Tools > Settings > BrawlAPI and ensure the "Installation Path" field under "Python" is set to the correct path.
+5. In BrawlCrate, navigate to Tools > Settings > Updater, click "Manage Subscriptions", and paste this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
+6. Restart BrawlCrate.
+
+Once you have completed these steps, you are ready to begin using the BrawlInstaller plugins.
+
+<details>
+
+<summary><h2>Manual Installation</h2></summary>
+
+If you would prefer to install everything used by BrawlInstaller manually, you can follow these directions.
+
+<b>Prerequisites</b>
+
 In order for these plugins to function correctly, you will need a few things:
 - The latest version of [BrawlCrate](https://github.com/soopercool101/BrawlCrate). You should also ensure you have your build path set to your build's root folder by navigating to Tools > Settings > General and modifying the "Default Build Path" there.
 - The latest version of Python. You can download this at [python.org](https://www.python.org/). Also ensure your Python path is set within BrawlCrate by navigating to Tools > Settings > BrawlAPI and setting the "Installation Path" field under "Python".
@@ -46,10 +63,13 @@ In order for these plugins to function correctly, you will need a few things:
 - **(OPTIONAL)** The latest version of [Kapedani's Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases). This can be installed over your P+Ex build's root directory. **This is only necessary if you are not on the latest P+Ex version and would like to install your characters into Subspace Emissary mode.** If you want additional CSS slots for SSE, you can also download a basic expanded CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file).
 - If you're trying to use the Install Character plugin, you'll need a proper character package .zip file. You can find an example package using CaliKingz01's RockmanX PSA and Shy's cosmetics [here](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages). You can also find a variety of character packages uploaded [here](http://forums.kc-mm.com/Gallery/BrawlView.php?ByUserID=28848&Moderated=All).
 
-## Setup
+<b>Setup</b>
+
 For initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate. Alternatively, you can download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder.
 
 The plugins create backups of your files during execution, but they do not clean up loose files added and I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. While loose files shouldn't cause an issue, if you want an extra safety net, I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. With the automatic backup functionality, this is not really necessary, but still a good idea.
+
+</details>
 
 # Quick Start Guide
 
