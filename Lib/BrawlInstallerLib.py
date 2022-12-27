@@ -4313,6 +4313,19 @@ def restoreBackup(selectedBackup=""):
 			BrawlAPI.ShowMessage("Backup restored.", "Success")
 		writeLog("Finished restoring backup")
 
+# Recursively search for a specific file
+def getFileRecursive(searchString, preferredFileName):
+	returnFile = ""
+	if Directory.Exists(MainForm.BuildPath):
+		files = Directory.GetFiles(MainForm.BuildPath, searchString, SearchOption.AllDirectories)
+		if len(files) > 0:
+			for file in files:
+				if getFileInfo(file).Name == preferredFileName:
+					returnFile = file
+			if not returnFile:
+				returnFile = files[0]
+	return returnFile
+
 # Archive backup
 def archiveBackup():
 		writeLog("Archiving backup")
@@ -4943,15 +4956,15 @@ class Settings:
 		fiftyCostumeCode = "true"
 		installKirbyHats = "true"
 		defaultKirbyHat = "0x21"
-		kirbyHatExe = ""
-		assemblyFunctionsExe = ""
-		sawndReplaceExe = ""
-		sfxChangeExe = ""
+		kirbyHatExe = getFileRecursive("lavaKirbyHatManager*.exe", "lavaKirbyHatManager - OFFLINE.exe")
+		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions (Dolphin).exe")
+		sawndReplaceExe = getFileRecursive("lavaSawndIDReplaceAssist*.exe", "lavaSawndIDReplaceAssist.exe")
+		sfxChangeExe = getFileRecursive("sfxchange*.exe", "sfxchange.exe")
 		soundbankStyle = "hex"
 		addSevenToSoundbankIds = "true"
 		addSevenToSoundbankName = "false"
 		installVictoryThemes = "true"
-		gfxChangeExe = ""
+		gfxChangeExe = getFileRecursive("gfxchange*.exe", "gfxchange.exe")
 		installBPNames = "false"
 		installSingleplayerCosmetics = "false"
 		installToSse = "false"
