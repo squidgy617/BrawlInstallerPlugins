@@ -1,5 +1,4 @@
-﻿version = "1.7.0"
-# BrawlInstallerLib
+﻿# BrawlInstallerLib
 # Functions used by BrawlInstaller plugins
 
 import binascii
@@ -220,6 +219,15 @@ def validateTextBoxes(groupBox):
 				control.BackColor = Color.White if valid else Color.LightPink
 				if not valid:
 					validationPassed = False
+		return validationPassed
+
+# Validate a single text box is a valid hex ID
+def validateTextBox(textBox):
+		validationPassed = True
+		valid = hexId(textBox.Text)
+		textBox.BackColor = Color.White if valid else Color.LightPink
+		if not valid:
+			validationPassed = False
 		return validationPassed
 
 # Get child node by name; similar to markyMawwk's function, but didn't want to make it a dependency
@@ -553,6 +561,13 @@ def boolText(boolVal):
 			return "true"
 		else:
 			return "false"
+
+# Return the bool version of a text value
+def textBool(boolVal):
+		if boolVal == "true":
+			return True
+		else:
+			return False
 
 # Ensure an ID is hexadecimal whether it was passed in as decimal or hex
 def hexId(id):
@@ -1508,6 +1523,7 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 					form = ColorPrompt(Bitmap(images[j]))
 					result = form.ShowDialog(MainForm.Instance)
 					color = form.selectedColor
+					form.Dispose()
 			usedIds.append(id)
 			costumes.append((id, color))
 			# Copy the file
@@ -1711,6 +1727,9 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		# Start back up all kirby files
 		createBackup(kirbyHatPath + '/codeset.txt')
 		createBackup(kirbyHatPath + '/EX_KirbyHats.txt')
+		createBackup(kirbyHatPath + '/ft_kirby.rel')
+		createBackup(kirbyHatPath + '/KirbyHat.kbx')
+		createBackup(kirbyHatPath + '/KirbyHatEX.asm')
 		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
 		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
 		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
@@ -1719,6 +1738,20 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
+		# Copy necessary files from build if not present
+		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
+			if kirbyRel:
+				copyFile(kirbyRel, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
+			if kirbyKbx:
+				copyFile(kirbyKbx, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
+			if kirbyAsm:
+				copyFile(kirbyAsm, kirbyHatPath)
+		# End copy necessary files
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		writeLog("Reading EX_KirbyHats.txt")
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
@@ -3106,6 +3139,20 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
+		# Copy necessary files from build if not present
+		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
+			if kirbyRel:
+				copyFile(kirbyRel, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
+			if kirbyKbx:
+				copyFile(kirbyKbx, kirbyHatPath)
+		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
+			if kirbyAsm:
+				copyFile(kirbyAsm, kirbyHatPath)
+		# End copy necessary files
 		writeLog("Reading EX_KirbyHats.txt")
 		Directory.SetCurrentDirectory(kirbyHatPath)
 		fileText = File.ReadAllLines(kirbyHatPath + '/EX_KirbyHats.txt')
@@ -4306,6 +4353,19 @@ def restoreBackup(selectedBackup=""):
 			BrawlAPI.ShowMessage("Backup restored.", "Success")
 		writeLog("Finished restoring backup")
 
+# Recursively search for a specific file
+def getFileRecursive(searchString, preferredFileName):
+	returnFile = ""
+	if Directory.Exists(MainForm.BuildPath):
+		files = Directory.GetFiles(MainForm.BuildPath, searchString, SearchOption.AllDirectories)
+		if len(files) > 0:
+			for file in files:
+				if getFileInfo(file).Name == preferredFileName:
+					returnFile = file
+			if not returnFile:
+				returnFile = files[0]
+	return returnFile
+
 # Archive backup
 def archiveBackup():
 		writeLog("Archiving backup")
@@ -4711,240 +4771,41 @@ def initialSetup():
 			File.Delete(RESOURCE_PATH + '/settings.ini')
 			settings = getSettings()
 			return settings
-		settings = Settings()
-		title = "Setup"
-		remixDefaults = False
-		projectPlusExDefaults = BrawlAPI.ShowYesNoPrompt("Would you like to use Project+ EX default settings? Only choose this option if you have a Project+ EX build that doesn't have major modifications.", title)
-		if not projectPlusExDefaults:
-			remixDefaults = BrawlAPI.ShowYesNoPrompt("Would you like to use PMEX REMIX default settings? Only choose this option if you have a PMEX REMIX build that doesn't have major modifications.", title)
-		if projectPlusExDefaults:
-			settings.rspLoading = "false"
-			settings.cssIconStyle = "P+"
-			settings.bpStyle = "vBrawl"
-			settings.installPortraitNames = "false"
-			settings.portraitNameStyle = "vBrawl"
-			settings.franchiseIconSizeCSS = 128
-			settings.installStocksToCSS = "true"
-			settings.installStocksToInfo = "true"
-			settings.installStockIconsToResult = "true"
-			settings.installStocksToStockFaceTex = "true"
-			settings.fiftyCostumeCode = "true"
-			settings.soundbankStyle = "hex"
-			settings.addSevenToSoundbankName = "false"
-			settings.addSevenToSoundbankIds = "true"
-			settings.installVictoryThemes = "true"
-			settings.installBPNames = "false"
-			settings.installSingleplayerCosmetics = "true"
-		if remixDefaults:
-			settings.rspLoading = "true"
-			settings.cssIconStyle = "REMIX"
-			settings.bpStyle = "REMIX"
-			settings.installPortraitNames = "true"
-			settings.portraitNameStyle = "PM"
-			settings.franchiseIconSizeCSS = 64
-			settings.installStocksToCSS = "false"
-			settings.installStocksToInfo = "false"
-			settings.installStockIconsToResult = "false"
-			settings.installStocksToStockFaceTex = "false"
-			settings.fiftyCostumeCode = "true"
-			settings.soundbankStyle = "hex"
-			settings.addSevenToSoundbankName = "false"
-			settings.addSevenToSoundbankIds = "true"
-			settings.installVictoryThemes = "true"
-			settings.installBPNames = "false"
-			settings.installSingleplayerCosmetics = "false"
-		if projectPlusExDefaults or remixDefaults:
-			defaultSettings = True
+		if File.Exists(MainForm.BuildPath + '/settings.ini'):
+			settings = getSettings()
+			return settings
 		else:
-			defaultSettings = False
-		if not defaultSettings:
-			# RSP Loading
-			settings.rspLoading = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use RSP loading? (For most builds, the answer is 'No'.)", title))
-			BrawlAPI.ShowMessage("You will be prompted to select a CSS icon style. Enter an integer corresponding to the below options:\n1 : Diamond (Project+ style)\n2 : Hexagon (PMEX REMIX style)\n3 : Vanilla Brawl Style\n4 : Project M Style", title)
-			# CSS icons
-			iconOption = BrawlAPI.UserIntegerInput(title, "Icon Option: ", 1, 1, 4)
-			if iconOption == 2:
-				settings.cssIconStyle = "REMIX"
-			elif iconOption == 3:
-				settings.cssIconStyle = "vBrawl"
-			elif iconOption == 4:
-				settings.cssIconStyle = "PM"
-			else:
-				settings.cssIconStyle = "P+"
-			# BPs
-			BrawlAPI.ShowMessage("You will be prompted to select a BP style. Enter an integer corresponding to the below options:\n1 : Vanilla Brawl Style\n2 : PMEX REMIX Style", title)
-			bpOption = BrawlAPI.UserIntegerInput(title, "BP Option: ", 1, 1, 2)
-			if bpOption == 2:
-				settings.bpStyle = "REMIX"
-			else:
-				settings.bpStyle = "vBrawl"
-			# Portrait names
-			settings.installPortraitNames = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use names on character select portraits? (For most builds, the answer is 'Yes'. For Project+ builds, the answer is usually 'No'.)", title))
-			if settings.installPortraitNames == "true":
-				BrawlAPI.ShowMessage("You will be prompted to select a portrait name style. Enter an integer corresponding to the below options:\n1 : Vanilla Brawl Style\n2 : Project M Style", title)
-				portraitNameOption = BrawlAPI.UserIntegerInput(title, "Name Option: ", 1, 1, 2)
-				if portraitNameOption == 2:
-					settings.portraitNameStyle = "PM"
-				else:
-					settings.portraitNameStyle = "vBrawl"
-			else:
-				settings.portraitNameStyle = "vBrawl"
-			# BP Names
-			settings.installBPNames = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use names by the battle portraits during a match? (For most modern builds and Project+ builds, the answer is 'No'. For vBrawl, the answer is probably 'Yes'.)", title))
-			BrawlAPI.ShowMessage("You will be prompted to enter a size for franchise icons used on the character select screen. This will apply to both the height and width of these icons.\n\nFor most builds, the size should be 64. For Project+ builds, the size is usually 128.", title)
-			# Franchise icon size
-			settings.franchiseIconSizeCSS = BrawlAPI.UserIntegerInput(title, "Franchise Icon Size: ", 64, 1, 256)
-			# Stock icons
-			useStockIcons = BrawlAPI.ShowYesNoPrompt("Does your build use character-specific stock icons anywhere at all? (For most builds, the answer is 'Yes'.)", title)
-			if useStockIcons:
-				settings.installStocksToCSS = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use character-specific stock icons on the CSS for modes like classic mode? (For most builds, the answer is 'Yes'.)", title))
-				settings.installStocksToInfo = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use character-specific stock icons during battle? (For Project M and Project+ builds, the answer is usually 'Yes'. For other builds, the answer is probably 'No'.)", title))
-				settings.installStockIconsToResult = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use character-specific stock icons on the results screen? (For most builds, the answer is 'Yes'.)", title))
-				settings.installStocksToStockFaceTex = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use character-specific stock icons in the StockFaceText.brres file? (For most builds, the answer is 'Yes'.)", title))
-				settings.installStocksToSSS = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use character-specific stock icons on the stage select screen? (For most Project M and Project+ based builds, the answer is 'No'. For vBrawl based builds, the answer is probably 'Yes'.)", title))
-			else:
-				settings.installStocksToCSS = "false"
-				settings.installStocksToInfo = "false"
-				settings.installStockIconsToResult = "false"
-				settings.installStocksToStockFaceTex = "false"
-				settings.installStocksToSSS = "false"
-			settings.fiftyCostumeCode = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use the fifty-costume code? (If your build is a Project+EX build or allows 50 costumes, the answer is most likely 'Yes'. Otherwise, the answer is probably 'No'.)", title))
-			settings.installSingleplayerCosmetics = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install franchise icons " + " and battle portrait names " if settings.installBPNames else "" + "for single player modes (such as Training, Home Run Contest, etc.)?", title))
-		# Kirby hats
-		kirbyHatManagerInstalled = BrawlAPI.ShowYesNoPrompt("Do you have QuickLava's Kirby Hat Manager installed into your build?", title)
-		if kirbyHatManagerInstalled:
-			while True:
-				settings.kirbyHatExe = BrawlAPI.OpenFileDialog("Select your Kirby Hat Manager .exe", "Executable files|*.exe")
-				if DirectoryInfo(MainForm.BuildPath).FullName not in getFileInfo(settings.kirbyHatExe).DirectoryName:
-					BrawlAPI.ShowMessage("Lava's Kirby hat manager must be in your build folder! Please move it to the correct directory and try again.", title)
-				else:
-					break
-			defaultKirbyHat = BrawlAPI.ShowYesNoPrompt("In the event a valid Kirby hat is not found for a fighter you attempt to install, you may set a default Kirby hat to fall back on. This can be any fighter ID from the vanilla Brawl roster. This is highly recommended for P+ EX builds.\n\nWhen in doubt, Lucario's ID (0x21) is recommended for stability.\n\nWould you like to set a default?", title)
-			if defaultKirbyHat:
-				idEntered = False
-				kirbyHatFighterId = 'none'
-				while idEntered != True:
-					kirbyHatFighterId = BrawlAPI.UserStringInput("Enter your desired default fighter ID")
-					# Ensure fighter ID is the hex value
-					if kirbyHatFighterId.startswith('0x'):
-						kirbyHatFighterId = kirbyHatFighterId
-						break
-					elif kirbyHatFighterId.isnumeric():
-						kirbyHatFighterId = '0x' + str(hex(int(kirbyHatFighterId))).split('0x')[1].upper()
-						break
-					else:
-						BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-						continue
-				settings.defaultKirbyHat = kirbyHatFighterId
-			else:
-				BrawlAPI.ShowMessage("No default Kirby hat will be set. This may lead to instability for Kirby matches in P+ EX builds.", title)
-				settings.defaultKirbyHat = 'none'
-		else:
-			BrawlAPI.ShowMessage("Kirby hats will not be installed. This may lead to instability for P+ EX builds.", title)
-			settings.kirbyHatExe = ""
-			settings.defaultKirbyHat = 'none'
-		# Code menu
-		if not defaultSettings:
-			useCodeMenu = BrawlAPI.ShowYesNoPrompt("Does your build use the code menu? (For P+ builds, the answer is probably 'Yes.' For other builds, the answer is probably 'No'.)", title)
-		else:
-			useCodeMenu = True
-		if useCodeMenu:
-			assemblyFunctionsInstalled = BrawlAPI.ShowYesNoPrompt("Do you have QuickLava's PowerPC Assembly Functions installed into your build?", title)
-			if assemblyFunctionsInstalled:
-				while True:
-					settings.assemblyFunctionsExe = BrawlAPI.OpenFileDialog("Select your PowerPC Assembly Functions .exe", "Executable files|*.exe")
-					if DirectoryInfo(MainForm.BuildPath).FullName not in getFileInfo(settings.assemblyFunctionsExe).DirectoryName:
-						BrawlAPI.ShowMessage("Lava's PowerPC Assembly Functions must be in your build folder! Please move it to the correct directory and try again.", title)
-					else:
-						break
-			else:
-				settings.assemblyFunctionsExe = ""
-				BrawlAPI.ShowMessage("Fighters will not be installed to the code menu.", title)
-		else:
-			settings.assemblyFunctionsExe = ""
-		
-		# Sound porting tools
-		soundbankReplacerTools = BrawlAPI.ShowYesNoPrompt("If you have conflicting soundbanks in your build, you can use code's porting tools and QuickLava's sawnd replacer to automatically update soundbank IDs.\n\nDo you have code's sfxchange and QuickLava's sawnd ID replace installed?", title)
-		if soundbankReplacerTools:
-			settings.sawndReplaceExe = BrawlAPI.OpenFileDialog("Select your lavaSawndIDReplaceAssist .exe", "Executable files|*.exe")
-			settings.sfxChangeExe = BrawlAPI.OpenFileDialog("Select your sfxchange .exe", "Executable files|*.exe")
-		else:
-			settings.sawndReplaceExe = ""
-			settings.sfxChangeExe = ""
-			BrawlAPI.ShowMessage("Soundbank IDs will not be able to be updated in the event of a conflict.", title)
-		# GFX porting tools
-		gfxReplacerTools = BrawlAPI.ShowYesNoPrompt("If you have conflicting Effect.pac IDs in your build, you can use code's porting tools to automatically update Effect.pac IDs.\n\nDo you have code's gfxchange.exe installed?", title)
-		if gfxReplacerTools:
-			settings.gfxChangeExe = BrawlAPI.OpenFileDialog("Select your gfxchange .exe", "Executable files|*.exe")
-		else:
-			settings.gfxChangeExe = ""
-			BrawlAPI.ShowMessage("Effect.pac IDs will not be able to be updated in the event of a conflict.", title)
-		if not defaultSettings:
-			# Soundbanks
-			soundbanksInHex = BrawlAPI.ShowYesNoPrompt("Are your .sawnd files usually named as a hex value? (For modern Project+ builds, the answer is most likely 'Yes'. For older builds, the answer is most likely 'No'.)", title)
-			if soundbanksInHex:
-				settings.soundbankStyle = "hex"
-			else:
-				settings.soundbankStyle = "dec"
-			settings.addSevenToSoundbankName = boolText(BrawlAPI.ShowYesNoPrompt("When naming your .sawnd files, do you usually have to add 7 to the ID before naming? (For most modern P+ builds, the answer is most likely 'No'.)", title))
-			settings.addSevenToSoundbankIds = boolText(BrawlAPI.ShowYesNoPrompt("Do you add 7 to your SFX IDs when calculating them for soundbanks? (For most modern P+ builds, the answer is 'Yes'.)", title))
-			settings.installVictoryThemes = boolText(BrawlAPI.ShowYesNoPrompt("Does your build use the modern P+ tracklist system? (For P+ builds, the answer is most likely 'Yes'.)", title))
-			# Victory themes
-			if settings.installVictoryThemes == "false":
-				BrawlAPI.ShowMessage("Victory themes and credits themes can only be installed with the modern tracklist system. Victory themes and credits themes will not be installed.", title)
-		settings.installToSse = boolText(BrawlAPI.ShowYesNoPrompt("Does your build support SSE Ex, and would you like to install characters to Subspace Emissary mode? (For P+Ex 1.2 and later, the answer is likely 'Yes'. For most other builds, the answer is probably 'No'.", title))
-		if settings.installToSse == "true":
-			BrawlAPI.ShowMessage("You will be prompted to select the stage at which you would like Ex characters added to SSE to unlock. Enter an integer corresponding to the below options:\n\n1 : Unlock Immediately\n2 : Unlock After Great Maze is Completed", title)
-			unlockStage = BrawlAPI.UserIntegerInput(title, "Franchise Icon Size: ", 1, 1, 2)
-			settings.sseUnlockStage = "start" if unlockStage == 1 else "end"
-		else:
-			settings.sseUnlockStage = "end"
-		settings.installTrophies = boolText(BrawlAPI.ShowYesNoPrompt("Would you like to install character trophies when they are available?\n\nAlthough adding trophies appears to be stable, added trophies are still not fully understood, so this feature is considered experimental.", title))
-		setStageLists = BrawlAPI.ShowYesNoPrompt("Does your build use any custom stage list files in addition to StageFiles.asm and Net-StageFiles.asm? (If you don't know what this means, the answer is probably 'No').", title)
-		if setStageLists:
-			customStageLists = BrawlAPI.OpenMultiFileDialog("Select the stage list .asm files", "Assembly files|*.asm")
-			customStageText = ""
-			i = 0
-			while i < len(customStageLists):
-				customStageText += customStageLists[i] + ("," if i != len(customStageLists) - 1 else "")
-				settings.customStageLists = customStageText
-				i += 1
-		else:
-			settings.customStageLists = ""
-		attrs = vars(settings)
-		File.WriteAllText(RESOURCE_PATH + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
-		BrawlAPI.ShowMessage("Setup complete.", title)
-		return settings
-
+			BrawlAPI.ShowMessage("Settings were not found. Please open the build settings menu (Plugins > BrawlInstaller Plugins > Settings) and configure your settings to continue.", "No Settings Found")
+			return None
 
 #endregion SETUP FUNCTIONS
 
 #region CLASSES
 
 class Settings:
-		rspLoading = "true"
+		rspLoading = "false"
 		cssIconStyle = "P+"
 		bpStyle = "vBrawl"
 		portraitNameStyle = "PM"
 		installPortraitNames = "false"
 		franchiseIconSizeCSS = "128"
-		installStocksToCSS = "false"
-		installStocksToInfo = "false"
-		installStockIconsToResult = "false"
-		installStocksToStockFaceTex = "false"
+		installStocksToCSS = "true"
+		installStocksToInfo = "true"
+		installStockIconsToResult = "true"
+		installStocksToStockFaceTex = "true"
 		installStocksToSSS = "false"
 		fiftyCostumeCode = "true"
 		installKirbyHats = "true"
 		defaultKirbyHat = "0x21"
-		kirbyHatExe = ""
-		assemblyFunctionsExe = ""
-		sawndReplaceExe = ""
-		sfxChangeExe = ""
+		kirbyHatExe = getFileRecursive("lavaKirbyHatManager*.exe", "lavaKirbyHatManager - OFFLINE.exe")
+		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions (Dolphin).exe")
+		sawndReplaceExe = getFileRecursive("lavaSawndIDReplaceAssist*.exe", "lavaSawndIDReplaceAssist.exe")
+		sfxChangeExe = getFileRecursive("sfxchange*.exe", "sfxchange.exe")
 		soundbankStyle = "hex"
 		addSevenToSoundbankIds = "true"
 		addSevenToSoundbankName = "false"
 		installVictoryThemes = "true"
-		gfxChangeExe = ""
+		gfxChangeExe = getFileRecursive("gfxchange*.exe", "gfxchange.exe")
 		installBPNames = "false"
 		installSingleplayerCosmetics = "false"
 		installToSse = "false"

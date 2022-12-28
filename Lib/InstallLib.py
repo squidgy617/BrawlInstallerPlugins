@@ -1,4 +1,3 @@
-version = "1.7.0"
 # InstallLib
 # Library for BrawlInstaller's installation plugins
 
@@ -13,6 +12,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 				settings = getSettings()
 			else:
 				settings = initialSetup()
+			if not settings:
+				return
 			# If temporary directory already exists, delete it to prevent duplicate files
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
@@ -851,6 +852,8 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 				settings = getSettings()
 			else:
 				settings = initialSetup()
+			if not settings:
+				return
 			# If temporary directory already exists, delete it to prevent duplicate files
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
