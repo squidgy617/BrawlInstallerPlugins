@@ -1523,6 +1523,7 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 					form = ColorPrompt(Bitmap(images[j]))
 					result = form.ShowDialog(MainForm.Instance)
 					color = form.selectedColor
+					form.Dispose()
 			usedIds.append(id)
 			costumes.append((id, color))
 			# Copy the file

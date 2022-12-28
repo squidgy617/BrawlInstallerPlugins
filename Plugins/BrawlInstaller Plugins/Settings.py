@@ -14,5 +14,6 @@ def main():
 			return
 		form = SettingsForm()
 		result = form.ShowDialog(MainForm.Instance)
+		form.Dispose()
 
 main()
