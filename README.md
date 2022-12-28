@@ -44,6 +44,8 @@ If you find any bugs or issues with the plugins, please submit them as an issue 
 
 Once you have completed these steps, you are ready to begin using the BrawlInstaller plugins.
 
+Additionally, it's recommended to set up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. BrawlInstaller does create automatic backups, so this is not necessary, but recommended as it is easier and more convenient.
+
 <details>
 
 <summary><h2>Manual Installation</h2></summary>
