@@ -2571,6 +2571,7 @@ class SettingsForm(Form):
         self.stockResultCheckbox.Checked = textBool(self.settings.installStockIconsToResult)
         self.stockRotationCheckbox.Checked = textBool(self.settings.installStocksToStockFaceTex)
         self.stockBattleCheckbox.Checked = textBool(self.settings.installStocksToInfo)
+        self.portraitNameCheckBox.Checked = textBool(self.settings.installPortraitNames)
         self.bpNameCheckbox.Checked = textBool(self.settings.installBPNames)
         self.singlePlayerCheckBox.Checked = textBool(self.settings.installSingleplayerCosmetics)
         self.franchiseIconSizeText.Text = self.settings.franchiseIconSizeCSS
@@ -2719,6 +2720,7 @@ class SettingsForm(Form):
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
         settings.installStocksToStockFaceTex = boolText(self.stockResultCheckbox.Checked)
         settings.installStocksToInfo = boolText(self.stockBattleCheckbox.Checked)
+        settings.installPortraitNames = boolText(self.portraitNameCheckBox.Checked)
         settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
