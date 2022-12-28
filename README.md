@@ -71,13 +71,12 @@ The plugins create backups of your files during execution, but they do not clean
 
 </details>
 
-# Quick Start Guide
+# Guides
 
-**LINK**: [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
-
-If you're just looking to get started in using these plugins to package and install character mods, you can use this guide to get started. It's designed to hopefully get both newbies to modding, as well as people who are just new to the plugins, get started with creating and installing character packages.
-
-In addition, you may want to check out the guides to [managing music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Music) and [managing stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Stages) for a detailed breakdown on working with these aspects of BrawlInstaller.
+- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
+- [Configuring Settings](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Configuring-Settings)
+- [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Music)
+- [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Stages)
 
 # Character Packages
 
