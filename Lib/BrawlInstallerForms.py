@@ -2039,6 +2039,7 @@ class SettingsForm(Form):
         self.ShowIcon = False
         self.Height = 128
         self.AutoSize = True
+        self.MaximizeBox = False
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -2083,6 +2084,7 @@ class SettingsForm(Form):
         self.pPlusRadioButton.Text = "P+"
         self.pPlusRadioButton.Location = Point(16, 16)
         self.pPlusRadioButton.Width = 48
+        self.pPlusRadioButton.Checked = True
 
         self.vBrawlRadioButton = RadioButton()
         self.vBrawlRadioButton.Text = "vBrawl"
@@ -2115,6 +2117,7 @@ class SettingsForm(Form):
         self.vBrawlBPRadioButton.Text = "vBrawl"
         self.vBrawlBPRadioButton.Location = Point(16, 16)
         self.vBrawlBPRadioButton.Width = 64
+        self.vBrawlBPRadioButton.Checked = True
 
         self.remixBPRadioButton = RadioButton()
         self.remixBPRadioButton.Text = "REMIX"
@@ -2135,6 +2138,7 @@ class SettingsForm(Form):
         self.vBrawlNameRadioButton.Text = "vBrawl"
         self.vBrawlNameRadioButton.Location = Point(16, 16)
         self.vBrawlNameRadioButton.Width = 64
+        self.vBrawlNameRadioButton.Checked = True
 
         self.PMNameRadioButton = RadioButton()
         self.PMNameRadioButton.Text = "PM"
@@ -2198,10 +2202,10 @@ class SettingsForm(Form):
         self.singlePlayerCheckBox.Width = 200
         self.singlePlayerCheckBox.Location = Point(16, 396)
 
-        franchiseIconSizeLabel = Label()
-        franchiseIconSizeLabel.Location = Point(16, 428)
-        franchiseIconSizeLabel.Text = "Franchise Icon Size:"
-        franchiseIconSizeLabel.Width = 112
+        self.franchiseIconSizeLabel = Label()
+        self.franchiseIconSizeLabel.Location = Point(16, 428)
+        self.franchiseIconSizeLabel.Text = "Franchise Icon Size:"
+        self.franchiseIconSizeLabel.Width = 112
 
         self.franchiseIconSizeText = NumericUpDown()
         self.franchiseIconSizeText.Location = Point(128, 428)
@@ -2218,15 +2222,15 @@ class SettingsForm(Form):
         cosmeticGroupBox.Controls.Add(self.portraitNameCheckBox)
         cosmeticGroupBox.Controls.Add(self.bpNameCheckbox)
         cosmeticGroupBox.Controls.Add(self.singlePlayerCheckBox)
-        cosmeticGroupBox.Controls.Add(franchiseIconSizeLabel)
+        cosmeticGroupBox.Controls.Add(self.franchiseIconSizeLabel)
         cosmeticGroupBox.Controls.Add(self.franchiseIconSizeText)
 
         # Stage Settings group
-        stageGroupBox = GroupBox()
-        stageGroupBox.Location = Point(0,475)
-        stageGroupBox.Text = "Custom Stage Lists"
-        stageGroupBox.AutoSize = True
-        stageGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.stageGroupBox = GroupBox()
+        self.stageGroupBox.Location = Point(0,475)
+        self.stageGroupBox.Text = "Custom Stage Lists"
+        self.stageGroupBox.AutoSize = True
+        self.stageGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.stageListBox = ListBox()
         self.stageListBox.Width = 120
@@ -2247,9 +2251,9 @@ class SettingsForm(Form):
         stageListRemoveButton.Location = Point(138, 32)
         stageListRemoveButton.Click += self.stageListRemoveButtonPressed
 
-        stageGroupBox.Controls.Add(self.stageListBox)
-        stageGroupBox.Controls.Add(stageListAddButton)
-        stageGroupBox.Controls.Add(stageListRemoveButton)
+        self.stageGroupBox.Controls.Add(self.stageListBox)
+        self.stageGroupBox.Controls.Add(stageListAddButton)
+        self.stageGroupBox.Controls.Add(stageListRemoveButton)
 
         pPlusDefaultsButton = Button()
         pPlusDefaultsButton.Text = "P+Ex Defaults"
@@ -2291,6 +2295,7 @@ class SettingsForm(Form):
         kirbyExeButton = Button()
         kirbyExeButton.Text = "Browse..."
         kirbyExeButton.Location = Point(240, 15)
+        kirbyExeButton.Click += self.kirbyExeButtonPressed
 
         defaultKirbyHatLabel = Label()
         defaultKirbyHatLabel.Text = "Default Kirby Hat ID:"
@@ -2328,6 +2333,7 @@ class SettingsForm(Form):
         codeMenuButton = Button()
         codeMenuButton.Text = "Browse..."
         codeMenuButton.Location = Point(240, 15)
+        codeMenuButton.Click += self.codeMenuButtonPressed
 
         codeMenuGroupBox.Controls.Add(self.codeMenuFileBox)
         codeMenuGroupBox.Controls.Add(codeMenuLabel)
@@ -2354,6 +2360,7 @@ class SettingsForm(Form):
         sawndReplaceExeButton = Button()
         sawndReplaceExeButton.Text = "Browse..."
         sawndReplaceExeButton.Location = Point(240, 15)
+        sawndReplaceExeButton.Click += self.sawndReplaceExeButtonPressed
 
         self.sfxChangeExeText = TextBox()
         self.sfxChangeExeText.Location = Point(76, 48)
@@ -2369,6 +2376,7 @@ class SettingsForm(Form):
         sfxChangeExeButton = Button()
         sfxChangeExeButton.Text = "Browse..."
         sfxChangeExeButton.Location = Point(240, 47)
+        sfxChangeExeButton.Click += self.sfxChangeExeButtonPressed
 
         soundbankFormatGroup = GroupBox()
         soundbankFormatGroup.Location = Point(16, 80)
@@ -2380,6 +2388,7 @@ class SettingsForm(Form):
         self.decimalRadioButton.Text = "Decimal"
         self.decimalRadioButton.Location = Point(16, 16)
         self.decimalRadioButton.Width = 64
+        self.decimalRadioButton.Checked = True
 
         self.hexRadioButton = RadioButton()
         self.hexRadioButton.Text = "Hex"
@@ -2430,6 +2439,7 @@ class SettingsForm(Form):
         gfxChangeExeButton = Button()
         gfxChangeExeButton.Text = "Browse..."
         gfxChangeExeButton.Location = Point(240, 15)
+        gfxChangeExeButton.Click += self.gfxChangeExeButtonPressed
 
         gfxGroupBox.Controls.Add(self.gfxChangeExeText)
         gfxGroupBox.Controls.Add(gfxChangeExeLabel)
@@ -2463,6 +2473,7 @@ class SettingsForm(Form):
         self.unlockStartRadioButton.Text = "Start"
         self.unlockStartRadioButton.Location = Point(16, 16)
         self.unlockStartRadioButton.Width = 64
+        self.unlockStartRadioButton.Checked = True
 
         self.unlockEndRadioButton = RadioButton()
         self.unlockEndRadioButton.Text = "End"
@@ -2482,11 +2493,11 @@ class SettingsForm(Form):
         configGroupBox.Controls.Add(gfxGroupBox)
         configGroupBox.Controls.Add(otherGroupBox)
 
-        cancelButton = Button()
-        cancelButton.Text = "Cancel"
-        cancelButton.Location = Point(525, 600)
-        #cancelButton.Width = 90
-        cancelButton.Click += self.cancelButtonPressed
+        self.cancelButton = Button()
+        self.cancelButton.Text = "Close"
+        self.cancelButton.Location = Point(525, 600)
+        self.cancelButton.Enabled = File.Exists(MainForm.BuildPath + '/settings.ini')
+        self.cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
         saveButton.Text = "Save"
@@ -2494,12 +2505,55 @@ class SettingsForm(Form):
         saveButton.Click += self.saveButtonPressed
 
         self.Controls.Add(cosmeticGroupBox)
-        self.Controls.Add(stageGroupBox)
+        self.Controls.Add(self.stageGroupBox)
         self.Controls.Add(pPlusDefaultsButton)
         self.Controls.Add(remixDefaultsButton)
         self.Controls.Add(configGroupBox)
         self.Controls.Add(saveButton)
-        self.Controls.Add(cancelButton)
+        self.Controls.Add(self.cancelButton)
+
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(self.rspCheck, "Whether or not your build uses RSP (result-screen portrait) loading. For most builds, this should be unchecked.")
+        toolTip.SetToolTip(self.fiftyCCCheck, "Whether or not your build uses 50CC (fifty-costume code) naming conventions. If your build is P+Ex or allows 50 costumes, this should be checked.")
+        toolTip.SetToolTip(cssIconGroup, "The style of character select screen icons used in your build.")
+        toolTip.SetToolTip(self.pPlusRadioButton, "Select this if your build uses P+ style icons. These are diamond shaped icons featured in Project+ and P+Ex.")
+        toolTip.SetToolTip(self.remixRadioButton, "Select this if your build uses PMEX REMIX style icons. These are hexagonal icons featured PMEX REMIX.")
+        toolTip.SetToolTip(self.PMRadioButton, "Select this if your build uses Project M style icons. These are rectangular icons with a purple background featured in Project M.")
+        toolTip.SetToolTip(self.vBrawlRadioButton, "Select this if your build uses vanilla Brawl style icons. These are rectangular icons with a blue background featured in Brawl.")
+        toolTip.SetToolTip(bpGroup, "The style of battle portraits used in your build.")      
+        toolTip.SetToolTip(self.vBrawlBPRadioButton, "Select this if your build uses vanilla Brawl style battle portraits. These are square portraits.")
+        toolTip.SetToolTip(self.remixBPRadioButton, "Select this if your build uses PMEX REMIX style battle portraits. These are portraits with a hexagonal background.") 
+        toolTip.SetToolTip(nameGroup, "The style of names used on portraits displayed on the character select screen. If your build doesn't use these, this setting will have no effect.") 
+        toolTip.SetToolTip(self.vBrawlNameRadioButton, "Select this if your build uses vanilla Brawl style portrait names.") 
+        toolTip.SetToolTip(self.PMNameRadioButton, "Select this if your build uses Project M style portrait names.") 
+        toolTip.SetToolTip(stockGroupBox, "The locations where character-specific stock icons are used in your build.") 
+        toolTip.SetToolTip(self.stockCssCheckbox, "Check this if your build uses stock icons on the character select screen for modes like Classic mode. When checked, stock icons will be installed to sc_selcharacter.pac.") 
+        toolTip.SetToolTip(self.stockSssCheckbox, "Check this if your build uses stock icons on the stage select screen. When checked, stock icons will be installed to sc_selmap.pac.") 
+        toolTip.SetToolTip(self.stockResultCheckbox, "Check this if your build uses stock icons on the match result screen. When checked, stock icons will be installed to STGRESULT.pac.") 
+        toolTip.SetToolTip(self.stockRotationCheckbox, "Check this if your build uses stock icons in modes like Rotation mode. When checked, stock icons will be installed to StockFaceTex.brres.") 
+        toolTip.SetToolTip(self.stockBattleCheckbox, "Check this if your build uses stock icons during matches. When checked, stock icons will be installed to info.pac.") 
+        toolTip.SetToolTip(self.portraitNameCheckBox, "Check this if your build displays names on the portraits displayed on the character select screen.") 
+        toolTip.SetToolTip(self.bpNameCheckbox, "Check this if your build displays names beneath the portraits used in a match.") 
+        toolTip.SetToolTip(self.singlePlayerCheckBox, "Check this if you would like franchise icons and battle portrait names (if used) to be installed into single-player modes like Classic mode.") 
+        toolTip.SetToolTip(self.franchiseIconSizeLabel, "This determines both the height and width of franchise icons displayed behind character portraits on the character select screen. For vBrawl, this is 64. For P+, it is 128.") 
+        toolTip.SetToolTip(self.stageGroupBox, "This is a list of .asm files containing custom stage lists used in your build. You can add new entries by clicking the '+'. Most builds do not use this.") 
+        toolTip.SetToolTip(kirbyExeLabel, "The path to your preferred version of lavaKirbyHatManager .exe. Should be placed in your build. Required for Kirby hats to work on P+Ex builds.") 
+        toolTip.SetToolTip(defaultKirbyHatLabel, "The fighter ID to default to for Kirby hats when no Kirby hat is provided. Must be in either hex (0x21) or decimal (33) format. If left blank, Kirby hats will be set to none by default.") 
+        toolTip.SetToolTip(codeMenuLabel, "The path to your preferred version of QuickLava's PowerPC Assembly Functions .exe. Should be placed in your build. Required for fighters to be added to the code menu.") 
+        toolTip.SetToolTip(sawndReplaceExeLabel, "The path to lavaSawndIDReplaceAssist.exe. Required to resolve soundbank conflicts during character installs.") 
+        toolTip.SetToolTip(sfxChangeExeLabel, "The path to Codes' sfxchange.exe. Required to resolve soundbank conflicts during character installs.") 
+        toolTip.SetToolTip(soundbankFormatGroup, "The naming format for soundbanks used by your build.") 
+        toolTip.SetToolTip(self.decimalRadioButton, "Select this if your build uses soundbanks named in decimal format. Used in older builds.") 
+        toolTip.SetToolTip(self.hexRadioButton, "Select this if your build uses soundbanks named in hexadecimal format. Used in most modern builds such as P+Ex and REMIX.") 
+        toolTip.SetToolTip(self.incrementSoundbankIdCheck, "Check this if SFX IDs need to be incremented by 7 when converted using QuickLava and Codes' tools. For most modern builds, this should be checked.") 
+        toolTip.SetToolTip(self.incrementSoundbankNameCheck, "Check this if soundbanks in your build are named as their soundbank ID plus 7. In most modern builds, this should be unchecked.") 
+        toolTip.SetToolTip(gfxChangeExeLabel, "The path to Codes' gfxchange.exe. Required to resolve Effect.pac ID conflicts during character installation.") 
+        toolTip.SetToolTip(self.sseCheck, "Check this if you would like fighters to be installed to SSE mode. Only use this if your build supports Subspace Emissary Ex, which is included in the latest P+Ex release.") 
+        toolTip.SetToolTip(self.trophyCheck, "Check this if you would like to install trophies with fighters when they are available. While adding trophies appears to be stable, some behaviors are still unknown, so this is considered experimental.")
+        toolTip.SetToolTip(sseGroup, "These settings determine when added characters are unlocked in SSE mode by default.") 
+        toolTip.SetToolTip(self.unlockStartRadioButton, "Select this if you would like added characters to be unlocked in SSE mode from the start by default.")  
+        toolTip.SetToolTip(self.unlockEndRadioButton, "Select this if you would like added characters to be unlocked after completing SSE mode by default.")  
 
         self.initializeControls()
 
@@ -2596,8 +2650,54 @@ class SettingsForm(Form):
     def cancelButtonPressed(self, sender, args):
         self.DialogResult = DialogResult.Cancel
         self.Close()
+
+    def kirbyExeButtonPressed(self, sender, args):
+        while True:
+            kirbyHatExe = BrawlAPI.OpenFileDialog("Select your Kirby Hat Manager .exe", "Executable files|*.exe")
+            if kirbyHatExe:
+                if DirectoryInfo(MainForm.BuildPath).FullName not in getFileInfo(kirbyHatExe).DirectoryName:
+                    BrawlAPI.ShowMessage("Lava's Kirby hat manager must be in your build folder! Please move it to the correct directory and try again.", "Please place in build folder")
+                else:
+                    self.kirbyExeFileBox.Text = kirbyHatExe
+                    break
+            else:
+                break
+
+    def codeMenuButtonPressed(self, sender, args):
+        while True:
+            exe = BrawlAPI.OpenFileDialog("Select your PowerPC Assembly Functions .exe", "Executable files|*.exe")
+            if exe:
+                if DirectoryInfo(MainForm.BuildPath).FullName not in getFileInfo(exe).DirectoryName:
+                    BrawlAPI.ShowMessage("PowerPC Assembly Functions must be in your build folder! Please move it to the correct directory and try again.", "Please place in build folder")
+                else:
+                    self.codeMenuFileBox.Text = exe
+                    break
+            else:
+                break
+
+    def sawndReplaceExeButtonPressed(self, sender, args):
+        exe = BrawlAPI.OpenFileDialog("Select your lavaSawndIDReplaceAssist .exe", "Executable files|*.exe")
+        if exe:
+            self.sawndReplaceExeText.Text = exe
+
+    def sfxChangeExeButtonPressed(self, sender, args):
+        exe = BrawlAPI.OpenFileDialog("Select your sfxchange.exe", "Executable files|*.exe")
+        if exe:
+            self.sfxChangeExeText.Text = exe
+
+    def gfxChangeExeButtonPressed(self, sender, args):
+        exe = BrawlAPI.OpenFileDialog("Select your gfxchange.exe", "Executable files|*.exe")
+        if exe:
+            self.gfxChangeExeText.Text = exe
     
     def saveButtonPressed(self, sender, args):
+        if self.defaultKirbyHatText.Text.strip() != "":
+            valid = validateTextBox(self.defaultKirbyHatText)
+            if not valid:
+                BrawlAPI.ShowMessage("Default Kirby hat field contains invalid values. Please ensure the ID is in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
+                return
+        else:
+            self.defaultKirbyHatText.BackColor = Color.White
         settings = Settings()
         settings.fiftyCostumeCode = boolText(self.fiftyCCCheck.Checked)
         if self.pPlusRadioButton.Checked:
@@ -2625,7 +2725,7 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
         settings.kirbyHatExe = self.kirbyExeFileBox.Text
-        settings.defaultKirbyHat = self.defaultKirbyHatText.Text
+        settings.defaultKirbyHat = hexId(self.defaultKirbyHatText.Text) if self.defaultKirbyHatText.Text.strip() != "" else "none"
         settings.assemblyFunctionsExe = self.codeMenuFileBox.Text
         settings.sawndReplaceExe = self.sawndReplaceExeText.Text
         settings.sfxChangeExe = self.sfxChangeExeText.Text
@@ -2652,6 +2752,7 @@ class SettingsForm(Form):
         settings.customStageLists = stageListSetting
         attrs = vars(settings)
         File.WriteAllText(MainForm.BuildPath + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
+        self.cancelButton.Enabled = True
         BrawlAPI.ShowMessage("Settings saved.", "Success")
 
 #endregion

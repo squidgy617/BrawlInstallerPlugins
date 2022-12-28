@@ -222,6 +222,15 @@ def validateTextBoxes(groupBox):
 					validationPassed = False
 		return validationPassed
 
+# Validate a single text box is a valid hex ID
+def validateTextBox(textBox):
+		validationPassed = True
+		valid = hexId(textBox.Text)
+		textBox.BackColor = Color.White if valid else Color.LightPink
+		if not valid:
+			validationPassed = False
+		return validationPassed
+
 # Get child node by name; similar to markyMawwk's function, but didn't want to make it a dependency
 def getChildByName(node, name):
 		if node.Children:
@@ -4973,16 +4982,16 @@ def initialSetup():
 #region CLASSES
 
 class Settings:
-		rspLoading = "true"
+		rspLoading = "false"
 		cssIconStyle = "P+"
 		bpStyle = "vBrawl"
 		portraitNameStyle = "PM"
 		installPortraitNames = "false"
 		franchiseIconSizeCSS = "128"
-		installStocksToCSS = "false"
-		installStocksToInfo = "false"
-		installStockIconsToResult = "false"
-		installStocksToStockFaceTex = "false"
+		installStocksToCSS = "true"
+		installStocksToInfo = "true"
+		installStockIconsToResult = "true"
+		installStocksToStockFaceTex = "true"
 		installStocksToSSS = "false"
 		fiftyCostumeCode = "true"
 		installKirbyHats = "true"
