@@ -4,19 +4,6 @@
 
 A BrawlCrate plugin suite for easy installation of Brawl mods into BrawlEX builds. Currently supports automatic installation of entire characters, including their cosmetics, as long as they are packaged in a .zip file with the correct structure.
 
-This tool was made possible by:
-- Soopercool101, Kryal, BlackJax96, and libertyernie for BrawlLib, BrawlBox, and BrawlCrate. Extra thanks to Soopercool101 for making additions to BrawlCrate to support features needed for the BrawlInstaller plugins.
-- markymawk, for their basic guide to writing plug-ins and for their plug-ins which served as a great learning resource, as well as their stage and music managing guides for Project+ which were a valuable resource.
-- Kapedani, for providing files and assistance with Subspace Emissary Ex implementation.
-- QuickLava and codes, for the various tools they created that these plugins are able to interact with.
-- KingJigglypuff for providing detailed information on currently supported non-Ex modules.
-- CaliKingz01, who provided the PSA for X to use as an example character package.
-- Shy, who created the cosmetics used for X.
-- Hatyaro, for helping with some coding challenges.
-- The Project+ team, for the advancements made to Brawl modding that made this all possible.
-- Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
-- The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
-
 Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes, including Subspace Emissary, so long as your build supports Subspace Emissary Ex.
 
 If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
@@ -82,34 +69,17 @@ The plugins create backups of your files during execution, but they do not clean
 
 # Character Packages
 
+**Character Packages available [here](http://forums.kc-mm.com/Gallery/BrawlView.php?ByUserID=28848&Moderated=All).**
+
 The Install Character plugin works by extracting files from a "Character Package", a .zip file containing the fighter's files, cosmetics, etc. with a particular directory structure.
 
-If you wish to add a character with the installer plugin, the character **must** be packaged in the correct way. This can be done manually (recommended that you use one of [these templates](https://github.com/squidgy617/BrawlInstallerPlugins#template-packages)) or by using the [Package Character](
-https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins#package-character) plugin in this suite. Character packages can also be extracted from a build using the [Extract Character](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins#extract-character) plugin.
-
-Some character packages can be found on BrawlVault [here](http://forums.kc-mm.com/Gallery/BrawlView.php?ByUserID=28848&Moderated=All). There are also template packages available in the next section.
+Character packages can be created manually or automatically using the "Package Character" plugin. There are also a few template packages that you can use to create your own. For more information, visit [the wiki page](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Character-Packages).
 
 Ideally, mod creators should create good character packages for you to use with this plugin, but if no package exists, anybody can create one using the previously mentioned plugin or templates.
-
-Character packages can also come with a FighterSettings.txt file that declares various parameters for the fighter, usually for modifying Gecko codes. See the [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Character-Packages#fightersettingstxt) section for more details.
-
-## Template Packages
-**DOWNLOAD:** [Rockman X (by CaliKingz01) Example Package](https://www.mediafire.com/file/qnx8p14ivsb3rxo/RockmanX_by_CaliKingz01.zip/file)
-
-**DOWNLOAD:** [Empty Template Package](https://www.mediafire.com/file/xd1212mwl5aq6tk/Template.zip/file)
-
-These sample packages give an example of what a proper character package should look like. In both examples, every folder contains text files with additional instructions on how they should be used.
-
-## [FighterSettings.txt](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Character-Packages#fightersettingstxt)
-Character packages can include a text file specifying certain parameters to use during installation. Click the above link to see detailed documentation on these parameters.
 
 # [Plugins](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Plugins)
 
 Click the above link to see detailed documentation on all of the plugins included in this suite.
-
-# [settings.ini](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Settings)
-
-BrawlInstaller supports a wide variety of different settings that enable users to customize it to fit their build. Click the above link to see detailed documentation on all of these settings.
 
 # FAQ
 <details>
@@ -155,6 +125,20 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   The most likely reason for this is that your build does not use the modern Project+ tracklist and stage systems. Only the Project+ tracklist and stage systems are supported by BrawlInstallers stage and music managers. Most modern builds use this system, but some older builds may not.
   
 </details>
+
+# Credits
+This tool was made possible by:
+- Soopercool101, Kryal, BlackJax96, and libertyernie for BrawlLib, BrawlBox, and BrawlCrate. Extra thanks to Soopercool101 for making additions to BrawlCrate to support features needed for the BrawlInstaller plugins.
+- markymawk, for their basic guide to writing plug-ins and for their plug-ins which served as a great learning resource, as well as their stage and music managing guides for Project+ which were a valuable resource.
+- Kapedani, for providing files and assistance with Subspace Emissary Ex implementation.
+- QuickLava and codes, for the various tools they created that these plugins are able to interact with.
+- KingJigglypuff for providing detailed information on currently supported non-Ex modules.
+- CaliKingz01, who provided the PSA for X to use as an example character package.
+- Shy, who created the cosmetics used for X.
+- Hatyaro, for helping with some coding challenges.
+- The Project+ team, for the advancements made to Brawl modding that made this all possible.
+- Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
+- The Brawl modding community and [Custom Brawl Modding discord](https://discord.gg/GbxJhbv), for being a great source of knowledge on all things Brawl-modding.
 
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
