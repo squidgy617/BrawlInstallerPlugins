@@ -2725,6 +2725,7 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
         settings.kirbyHatExe = self.kirbyExeFileBox.Text
+        settings.installKirbyHats = boolText(self.kirbyExeFileBox.Text.strip() != "")
         settings.defaultKirbyHat = hexId(self.defaultKirbyHatText.Text) if self.defaultKirbyHatText.Text.strip() != "" else "none"
         settings.assemblyFunctionsExe = self.codeMenuFileBox.Text
         settings.sawndReplaceExe = self.sawndReplaceExeText.Text
