@@ -1,4 +1,3 @@
-version = "1.7.0"
 # UninstallLib
 # Library for BrawlInstaller's uninstallation plugins
 
@@ -13,6 +12,8 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 				settings = getSettings()
 			else:
 				settings = initialSetup()
+			if not settings:
+				return
 			# If temporary directory already exists, delete it to prevent duplicate files
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)

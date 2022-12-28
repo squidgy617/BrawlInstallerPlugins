@@ -1,5 +1,4 @@
-﻿version = "1.7.0"
-# BrawlInstallerForms
+﻿# BrawlInstallerForms
 # Library for forms used by BrawlInstaller
 
 from BrawlInstallerLib import *
@@ -2496,7 +2495,6 @@ class SettingsForm(Form):
         self.cancelButton = Button()
         self.cancelButton.Text = "Close"
         self.cancelButton.Location = Point(525, 600)
-        self.cancelButton.Enabled = File.Exists(MainForm.BuildPath + '/settings.ini')
         self.cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
@@ -2752,7 +2750,6 @@ class SettingsForm(Form):
         settings.customStageLists = stageListSetting
         attrs = vars(settings)
         File.WriteAllText(MainForm.BuildPath + '/settings.ini', '\n'.join("%s = %s" % item for item in attrs.items()))
-        self.cancelButton.Enabled = True
         BrawlAPI.ShowMessage("Settings saved.", "Success")
 
 #endregion

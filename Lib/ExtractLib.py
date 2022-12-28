@@ -1,4 +1,3 @@
-version = "1.7.0"
 # ExtractLib
 # Library for BrawlInstaller's extraction plugins
 
@@ -11,6 +10,8 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 				settings = getSettings()
 			else:
 				settings = initialSetup()
+			if not settings:
+				return
 			# If temporary directory already exists, delete it to prevent duplicate files
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
