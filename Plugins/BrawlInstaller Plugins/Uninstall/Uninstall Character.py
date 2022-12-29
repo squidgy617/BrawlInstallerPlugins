@@ -1,6 +1,7 @@
 __author__ = "Squidgy"
 
 from BrawlInstallerLib import *
+from BrawlInstallerForms import *
 
 def main():
 		try: 
@@ -25,8 +26,9 @@ def main():
 			#region USER INPUT/PRELIMINARY CHECKS
 
 			# Prompt user to input fighter ID
-			fighterId = showIdPrompt("Enter the ID for the fighter you wish to remove")
-			fighterId = fighterId.split('0x')[1].upper()
+			fighterId = showIdForm("Uninstall Character", "Uninstall")
+			if not fighterId:
+				return
 
 			uninstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's franchise icon?", "Uninstall franchise icon?")
 			if settings.installVictoryThemes:

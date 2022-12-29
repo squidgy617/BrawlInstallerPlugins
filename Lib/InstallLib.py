@@ -3,6 +3,7 @@
 
 from BrawlInstallerLib import *
 from BrawlLib.CustomLists import *
+from BrawlInstallerForms import *
 
 #region INSTALL CHARACTER
 
@@ -306,15 +307,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							franchiseIconUsed = True
 							if franchiseIconId == -1:
 								while franchiseIconUsed:
-									franchiseIconId = BrawlAPI.UserStringInput("Enter your desired franchise icon ID")
-									# Ensure franchise icon ID is in integer format
-									if franchiseIconId.startswith('0x'):
+									franchiseIconId = showIdForm("Install Franchise Icon", "Install", "franchiseImage", "Franchise Icon ID:")
+									if franchiseIconId:
 										franchiseIconId = int(franchiseIconId, 16)
-									elif franchiseIconId.isnumeric():
-										franchiseIconId = int(franchiseIconId)
 									else:
-										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-										continue
+										return
 									franchiseIconUsed = franchiseIconIdUsed(franchiseIconId)
 									if franchiseIconUsed:
 										changeFranchiseIconId = BrawlAPI.ShowYesNoPrompt("A franchise icon with this ID already exists. Would you like to enter a different ID?", "Franchise Icon Already Exists")
@@ -328,18 +325,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										break
 						else:
 							newFranchiseIconId = BrawlAPI.ShowYesNoPrompt("Would you like to change the franchise icon ID for this fighter?", "Change franchise icon ID?")
-							while newFranchiseIconId:
-								franchiseIconId = BrawlAPI.UserStringInput("Enter your desired franchise icon ID")
-								# Ensure franchise icon ID is in integer format
-								if franchiseIconId.startswith('0x'):
+							if newFranchiseIconId:
+								franchiseIconId = showIdForm("Install Franchise Icon", "Install", "franchiseImage", "Franchise Icon ID:")
+								if franchiseIconId:
 									franchiseIconId = int(franchiseIconId, 16)
-									break
-								elif franchiseIconId.isnumeric():
-									franchiseIconId = int(franchiseIconId)
-									break
 								else:
-									BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-									continue
+									return
 							if not newFranchiseIconId:
 								franchiseIconId = -1
 					#endregion USER INPUT/PRELIMINARY CHECKS

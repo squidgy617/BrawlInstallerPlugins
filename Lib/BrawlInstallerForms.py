@@ -7,6 +7,40 @@ from System.Windows.Forms import *
 from System.Drawing import *
 from BrawlLib.CustomLists import *
 
+# General function to show the ID form
+def showIdForm(title="Enter ID", buttonText="Select", idType="fighter", labelText="Fighter ID:"):
+        form = IdEntryForm(title, buttonText, idType, labelText)
+        result = form.ShowDialog(MainForm.Instance)
+        id = ""
+        if result == DialogResult.OK:
+            id = hexId(form.idTextbox.Text).replace('0x', '')
+        form.Dispose()
+        return id
+
+# General function to show ID picker
+def showIdPicker(idType="fighter"):
+        form = IdPicker(idType)
+        id = ""
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            id = form.idBox.Text
+        form.Dispose()
+        return id
+
+# General function to show image ID picker
+def showImageIdPicker(imageType="cosmetic"):
+        id = ""
+        if imageType == "cosmetic":
+            imageNodes = getCosmeticNodes()
+        elif imageType == "franchise":
+            imageNodes = getFranchiseIconNodes()
+        form = ImageIdPicker(imageNodes)
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            id = form.idBox.Text
+        form.Dispose()
+        return id
+
 #region ID PICKER
 
 class IdPicker(Form):
@@ -17,6 +51,7 @@ class IdPicker(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(267,344)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -122,6 +157,7 @@ class ImageIdPicker(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(267,344)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -193,6 +229,7 @@ class MusicList(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(267,344)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -506,6 +543,7 @@ class TracklistEditor(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(411,400)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -904,6 +942,7 @@ class StageList(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(411,432)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -1253,6 +1292,7 @@ class StageEditor(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -1972,15 +2012,19 @@ class StageEditor(Form):
 
 class CostumePrompt(Form):
 
-    def __init__(self):
+    def __init__(self, uninstall=False):
         # Form parameters
-        self.Text = 'Install Costume'
+        self.Text = 'Install Costume' if not uninstall else 'Uninstall Costume'
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
+        self.MinimizeBox = False
+        self.MaximizeBox = False
         self.AutoSize = True
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.uninstall = uninstall
 
         # Form vars
         self.cspFiles = []
@@ -1993,6 +2037,7 @@ class CostumePrompt(Form):
         self.fileGroup.Height = 192
         self.fileGroup.Dock = DockStyle.Top
         self.fileGroup.TabIndex = 1
+        self.fileGroup.Visible = not self.uninstall
 
         # CSPs
         cspPanel = Panel()
@@ -2166,7 +2211,7 @@ class CostumePrompt(Form):
 
         # Install button
         installButton = Button()
-        installButton.Text = "Install"
+        installButton.Text = "Install" if not self.uninstall else "Uninstall"
         installButton.Dock = DockStyle.Bottom
         installButton.Click += self.installButtonPressed
 
@@ -2187,26 +2232,19 @@ class CostumePrompt(Form):
         self.Controls.Add(self.fighterIdGroup)
 
     def fighterIdButtonPressed(self, sender, args):
-        form = IdPicker()
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.fighterIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker()
+        if id:
+            self.fighterIdTextbox.Text = id
 
     def cssSlotIdButtonPressed(self, sender, args):
-        form = IdPicker("cssSlot")
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.cssSlotConfigIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker("cssSlot")
+        if id:
+            self.cssSlotConfigIdTextbox.Text = id
 
     def cosmeticIdButtonPressed(self, sender, args):
-        imageNodes = getCosmeticNodes()
-        form = ImageIdPicker(imageNodes)
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.cosmeticIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showImageIdPicker("cosmetic")
+        if id:
+            self.cosmeticIdTextbox.Text = id
 
     def cspButtonPressed(self, sender, args):
         self.cspFiles = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
@@ -2241,7 +2279,7 @@ class CostumePrompt(Form):
         if not valid:
             BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
             return
-        if not self.cspFiles or not self.bpFiles or not self.stockFiles or not self.costumeFiles:
+        if (not self.cspFiles or not self.bpFiles or not self.stockFiles or not self.costumeFiles) and not self.uninstall:
             proceed = BrawlAPI.ShowYesNoPrompt("You have not added all possible files. Would you like to proceed anyway?", "Files Missing")
             if proceed:
                 self.DialogResult = DialogResult.OK
@@ -2264,6 +2302,7 @@ class SettingsForm(Form):
         self.ShowIcon = False
         self.Height = 128
         self.AutoSize = True
+        self.MinimizeBox = False
         self.MaximizeBox = False
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -2886,11 +2925,9 @@ class SettingsForm(Form):
         self.Close()
 
     def defaultKirbyHatButtonPressed(self, sender, args):
-        form = IdPicker()
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.defaultKirbyHatText.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker()
+        if id:
+            self.defaultKirbyHatText.Text = id
 
     def kirbyExeButtonPressed(self, sender, args):
         while True:
@@ -3010,6 +3047,8 @@ class CharacterForm(Form):
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.Height = 128
+        self.MinimizeBox = False
+        self.MaximizeBox = False
         self.AutoSize = True
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
@@ -3265,47 +3304,34 @@ class CharacterForm(Form):
             clearTextBoxes(self.subCharacterGroup)
 
     def fighterIdButtonPressed(self, sender, args):
-        form = IdPicker()
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.fighterIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker()
+        if id:
+            self.fighterIdTextbox.Text = id
 
     def cosmeticIdButtonPressed(self, sender, args):
-        imageNodes = getCosmeticNodes()
-        form = ImageIdPicker(imageNodes)
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.cosmeticIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showImageIdPicker("cosmetic")
+        if id:
+            self.cosmeticIdTextbox.Text = id
 
     def cosmeticConfigIdButtonPressed(self, sender, args):
-        form = IdPicker("cosmetic")
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.cosmeticConfigIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker("cosmetic")
+        if id:
+            self.cosmeticConfigIdTextbox.Text = id
 
     def slotConfigIdButtonPressed(self, sender, args):
-        form = IdPicker("slot")
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.slotConfigIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker("slot")
+        if id:
+            self.slotConfigIdTextbox.Text = id
 
     def cssSlotConfigIdButtonPressed(self, sender, args):
-        form = IdPicker("cssSlot")
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.cssSlotConfigIdTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker("cssSlot")
+        if id:
+            self.cssSlotConfigIdTextbox.Text = id
 
     def subCharacterButtonPressed(self, sender, args):
-        form = IdPicker("cssSlot")
-        result = form.ShowDialog(MainForm.Instance)
-        if result == DialogResult.OK:
-            self.subCharacterTextbox.Text = form.idBox.Text
-        form.Dispose()
+        id = showIdPicker("cssSlot")
+        if id:
+            self.subCharacterTextbox.Text = id
 
     def installButtonPressed(self, sender, args):
         validationPassed = True
@@ -3333,6 +3359,84 @@ class CharacterForm(Form):
             BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
 
 #endregion CHARACTER FORM
+
+#region SINGLE ID FORM
+
+class IdEntryForm(Form):
+    def __init__(self, title="Enter ID", buttonText="Select", idType="fighter", labelText = "Fighter ID:"):
+        # Form parameters
+        self.Text = title
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.Height = 128
+        self.AutoSize = True
+        self.MinimumSize = Size(250,128)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.idType = idType
+
+        # Fighter ID box
+        self.idGroup = GroupBox()
+        self.idGroup.Height = 80
+        self.idGroup.Dock = DockStyle.Top
+        self.idGroup.TabIndex = 2
+
+        idPanel = Panel()
+        idPanel.Location = Point(16, 16)
+        idPanel.TabIndex = 1
+        idLabel = Label()
+        idLabel.Dock = DockStyle.Left
+        idLabel.Text = labelText
+        self.idTextbox = TextBox()
+        self.idTextbox.Dock = DockStyle.Right
+
+        idButton = Button()
+        idButton.Text = "..."
+        idButton.Size = Size(25, self.idTextbox.ClientSize.Height + 2)
+        idButton.Location = Point(self.idTextbox.ClientSize.Width - idButton.Width, -1)
+        idButton.Cursor = Cursors.Default
+        idButton.Click += self.idButtonPressed
+
+        self.idGroup.Controls.Add(idPanel)
+
+        self.idTextbox.Controls.Add(idButton)
+
+        idPanel.Controls.Add(idLabel)
+        idPanel.Controls.Add(self.idTextbox)
+
+        # Button
+        button = Button()
+        button.Text = buttonText
+        button.Dock = DockStyle.Bottom
+        button.Click += self.buttonPressed
+
+         # Add controls
+        self.Controls.Add(button)
+        self.Controls.Add(self.idGroup)
+
+    def idButtonPressed(self, sender, args):
+        if "Image" not in self.idType:
+            id = showIdPicker(self.idType)
+        else:
+            id = showImageIdPicker(self.idType.replace("Image", ""))
+        if id:
+            self.idTextbox.Text = id
+
+    def buttonPressed(self, sender, args):
+        validationPassed = True
+        valid = validateTextBoxes(self.idGroup)
+        if not valid:
+            validationPassed = False
+        if validationPassed == True:
+            self.DialogResult = DialogResult.OK
+            self.Close()
+        else:
+            BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
+
+#endregion SINGLE ID FORM
 
 #region COSTUME FORM
 

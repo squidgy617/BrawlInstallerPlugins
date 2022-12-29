@@ -2,6 +2,7 @@ __author__ = "Squidgy"
 
 from BrawlInstallerLib import *
 from InstallLib import *
+from BrawlInstallerForms import *
 
 def main():
 		try: 
@@ -27,7 +28,11 @@ def main():
 				Directory.Delete(AppPath + '/temp', 1)
 
 			# Franchise Icon ID prompt
-			franchiseIconId = int(showIdPrompt("Enter your desired franchise icon ID").replace('0x', ''), 16)
+			franchiseIconId = showIdForm("Uninstall Franchise Icon", "Uninstall", "franchiseImage", "Franchise Icon ID:")
+			if franchiseIconId:
+				franchiseIconId = int(franchiseIconId, 16)
+			else:
+				return
 
 			# Set up progressbar
 			progressCounter = 0

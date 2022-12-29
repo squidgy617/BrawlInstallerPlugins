@@ -25,13 +25,14 @@ def main():
 			backupCheck()
 
 			# User input
-			# TODO: Improved form
-			fighterId = showIdPrompt("Enter fighter's ID")
-			fighterId = fighterId.split('0x')[1].upper()
-			cosmeticId = showIdPrompt("Enter fighter's cosmetic ID")
-			cosmeticId = int(cosmeticId, 16)
-			cssSlotConfigId = showIdPrompt("Enter fighter's CSS slot config ID")
-			cssSlotConfigId = cssSlotConfigId.split('0x')[1].upper()
+			form = CostumePrompt(uninstall=True)
+			result = form.ShowDialog(MainForm.Instance)
+			if result == DialogResult.OK:
+				fighterId = hexId(form.fighterIdTextbox.Text).split('0x')[1].upper()
+				cosmeticId = int(hexId(form.cosmeticIdTextbox.Text).replace('0x',''), 16)
+				cssSlotConfigId = hexId(form.cssSlotConfigIdTextbox.Text).split('0x')[1].upper()
+			else:
+				return
 			images = []
 			positions = []
 			newPositions = []

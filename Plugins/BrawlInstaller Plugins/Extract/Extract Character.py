@@ -2,6 +2,7 @@ __author__ = "Squidgy"
 
 from BrawlInstallerLib import *
 from ExtractLib import *
+from BrawlInstallerForms import *
 
 def main():
 		try: 
@@ -20,8 +21,9 @@ def main():
 				return
 
 			# Prompt user to input fighter ID
-			fighterId = showIdPrompt("Enter the ID for the fighter you wish to extract")
-			fighterId = fighterId.split('0x')[1].upper()
+			fighterId = showIdForm("Extract Character", "Extract")
+			if not fighterId:
+				return
 
 			destination = BrawlAPI.OpenFolderDialog("Select destination for extracted character package")
 
