@@ -700,6 +700,8 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 				# Set compression back
 				bresNode.Compression = "ExtendedLZ77"
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 			if rspLoading == "true":
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
@@ -1486,12 +1488,17 @@ def moveFighterFiles(files, fighterName, originalFighterName=""):
 def getUsedCostumeIds(cssSlotConfigId):
 		writeLog("Checking used costume IDs for " + str(cssSlotConfigId))
 		usedCostumes = []
-		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
-			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
-			if fileOpened:
-				for child in BrawlAPI.RootNode.Children:
-					usedCostumes.append(child.CostumeID)
-				BrawlAPI.ForceCloseFile()
+		fileOpened = False
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
+			if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
+		elif Directory.Exists(MainForm.BuildPath + '/pf/info/costumeslots'):
+			if File.Exists(MainForm.BuildPath + '/pf/info/costumeslots/' + addLeadingZeros(str(int(cssSlotConfigId, 16)), 2) + '.masq'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/info/costumeslots/' + addLeadingZeros(str(int(cssSlotConfigId, 16)), 2) + '.masq')
+		if fileOpened:
+			for child in BrawlAPI.RootNode.Children:
+				usedCostumes.append(child.CostumeID)
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished checking used costume IDs")
 		return usedCostumes
 
@@ -1554,48 +1561,59 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 # Add entries to the CSS slot config
 def addCssSlots(costumes, position, cssSlotConfigId):
 		writeLog("Adding entries to CSS slot config for ID " + str(cssSlotConfigId))
-		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
-			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
-			if fileOpened:
-				# Add an entry for each costume
-				length = len(BrawlAPI.RootNode.Children)
-				for costume in costumes:
-					writeLog("Adding costume " + str(costume[0]))
+		fileOpened = False
+		pPlus = False
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
+			if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
+		elif Directory.Exists(MainForm.BuildPath + '/pf/info/costumeslots'):
+			if File.Exists(MainForm.BuildPath + '/pf/info/costumeslots/' + addLeadingZeros(str(int(cssSlotConfigId, 16)), 2) + '.masq'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/info/costumeslots/' + addLeadingZeros(str(int(cssSlotConfigId, 16)), 2) + '.masq')
+				pPlus = True
+		if fileOpened:
+			# Add an entry for each costume
+			length = len(BrawlAPI.RootNode.Children)
+			for costume in costumes:
+				writeLog("Adding costume " + str(costume[0]))
+				if not pPlus:
 					newNode = CSSCEntryNode()
-					BrawlAPI.RootNode.AddChild(newNode)
-					newNode.CostumeID = costume[0]
-					newNode.Color = costume[1]
-					writeLog("Added")
-					# Move the entry up
-					i = length
-					while i >= position:
-						newNode.MoveUp()
-						i -= 1
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
+				else:
+					newNode = MasqueradeEntryNode()
+				BrawlAPI.RootNode.AddChild(newNode)
+				newNode.CostumeID = costume[0]
+				newNode.Color = costume[1]
+				writeLog("Added")
+				# Move the entry up
+				i = length
+				while i >= position:
+					newNode.MoveUp()
+					i -= 1
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished adding CSS slot config entries")
 
 # Enable all costumes on a fighter config
 def enableAllCostumes(fighterConfigId):
 		writeLog("Enabling all costumes for ID " + str(fighterConfigId))
-		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + str(fighterConfigId) + '.dat'):
-			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + str(fighterConfigId) + '.dat')
-			if fileOpened:
-				root = BrawlAPI.RootNode
-				root.HasCostume00 = True
-				root.HasCostume01 = True
-				root.HasCostume02 = True
-				root.HasCostume03 = True
-				root.HasCostume04 = True
-				root.HasCostume05 = True
-				root.HasCostume06 = True
-				root.HasCostume07 = True
-				root.HasCostume08 = True
-				root.HasCostume09 = True
-				root.HasCostume10 = True
-				root.HasCostume11 = True
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
+			if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + str(fighterConfigId) + '.dat'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig/Fighter' + str(fighterConfigId) + '.dat')
+				if fileOpened:
+					root = BrawlAPI.RootNode
+					root.HasCostume00 = True
+					root.HasCostume01 = True
+					root.HasCostume02 = True
+					root.HasCostume03 = True
+					root.HasCostume04 = True
+					root.HasCostume05 = True
+					root.HasCostume06 = True
+					root.HasCostume07 = True
+					root.HasCostume08 = True
+					root.HasCostume09 = True
+					root.HasCostume10 = True
+					root.HasCostume11 = True
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
 		writeLog("Finished adding CSS slot config entries")		
 
 # Update fighter .pac to use new Effect.pac ID
@@ -2695,6 +2713,8 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 				bresNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 				# Set compression back
 				bresNode.Compression = "ExtendedLZ77"
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 			if rspLoading == "true":
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
@@ -3538,19 +3558,24 @@ def removeAltCharacter(cssSlotId):
 # Remove entries to the CSS slot config
 def removeCssSlots(startIndex, endIndex, cssSlotConfigId):
 		writeLog("Removing entries from CSS slot config for ID " + str(cssSlotConfigId))
-		if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
-			fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
-			if fileOpened:
-				# Add an entry for each costume
-				i = startIndex - 1
-				costumeIds = []
-				while i < endIndex:
-					writeLog("i is " + str(i))
-					costumeIds.append(BrawlAPI.RootNode.Children[startIndex - 1].CostumeID)
-					BrawlAPI.RootNode.Children[startIndex - 1].Remove()
-					i += 1
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
+		fileOpened = False
+		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
+			if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig/CSSSlot' + str(cssSlotConfigId) + '.dat')
+		elif Directory.Exists(MainForm.BuildPath + '/pf/info/costumeslots'):
+			if File.Exists(MainForm.BuildPath + '/pf/info/costumeslots/' + addLeadingZeros(str(int(cssSlotConfigId, 16)), 2) + '.masq'):
+				fileOpened = openFile(MainForm.BuildPath + '/pf/info/costumeslots/' + addLeadingZeros(str(int(cssSlotConfigId, 16)), 2) + '.masq')
+		if fileOpened:
+			# Remove an entry for each costume
+			i = startIndex - 1
+			costumeIds = []
+			while i < endIndex:
+				writeLog("i is " + str(i))
+				costumeIds.append(BrawlAPI.RootNode.Children[startIndex - 1].CostumeID)
+				BrawlAPI.RootNode.Children[startIndex - 1].Remove()
+				i += 1
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing CSS slot config entries")
 		return costumeIds	
 

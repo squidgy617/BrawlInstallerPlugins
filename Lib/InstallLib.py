@@ -2,6 +2,7 @@
 # Library for BrawlInstaller's installation plugins
 
 from BrawlInstallerLib import *
+from BrawlLib.CustomLists import *
 
 #region INSTALL CHARACTER
 
@@ -859,8 +860,11 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 				Directory.Delete(AppPath + '/temp', 1)
 			Directory.CreateDirectory(AppPath + '/temp')
 
-			fighterConfig = getFighterConfig(fighterId)
-			fighterInfo = getFighterInfo(fighterConfig, "", "")
+			fighterConfig = ""
+			fighterInfo = ""
+			if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
+				fighterConfig = getFighterConfig(fighterId)
+				fighterInfo = getFighterInfo(fighterConfig, "", "")
 
 			# Set up progressbar
 			progressCounter = 0
@@ -927,7 +931,13 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 
 
 			# Costume files
-			costumes = importCostumeFiles(costumeFiles, fighterInfo.fighterName, cssSlotConfigId, cspImages)
+			if fighterInfo:
+				fighterName = fighterInfo.fighterName
+			else:
+				if not FighterNameGenerators.generated:
+					FighterNameGenerators.GenerateLists()
+				fighterName = FighterNameGenerators.FromID(int(fighterId, 16), 16, "X")
+			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
