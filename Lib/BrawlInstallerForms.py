@@ -2531,6 +2531,15 @@ class SettingsForm(Form):
         self.defaultKirbyHatText = TextBox()
         self.defaultKirbyHatText.Location = Point(120, 48)
 
+        defaultKirbyHatButton = Button()
+        defaultKirbyHatButton.Text = "..."
+        defaultKirbyHatButton.Size = Size(25, self.defaultKirbyHatText.ClientSize.Height + 2)
+        defaultKirbyHatButton.Location = Point(self.defaultKirbyHatText.ClientSize.Width - defaultKirbyHatButton.Width, -1)
+        defaultKirbyHatButton.Cursor = Cursors.Default
+        defaultKirbyHatButton.Click += self.defaultKirbyHatButtonPressed
+
+        self.defaultKirbyHatText.Controls.Add(defaultKirbyHatButton)
+
         kirbyGroupBox.Controls.Add(kirbyExeLabel)
         kirbyGroupBox.Controls.Add(self.kirbyExeFileBox)
         kirbyGroupBox.Controls.Add(kirbyExeButton)
@@ -2876,6 +2885,13 @@ class SettingsForm(Form):
         self.DialogResult = DialogResult.Cancel
         self.Close()
 
+    def defaultKirbyHatButtonPressed(self, sender, args):
+        form = IdPicker()
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.defaultKirbyHatText.Text = form.idBox.Text
+        form.Dispose()
+
     def kirbyExeButtonPressed(self, sender, args):
         while True:
             kirbyHatExe = BrawlAPI.OpenFileDialog("Select your Kirby Hat Manager .exe", "Executable files|*.exe")
@@ -3038,6 +3054,15 @@ class CharacterForm(Form):
         self.fighterIdTextbox = TextBox()
         self.fighterIdTextbox.Dock = DockStyle.Right
 
+        fighterIdButton = Button()
+        fighterIdButton.Text = "..."
+        fighterIdButton.Size = Size(25, self.fighterIdTextbox.ClientSize.Height + 2)
+        fighterIdButton.Location = Point(self.fighterIdTextbox.ClientSize.Width - fighterIdButton.Width, -1)
+        fighterIdButton.Cursor = Cursors.Default
+        fighterIdButton.Click += self.fighterIdButtonPressed
+
+        self.fighterIdTextbox.Controls.Add(fighterIdButton)
+
         fighterIdPanel.Controls.Add(fighterIdLabel)
         fighterIdPanel.Controls.Add(self.fighterIdTextbox)
 
@@ -3049,6 +3074,15 @@ class CharacterForm(Form):
         cosmeticIdLabel.Text = "Cosmetic ID:"
         self.cosmeticIdTextbox = TextBox()
         self.cosmeticIdTextbox.Dock = DockStyle.Right
+
+        cosmeticIdButton = Button()
+        cosmeticIdButton.Text = "..."
+        cosmeticIdButton.Size = Size(25, self.cosmeticIdTextbox.ClientSize.Height + 2)
+        cosmeticIdButton.Location = Point(self.cosmeticIdTextbox.ClientSize.Width - cosmeticIdButton.Width, -1)
+        cosmeticIdButton.Cursor = Cursors.Default
+        cosmeticIdButton.Click += self.cosmeticIdButtonPressed
+
+        self.cosmeticIdTextbox.Controls.Add(cosmeticIdButton)
 
         cosmeticIdPanel.Controls.Add(cosmeticIdLabel)
         cosmeticIdPanel.Controls.Add(self.cosmeticIdTextbox)
@@ -3073,6 +3107,15 @@ class CharacterForm(Form):
         self.cosmeticConfigIdTextbox = TextBox()
         self.cosmeticConfigIdTextbox.Dock = DockStyle.Right
 
+        cosmeticConfigIdButton = Button()
+        cosmeticConfigIdButton.Text = "..."
+        cosmeticConfigIdButton.Size = Size(25, self.cosmeticConfigIdTextbox.ClientSize.Height + 2)
+        cosmeticConfigIdButton.Location = Point(self.cosmeticConfigIdTextbox.ClientSize.Width - cosmeticConfigIdButton.Width, -1)
+        cosmeticConfigIdButton.Cursor = Cursors.Default
+        cosmeticConfigIdButton.Click += self.cosmeticConfigIdButtonPressed
+
+        self.cosmeticConfigIdTextbox.Controls.Add(cosmeticConfigIdButton)
+
         cosmeticConfigIdPanel.Controls.Add(cosmeticConfigIdLabel)
         cosmeticConfigIdPanel.Controls.Add(self.cosmeticConfigIdTextbox)
 
@@ -3085,6 +3128,15 @@ class CharacterForm(Form):
         self.slotConfigIdTextbox = TextBox()
         self.slotConfigIdTextbox.Dock = DockStyle.Right
 
+        slotConfigIdButton = Button()
+        slotConfigIdButton.Text = "..."
+        slotConfigIdButton.Size = Size(25, self.slotConfigIdTextbox.ClientSize.Height + 2)
+        slotConfigIdButton.Location = Point(self.slotConfigIdTextbox.ClientSize.Width - slotConfigIdButton.Width, -1)
+        slotConfigIdButton.Cursor = Cursors.Default
+        slotConfigIdButton.Click += self.slotConfigIdButtonPressed
+
+        self.slotConfigIdTextbox.Controls.Add(slotConfigIdButton)
+
         slotConfigIdPanel.Controls.Add(slotConfigIdLabel)
         slotConfigIdPanel.Controls.Add(self.slotConfigIdTextbox)
 
@@ -3096,6 +3148,15 @@ class CharacterForm(Form):
         cssSlotConfigIdLabel.Text = "CSS Slot Config ID:"
         self.cssSlotConfigIdTextbox = TextBox()
         self.cssSlotConfigIdTextbox.Dock = DockStyle.Right
+
+        cssSlotConfigIdButton = Button()
+        cssSlotConfigIdButton.Text = "..."
+        cssSlotConfigIdButton.Size = Size(25, self.cssSlotConfigIdTextbox.ClientSize.Height + 2)
+        cssSlotConfigIdButton.Location = Point(self.cssSlotConfigIdTextbox.ClientSize.Width - cssSlotConfigIdButton.Width, -1)
+        cssSlotConfigIdButton.Cursor = Cursors.Default
+        cssSlotConfigIdButton.Click += self.cssSlotConfigIdButtonPressed
+
+        self.cssSlotConfigIdTextbox.Controls.Add(cssSlotConfigIdButton)
 
         cssSlotConfigIdPanel.Controls.Add(cssSlotConfigIdLabel)
         cssSlotConfigIdPanel.Controls.Add(self.cssSlotConfigIdTextbox)
@@ -3131,6 +3192,15 @@ class CharacterForm(Form):
         subCharacterLabel.Text = "Base CSS Slot ID:"
         self.subCharacterTextbox = TextBox()
         self.subCharacterTextbox.Dock = DockStyle.Right
+
+        subCharacterButton = Button()
+        subCharacterButton.Text = "..."
+        subCharacterButton.Size = Size(25, self.subCharacterTextbox.ClientSize.Height + 2)
+        subCharacterButton.Location = Point(self.subCharacterTextbox.ClientSize.Width - subCharacterButton.Width, -1)
+        subCharacterButton.Cursor = Cursors.Default
+        subCharacterButton.Click += self.subCharacterButtonPressed
+
+        self.subCharacterTextbox.Controls.Add(subCharacterButton)
 
         subCharacterPanel.Controls.Add(subCharacterLabel)
         subCharacterPanel.Controls.Add(self.subCharacterTextbox)
@@ -3192,6 +3262,49 @@ class CharacterForm(Form):
         else:
             self.subCharacterGroup.Visible = False
             clearTextBoxes(self.subCharacterGroup)
+
+    def fighterIdButtonPressed(self, sender, args):
+        form = IdPicker()
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.fighterIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def cosmeticIdButtonPressed(self, sender, args):
+        imageNodes = getCosmeticNodes()
+        form = ImageIdPicker(imageNodes)
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.cosmeticIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def cosmeticConfigIdButtonPressed(self, sender, args):
+        form = IdPicker("cosmetic")
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.cosmeticConfigIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def slotConfigIdButtonPressed(self, sender, args):
+        form = IdPicker("slot")
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.slotConfigIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def cssSlotConfigIdButtonPressed(self, sender, args):
+        form = IdPicker("cssSlot")
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.cssSlotConfigIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def subCharacterButtonPressed(self, sender, args):
+        form = IdPicker("cssSlot")
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.subCharacterTextbox.Text = form.idBox.Text
+        form.Dispose()
 
     def installButtonPressed(self, sender, args):
         validationPassed = True
