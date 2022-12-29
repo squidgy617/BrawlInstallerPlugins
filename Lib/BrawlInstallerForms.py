@@ -26,17 +26,15 @@ class IdPicker(Form):
         self.idListBox.Width = 120
         self.idListBox.Height = 240
         self.idListBox.Location = Point(16, 16)
+        if not FighterNameGenerators.generated:
+            FighterNameGenerators.GenerateLists()
         if option == "cosmetic":
-            FighterNameGenerators.GenerateCosmeticSlotList()
             self.idListBox.DataSource = FighterNameGenerators.cosmeticIDList
         elif option == "slot":
-            FighterNameGenerators.GenerateSlotLists()
             self.idListBox.DataSource = FighterNameGenerators.slotIDList
         elif option == "cssSlot":
-            FighterNameGenerators.GenerateCSSSlotList()
             self.idListBox.DataSource = FighterNameGenerators.cssSlotIDList
         else:
-            FighterNameGenerators.GenerateFighterLists()
             self.idListBox.DataSource = FighterNameGenerators.fighterIDList
         self.idListBox.SelectedValueChanged += self.idListBoxValueChanged
         self.idListBox.HorizontalScrollbar = True
