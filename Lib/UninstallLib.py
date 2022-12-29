@@ -94,7 +94,7 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			else:
 				if not FighterNameGenerators.generated:
 					FighterNameGenerators.GenerateLists()
-				fighterName = FighterNameGenerators.FromID(int(fighterId, 16), 16, "X")
+				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
 			deleteCostumeFiles(costumeIds, fighterName)
 
 			progressCounter += 1
