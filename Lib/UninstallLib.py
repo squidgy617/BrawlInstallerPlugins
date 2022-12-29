@@ -100,6 +100,9 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			progressBar.Finish()
+
+			if Directory.Exists(AppPath + '/temp'):
+				Directory.Delete(AppPath + '/temp', 1)
 			
 			if not skipMessage:
 				BrawlAPI.ShowMessage("Costume uninstalled successfully.", "Success")
