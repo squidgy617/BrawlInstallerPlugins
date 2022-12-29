@@ -5,6 +5,7 @@ import binascii
 import clr
 clr.AddReference("System.Drawing")
 clr.AddReference("System.IO.Compression.FileSystem")
+clr.AddReference("System")
 from BrawlCrate.API import BrawlAPI
 from BrawlCrate.API.BrawlAPI import AppPath
 from BrawlCrate.UI import *
@@ -19,6 +20,7 @@ from System.IO import *
 from System import Array
 from System.Diagnostics import Process
 from System.Drawing import *
+from System import DateTime
 from System.Collections.Generic import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus.STEXNode import VariantType
@@ -654,7 +656,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 		writeLog("Updating CSPs at cosmetic ID " + str(cosmeticId))
 		fileOpened = False
 		costumeIndex = -1
-		if rspLoading == "false":
+		if rspLoading == "false" or not rspLoading:
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
@@ -691,7 +693,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				while i >= 0:
 					texFolder.Children[i].Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + (i + 1)), 3)
 					i -= 1
-			if rspLoading == "false":
+			if rspLoading == "false" or not rspLoading:
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
 				# Back up RSP if it exists
@@ -1516,7 +1518,8 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 				i += 1
 			id = i
 			file = getFileInfo(file)
-			if 'Etc' in file.Name or 'Entry' in file.Name or 'Result' in file.Name or 'Final' in file.Name:
+			kirbyNameCheck = 'KirbyDonkey' in file.Name or 'KirbyFalco' in file.Name or 'KirbyMewtwo' in file.Name or 'KirbyPikmin' in file.Name or 'KirbyPurin' in file.Name or 'KirbySnake' in file.Name
+			if 'Etc' in file.Name or 'Entry' in file.Name or 'Result' in file.Name or 'Final' in file.Name or kirbyNameCheck:
 				continue
 			# If the costume ends in a color, store that, otherwise default to Grey
 			colorSet = False
@@ -1551,6 +1554,11 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 					relatedFileName = 'Fit' + fighterName + 'MotionEtc' + addLeadingZeros(str(id), 2) + '.pac'
 				if 'Etc' in relatedFile.Name and relatedFile.Name.replace('Etc','') == file.Name:
 					relatedFileName = 'Fit' + fighterName + 'Etc' + addLeadingZeros(str(id), 2) + '.pac'
+				# Kirby hat checks
+				kirbyHats = ['Donkey', 'Falco', 'Mewtwo', 'Pikmin', 'Purin', 'Snake']
+				for hat in kirbyHats:
+					if 'Kirby' + hat in relatedFile.Name and relatedFile.Name.replace(hat,'') == file.Name:
+						relatedFileName = 'Fit' + fighterName + hat + addLeadingZeros(str(id), 2) + '.pac'
 				if relatedFileName:
 					createBackup(MainForm.BuildPath + '/pf/fighter/' + fighterName + '/' + relatedFileName)
 					copyRenameFile(relatedFile.FullName, relatedFileName, MainForm.BuildPath + '/pf/fighter/' + fighterName)
@@ -4463,6 +4471,8 @@ def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="
 				# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
 				createBackup(path)
 				if File.Exists(path):
+					# Set last write time so programs like VSDsync will see the change
+					File.SetLastWriteTime(path, DateTime.Now)
 					copyRenameFile(path, 'InfFace' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3) + '.brres', directory)
 					File.Delete(path)
 				id -= 1
@@ -4473,6 +4483,8 @@ def incrementBPNames(cosmeticId, startIndex, endIndex=-1, increment=1, fiftyCC="
 				# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
 				createBackup(path)
 				if File.Exists(path):
+					# Set last write time so programs like VSDsync will see the change
+					File.SetLastWriteTime(path, DateTime.Now)
 					copyRenameFile(path, 'InfFace' + addLeadingZeros(str(id + increment), 4 if fiftyCC == "true" else 3) + '.brres', directory)
 					File.Delete(path)
 				id += 1

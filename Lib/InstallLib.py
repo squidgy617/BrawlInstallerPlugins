@@ -946,6 +946,10 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			# Ex Config
 			enableAllCostumes(fighterId)
 			addCssSlots(costumes, index, cssSlotConfigId)
+
+			if Directory.Exists(AppPath + '/temp'):
+				Directory.Delete(AppPath + '/temp', 1)
+				
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			progressBar.Finish()
