@@ -5,6 +5,87 @@ from BrawlInstallerLib import *
 from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
+from BrawlLib.CustomLists import *
+
+#region ID PICKER
+
+class IdPicker(Form):
+
+    def __init__(self, option="fighter"):
+        # Form parameters
+        self.Text = 'ID Picker'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MaximizeBox = False
+        self.MinimumSize = Size(267,344)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.idListBox = ListBox()
+        self.idListBox.Width = 120
+        self.idListBox.Height = 240
+        self.idListBox.Location = Point(16, 16)
+        if option == "cosmetic":
+            FighterNameGenerators.GenerateCosmeticSlotList()
+            self.idListBox.DataSource = FighterNameGenerators.cosmeticIDList
+        elif option == "slot":
+            FighterNameGenerators.GenerateSlotLists()
+            self.idListBox.DataSource = FighterNameGenerators.slotIDList
+        elif option == "cssSlot":
+            FighterNameGenerators.GenerateCSSSlotList()
+            self.idListBox.DataSource = FighterNameGenerators.cssSlotIDList
+        else:
+            FighterNameGenerators.GenerateFighterLists()
+            self.idListBox.DataSource = FighterNameGenerators.fighterIDList
+        self.idListBox.SelectedValueChanged += self.idListBoxValueChanged
+        self.idListBox.HorizontalScrollbar = True
+
+        self.idBox = TextBox()
+        self.idBox.Location = Point(208, 16)
+        self.idBox.ReadOnly = True
+        self.idBox.Width = 32
+
+        label = Label()
+        if option == "cosmetic":
+            label.Text = "Cosmetic ID:"
+        elif option == "slot":
+            label.Text = "Slot ID:"
+        elif option == "cssSlot":
+            label.Text = "CSSSlot ID:"
+        else:
+            label.Text = "Fighter ID:"
+        label.TextAlign = ContentAlignment.TopRight
+        label.Location = Point(104, 16)
+
+        okButton = Button()
+        okButton.Text = "Select"
+        okButton.Dock = DockStyle.Bottom
+        okButton.Click += self.okButtonPressed
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Dock = DockStyle.Bottom
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(self.idListBox)
+        self.Controls.Add(self.idBox)
+        self.Controls.Add(label)
+        self.Controls.Add(okButton)
+        self.Controls.Add(cancelButton)
+
+    def idListBoxValueChanged(self, sender, args):
+        self.idBox.Text = str(hexId(self.idListBox.SelectedItem.ID))
+
+    def okButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+#endregion ID PICKER
 
 #region MUSIC LIST
 
@@ -1185,7 +1266,7 @@ class StageEditor(Form):
         self.franchiseIconPictureBox.Location = Point(16, 398)
         self.franchiseIconPictureBox.Width = 64
         self.franchiseIconPictureBox.Height = 64
-        self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.franchiseIconPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
         if self.cosmetics.franchiseIcon and not self.new:
             self.franchiseIconPictureBox.Image = self.cosmetics.franchiseIcon.image
 
@@ -1929,6 +2010,15 @@ class CostumePrompt(Form):
         self.fighterIdTextbox = TextBox()
         self.fighterIdTextbox.Dock = DockStyle.Right
 
+        fighterIdButton = Button()
+        fighterIdButton.Text = "..."
+        fighterIdButton.Size = Size(25, self.fighterIdTextbox.ClientSize.Height + 2)
+        fighterIdButton.Location = Point(self.fighterIdTextbox.ClientSize.Width - fighterIdButton.Width, -1)
+        fighterIdButton.Cursor = Cursors.Default
+        fighterIdButton.Click += self.fighterIdButtonPressed
+
+        self.fighterIdTextbox.Controls.Add(fighterIdButton)
+
         fighterIdPanel.Controls.Add(fighterIdLabel)
         fighterIdPanel.Controls.Add(self.fighterIdTextbox)
 
@@ -1952,6 +2042,15 @@ class CostumePrompt(Form):
         cssSlotConfigIdLabel.Text = "CSS Slot ID:"
         self.cssSlotConfigIdTextbox = TextBox()
         self.cssSlotConfigIdTextbox.Dock = DockStyle.Right
+
+        cssSlotIdButton = Button()
+        cssSlotIdButton.Text = "..."
+        cssSlotIdButton.Size = Size(25, self.cssSlotConfigIdTextbox.ClientSize.Height + 2)
+        cssSlotIdButton.Location = Point(self.cssSlotConfigIdTextbox.ClientSize.Width - cssSlotIdButton.Width, -1)
+        cssSlotIdButton.Cursor = Cursors.Default
+        cssSlotIdButton.Click += self.cssSlotIdButtonPressed
+
+        self.cssSlotConfigIdTextbox.Controls.Add(cssSlotIdButton)
 
         cssSlotConfigIdPanel.Controls.Add(cssSlotConfigIdLabel)
         cssSlotConfigIdPanel.Controls.Add(self.cssSlotConfigIdTextbox)
@@ -1981,6 +2080,20 @@ class CostumePrompt(Form):
         self.Controls.Add(installButton)
         self.Controls.Add(self.fileGroup)
         self.Controls.Add(self.fighterIdGroup)
+
+    def fighterIdButtonPressed(self, sender, args):
+        form = IdPicker()
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.fighterIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def cssSlotIdButtonPressed(self, sender, args):
+        form = IdPicker("cssSlot")
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.cssSlotConfigIdTextbox.Text = form.idBox.Text
+        form.Dispose()
 
     def cspButtonPressed(self, sender, args):
         self.cspFiles = BrawlAPI.OpenMultiFileDialog("Select CSPs", "PNG files|*.png")
