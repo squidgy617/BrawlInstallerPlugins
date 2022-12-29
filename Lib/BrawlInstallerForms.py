@@ -2698,6 +2698,7 @@ class SettingsForm(Form):
         else:
             self.defaultKirbyHatText.BackColor = Color.White
         settings = Settings()
+        settings.rspLoading = boolText(self.rspCheck.Checked)
         settings.fiftyCostumeCode = boolText(self.fiftyCCCheck.Checked)
         if self.pPlusRadioButton.Checked:
             settings.cssIconStyle = "P+"

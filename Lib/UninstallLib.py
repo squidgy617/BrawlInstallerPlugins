@@ -2,6 +2,7 @@
 # Library for BrawlInstaller's uninstallation plugins
 
 from BrawlInstallerLib import *
+from BrawlLib.CustomLists import *
 
 #region UNINSTALL COSTUME
 
@@ -18,8 +19,11 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
 
-			fighterConfig = getFighterConfig(fighterId)
-			fighterInfo = getFighterInfo(fighterConfig, "", "")
+			fighterConfig = ""
+			fighterInfo = ""
+			if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
+				fighterConfig = getFighterConfig(fighterId)
+				fighterInfo = getFighterInfo(fighterConfig, "", "")
 
 			# Set up progressbar
 			progressCounter = 0
@@ -85,7 +89,13 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			progressBar.Update(progressCounter)
 
 			# Costume files
-			deleteCostumeFiles(costumeIds, fighterInfo.fighterName)
+			if fighterInfo:
+				fighterName = fighterInfo.fighterName
+			else:
+				if not FighterNameGenerators.generated:
+					FighterNameGenerators.GenerateLists()
+				fighterName = FighterNameGenerators.FromID(int(fighterId, 16), 16, "X")
+			deleteCostumeFiles(costumeIds, fighterName)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
