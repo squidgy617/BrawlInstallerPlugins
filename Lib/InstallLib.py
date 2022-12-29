@@ -936,7 +936,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			else:
 				if not FighterNameGenerators.generated:
 					FighterNameGenerators.GenerateLists()
-				fighterName = FighterNameGenerators.FromID(int(fighterId, 16), 16, "X")
+				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
 			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages)
 
 			progressCounter += 1
