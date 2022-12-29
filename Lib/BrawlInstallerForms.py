@@ -87,6 +87,104 @@ class IdPicker(Form):
 
 #endregion ID PICKER
 
+#region IMAGE ID PICKER
+
+def getCosmeticNodes():
+    imageNodes = []
+    if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/'):
+        opened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/')
+        if opened:
+            for node in BrawlAPI.RootNode.Children:
+                imageNode = ImageNode(node.Name.replace('0.brres', ''), Bitmap(node.GetImage(0)))
+                imageNodes.append(imageNode)
+            BrawlAPI.ForceCloseFile()
+    return imageNodes
+
+def getFranchiseIconNodes():
+    imageNodes = []
+    if File.Exists(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac'):
+        opened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
+        if opened:
+            bresNode = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
+            if bresNode:
+                texFolder = getChildByName(bresNode, "Textures(NW4R)")
+                if texFolder:
+                    for node in texFolder.Children:
+                        if node.Name.startswith('MenSelchrMark.'):
+                            imageNode = ImageNode(node.Name, Bitmap(node.GetImage(0)))
+                            imageNodes.append(imageNode)
+            BrawlAPI.ForceCloseFile()
+    return imageNodes
+
+class ImageIdPicker(Form):
+
+    def __init__(self, imageNodes, labelText="Cosmetic ID:"):
+        # Form parameters
+        self.Text = 'Image ID Picker'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MaximizeBox = False
+        self.MinimumSize = Size(267,344)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.imageListBox = ListBox()
+        self.imageListBox.Width = 120
+        self.imageListBox.Height = 240
+        self.imageListBox.Location = Point(16, 16)
+        self.imageListBox.DataSource = imageNodes
+        self.imageListBox.DisplayMember = "name"
+        self.imageListBox.ValueMember = "image"
+        self.imageListBox.SelectedValueChanged += self.imageListBoxValueChanged
+        self.imageListBox.HorizontalScrollbar = True
+
+        self.idBox = TextBox()
+        self.idBox.Location = Point(208, 16)
+        self.idBox.ReadOnly = True
+        self.idBox.Width = 32
+
+        label = Label()
+        label.Text = labelText
+        label.TextAlign = ContentAlignment.TopRight
+        label.Location = Point(104, 16)
+
+        self.imageBox = PictureBox()
+        self.imageBox.Location = Point(144, 64)
+        self.imageBox.SizeMode = PictureBoxSizeMode.CenterImage
+        self.imageBox.Size = Size(128, 160)
+
+        okButton = Button()
+        okButton.Text = "Select"
+        okButton.Dock = DockStyle.Bottom
+        okButton.Click += self.okButtonPressed
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Dock = DockStyle.Bottom
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(self.imageListBox)
+        self.Controls.Add(self.idBox)
+        self.Controls.Add(label)
+        self.Controls.Add(self.imageBox)
+        self.Controls.Add(okButton)
+        self.Controls.Add(cancelButton)
+
+    def imageListBoxValueChanged(self, sender, args):
+        self.idBox.Text = str(int(self.imageListBox.SelectedItem.name.replace('MenSelchrFaceB', '').replace("MenSelchrMark.", "")))
+        self.imageBox.Image = self.imageListBox.SelectedItem.image
+
+    def okButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+#endregion ID PICKER
+
 #region MUSIC LIST
 
 class MusicList(Form):
@@ -2031,6 +2129,15 @@ class CostumePrompt(Form):
         self.cosmeticIdTextbox = TextBox()
         self.cosmeticIdTextbox.Dock = DockStyle.Right
 
+        cosmeticIdButton = Button()
+        cosmeticIdButton.Text = "..."
+        cosmeticIdButton.Size = Size(25, self.cosmeticIdTextbox.ClientSize.Height + 2)
+        cosmeticIdButton.Location = Point(self.cosmeticIdTextbox.ClientSize.Width - cosmeticIdButton.Width, -1)
+        cosmeticIdButton.Cursor = Cursors.Default
+        cosmeticIdButton.Click += self.cosmeticIdButtonPressed
+
+        self.cosmeticIdTextbox.Controls.Add(cosmeticIdButton)
+
         cosmeticIdPanel.Controls.Add(cosmeticIdLabel)
         cosmeticIdPanel.Controls.Add(self.cosmeticIdTextbox)
 
@@ -2093,6 +2200,14 @@ class CostumePrompt(Form):
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
             self.cssSlotConfigIdTextbox.Text = form.idBox.Text
+        form.Dispose()
+
+    def cosmeticIdButtonPressed(self, sender, args):
+        imageNodes = getCosmeticNodes()
+        form = ImageIdPicker(imageNodes)
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            self.cosmeticIdTextbox.Text = form.idBox.Text
         form.Dispose()
 
     def cspButtonPressed(self, sender, args):
