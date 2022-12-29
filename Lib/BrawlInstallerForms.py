@@ -28,6 +28,7 @@ def showIdPicker(idType="fighter"):
         return id
 
 # General function to show image ID picker
+# imageTypes: cosmetic, franchise
 def showImageIdPicker(imageType="cosmetic"):
         id = ""
         if imageType == "cosmetic":
@@ -43,8 +44,19 @@ def showImageIdPicker(imageType="cosmetic"):
 
 #region ID PICKER
 
+def getTracklistNodes(tracklist):
+    songNodes = []
+    if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist):
+        opened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist)
+        if opened:
+            for node in BrawlAPI.RootNode.Children:
+                songNodes.append(node)
+            BrawlAPI.ForceCloseFile()
+    return songNodes
+
 class IdPicker(Form):
 
+    # OPTIONS: fighter, cosmetic, slot, cssSlot, victoryTheme, creditsTheme
     def __init__(self, option="fighter"):
         # Form parameters
         self.Text = 'ID Picker'
@@ -56,6 +68,8 @@ class IdPicker(Form):
         self.MinimumSize = Size(267,344)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.musicMode = True if option == "victoryTheme" or option == "creditsTheme" else False
 
         self.idListBox = ListBox()
         self.idListBox.Width = 120
@@ -69,15 +83,20 @@ class IdPicker(Form):
             self.idListBox.DataSource = FighterNameGenerators.slotIDList
         elif option == "cssSlot":
             self.idListBox.DataSource = FighterNameGenerators.cssSlotIDList
+        elif option == "victoryTheme":
+            self.idListBox.DataSource = getTracklistNodes('Results.tlst')
+        elif option == "creditsTheme":
+            self.idListBox.DataSource = getTracklistNodes('Credits.tlst')
         else:
             self.idListBox.DataSource = FighterNameGenerators.fighterIDList
         self.idListBox.SelectedValueChanged += self.idListBoxValueChanged
         self.idListBox.HorizontalScrollbar = True
 
         self.idBox = TextBox()
-        self.idBox.Location = Point(208, 16)
+        self.idBox.Location = Point(208, 16) if not self.musicMode else Point(156, 32)
         self.idBox.ReadOnly = True
-        self.idBox.Width = 32
+        if not self.musicMode:
+            self.idBox.Width = 32
 
         label = Label()
         if option == "cosmetic":
@@ -86,8 +105,10 @@ class IdPicker(Form):
             label.Text = "Slot ID:"
         elif option == "cssSlot":
             label.Text = "CSSSlot ID:"
-        else:
+        elif option == "fighter":
             label.Text = "Fighter ID:"
+        else:
+            label.Text = "Song ID:"
         label.TextAlign = ContentAlignment.TopRight
         label.Location = Point(104, 16)
 
@@ -108,7 +129,10 @@ class IdPicker(Form):
         self.Controls.Add(cancelButton)
 
     def idListBoxValueChanged(self, sender, args):
-        self.idBox.Text = str(hexId(self.idListBox.SelectedItem.ID))
+        if not self.musicMode:
+            self.idBox.Text = str(hexId(self.idListBox.SelectedItem.ID))
+        else:
+            self.idBox.Text = str(hexId(self.idListBox.SelectedItem.SongID))
 
     def okButtonPressed(self, sender, args):
         self.DialogResult = DialogResult.OK
@@ -3363,6 +3387,7 @@ class CharacterForm(Form):
 #region SINGLE ID FORM
 
 class IdEntryForm(Form):
+    # idTypes: fighter, cosmetic, slot, cssSlot, cosmeticImage, franchiseImage
     def __init__(self, title="Enter ID", buttonText="Select", idType="fighter", labelText = "Fighter ID:"):
         # Form parameters
         self.Text = title

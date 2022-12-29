@@ -143,8 +143,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if installVictoryTheme == False:
 							changeVictoryTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's victory theme ID?", "Change victory theme?")
 							if changeVictoryTheme:
-								victoryThemeId = showIdPrompt("Enter your desired victory theme ID")
-								victoryThemeId = int(victoryThemeId, 16)
+								victoryThemeId = showIdForm("Change Victory Theme", "Select", "victoryTheme", "Song ID:")
+								if victoryThemeId:
+									victoryThemeId = int(victoryThemeId, 16)
+								else:
+									return
 						# Check if existing fighter has a different victory theme
 						if installVictoryTheme:
 							existingSlotConfig = getSlotConfig(fighterId)
@@ -162,8 +165,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if doInstallCreditsTheme == False:
 							changeCreditsTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's credits theme ID?", "Change credits theme?")
 							if changeCreditsTheme:
-								creditsThemeId = showIdPrompt("Enter your desired credits theme ID")
-								creditsThemeId = int(creditsThemeId, 16)
+								creditsThemeId = showIdForm("Change Credits Theme", "Select", "creditsTheme", "Song ID:")
+								if creditsThemeId:
+									creditsThemeId = int(creditsThemeId, 16)
+								else:
+									return
 						# Check if existing fighter has a different credits theme
 						if doInstallCreditsTheme:
 							oldThemeId = updateCreditsCode(slotConfigId, "", read=True)
