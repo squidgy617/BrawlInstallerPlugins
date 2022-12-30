@@ -956,7 +956,6 @@ class TracklistEditor(Form):
             newSong.Frequency = 40
             song = Song(newSong, newSong.Name)
             if not File.Exists(brstmPath + newFile + '.brstm'):
-                BrawlAPI.ShowMessage(brstmPath + newFile, "")
                 song.brstmFile = brstmFile
             song.songNode.SongFileName = newFile
             self.songs.Add(song)
