@@ -63,9 +63,9 @@ The plugins create backups of your files during execution, but they do not clean
 # Guides
 
 - [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
-- [Configuring Settings](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Configuring-Settings)
-- [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Music)
-- [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Guide:-Managing-Stages)
+- [Configuring Settings](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Configuring-Settings)
+- [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Music)
+- [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Stages)
 
 # Character Packages
 
