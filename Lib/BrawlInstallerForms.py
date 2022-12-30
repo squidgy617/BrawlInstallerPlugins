@@ -7,6 +7,8 @@ from System.Windows.Forms import *
 from System.Drawing import *
 from BrawlLib.CustomLists import *
 
+#region FUNCTIONS
+
 # General function to show the ID form
 def showIdForm(title="Enter ID", buttonText="Select", idType="fighter", labelText="Fighter ID:", customList=[]):
         form = IdEntryForm(title, buttonText, idType, labelText, customList)
@@ -42,6 +44,8 @@ def showImageIdPicker(imageType="cosmetic"):
             id = form.idBox.Text
         form.Dispose()
         return id
+
+#endregion FUNCTIONS
 
 #region ID PICKER
 
@@ -3475,13 +3479,13 @@ class IdEntryForm(Form):
 
 class CostumeForm(Form):
 
-    def __init__(self, images, skipPositions=[], remove=False):
+    def __init__(self, images, skipPositions=[], remove=False, availableIds=[]):
         # Form parameters
         self.Text = 'Select Costume'
         self.index = 0 # Index of selected costume
         self.labelIndex = 0 # Index displayed on label
         self.Width = 250
-        self.Height = 350
+        self.Height = 360
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
 
@@ -3500,9 +3504,31 @@ class CostumeForm(Form):
         self.label = Label()
         self.label.Text = "Costume %s" % (self.labelIndex + 1)
         self.label.Dock = DockStyle.Bottom
-        self.label.Height = 50
+        self.label.Height = 24
         self.label.Width = 150
         self.label.TextAlign = ContentAlignment.MiddleCenter
+
+        dropDownGroup = GroupBox()
+        dropDownGroup.Dock = DockStyle.Bottom
+        dropDownGroup.Height = 64
+        dropDownGroup.Visible = not remove
+
+        dropDownLabel = Label()
+        dropDownLabel.Anchor = AnchorStyles.Bottom
+        dropDownLabel.TextAlign = ContentAlignment.MiddleCenter
+        dropDownLabel.Location = Point(dropDownGroup.Width/2 - (dropDownLabel.Width)/2, 16)
+        dropDownLabel.Text = "Starting ID"
+        dropDownLabel.Height = 16
+
+        self.dropDown = ComboBox()
+        self.dropDown.Anchor = AnchorStyles.Bottom
+        self.dropDown.Width = 64
+        self.dropDown.Location = Point(dropDownGroup.Width/2 - (self.dropDown.Width)/2, 32)
+        self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+        self.dropDown.DataSource = availableIds if len(availableIds) > 0 else ['00']
+
+        dropDownGroup.Controls.Add(dropDownLabel)
+        dropDownGroup.Controls.Add(self.dropDown)
 
         # Store number of images and images
         self.imageCount = len(images)
@@ -3562,6 +3588,7 @@ class CostumeForm(Form):
         # Add controls
         self.Controls.Add(self.pictureBox)
         self.Controls.Add(self.label)
+        self.Controls.Add(dropDownGroup)
         self.Controls.Add(rightButton)
         self.Controls.Add(leftButton)
         if not remove:

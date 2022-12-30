@@ -840,7 +840,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 #region INSTALL COSTUME
 
-def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[]):
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -931,7 +931,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 				if not FighterNameGenerators.generated:
 					FighterNameGenerators.GenerateLists()
 				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
-			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages)
+			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages, startingId=startingId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)

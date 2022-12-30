@@ -1505,7 +1505,7 @@ def getUsedCostumeIds(cssSlotConfigId):
 		return usedCostumes
 
 # Import costume files to fighter folder
-def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
+def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[], startingId = 0):
 		writeLog("Attempting to move costume files")
 		usedIds = getUsedCostumeIds(cssSlotConfigId)
 		costumes = []
@@ -1513,7 +1513,7 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[]):
 		for file in files:
 			color = 11
 			# Get first unused ID
-			i = 0
+			i = startingId
 			while i in usedIds:
 				i += 1
 			id = i
