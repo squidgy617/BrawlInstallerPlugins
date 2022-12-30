@@ -2,6 +2,7 @@ __author__ = "Squidgy"
 
 from BrawlInstallerLib import *
 from InstallLib import *
+from BrawlInstallerForms import *
 
 def main():
 		try: 
@@ -33,7 +34,11 @@ def main():
 			# Franchise Icon ID prompt
 			franchiseIconUsed = True
 			while franchiseIconUsed:
-				franchiseIconId = int(showIdPrompt("Enter your desired franchise icon ID").replace('0x', ''), 16)
+				franchiseIconId = showIdForm("Install Franchise Icon", "Install", "franchiseImage", "Franchise Icon ID:")
+				if franchiseIconId:
+					franchiseIconId = int(franchiseIconId, 16)
+				else:
+					return
 				franchiseIconUsed = franchiseIconIdUsed(franchiseIconId)
 				if franchiseIconUsed:
 					changeFranchiseIconId = BrawlAPI.ShowYesNoPrompt("A franchise icon with this ID already exists. Would you like to enter a different ID?", "Franchise Icon Already Exists")

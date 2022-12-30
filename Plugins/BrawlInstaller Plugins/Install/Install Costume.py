@@ -88,14 +88,28 @@ def main():
 							skipPositions.append(i)
 						i += 1
 
+					# Get available IDs
+					usedIds = getUsedCostumeIds(cssSlotConfigId)
+					availableIds = []
+					i = 0
+					while i <= 50:
+						if i not in usedIds:
+							availableIds.append(addLeadingZeros(str(i), 2))
+						i += 1
+
 					# Show the form
-					form = CostumeForm(images=images, skipPositions=skipPositions)
+					form = CostumeForm(images=images, skipPositions=skipPositions, availableIds=availableIds)
 					result = form.ShowDialog(MainForm.Instance)
 
 					if result == DialogResult.OK:
+						if form.dropDown.SelectedValue:
+							startingId = int(form.dropDown.SelectedValue)
+						else:
+							startingId = 0
 						if form.action == "replace":
 							uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions, skipMessage=True)
-						installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions)
+						installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions, startingId)
+					form.Dispose()
 				else:
 					BrawlAPI.ShowMessage("Cosmetics for this fighter could not be found! Please try a different ID.", "Error")
 

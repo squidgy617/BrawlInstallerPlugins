@@ -3,6 +3,7 @@
 
 from BrawlInstallerLib import *
 from BrawlLib.CustomLists import *
+from BrawlInstallerForms import *
 
 #region INSTALL CHARACTER
 
@@ -142,8 +143,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if installVictoryTheme == False:
 							changeVictoryTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's victory theme ID?", "Change victory theme?")
 							if changeVictoryTheme:
-								victoryThemeId = showIdPrompt("Enter your desired victory theme ID")
-								victoryThemeId = int(victoryThemeId, 16)
+								victoryThemeId = showIdForm("Change Victory Theme", "Select", "victoryTheme", "Song ID:")
+								if victoryThemeId:
+									victoryThemeId = int(victoryThemeId, 16)
+								else:
+									return
 						# Check if existing fighter has a different victory theme
 						if installVictoryTheme:
 							existingSlotConfig = getSlotConfig(fighterId)
@@ -161,8 +165,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if doInstallCreditsTheme == False:
 							changeCreditsTheme = BrawlAPI.ShowYesNoPrompt("Would you like to change this fighter's credits theme ID?", "Change credits theme?")
 							if changeCreditsTheme:
-								creditsThemeId = showIdPrompt("Enter your desired credits theme ID")
-								creditsThemeId = int(creditsThemeId, 16)
+								creditsThemeId = showIdForm("Change Credits Theme", "Select", "creditsTheme", "Song ID:")
+								if creditsThemeId:
+									creditsThemeId = int(creditsThemeId, 16)
+								else:
+									return
 						# Check if existing fighter has a different credits theme
 						if doInstallCreditsTheme:
 							oldThemeId = updateCreditsCode(slotConfigId, "", read=True)
@@ -212,30 +219,31 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							else:
 								changeSoundbankId = True
 							if changeSoundbankId:
+								autoSoundbankId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
 								matchFound = True
 								# Keep prompting for alternate soundbank ID until one that is not used is entered
 								idMod = 0
 								while matchFound:
-									if not auto:
-										newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
+									if not auto and not autoSoundbankId:
+										soundbanks = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', '*.sawnd')
+										soundbankIds = []
+										for soundbank in soundbanks:
+											soundbankName = getFileInfo(soundbank).Name
+											if "_" not in soundbankName:
+												soundbankIds.append('0x' + soundbankName.replace('.sawnd', ''))
+										newSoundbankId = showIdForm("Change Soundbank", "Select", "custom", "Soundbank ID:", soundbankIds)
+										if not newSoundbankId:
+											return
 									else:
 										# Minimum soundbank ID is 331
 										newSoundbankId = addLeadingZeros(str(331 + idMod), 3)
-									# Ensure soundbank ID is just the hex digits
-									if newSoundbankId.startswith('0x'):
-										newSoundbankId = addLeadingZeros(newSoundbankId.split('0x')[1], 3)
-									elif newSoundbankId.isnumeric():
-										newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId))).split('0x')[1].upper(), 3)
-									else:
-										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-										continue
 									if settings.soundbankStyle == "hex":
 										soundbankNameToCheck = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 									else:
 										soundbankNameToCheck = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 									soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', newSoundbankId + '.sawnd')
 									if soundbankMatch:
-										if not auto:
+										if not auto and not autoSoundbankId:
 											tryAgain = BrawlAPI.ShowYesNoPrompt("Soundbank ID entered already exists. Try entering a different ID?", "Soundbank Already Exists")
 										else:
 											tryAgain = True
@@ -257,47 +265,43 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						oldEffectId = effectId
 						if effectId:
 							idMod = 0
-							while True:
-								matchFound = False
-								directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
-								progressCounter = 0
-								progressBar = ProgressWindow(MainForm.Instance, "Conflict Check...", "Checking for Effect.pac ID conflicts", False)
-								progressBar.Begin(0, len(directories), progressCounter)
-								for directory in directories:
-									progressCounter += 1
-									progressBar.Update(progressCounter)
-									foundEffectId = getEffectId(DirectoryInfo(directory).Name)
-									if effectId == foundEffectId:
-										matchFound = True
-										if not auto:
-											changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+							#matchFound = False
+							directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
+							progressCounter = 0
+							progressBar = ProgressWindow(MainForm.Instance, "Conflict Check...", "Checking for Effect.pac ID conflicts", False)
+							progressBar.Begin(0, len(directories), progressCounter)
+							effectIds = []
+							for directory in directories:
+								progressCounter += 1
+								progressBar.Update(progressCounter)
+								addedEffectId = getEffectId(DirectoryInfo(directory).Name)
+								if addedEffectId.strip() != "":
+									effectIds.append(addedEffectId.strip())
+							progressBar.Finish()
+							autoEffectId = False
+							while effectId in effectIds:
+								if not auto and not autoEffectId:
+									changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+									if changeEffectId:
+										autoEffectId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
+								else:
+									changeEffectId = True
+								if changeEffectId:
+									if not auto and not autoEffectId:
+										customIdList = []
+										for idEntry in effectIds:
+											idName = '0x' + idEntry
+											if idName.strip() != '0x':
+												customIdList.append(idName)
+										newEffectId = showIdForm("Change Effect.pac ID", "Select", "custom", "Effect.pac ID:", customIdList)
+										if not newEffectId:
+											return
 										else:
-											changeEffectId = True
-										if changeEffectId:
-											idEntered = False
-											while idEntered != True:
-												if not auto:
-													effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
-												else: 
-													effectId = addLeadingZeros(idMod, 2)
-													idMod += 1
-													break
-												# Ensure effect ID is just the hex digits
-												if effectId.startswith('0x'):
-													effectId = addLeadingZeros(effectId.split('0x')[1].upper(), 2)
-													break
-												elif effectId.isnumeric():
-													effectId = addLeadingZeros(str(hex(int(effectId))).split('0x')[1].upper(), 2)
-													break
-												else:
-													BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-													continue
-										else:
-											matchFound = False
-										progressBar.Finish()
-										break
-								if matchFound == False:
-									progressBar.Finish()
+											effectId = newEffectId.strip().replace('0x','')
+									else: 
+										effectId = addLeadingZeros(hexId(idMod).replace('0x',''), 2)
+										idMod += 1
+								else:
 									break
 					# Franchise icon install prompt
 					if franchiseIconFolder:
@@ -306,15 +310,11 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							franchiseIconUsed = True
 							if franchiseIconId == -1:
 								while franchiseIconUsed:
-									franchiseIconId = BrawlAPI.UserStringInput("Enter your desired franchise icon ID")
-									# Ensure franchise icon ID is in integer format
-									if franchiseIconId.startswith('0x'):
+									franchiseIconId = showIdForm("Install Franchise Icon", "Install", "franchiseImage", "Franchise Icon ID:")
+									if franchiseIconId:
 										franchiseIconId = int(franchiseIconId, 16)
-									elif franchiseIconId.isnumeric():
-										franchiseIconId = int(franchiseIconId)
 									else:
-										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-										continue
+										return
 									franchiseIconUsed = franchiseIconIdUsed(franchiseIconId)
 									if franchiseIconUsed:
 										changeFranchiseIconId = BrawlAPI.ShowYesNoPrompt("A franchise icon with this ID already exists. Would you like to enter a different ID?", "Franchise Icon Already Exists")
@@ -328,18 +328,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										break
 						else:
 							newFranchiseIconId = BrawlAPI.ShowYesNoPrompt("Would you like to change the franchise icon ID for this fighter?", "Change franchise icon ID?")
-							while newFranchiseIconId:
-								franchiseIconId = BrawlAPI.UserStringInput("Enter your desired franchise icon ID")
-								# Ensure franchise icon ID is in integer format
-								if franchiseIconId.startswith('0x'):
+							if newFranchiseIconId:
+								franchiseIconId = showIdForm("Install Franchise Icon", "Install", "franchiseImage", "Franchise Icon ID:")
+								if franchiseIconId:
 									franchiseIconId = int(franchiseIconId, 16)
-									break
-								elif franchiseIconId.isnumeric():
-									franchiseIconId = int(franchiseIconId)
-									break
 								else:
-									BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-									continue
+									return
 							if not newFranchiseIconId:
 								franchiseIconId = -1
 					#endregion USER INPUT/PRELIMINARY CHECKS
@@ -846,7 +840,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 #region INSTALL COSTUME
 
-def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[]):
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -937,7 +931,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 				if not FighterNameGenerators.generated:
 					FighterNameGenerators.GenerateLists()
 				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
-			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages)
+			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages, startingId=startingId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
