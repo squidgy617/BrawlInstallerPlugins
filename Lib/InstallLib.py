@@ -265,47 +265,43 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						oldEffectId = effectId
 						if effectId:
 							idMod = 0
-							while True:
-								matchFound = False
-								directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
-								progressCounter = 0
-								progressBar = ProgressWindow(MainForm.Instance, "Conflict Check...", "Checking for Effect.pac ID conflicts", False)
-								progressBar.Begin(0, len(directories), progressCounter)
-								for directory in directories:
-									progressCounter += 1
-									progressBar.Update(progressCounter)
-									foundEffectId = getEffectId(DirectoryInfo(directory).Name)
-									if effectId == foundEffectId:
-										matchFound = True
-										if not auto:
-											changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+							#matchFound = False
+							directories = Directory.GetDirectories(MainForm.BuildPath + '/pf/fighter')
+							progressCounter = 0
+							progressBar = ProgressWindow(MainForm.Instance, "Conflict Check...", "Checking for Effect.pac ID conflicts", False)
+							progressBar.Begin(0, len(directories), progressCounter)
+							effectIds = []
+							for directory in directories:
+								progressCounter += 1
+								progressBar.Update(progressCounter)
+								addedEffectId = getEffectId(DirectoryInfo(directory).Name)
+								if addedEffectId.strip() != "":
+									effectIds.append(addedEffectId.strip())
+							progressBar.Finish()
+							autoEffectId = False
+							while effectId in effectIds:
+								if not auto and not autoEffectId:
+									changeEffectId = BrawlAPI.ShowYesNoPrompt("A fighter with the same Effect.pac ID already exists. Would you like to change the Effect.pac ID?", "Effect.pac ID Already Exists")
+									if changeEffectId:
+										autoEffectId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
+								else:
+									changeEffectId = True
+								if changeEffectId:
+									if not auto and not autoEffectId:
+										customIdList = []
+										for idEntry in effectIds:
+											idName = '0x' + idEntry
+											if idName.strip() != '0x':
+												customIdList.append(idName)
+										newEffectId = showIdForm("Change Effect.pac ID", "Select", "custom", "Effect.pac ID:", customIdList)
+										if not newEffectId:
+											return
 										else:
-											changeEffectId = True
-										if changeEffectId:
-											idEntered = False
-											while idEntered != True:
-												if not auto:
-													effectId = BrawlAPI.UserStringInput("Enter your desired Effect.pac ID")
-												else: 
-													effectId = addLeadingZeros(idMod, 2)
-													idMod += 1
-													break
-												# Ensure effect ID is just the hex digits
-												if effectId.startswith('0x'):
-													effectId = addLeadingZeros(effectId.split('0x')[1].upper(), 2)
-													break
-												elif effectId.isnumeric():
-													effectId = addLeadingZeros(str(hex(int(effectId))).split('0x')[1].upper(), 2)
-													break
-												else:
-													BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-													continue
-										else:
-											matchFound = False
-										progressBar.Finish()
-										break
-								if matchFound == False:
-									progressBar.Finish()
+											effectId = newEffectId.strip().replace('0x','')
+									else: 
+										effectId = addLeadingZeros(hexId(idMod).replace('0x',''), 2)
+										idMod += 1
+								else:
 									break
 					# Franchise icon install prompt
 					if franchiseIconFolder:

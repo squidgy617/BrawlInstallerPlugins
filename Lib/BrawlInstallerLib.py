@@ -467,7 +467,7 @@ def getEffectId(fighterName, rootDir=""):
 							BrawlAPI.ForceCloseFile()
 							return effectId
 		BrawlAPI.ForceCloseFile()
-		return 0
+		return ""
 
 # Get song name from tracklist by song ID
 def getSongNameById(songId, songDirectory='Victory!', tracklist='Results'):
