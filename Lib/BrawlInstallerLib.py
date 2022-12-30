@@ -908,8 +908,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 					texNode.Name = "InfStc." + addLeadingZeros(str(startId + i), 4 if fiftyCC == "true" else 3)
 					i += 1
 					prevName = texNode.Name
-					if startId + 1 >= endId:
-						texNodes.append(texNode)
+					texNodes.append(texNode)
 					imageCount -= 1
 			else:
 				# Get old icons and new icons so we can compare, in case pat0 was not found but bres was
