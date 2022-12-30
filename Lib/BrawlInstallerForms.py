@@ -3585,6 +3585,10 @@ class CostumeForm(Form):
 
         uninstallButton.Click += self.uninstallButtonPressed
 
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(dropDownLabel, "The starting costume .pac ID for the costumes to be installed with. The first costume will use this ID and subsequent costumes will use the next available ID.")
+
         # Add controls
         self.Controls.Add(self.pictureBox)
         self.Controls.Add(self.label)
