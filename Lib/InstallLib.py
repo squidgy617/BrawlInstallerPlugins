@@ -219,30 +219,31 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							else:
 								changeSoundbankId = True
 							if changeSoundbankId:
+								autoSoundbankId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
 								matchFound = True
 								# Keep prompting for alternate soundbank ID until one that is not used is entered
 								idMod = 0
 								while matchFound:
-									if not auto:
-										newSoundbankId = showIdPrompt("Enter your desired soundbank ID")
+									if not auto and not autoSoundbankId:
+										soundbanks = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', '*.sawnd')
+										soundbankIds = []
+										for soundbank in soundbanks:
+											soundbankName = getFileInfo(soundbank).Name
+											if "_" not in soundbankName:
+												soundbankIds.append('0x' + soundbankName.replace('.sawnd', ''))
+										newSoundbankId = showIdForm("Change Soundbank", "Select", "custom", "Soundbank ID:", soundbankIds)
+										if not newSoundbankId:
+											return
 									else:
 										# Minimum soundbank ID is 331
 										newSoundbankId = addLeadingZeros(str(331 + idMod), 3)
-									# Ensure soundbank ID is just the hex digits
-									if newSoundbankId.startswith('0x'):
-										newSoundbankId = addLeadingZeros(newSoundbankId.split('0x')[1], 3)
-									elif newSoundbankId.isnumeric():
-										newSoundbankId = addLeadingZeros(str(hex(int(newSoundbankId))).split('0x')[1].upper(), 3)
-									else:
-										BrawlAPI.ShowMessage("Invalid ID entered!", "Invalid ID")
-										continue
 									if settings.soundbankStyle == "hex":
 										soundbankNameToCheck = addLeadingZeros(str(hex(int(newSoundbankId, 16) + modifier)).split('0x')[1].upper(), 3)
 									else:
 										soundbankNameToCheck = addLeadingZeros(str(int(newSoundbankId, 16) + modifier), 3)
 									soundbankMatch = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', newSoundbankId + '.sawnd')
 									if soundbankMatch:
-										if not auto:
+										if not auto and not autoSoundbankId:
 											tryAgain = BrawlAPI.ShowYesNoPrompt("Soundbank ID entered already exists. Try entering a different ID?", "Soundbank Already Exists")
 										else:
 											tryAgain = True

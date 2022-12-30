@@ -8,8 +8,8 @@ from System.Drawing import *
 from BrawlLib.CustomLists import *
 
 # General function to show the ID form
-def showIdForm(title="Enter ID", buttonText="Select", idType="fighter", labelText="Fighter ID:"):
-        form = IdEntryForm(title, buttonText, idType, labelText)
+def showIdForm(title="Enter ID", buttonText="Select", idType="fighter", labelText="Fighter ID:", customList=[]):
+        form = IdEntryForm(title, buttonText, idType, labelText, customList)
         result = form.ShowDialog(MainForm.Instance)
         id = ""
         if result == DialogResult.OK:
@@ -18,8 +18,8 @@ def showIdForm(title="Enter ID", buttonText="Select", idType="fighter", labelTex
         return id
 
 # General function to show ID picker
-def showIdPicker(idType="fighter"):
-        form = IdPicker(idType)
+def showIdPicker(idType="fighter", customList=[]):
+        form = IdPicker(idType, customList)
         id = ""
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
@@ -35,7 +35,8 @@ def showImageIdPicker(imageType="cosmetic"):
             imageNodes = getCosmeticNodes()
         elif imageType == "franchise":
             imageNodes = getFranchiseIconNodes()
-        form = ImageIdPicker(imageNodes)
+        labelText = "Cosmetic ID:" if imageType == "cosmetic" else "Icon ID:"
+        form = ImageIdPicker(imageNodes, labelText)
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
             id = form.idBox.Text
@@ -56,8 +57,8 @@ def getTracklistNodes(tracklist):
 
 class IdPicker(Form):
 
-    # OPTIONS: fighter, cosmetic, slot, cssSlot, victoryTheme, creditsTheme
-    def __init__(self, option="fighter"):
+    # OPTIONS: fighter, cosmetic, slot, cssSlot, victoryTheme, creditsTheme, custom
+    def __init__(self, option="fighter", customList=[]):
         # Form parameters
         self.Text = 'ID Picker'
         self.StartPosition = FormStartPosition.CenterParent
@@ -69,6 +70,7 @@ class IdPicker(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
+        self.option = option
         self.musicMode = True if option == "victoryTheme" or option == "creditsTheme" else False
 
         self.idListBox = ListBox()
@@ -87,6 +89,8 @@ class IdPicker(Form):
             self.idListBox.DataSource = getTracklistNodes('Results.tlst')
         elif option == "creditsTheme":
             self.idListBox.DataSource = getTracklistNodes('Credits.tlst')
+        elif option == "custom":
+            self.idListBox.DataSource = customList
         else:
             self.idListBox.DataSource = FighterNameGenerators.fighterIDList
         self.idListBox.SelectedValueChanged += self.idListBoxValueChanged
@@ -107,8 +111,10 @@ class IdPicker(Form):
             label.Text = "CSSSlot ID:"
         elif option == "fighter":
             label.Text = "Fighter ID:"
-        else:
+        elif option == "victoryTheme" or option == "creditsTheme":
             label.Text = "Song ID:"
+        else:
+            label.Text = "ID:"
         label.TextAlign = ContentAlignment.TopRight
         label.Location = Point(104, 16)
 
@@ -129,8 +135,10 @@ class IdPicker(Form):
         self.Controls.Add(cancelButton)
 
     def idListBoxValueChanged(self, sender, args):
-        if not self.musicMode:
+        if not self.musicMode and not self.option == "custom":
             self.idBox.Text = str(hexId(self.idListBox.SelectedItem.ID))
+        elif self.option == "custom":
+            self.idBox.Text = str(hexId(self.idListBox.SelectedValue))
         else:
             self.idBox.Text = str(hexId(self.idListBox.SelectedItem.SongID))
 
@@ -3388,7 +3396,7 @@ class CharacterForm(Form):
 
 class IdEntryForm(Form):
     # idTypes: fighter, cosmetic, slot, cssSlot, cosmeticImage, franchiseImage
-    def __init__(self, title="Enter ID", buttonText="Select", idType="fighter", labelText = "Fighter ID:"):
+    def __init__(self, title="Enter ID", buttonText="Select", idType="fighter", labelText = "Fighter ID:", customList=[]):
         # Form parameters
         self.Text = title
         self.StartPosition = FormStartPosition.CenterParent
@@ -3402,6 +3410,7 @@ class IdEntryForm(Form):
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.idType = idType
+        self.customList = customList
 
         # Fighter ID box
         self.idGroup = GroupBox()
@@ -3444,7 +3453,7 @@ class IdEntryForm(Form):
 
     def idButtonPressed(self, sender, args):
         if "Image" not in self.idType:
-            id = showIdPicker(self.idType)
+            id = showIdPicker(self.idType, self.customList)
         else:
             id = showImageIdPicker(self.idType.replace("Image", ""))
         if id:
