@@ -2672,12 +2672,12 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 		fileOpened = "false"
 		costumeStart = -1
 		costumeEnd = -1
-		if rspLoading == "false":
+		if rspLoading == "false" or not rspLoading:
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
 		else:
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 		if fileOpened:
-			if rspLoading == "false":
+			if rspLoading == "false" or not rspLoading:
 			# Find char_bust_tex_lz77
 				arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
 				bresNode = getChildByName(arcNode, "Misc Data [" + str(cosmeticId) + "]")
@@ -2711,7 +2711,7 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 				for child in texFolder.Children:
 					i += 1
 					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str((cosmeticId * 10) + i), 3)
-			if rspLoading == "false":
+			if rspLoading == "false" or not rspLoading:
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
 				# Back up RSP if it exists
