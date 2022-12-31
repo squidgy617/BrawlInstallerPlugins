@@ -661,7 +661,7 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 		else:
 			fileOpened = openFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 		if fileOpened:
-			if rspLoading == "false":
+			if rspLoading == "false" or not rspLoading:
 			# Find char_bust_tex_lz77
 				arcNode = getChildByName(BrawlAPI.RootNode, "char_bust_tex_lz77")
 				bresNode = getChildByName(arcNode, "Misc Data [" + str(cosmeticId) + "]")
