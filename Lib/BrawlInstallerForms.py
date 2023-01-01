@@ -1040,8 +1040,8 @@ class StageList(Form):
 
         i = 0
         while i < self.length:
-            
-            if self.stageLists[i] == '/Source/Project+/StageFiles.asm' or self.stageLists[i] == 'Source/Project+/StageTable.asm':
+
+            if self.stageLists[i] == '/Source/Project+/StageFiles.asm' or self.stageLists[i] == '/Source/Project+/StageTable.asm':
                 tabPageName = 'Standard'
             elif self.stageLists[i] == '/Source/Netplay/Net-StageFiles.asm':
                 tabPageName = 'Netplay'
