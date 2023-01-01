@@ -1041,7 +1041,7 @@ class StageList(Form):
         i = 0
         while i < self.length:
             
-            if self.stageLists[i] == '/Source/Project+/StageFiles.asm':
+            if self.stageLists[i] == '/Source/Project+/StageFiles.asm' or self.stageLists[i] == 'Source/Project+/StageTable.asm':
                 tabPageName = 'Standard'
             elif self.stageLists[i] == '/Source/Netplay/Net-StageFiles.asm':
                 tabPageName = 'Netplay'
@@ -1269,8 +1269,6 @@ class StageList(Form):
             buildGct()
             self.removeSlots = []
             BrawlAPI.ShowMessage("Saved successfully.", "Success")
-            #self.DialogResult = DialogResult.OK
-            #self.Close()
         except Exception as e:
             writeLog("ERROR " + str(e))
             if 'progressBar' in locals():

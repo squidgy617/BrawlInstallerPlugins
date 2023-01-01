@@ -3406,7 +3406,8 @@ def removeTrophy(trophyId):
 							brresName = trophyNode.BRRES
 							nodeToRemove = trophyNode
 							break
-					nodeToRemove.Remove()
+					if nodeToRemove:
+						nodeToRemove.Remove()
 					BrawlAPI.SaveFile()
 					BrawlAPI.ForceCloseFile()
 		# Remove name and game names

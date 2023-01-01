@@ -25,6 +25,10 @@ def main():
 			stageListEntries = getStageList('/Source/Project+/StageFiles.asm')
 			if len(stageListEntries) > 0:
 				stageLists.append('/Source/Project+/StageFiles.asm')
+			else: 
+				stageListEntries = getStageList('/Source/Project+/StageTable.asm')
+				if len(stageListEntries) > 0:
+					stageLists.append('/Source/Project+/StageTable.asm')
 		if File.Exists(MainForm.BuildPath + '/Source/Netplay/Net-StageFiles.asm'):
 			stageListEntries = getStageList('/Source/Netplay/Net-StageFiles.asm')
 			if len(stageListEntries) > 0:
