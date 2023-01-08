@@ -118,6 +118,7 @@ def main():
 					break
 			# If we never found a match for a node in the altered file, it's a brand new node, and should be exported
 			if not matchFound:
+				exportNode(alteredFile.node)
 				text += "\n" + alteredFileNode.node.TreePathAbsolute + ": " + "NEW\n"
 			# If we found a match at all, the clean file node should be removed from the list for comparison, to speed up searches and
 			#to prevent false positives when nodes share paths.
