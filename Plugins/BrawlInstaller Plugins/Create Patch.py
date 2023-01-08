@@ -23,6 +23,12 @@ def getNodes(filePath, closeFile=True):
 def main():
 		text = ""
 		createLogFile()
+
+		# If temporary directory already exists, delete it to prevent duplicate files
+		tempPath = AppPath + '/temp'
+		if Directory.Exists(tempPath):
+			Directory.Delete(tempPath, 1)
+		createDirectory(tempPath)
 		
 		# Get nodes for altered file and clean file for comparison
 		alteredFileNodes = getNodes(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac', closeFile=True)
@@ -62,7 +68,7 @@ def main():
 		writeLog(text)
 		BrawlAPI.ShowMessage(text, "")
 		removeText = ""
-		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed
+		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed when the patch is installed
 		for removeNode in cleanFileNodes:
 			removeText += "\n" + removeNode.node.Name + "\n"
 		writeLog(removeText)
