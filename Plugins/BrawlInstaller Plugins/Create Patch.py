@@ -84,10 +84,14 @@ def main():
 		if Directory.Exists(TEMP_PATH):
 			Directory.Delete(TEMP_PATH, 1)
 		createDirectory(TEMP_PATH)
+
+		# File prompts
+		cleanFile = BrawlAPI.OpenFileDialog("Select the base file for your patch", "All Files|*.*")
+		alteredFile = BrawlAPI.OpenFileDialog("Select the altered file for your patch", "All Files|*.*")
 		
 		# Get nodes for altered file and clean file for comparison
-		cleanFileNodes = getNodes(MainForm.BuildPath + '/pf/menu2/sc_selcharacter - Copy.pac', closeFile=True)
-		alteredFileNodes = getNodes(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac', closeFile=False)
+		cleanFileNodes = getNodes(cleanFile, closeFile=True)
+		alteredFileNodes = getNodes(alteredFile, closeFile=False)
 
 		# Set up progressbar
 		progressCounter = 0
