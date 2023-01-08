@@ -34,6 +34,20 @@ def findChildren(node, path):
 						nodes.append(child)
 		return nodes
 
+# Get all settable, public node properties for the node
+def getNodeProperties(node):
+		properties = []
+		for property in node.GetType().GetProperties():
+			if property.CanWrite and property.DeclaringType == node.GetType() and property.GetSetMethod():
+				properties.append(property)
+		return properties
+
+# Copy node property values from one node to another
+def copyNodeProperties(sourceNode, targetNode):
+		properties = getNodeProperties(targetNode)
+		for property in properties:
+			property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
+
 # Get only the highest level valid nodes from root
 def getPatchNodes(rootNode):
 		writeLog("Getting valid patch nodes for export")
