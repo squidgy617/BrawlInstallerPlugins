@@ -103,7 +103,6 @@ def exportPatchNode(node):
 			nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
 			i += 1
 		createDirectory(TEMP_PATH + '\\' + nodePath)
-		BrawlAPI.ShowMessage(node.FileName, "")
 		node.Export(TEMP_PATH + '\\' + nodePath + '\\' + getPatchNodeName(node))
 		writeLog("Exported patch node")
 
