@@ -63,17 +63,48 @@ def getNodeObjects(filePath, closeFile=True):
 		writeLog("Finished getting node objects")
 		return fileNodeList
 
+# Get the number that should be appended to the beginning of a patch node
+def getPatchNodeIndex(node):
+		if node.Parent:
+			i = 0
+			for child in node.Parent.Children:
+				if child.Name == node.Name:
+					i +=1
+				if child.Index == node.Index:
+					return i
+		return 1
+
+# Get the patch node name for a node
+def getPatchNodeName(node):
+		index = getPatchNodeIndex(node)
+		# Patch node name format: {index}$${name}
+		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name
+		return nodeName
+
 # Export node for a patch and create directory if it can't be found
 def exportPatchNode(node):
 		writeLog("Exporting patch node " + node.TreePathAbsolute)
-		nodeSplit = node.TreePathAbsolute.split('/')
+		# Old way, just creates directories based on node tree path
+		#nodeSplit = node.TreePathAbsolute.split('/')
+		#nodePath = ""
+		#i = 0
+		#while i < len(nodeSplit):
+		#	nodePath += nodeSplit[i] + '\\' if i < len(nodeSplit) - 1 else ''
+		#	i += 1
+		# New way, export with an index at the beginning, which is useful for importer if multiple children have the same name
+		currentNode = node
+		pathNodeNames = []
+		while currentNode.Parent:
+			pathNodeNames.insert(0, getPatchNodeName(currentNode))
+			currentNode = currentNode.Parent
 		nodePath = ""
 		i = 0
-		while i < len(nodeSplit):
-			nodePath += nodeSplit[i] + '\\' if i < len(nodeSplit) - 1 else ''
+		while i < len(pathNodeNames):
+			nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
 			i += 1
 		createDirectory(TEMP_PATH + '\\' + nodePath)
-		node.Export(TEMP_PATH + '\\' + nodePath + '\\' + node.Name)
+		BrawlAPI.ShowMessage(node.FileName, "")
+		node.Export(TEMP_PATH + '\\' + nodePath + '\\' + getPatchNodeName(node))
 		writeLog("Exported patch node")
 
 def main():
