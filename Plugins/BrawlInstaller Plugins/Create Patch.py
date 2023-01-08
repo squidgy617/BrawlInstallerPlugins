@@ -4,7 +4,7 @@ from BrawlInstallerLib import *
 
 TEMP_PATH = AppPath + '/temp'
 
-class Node:
+class NodeObject:
 		def __init__(self, node, md5):
 			self.node = node
 			self.md5 = md5
@@ -26,7 +26,7 @@ def findChildren(node, path):
 						if child.Name == nodeName:
 							# Drill down to check child paths
 							nodes.extend(findChildren(child, nextPath))
-			# No slash means we are at the end, so we are checking for the actual ndoe at the end of the path
+			# No slash means we are at the end, so we are checking for the actual node at the end of the path
 			else:
 				for child in node.Children:
 					if child.Name == path:
@@ -35,8 +35,8 @@ def findChildren(node, path):
 		return nodes
 
 # Get only the highest level valid nodes from root
-def getNodesForExport(rootNode):
-		writeLog("Getting valid nodes for export")
+def getPatchNodes(rootNode):
+		writeLog("Getting valid patch nodes for export")
 		containers = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
 		allNodes = []
 		if len(rootNode.Children) > 0:
@@ -44,28 +44,28 @@ def getNodesForExport(rootNode):
 				if child.NodeType not in containers:
 					allNodes.append(child)
 				elif len(child.Children) > 0:
-					allNodes.extend(getNodesForExport(child))
-		writeLog("Got valid nodes for export")
+					allNodes.extend(getPatchNodes(child))
+		writeLog("Got valid patch nodes for export")
 		return allNodes
 
-# Get all valid nodes in a file, including their MD5s
-def getNodes(filePath, closeFile=True):
-		writeLog("Getting nodes for file " + filePath)
+# Get NodeObjects for all patch nodes in file
+def getNodeObjects(filePath, closeFile=True):
+		writeLog("Getting node objects for file " + filePath)
 		fileNodeList = []
 		fileOpened = openFile(filePath, False)
 		if fileOpened:
 			#fileNodes = BrawlAPI.RootNode.GetChildrenRecursive()
-			fileNodes = getNodesForExport(BrawlAPI.RootNode)
+			fileNodes = getPatchNodes(BrawlAPI.RootNode)
 			for fileNode in fileNodes:
-				fileNodeList.append(Node(fileNode, fileNode.MD5Str()))
+				fileNodeList.append(NodeObject(fileNode, fileNode.MD5Str()))
 		if closeFile:
 			BrawlAPI.ForceCloseFile()
-		writeLog("Finished getting nodes")
+		writeLog("Finished getting node objects")
 		return fileNodeList
 
-# Export node and create directory if it can't be found
-def exportNode(node):
-		writeLog("Exporting node " + node.TreePathAbsolute)
+# Export node for a patch and create directory if it can't be found
+def exportPatchNode(node):
+		writeLog("Exporting patch node " + node.TreePathAbsolute)
 		nodeSplit = node.TreePathAbsolute.split('/')
 		nodePath = ""
 		i = 0
@@ -74,7 +74,7 @@ def exportNode(node):
 			i += 1
 		createDirectory(TEMP_PATH + '\\' + nodePath)
 		node.Export(TEMP_PATH + '\\' + nodePath + '\\' + node.Name)
-		writeLog("Exported node")
+		writeLog("Exported patch node")
 
 def main():
 		text = ""
@@ -90,8 +90,8 @@ def main():
 		alteredFile = BrawlAPI.OpenFileDialog("Select the altered file for your patch", "All Files|*.*")
 		
 		# Get nodes for altered file and clean file for comparison
-		cleanFileNodes = getNodes(cleanFile, closeFile=True)
-		alteredFileNodes = getNodes(alteredFile, closeFile=False)
+		cleanFileNodes = getNodeObjects(cleanFile, closeFile=True)
+		alteredFileNodes = getNodeObjects(alteredFile, closeFile=False)
 
 		# Set up progressbar
 		progressCounter = 0
@@ -113,12 +113,12 @@ def main():
 					matchFound = True
 					# If we've found a match, but MD5s do NOT match, this is an altered node and should be exported
 					if alteredFileNode.md5 != cleanFileNode.md5:
-						exportNode(alteredFileNode.node)
+						exportPatchNode(alteredFileNode.node)
 						text += "\n" + alteredFileNode.node.TreePathAbsolute + ": " + alteredFileNode.md5 + " " + cleanFileNode.md5 + "\n"
 					break
 			# If we never found a match for a node in the altered file, it's a brand new node, and should be exported
 			if not matchFound:
-				exportNode(alteredFile.node)
+				exportPatchNode(alteredFile.node)
 				text += "\n" + alteredFileNode.node.TreePathAbsolute + ": " + "NEW\n"
 			# If we found a match at all, the clean file node should be removed from the list for comparison, to speed up searches and
 			#to prevent false positives when nodes share paths.
