@@ -9,6 +9,31 @@ class Node:
 			self.node = node
 			self.md5 = md5
 
+# Get all nodes with a particular path
+def findChildren(node, path):
+		# path = TreePath of a node, not TreePathAbsolute
+		# node should be the root node to search from, generally the root node of the whole file
+		nodes = []
+		if node and node.Children:
+			# Having a slash indicates we are not at the final node yet, so continue to drill down
+			if '/' in path:
+				# Node we are currently searching for
+				nodeName = path.split('/')[0]
+				# The new path for the next search step
+				nextPath = path[path.find('/') + 1:len(path)]
+				if len(node.Children) > 0:
+					for child in node.Children:
+						if child.Name == nodeName:
+							# Drill down to check child paths
+							nodes.extend(findChildren(child, nextPath))
+			# No slash means we are at the end, so we are checking for the actual ndoe at the end of the path
+			else:
+				for child in node.Children:
+					if child.Name == path:
+						# If the node exists, it finally gets added to the list
+						nodes.append(child)
+		return nodes
+
 # Get only the highest level valid nodes from root
 def getNodesForExport(rootNode):
 		writeLog("Getting valid nodes for export")
@@ -104,4 +129,5 @@ def main():
 			removeText += "\n" + removeNode.node.Name + "\n"
 		writeLog(removeText)
 		BrawlAPI.ShowMessage(removeText, "")
+
 main()
