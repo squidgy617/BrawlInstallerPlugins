@@ -3,6 +3,7 @@ __author__ = "Squidgy"
 from BrawlInstallerLib import *
 
 TEMP_PATH = AppPath + '/temp'
+CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
 
 class NodeObject:
 		def __init__(self, node, md5):
@@ -51,11 +52,10 @@ def copyNodeProperties(sourceNode, targetNode):
 # Get only the highest level valid nodes from root
 def getPatchNodes(rootNode):
 		writeLog("Getting valid patch nodes for export")
-		containers = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
 		allNodes = []
 		if len(rootNode.Children) > 0:
 			for child in rootNode.Children:
-				if child.NodeType not in containers:
+				if child.NodeType not in CONTAINERS:
 					allNodes.append(child)
 				elif len(child.Children) > 0:
 					allNodes.extend(getPatchNodes(child))
@@ -89,14 +89,25 @@ def getPatchNodeIndex(node):
 		return 1
 
 # Get the patch node name for a node
-def getPatchNodeName(node):
+def getPatchNodeName(node, remove=False, folder=False):
 		index = getPatchNodeIndex(node)
-		# Patch node name format: {index}$${name}
-		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name
+		# Patch node name format: {index}$${name}$${action}
+		# {action} values:
+		#	- IMPORT - import as normal
+		#	- PARAM - only get the parameters for this node, do not fully replace (for containers)
+		#	- REMOVE - remove this node
+		action = "IMPORT"
+		if node.NodeType in CONTAINERS:
+			action = "PARAM"
+		if remove:
+			action = "REMOVE"
+		if folder:
+			action = "FOLDER"
+		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + '$$' + action
 		return nodeName
 
 # Export node for a patch and create directory if it can't be found
-def exportPatchNode(node):
+def exportPatchNode(node, remove=False):
 		writeLog("Exporting patch node " + node.TreePathAbsolute)
 		# Old way, just creates directories based on node tree path
 		#nodeSplit = node.TreePathAbsolute.split('/')
@@ -109,7 +120,7 @@ def exportPatchNode(node):
 		currentNode = node
 		pathNodeNames = []
 		while currentNode.Parent:
-			pathNodeNames.insert(0, getPatchNodeName(currentNode))
+			pathNodeNames.insert(0, getPatchNodeName(currentNode, folder=True))
 			currentNode = currentNode.Parent
 		nodePath = ""
 		i = 0
@@ -117,7 +128,7 @@ def exportPatchNode(node):
 			nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
 			i += 1
 		createDirectory(TEMP_PATH + '\\' + nodePath)
-		node.Export(TEMP_PATH + '\\' + nodePath + '\\' + getPatchNodeName(node))
+		node.Export(TEMP_PATH + '\\' + nodePath + '\\' + getPatchNodeName(node, remove))
 		writeLog("Exported patch node")
 
 def main():
@@ -175,6 +186,7 @@ def main():
 		removeText = ""
 		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed when the patch is installed
 		for removeNode in cleanFileNodes:
+			exportPatchNode(removeNode.node, True)
 			removeText += "\n" + removeNode.node.Name + "\n"
 		writeLog(removeText)
 		BrawlAPI.ShowMessage(removeText, "")
