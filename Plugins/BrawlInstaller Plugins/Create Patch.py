@@ -47,7 +47,8 @@ def getNodeProperties(node):
 def copyNodeProperties(sourceNode, targetNode):
 		properties = getNodeProperties(targetNode)
 		for property in properties:
-			property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
+			if property.GetValue(targetNode, None) != property.GetValue(sourceNode, None):
+				property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
 
 # Get only the highest level valid nodes from root
 def getPatchNodes(rootNode):
@@ -55,10 +56,13 @@ def getPatchNodes(rootNode):
 		allNodes = []
 		if len(rootNode.Children) > 0:
 			for child in rootNode.Children:
-				if child.NodeType not in CONTAINERS:
+				if child.NodeType in CONTAINERS:
+					if child.NodeType != "BrawlLib.SSBB.ResourceNodes.BRESGroupNode":
+						allNodes.append(child)
+					if len(child.Children) > 0:
+						allNodes.extend(getPatchNodes(child))
+				elif child.NodeType not in CONTAINERS:
 					allNodes.append(child)
-				elif len(child.Children) > 0:
-					allNodes.extend(getPatchNodes(child))
 		writeLog("Got valid patch nodes for export")
 		return allNodes
 
@@ -183,6 +187,7 @@ def main():
 		BrawlAPI.ForceCloseFile()
 		writeLog(text)
 		BrawlAPI.ShowMessage(text, "")
+		# TODO: We need a way to actually get the data and paths for removed nodes
 		removeText = ""
 		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed when the patch is installed
 		for removeNode in cleanFileNodes:
