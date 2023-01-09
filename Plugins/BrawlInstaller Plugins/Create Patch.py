@@ -181,5 +181,16 @@ def main():
 		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed when the patch is installed
 		for removeNode in cleanFileNodes:
 			exportPatchNode(removeNode)
+		# Clean up folders for deleted stuff
+		directories = Directory.GetDirectories(TEMP_PATH, "*", SearchOption.AllDirectories)
+		i = 0
+		while i < len(directories):
+			if Directory.Exists(directories[i]):
+				directoryInfo = DirectoryInfo(directories[i])
+				if '$$FOLDER' in directoryInfo.Name:
+					#BrawlAPI.ShowMessage(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE'), "")
+					if File.Exists(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE')):
+						Directory.Delete(directories[i], True)
+			i += 1
 
 main()
