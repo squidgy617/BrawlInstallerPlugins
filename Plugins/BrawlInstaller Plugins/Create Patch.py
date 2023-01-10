@@ -1,6 +1,8 @@
 __author__ = "Squidgy"
 
 from BrawlInstallerLib import *
+from System import Type
+from System import Activator
 
 TEMP_PATH = AppPath + '/temp'
 CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
@@ -50,6 +52,18 @@ def copyNodeProperties(sourceNode, targetNode):
 		for property in properties:
 			if property.GetValue(targetNode, None) != property.GetValue(sourceNode, None):
 				property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
+
+# Get actual node type from string
+def getNodeType(typeString):
+		fullString = "BrawlLib.SSBB.ResourceNodes." + typeString + ", BrawlLib"
+		nodeType = Type.GetType(fullString)
+		return nodeType
+
+# Instantiate node based on type string
+def createNodeFromString(typeString):
+		type = getNodeType(typeString)
+		instance = Activator.CreateInstance(type)
+		return instance
 
 # Get only the highest level valid nodes from root
 def getPatchNodes(rootNode):
