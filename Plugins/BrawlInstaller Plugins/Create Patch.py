@@ -79,7 +79,7 @@ def getNodeObjects(filePath, closeFile=True):
 				currentNode = fileNode
 				pathNodeNames = []
 				while currentNode.Parent:
-					pathNodeNames.insert(0, getPatchNodeName(currentNode, folder=True))
+					pathNodeNames.insert(0, getPatchNodeName(currentNode, action="FOLDER"))
 					currentNode = currentNode.Parent
 				nodePath = ""
 				i = 0
@@ -104,31 +104,29 @@ def getPatchNodeIndex(node):
 		return 1
 
 # Get the patch node name for a node
-def getPatchNodeName(node, remove=False, folder=False):
+def getPatchNodeName(node, action=""):
 		index = getPatchNodeIndex(node)
-		# Patch node name format: {index}$${name}$${action}
+		# Patch node name format: {index}$${name}$${nodeType}$${action}
 		# {action} values:
-		#	- IMPORT - import as normal
+		#	- REPLACE - import and replace existing node; if it does not exist, add
+		#	- ADD - import and add as a new node
 		#	- PARAM - only get the parameters for this node, do not fully replace (for containers)
 		#	- REMOVE - remove this node
-		action = "IMPORT"
-		if node.NodeType in CONTAINERS:
-			action = "PARAM"
-		if remove:
-			action = "REMOVE"
-		if folder:
-			action = "FOLDER"
-		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + '$$' + action
+		if not action:
+			action = "REPLACE"
+			if node.NodeType in CONTAINERS:
+				action = "PARAM"
+		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + '$$' + node.NodeType.split('.')[-1] + '$$' + action
 		return nodeName
 
 # Export node for a patch and create directory if it can't be found
-def exportPatchNode(nodeObject):
+def exportPatchNode(nodeObject, add=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		if nodeObject.node.MD5Str():
-			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node))
+			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "ADD" if add else ""))
 		else:
-			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, True)).Close()
+			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "REMOVE")).Close()
 		writeLog("Exported patch node")
 
 def main():
@@ -171,7 +169,7 @@ def main():
 					break
 			# If we never found a match for a node in the altered file, it's a brand new node, and should be exported
 			if not matchFound:
-				exportPatchNode(alteredFileNode)
+				exportPatchNode(alteredFileNode, add=True)
 			# If we found a match at all, the clean file node should be removed from the list for comparison, to speed up searches and
 			#to prevent false positives when nodes share paths.
 			if removeNode:
