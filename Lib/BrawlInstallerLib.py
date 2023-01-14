@@ -1215,7 +1215,7 @@ def importFranchiseIconResult(franchiseIconId, image="", model=""):
 		if fileOpened:
 			# Import icon
 			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
-			if image:
+			if image and not model:
 				newNode = importTexture(node, image, WiiPixelFormat.CI4, sizeW=80)
 				newNode.Name = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
 			# Add 3D model
@@ -3760,12 +3760,13 @@ def extractFranchiseIconResult(franchiseIconId):
 			if textureNode:
 				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Transparent')
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
-			# Extract 3D model
-			modelFolder = getChildByName(node, "3DModels(NW4R)")
-			mdl0Node = getChildByName(modelFolder, "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN")
-			if mdl0Node:
-				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Model')
-				mdl0Node.Export(exportPath + '/' + mdl0Node.Name + '.mdl0')
+			else:
+				# Extract 3D model
+				modelFolder = getChildByName(node, "3DModels(NW4R)")
+				mdl0Node = getChildByName(modelFolder, "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN")
+				if mdl0Node:
+					exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Model')
+					mdl0Node.Export(exportPath + '/' + mdl0Node.Name + '.mdl0')
 		writeLog("Finished extracting franchise icon")
 
 # Extract BPs
