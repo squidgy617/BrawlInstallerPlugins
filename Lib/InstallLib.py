@@ -482,10 +482,18 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
+						modelFranchise = ""
+						textureFranchise = ""
+						franchiseIconModel = Directory.GetDirectories(franchiseIconFolder.FullName, "Model")
+						if franchiseIconModel:
+							if len(Directory.GetFiles(franchiseIconModel[0], "*.mdl0")) > 0:
+								modelFranchise = Directory.GetFiles(franchiseIconModel[0], "*.mdl0")[0]
 						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")	
 						if franchisIconFolderResult:
 							if len(Directory.GetFiles(franchisIconFolderResult[0], "*.png")) > 0:
-								installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
+								textureFranchise = Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0]
+						if modelFranchise or textureFranchise:
+							installFranchiseIconResult(franchiseIconId, textureFranchise, modelFranchise)
 					fileOpened = checkOpenFile("STGRESULT")
 					if fileOpened:
 						BrawlAPI.SaveFile()
