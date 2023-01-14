@@ -93,6 +93,7 @@ def main():
 		# Franchise Icons
 		franchiseIconBlack = BrawlAPI.OpenFileDialog("Select franchise icon with black background", "PNG files|*.png")
 		franchiseIconTransparent = BrawlAPI.OpenFileDialog("Select franchise icon with transparent background", "PNG files|*.png")
+		franchiseIconModel = BrawlAPI.OpenFileDialog("Select franchise icon model", "MDL0 files|*.mdl0")
 
 		# Victory Theme
 		victoryTheme = BrawlAPI.OpenFileDialog("Select your victory .brstm file", "BRSTM files|*.brstm")
@@ -216,6 +217,9 @@ def main():
 		
 		if franchiseIconTransparent:
 			copyFile(franchiseIconTransparent, AppPath + '/temp/FranchiseIcons/Transparent')
+
+		if franchiseIconModel:
+			copyFile(franchiseIconModel, AppPath + '/temp/FranchiseIcons/Model')
 
 		if victoryTheme:
 			copyFile(victoryTheme, AppPath + '/temp/VictoryTheme')

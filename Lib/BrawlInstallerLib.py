@@ -1209,24 +1209,28 @@ def importClassicIntro(cosmeticId, filePath):
 	writeLog("Finished importing classic intro file")
 
 # Add franchise icon to result screen
-def importFranchiseIconResult(franchiseIconId, image):
+def importFranchiseIconResult(franchiseIconId, image="", model=""):
 		writeLog("Importing franchise icon into STGRESULT.pac with franchise icon ID " + str(franchiseIconId))
 		fileOpened = openFile(MainForm.BuildPath + '/pf/stage/melee/STGRESULT.pac')
 		if fileOpened:
 			# Import icon
 			node = getChildByName(getChildrenByPrefix(BrawlAPI.RootNode, "2")[0], "Misc Data [110]")
-			newNode = importTexture(node, image, WiiPixelFormat.CI4, sizeW=80)
-			newNode.Name = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
+			if image:
+				newNode = importTexture(node, image, WiiPixelFormat.CI4, sizeW=80)
+				newNode.Name = "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2)
 			# Add 3D model
 			modelFolder = getChildByName(node, "3DModels(NW4R)")
 			mdl0Node = MDL0Node()
 			mdl0Node.Name = "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN"
 			modelFolder.AddChild(mdl0Node)
-			mdl0Node.Replace(RESOURCE_PATH + '/InfResultMark##_TopN.mdl0')
-			mdl0MatRefNode = getChildByName(getChildByName(getChildByName(mdl0Node, "Materials"), "Mark"), "MenSelchrMark.##")
-			mdl0MatRefNode.Name = newNode.Name
-			mdl0MatRefNode.Texture = newNode.Name
-			mdl0MatRefNode.Palette = newNode.Name
+			if model:
+				mdl0Node.Replace(model)
+			else:
+				mdl0Node.Replace(RESOURCE_PATH + '/InfResultMark##_TopN.mdl0')
+				mdl0MatRefNode = getChildByName(getChildByName(getChildByName(mdl0Node, "Materials"), "Mark"), "MenSelchrMark.##")
+				mdl0MatRefNode.Name = newNode.Name
+				mdl0MatRefNode.Texture = newNode.Name
+				mdl0MatRefNode.Palette = newNode.Name
 			# Add color sequence
 			colorFolder = getChildByName(node, "AnmClr(NW4R)")
 			clr0Node = CLR0Node()
@@ -3756,6 +3760,12 @@ def extractFranchiseIconResult(franchiseIconId):
 			if textureNode:
 				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Transparent')
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+			# Extract 3D model
+			modelFolder = getChildByName(node, "3DModels(NW4R)")
+			mdl0Node = getChildByName(modelFolder, "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN")
+			if mdl0Node:
+				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Model')
+				mdl0Node.Export(exportPath + '/' + mdl0Node.Name + '.mdl0')
 		writeLog("Finished extracting franchise icon")
 
 # Extract BPs
@@ -4164,9 +4174,9 @@ def installBPName(cosmeticId, image, filePath):
 		importBPName(cosmeticId, image, filePath)
 
 # Install franchise icon into STGRESULT
-def installFranchiseIconResult(franchiseIconId, image):
+def installFranchiseIconResult(franchiseIconId, image="", model=""):
 		removeFranchiseIconResult(franchiseIconId)
-		importFranchiseIconResult(franchiseIconId, image)
+		importFranchiseIconResult(franchiseIconId, image, model)
 
 # Install fighter files
 def installFighterFiles(files, fighterName, oldFighterName="", changeFighterName=""):
