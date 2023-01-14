@@ -30,8 +30,7 @@ def main():
 			# Prompt to select images
 			franchiseIconBlack = BrawlAPI.OpenFileDialog("Select franchise icon with black background", "PNG files|*.PNG")
 			franchiseIconTransparent = BrawlAPI.OpenFileDialog("Select franchise icon with transparent background", "PNG files|*.PNG")
-			if not franchiseIconTransparent:
-				franchiseIconModel = BrawlAPI.OpenFileDialog("Select franchise icon model", "MDL0 files|*.MDL0")
+			franchiseIconModel = BrawlAPI.OpenFileDialog("Select franchise icon model (overwrites transparent icon)", "MDL0 files|*.MDL0")
 
 			# Franchise Icon ID prompt
 			franchiseIconUsed = True
