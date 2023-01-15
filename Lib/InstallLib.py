@@ -62,6 +62,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						clonedModuleName = ""
 
 					uninstallVictoryTheme = 0
+					installVictoryTheme = False
 					uninstallCreditsTheme = 0
 					newSoundbankId = ""
 					victoryThemeId = 0
@@ -137,7 +138,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									break
 					
 					# Victory theme checks
-					if victoryThemeFolder:
+					if victoryThemeFolder and settings.installVictoryThemes == "true":
 						# Ask user if they would like to install the included victory theme
 						installVictoryTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a victory theme. Would you like to install it?", "Install victory theme?")
 						if installVictoryTheme == False:
@@ -150,7 +151,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									return
 						# Check if existing fighter has a different victory theme
 						if installVictoryTheme:
-							existingSlotConfig = getSlotConfig(fighterId)
+							existingSlotConfig = getSlotConfig(slotConfigId)
 							if existingSlotConfig:
 								oldVictoryThemeName = getVictoryThemeByFighterId(slotConfigId)
 								if oldVictoryThemeName:
@@ -159,7 +160,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										uninstallVictoryTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a victory theme with a different name. Do you want to remove it?", "Remove existing victory theme?")
 
 					# Credits theme checks
-					if creditsFolder:
+					if creditsFolder and settings.installVictoryThemes == "true":
 						# Ask user if they would like to install the included credits theme
 						doInstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a credits theme. Would you like to install it?", "Install credits theme?")
 						if doInstallCreditsTheme == False:

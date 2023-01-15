@@ -444,7 +444,7 @@ def getCosmeticConfig(fighterId):
 def getSlotConfig(fighterId):
 		writeLog("Attempting to get SlotConfig for ID " + str(fighterId))
 		slotConfigs = Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', 'Slot' + str(fighterId) + '.dat')
-		if slotConfigs:
+		if len(slotConfigs) > 0:
 			return slotConfigs[0]
 		else:
 			return 0
@@ -475,8 +475,9 @@ def getSongNameById(songId, songDirectory='Victory!', tracklist='Results'):
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		for song in BrawlAPI.RootNode.Children:
 			if song.SongID == songId:
-				BrawlAPI.ForceCloseFile()
-				return song.SongFileName.split(songDirectory + '/')[1]
+				if '/' in song.SongFileName:
+					BrawlAPI.ForceCloseFile()
+					return song.SongFileName.split(songDirectory + '/')[1]
 		BrawlAPI.ForceCloseFile()
 		return 0
 
