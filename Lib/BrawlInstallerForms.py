@@ -3031,7 +3031,7 @@ class SettingsForm(Form):
         settings.installStocksToCSS = boolText(self.stockCssCheckbox.Checked)
         settings.installStocksToSSS = boolText(self.stockSssCheckbox.Checked)
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
-        settings.installStocksToStockFaceTex = boolText(self.stockResultCheckbox.Checked)
+        settings.installStocksToStockFaceTex = boolText(self.stockRotationCheckbox.Checked)
         settings.installStocksToInfo = boolText(self.stockBattleCheckbox.Checked)
         settings.installPortraitNames = boolText(self.portraitNameCheckBox.Checked)
         settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
