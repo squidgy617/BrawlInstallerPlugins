@@ -31,7 +31,7 @@ If you find any bugs or issues with the plugins, please submit them as an issue 
 
 Once you have completed these steps, you are ready to begin using the BrawlInstaller plugins.
 
-Additionally, it's recommended to set up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. BrawlInstaller does create automatic backups, so this is not necessary, but recommended as it is easier and more convenient.
+Additionally, it's recommended to set up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. BrawlInstaller does create automatic backups, so this is not necessary, but still recommended.
 
 <details>
 
@@ -56,7 +56,7 @@ In order for these plugins to function correctly, you will need a few things:
 
 For initial installation, you can set this repo as a subscription in BrawlCrate by navigating to Tools > Settings > Updater, clicking "Manage Subscriptions", and pasting this link: https://github.com/squidgy617/BrawlInstallerPlugins. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate. Alternatively, you can download the release manually and extract the contents to your BrawlCrate installation's "BrawlAPI" folder.
 
-The plugins create backups of your files during execution, but they do not clean up loose files added and I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. While loose files shouldn't cause an issue, if you want an extra safety net, I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. With the automatic backup functionality, this is not really necessary, but still a good idea.
+The plugins create backups of your files during execution, however, I cannot guarantee you will not run into issues, especially if you configure your settings incorrectly. If you want an extra safety net, I recommend setting up a git repository for your build [like this template](https://github.com/jlambert360/PPlus-Build-Template) for an easy method of source control. With the automatic backup functionality, this is not really necessary, but still a good idea.
 
 </details>
 
