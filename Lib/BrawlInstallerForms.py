@@ -2554,13 +2554,13 @@ class SettingsForm(Form):
 
         pPlusDefaultsButton = Button()
         pPlusDefaultsButton.Text = "P+Ex Defaults"
-        pPlusDefaultsButton.Location = Point(4, 600)
+        pPlusDefaultsButton.Location = Point(4, 620)
         pPlusDefaultsButton.Width = 90
         pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
 
         remixDefaultsButton = Button()
         remixDefaultsButton.Text = "REMIX Defaults"
-        remixDefaultsButton.Location = Point(98, 600)
+        remixDefaultsButton.Location = Point(98, 620)
         remixDefaultsButton.Width = 95
         remixDefaultsButton.Click += self.remixDefaultsButtonPressed
 
@@ -2762,6 +2762,11 @@ class SettingsForm(Form):
         self.sseCheck.Text = "Install Fighters to SSE"
         self.sseCheck.Location = Point(16, 16)
         self.sseCheck.Width = 138
+        
+        self.victoryThemeCheck = CheckBox()
+        self.victoryThemeCheck.Text = "Install Victory Themes"
+        self.victoryThemeCheck.Location = Point(16, 36)
+        self.victoryThemeCheck.Width = 138
 
         self.trophyCheck = CheckBox()
         self.trophyCheck.Text = "Install Trophies"
@@ -2770,7 +2775,7 @@ class SettingsForm(Form):
 
         # SSE Unlock Stage
         sseGroup = GroupBox()
-        sseGroup.Location = Point(4, 48)
+        sseGroup.Location = Point(4, 68)
         sseGroup.Text = "SSE Unlock Stage"
         sseGroup.AutoSize = True
         sseGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -2791,6 +2796,7 @@ class SettingsForm(Form):
 
         otherGroupBox.Controls.Add(self.sseCheck)
         otherGroupBox.Controls.Add(self.trophyCheck)
+        otherGroupBox.Controls.Add(self.victoryThemeCheck)
         otherGroupBox.Controls.Add(sseGroup)
         
         configGroupBox.Controls.Add(kirbyGroupBox)
@@ -2801,12 +2807,12 @@ class SettingsForm(Form):
 
         self.cancelButton = Button()
         self.cancelButton.Text = "Close"
-        self.cancelButton.Location = Point(525, 600)
+        self.cancelButton.Location = Point(525, 620)
         self.cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
         saveButton.Text = "Save"
-        saveButton.Location = Point(445, 600)
+        saveButton.Location = Point(445, 620)
         saveButton.Click += self.saveButtonPressed
 
         self.Controls.Add(cosmeticGroupBox)
@@ -2856,6 +2862,7 @@ class SettingsForm(Form):
         toolTip.SetToolTip(gfxChangeExeLabel, "The path to Codes' gfxchange.exe. Required to resolve Effect.pac ID conflicts during character installation.") 
         toolTip.SetToolTip(self.sseCheck, "Check this if you would like fighters to be installed to SSE mode. Only use this if your build supports Subspace Emissary Ex, which is included in the latest P+Ex release.") 
         toolTip.SetToolTip(self.trophyCheck, "Check this if you would like to install trophies with fighters when they are available. While adding trophies appears to be stable, some behaviors are still unknown, so this is considered experimental.")
+        toolTip.SetToolTip(self.victoryThemeCheck, "Check this if you would like to install victory and credits themes with fighters when they are available. Only check this if your build uses the modern P+ tracklist system. Most modern builds do.")
         toolTip.SetToolTip(sseGroup, "These settings determine when added characters are unlocked in SSE mode by default.") 
         toolTip.SetToolTip(self.unlockStartRadioButton, "Select this if you would like added characters to be unlocked in SSE mode from the start by default.")  
         toolTip.SetToolTip(self.unlockEndRadioButton, "Select this if you would like added characters to be unlocked after completing SSE mode by default.")  
@@ -2894,6 +2901,7 @@ class SettingsForm(Form):
         self.gfxChangeExeText.Text = self.settings.gfxChangeExe
         self.sseCheck.Checked = textBool(self.settings.installToSse)
         self.trophyCheck.Checked = textBool(self.settings.installTrophies)
+        self.victoryThemeCheck.Checked = textBool(self.settings.installVictoryThemes)
         self.unlockStartRadioButton.Checked = self.settings.sseUnlockStage == "start"
         self.unlockEndRadioButton.Checked = self.settings.sseUnlockStage == "end"
         self.stageListBox.DataSource = self.customStageLists
@@ -3031,7 +3039,7 @@ class SettingsForm(Form):
         settings.installStocksToCSS = boolText(self.stockCssCheckbox.Checked)
         settings.installStocksToSSS = boolText(self.stockSssCheckbox.Checked)
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
-        settings.installStocksToStockFaceTex = boolText(self.stockResultCheckbox.Checked)
+        settings.installStocksToStockFaceTex = boolText(self.stockRotationCheckbox.Checked)
         settings.installStocksToInfo = boolText(self.stockBattleCheckbox.Checked)
         settings.installPortraitNames = boolText(self.portraitNameCheckBox.Checked)
         settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
@@ -3052,6 +3060,7 @@ class SettingsForm(Form):
         settings.gfxChangeExe = self.gfxChangeExeText.Text
         settings.installToSse = boolText(self.sseCheck.Checked)
         settings.installTrophies = boolText(self.trophyCheck.Checked)
+        settings.installVictoryThemes = boolText(self.victoryThemeCheck.Checked)
         if self.unlockStartRadioButton.Checked:
             settings.sseUnlockStage = "start"
         elif self.unlockEndRadioButton.Checked:

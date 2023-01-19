@@ -62,6 +62,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						clonedModuleName = ""
 
 					uninstallVictoryTheme = 0
+					installVictoryTheme = False
 					uninstallCreditsTheme = 0
 					newSoundbankId = ""
 					victoryThemeId = 0
@@ -137,7 +138,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									break
 					
 					# Victory theme checks
-					if victoryThemeFolder:
+					if victoryThemeFolder and settings.installVictoryThemes == "true":
 						# Ask user if they would like to install the included victory theme
 						installVictoryTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a victory theme. Would you like to install it?", "Install victory theme?")
 						if installVictoryTheme == False:
@@ -150,7 +151,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									return
 						# Check if existing fighter has a different victory theme
 						if installVictoryTheme:
-							existingSlotConfig = getSlotConfig(fighterId)
+							existingSlotConfig = getSlotConfig(slotConfigId)
 							if existingSlotConfig:
 								oldVictoryThemeName = getVictoryThemeByFighterId(slotConfigId)
 								if oldVictoryThemeName:
@@ -159,7 +160,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										uninstallVictoryTheme = BrawlAPI.ShowYesNoPrompt("Previously installed fighter contains a victory theme with a different name. Do you want to remove it?", "Remove existing victory theme?")
 
 					# Credits theme checks
-					if creditsFolder:
+					if creditsFolder and settings.installVictoryThemes == "true":
 						# Ask user if they would like to install the included credits theme
 						doInstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("This fighter comes with a credits theme. Would you like to install it?", "Install credits theme?")
 						if doInstallCreditsTheme == False:
@@ -482,10 +483,18 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
+						modelFranchise = ""
+						textureFranchise = ""
+						franchiseIconModel = Directory.GetDirectories(franchiseIconFolder.FullName, "Model")
+						if franchiseIconModel:
+							if len(Directory.GetFiles(franchiseIconModel[0], "*.mdl0")) > 0:
+								modelFranchise = Directory.GetFiles(franchiseIconModel[0], "*.mdl0")[0]
 						franchisIconFolderResult = Directory.GetDirectories(franchiseIconFolder.FullName, "Transparent")	
 						if franchisIconFolderResult:
 							if len(Directory.GetFiles(franchisIconFolderResult[0], "*.png")) > 0:
-								installFranchiseIconResult(franchiseIconId, Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0])
+								textureFranchise = Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0]
+						if modelFranchise or textureFranchise:
+							installFranchiseIconResult(franchiseIconId, textureFranchise, modelFranchise)
 					fileOpened = checkOpenFile("STGRESULT")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -716,11 +725,13 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							if iconFolders:
 								cssIconNameSse = ""
 								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
+								imageFiles = Directory.GetFiles(iconFolders[0], "*.png")
 								if nameFolders:
 									nameFiles = Directory.GetFiles(nameFolders[0], "*.png")
 									if nameFiles:
 										cssIconNameSse = nameFiles[0]
-								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
+								if len(imageFiles) > 0:
+									imagePath = imageFiles[0]
 								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
 								createNewcomerFile(cosmeticConfigId, imagePath)
 						if stockIconFolder:

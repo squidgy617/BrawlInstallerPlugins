@@ -30,6 +30,7 @@ def main():
 			# Prompt to select images
 			franchiseIconBlack = BrawlAPI.OpenFileDialog("Select franchise icon with black background", "PNG files|*.PNG")
 			franchiseIconTransparent = BrawlAPI.OpenFileDialog("Select franchise icon with transparent background", "PNG files|*.PNG")
+			franchiseIconModel = BrawlAPI.OpenFileDialog("Select franchise icon model (overwrites transparent icon)", "MDL0 files|*.MDL0")
 
 			# Franchise Icon ID prompt
 			franchiseIconUsed = True
@@ -94,8 +95,8 @@ def main():
 			progressBar.Update(progressCounter)
 
 			# STGRESULT
-			if franchiseIconTransparent:
-				installFranchiseIconResult(franchiseIconId, franchiseIconTransparent)
+			if franchiseIconTransparent or franchiseIconModel:
+				installFranchiseIconResult(franchiseIconId, franchiseIconTransparent, franchiseIconModel)
 			fileOpened = checkOpenFile("STGRESULT")
 			if fileOpened:
 				BrawlAPI.SaveFile()
