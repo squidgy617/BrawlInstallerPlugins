@@ -475,7 +475,7 @@ def getSongNameById(songId, songDirectory='Victory!', tracklist='Results'):
 		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
 		for song in BrawlAPI.RootNode.Children:
 			if song.SongID == songId:
-				if '/' in song.SongFileName:
+				if songDirectory + '/' in song.SongFileName:
 					BrawlAPI.ForceCloseFile()
 					return song.SongFileName.split(songDirectory + '/')[1]
 		BrawlAPI.ForceCloseFile()
