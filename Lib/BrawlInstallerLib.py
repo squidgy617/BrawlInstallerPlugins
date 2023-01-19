@@ -520,6 +520,9 @@ def createBackup(sourcePath):
 		Directory.CreateDirectory(path)
 		if File.Exists(sourcePath) and not File.Exists(fullPath):
 			File.Copy(sourcePath, fullPath)
+		# If the file doesn't exist in the build, it's an added file
+		elif not File.Exists(sourcePath):
+			File.AppendAllLines(BACKUP_PATH + '\\#AddedFiles.txt', [sourcePath.replace(MainForm.BuildPath, '')])
 
 # Helper method to write a log
 def writeLog(message):
@@ -4394,8 +4397,16 @@ def restoreBackup(selectedBackup=""):
 		if Directory.Exists(backupPath):
 			backupFiles = Directory.GetFiles(backupPath, "*", SearchOption.AllDirectories)
 			for file in backupFiles:
-				Directory.CreateDirectory(file.replace(backupPath, MainForm.BuildPath).replace(getFileInfo(file).Name, ''))
-				File.Copy(file, file.replace(backupPath, MainForm.BuildPath), True)
+				if getFileInfo(file).Name != "#AddedFiles.txt":
+					Directory.CreateDirectory(file.replace(backupPath, MainForm.BuildPath).replace(getFileInfo(file).Name, ''))
+					File.Copy(file, file.replace(backupPath, MainForm.BuildPath), True)
+			# Remove added files
+			if File.Exists(backupPath + '\\#AddedFiles.txt'):
+				for fileLine in File.ReadAllLines(backupPath + '\\#AddedFiles.txt'):
+					file = MainForm.BuildPath + fileLine
+					if File.Exists(file):
+						File.Delete(file)
+					File.Delete(backupPath + '\\AddedFiles.txt')
 			BrawlAPI.ShowMessage("Backup restored.", "Success")
 		writeLog("Finished restoring backup")
 
