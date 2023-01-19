@@ -725,11 +725,13 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							if iconFolders:
 								cssIconNameSse = ""
 								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
+								imageFiles = Directory.GetFiles(iconFolders[0], "*.png")
 								if nameFolders:
 									nameFiles = Directory.GetFiles(nameFolders[0], "*.png")
 									if nameFiles:
 										cssIconNameSse = nameFiles[0]
-								imagePath = Directory.GetFiles(iconFolders[0], "*.png")[0]
+								if len(imageFiles) > 0:
+									imagePath = imageFiles[0]
 								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
 								createNewcomerFile(cosmeticConfigId, imagePath)
 						if stockIconFolder:

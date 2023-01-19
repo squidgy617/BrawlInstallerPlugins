@@ -3138,20 +3138,21 @@ def removeSong(songID, songDirectory='Victory!', tracklist='Results'):
 					break
 		if 'childNode' in locals():
 			# Get filename
-			path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory
-			directory = Directory.CreateDirectory(path)
+			path = MainForm.BuildPath + '/pf/sound/strm/'
+			#directory = Directory.CreateDirectory(path)
 			if '/' in childNode.SongFileName:
-				brstmFile = getFileByName(childNode.SongFileName.split('/')[1] + ".brstm", directory)
-				# Back up song file
-				createBackup(brstmFile.FullName)
-				# Remove from tracklist
-				if childNode:
-					writeLog("Removing from" + tracklist + ".tlst")
-					childNode.Remove()
-				# Delete from directory
-				if brstmFile:
-					writeLog("Deleting file " + brstmFile.FullName)
-					brstmFile.Delete()
+				if File.Exists(path + childNode.SongFileName + '.brstm'):
+					brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
+					# Back up song file
+					createBackup(brstmFile.FullName)
+					# Remove from tracklist
+					if childNode:
+						writeLog("Removing from" + tracklist + ".tlst")
+						childNode.Remove()
+					# Delete from directory
+					if brstmFile:
+						writeLog("Deleting file " + brstmFile.FullName)
+						brstmFile.Delete()
 		BrawlAPI.SaveFile()
 		BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing theme")
