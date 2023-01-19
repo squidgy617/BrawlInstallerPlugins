@@ -4406,7 +4406,6 @@ def restoreBackup(selectedBackup=""):
 					file = MainForm.BuildPath + fileLine
 					if File.Exists(file):
 						File.Delete(file)
-					File.Delete(backupPath + '\\AddedFiles.txt')
 			BrawlAPI.ShowMessage("Backup restored.", "Success")
 		writeLog("Finished restoring backup")
 
