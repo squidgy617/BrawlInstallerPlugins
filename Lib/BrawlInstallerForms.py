@@ -3737,6 +3737,12 @@ class PackageCharacterForm(Form):
         cspCostumeButton.Location = Point(self.cspCostumeListBox.Location.X + self.cspCostumeListBox.Width + 4, self.cspCostumeListBox.Location.Y)
         cspCostumeButton.Click += self.cspCostumeButtonPressed
 
+        cspCostumeRemoveButton = Button()
+        cspCostumeRemoveButton.Text = "-"
+        cspCostumeRemoveButton.Size = Size(16, 16)
+        cspCostumeRemoveButton.Location = Point(cspCostumeButton.Location.X, cspCostumeButton.Location.Y + cspCostumeButton.Height + 4)
+        cspCostumeRemoveButton.Click += self.cspCostumeRemoveButtonPressed
+
         self.cspListBox = ListBox()
         self.cspListBox.Width = 80
         self.cspListBox.Height = 120
@@ -3826,6 +3832,7 @@ class PackageCharacterForm(Form):
         cspGroupBox.Controls.Add(self.cspListBox)
         cspGroupBox.Controls.Add(self.addColorButton)
         cspGroupBox.Controls.Add(cspCostumeButton)
+        cspGroupBox.Controls.Add(cspCostumeRemoveButton)
         cspGroupBox.Controls.Add(cspLabel)
         cspGroupBox.Controls.Add(self.cspPictureBox)
         cspGroupBox.Controls.Add(self.cspButton)
@@ -3890,6 +3897,24 @@ class PackageCharacterForm(Form):
         self.cspHdButton.Enabled = buttonsEnabled
         self.stockButton.Enabled = buttonsEnabled
         self.stockHdButton.Enabled= buttonsEnabled
+
+    def cspCostumeRemoveButtonPressed(self, sender, args):
+        if len(self.costumeGroups) > 0:
+            i = 0
+            j = 0
+            while i < len(self.costumeGroups):
+                if self.costumeGroups[i] == self.cspCostumeListBox.SelectedItem:
+                    i += 1
+                    continue
+                self.costumeGroups[i].costumeGroup = "Costume " + str(j + 1)
+                j += 1
+                i += 1
+            self.costumeGroups.Remove(self.cspCostumeListBox.SelectedItem)
+            buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
+            self.cspButton.Enabled = buttonsEnabled
+            self.cspHdButton.Enabled = buttonsEnabled
+            self.stockButton.Enabled = buttonsEnabled
+            self.stockHdButton.Enabled= buttonsEnabled
 
     def addColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
