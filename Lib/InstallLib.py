@@ -730,10 +730,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									nameFiles = Directory.GetFiles(nameFolders[0], "*.png")
 									if nameFiles:
 										cssIconNameSse = nameFiles[0]
+								imagePath = ""
 								if len(imageFiles) > 0:
 									imagePath = imageFiles[0]
-								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
-								createNewcomerFile(cosmeticConfigId, imagePath)
+								if imagePath:
+									installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
+									createNewcomerFile(cosmeticConfigId, imagePath)
 						if stockIconFolder:
 							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
 						if franchiseIconFolder and doInstallFranchiseIcon:
