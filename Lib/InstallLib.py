@@ -598,7 +598,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Kirby Hats
 
 					kirbyHatFighterId = -1
-					if settings.kirbyHatExe != "":
+					if settings.kirbyHatExe != "" and settings.installKirbyHats == "true":
 						if kirbyHatFolder:
 							# Attempt to get the kirby hat fighter ID from text file
 							fighterIdFile = getFileByName("FighterID.txt", kirbyHatFolder)
@@ -611,7 +611,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									kirbyHatFighterId = int(fighterIdString)
 						# If we don't have a kirby hat fighter ID but settings say we should, generate kirby hat based on settings
 						# If we don't have kirby hat files but do have an ID, generate kirby hat based on that
-						if (kirbyHatFighterId == -1 or not Directory.GetFiles(AppPath + '/temp/KirbyHats', "*.pac")) and settings.defaultKirbyHat != "none":
+						if (kirbyHatFighterId == -1 or not Directory.GetFiles(AppPath + '/temp/KirbyHats', "*.pac")) and settings.defaultKirbyHat != "none" and settings.installKirbyHats == "true":
 							# Delete Kirby hat folder if it already exists
 							if kirbyHatFolder:
 								Directory.Delete(kirbyHatFolder.FullName, 1)
@@ -629,7 +629,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								createBackup(getFileInfo(kirbyHatFile).FullName.replace(kirbyHatFighterName, fighterInfo.fighterName))
 								File.Copy(kirbyHatFile, AppPath + '/temp/KirbyHats/' + getFileInfo(kirbyHatFile).Name.replace(kirbyHatFighterName, fighterInfo.fighterName), 1)
 						# Install Kirby hat
-						if settings.defaultKirbyHat != "none":
+						if settings.defaultKirbyHat != "none" and settings.installKirbyHats == "true":
 							if existingFighterName and overwriteFighterName:
 								# If we are overwriting an existing fighter name, clean up the old Kirby hats
 								deleteKirbyHatFiles(DirectoryInfo(existingFighterName[0]).Name)
@@ -672,7 +672,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Update and move EX configs
 					if exConfigsFolder:
-						useKirbyHat = False if settings.defaultKirbyHat == "none" or kirbyHatFighterId == -1 else True
+						useKirbyHat = False if settings.defaultKirbyHat == "none" or kirbyHatFighterId == -1 or settings.installKirbyHats != "true" else True
 						modifyExConfigs(Directory.GetFiles(exConfigsFolder.FullName, "*.dat"), cosmeticId, fighterId, fighterInfo.fighterName, franchiseIconId, useKirbyHat, newSoundbankId, victoryThemeId, kirbyHatFighterId, cosmeticConfigId, cssSlotConfigId, slotConfigId)
 
 					progressCounter += 1
