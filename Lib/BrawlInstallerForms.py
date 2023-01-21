@@ -3805,6 +3805,22 @@ class PackageCharacterForm(Form):
         self.stockButton.Enabled = len(self.cspCostumeListBox.Items) > 0
         self.stockButton.Click += self.stockButtonPressed
 
+        self.stockHdPictureBox = PictureBox()
+        self.stockHdPictureBox.Location = Point(self.stockPictureBox.Location.X + self.stockButton.Width + 4, self.stockPictureBox.Location.Y)
+        self.stockHdPictureBox.Size = Size(32, 32)
+        self.stockHdPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        stockHdPictureBoxLabel = Label()
+        stockHdPictureBoxLabel.Text = "HD Stock:"
+        stockHdPictureBoxLabel.Height = 16
+        stockHdPictureBoxLabel.Location = Point(self.stockHdPictureBox.Location.X, self.stockHdPictureBox.Location.Y - 16)
+
+        self.stockHdButton = Button()
+        self.stockHdButton.Text = "Browse..."
+        self.stockHdButton.Location = Point(self.stockHdPictureBox.Location.X, self.stockHdPictureBox.Location.Y + self.stockHdPictureBox.Height + 4)
+        self.stockHdButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.stockHdButton.Click += self.stockHdButtonPressed
+
         cspGroupBox.Controls.Add(cspCostumeLabel)
         cspGroupBox.Controls.Add(self.cspCostumeListBox)
         cspGroupBox.Controls.Add(self.cspListBox)
@@ -3820,6 +3836,9 @@ class PackageCharacterForm(Form):
         cspGroupBox.Controls.Add(stockPictureBoxLabel)
         cspGroupBox.Controls.Add(self.stockPictureBox)
         cspGroupBox.Controls.Add(self.stockButton)
+        cspGroupBox.Controls.Add(stockHdPictureBoxLabel)
+        cspGroupBox.Controls.Add(self.stockHdPictureBox)
+        cspGroupBox.Controls.Add(self.stockHdButton)
         
         cosmeticsGroupBox.Controls.Add(cspGroupBox)
 
@@ -3840,6 +3859,7 @@ class PackageCharacterForm(Form):
         self.cspButton.Enabled = buttonsEnabled
         self.cspHdButton.Enabled = buttonsEnabled
         self.stockButton.Enabled= buttonsEnabled
+        self.stockHdButton.Enabled = buttonsEnabled
         if self.cspListBox.SelectedValue:
             if self.cspListBox.SelectedValue.csp:
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.csp)
@@ -3853,10 +3873,15 @@ class PackageCharacterForm(Form):
                 self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stock)
             else:
                 self.stockPictureBox.Image = None
+            if self.cspListBox.SelectedValue.stockHd:
+                self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stockHd)
+            else:
+                self.stockHdPictureBox.Image = None
         else:
             self.cspPictureBox.Image = None
             self.cspHdPictureBox.Image = None
             self.stockPictureBox.Image = None
+            self.stockHdPictureBox.Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
         self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
@@ -3864,6 +3889,7 @@ class PackageCharacterForm(Form):
         self.cspButton.Enabled = buttonsEnabled
         self.cspHdButton.Enabled = buttonsEnabled
         self.stockButton.Enabled = buttonsEnabled
+        self.stockHdButton.Enabled= buttonsEnabled
 
     def addColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -3905,6 +3931,8 @@ class PackageCharacterForm(Form):
                 self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.cspHd)
             elif imageType == "stock":
                 self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
+            elif imageType == "stockHd":
+                self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stockHd)
 
     def cspButtonPressed(self, sender, args):
         self.updateImages("Select your SD CSP images", "csp")
@@ -3914,6 +3942,9 @@ class PackageCharacterForm(Form):
 
     def stockButtonPressed(self, sender, args):
         self.updateImages("Select your SD stock images", "stock")
+
+    def stockHdButtonPressed(self, sender, args):
+        self.updateImages("Select your HD stock images", "stockHd")
 
 #endregion PACKAGE CHARACTER FORM
 
