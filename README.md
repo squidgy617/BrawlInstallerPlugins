@@ -89,6 +89,25 @@ Click the above link to see detailed documentation on all of the plugins include
 The first and most common cause of this issue is not setting up QuickLava's Kirby Hat Manager correctly. Ensure it is installed into your build folder and that you have moved the required files into the folder for the application.
 
 Assuming you have QuickLava's Kirby Hat Manager set up correctly, this is not something BrawlInstaller can account for, but is actually a known issue with the KirbyHatEx system. The system is still not entirely stable, and not everything is known about how the hats interact with different fighters and IDs. Most likely, the cause is either an incompatibility with your character, your chosen ID, the chosen base fighter ID for the Kirby hat, or a combination of the three. If you run into Kirby-related issues, try uninstalling your character and reinstalling them to a different fighter ID or installing them with a different base fighter ID for their Kirby hat.
+
+Alternatively to the above, you can simply disable installing Kirby hats in your build settings to avoid this issue. In P+Ex builds, this may cause instability if your build does not contain the following code, so add it to your build if you do not have it:
+```
+####################################################
+Temporary Hatless Clone Kirby Inhale Fix [DukeItOut]
+####################################################
+HOOK @ $80814664
+{
+    lis r12, 0x817C            # based on 8084DC7C, where r5 is r28 + 1088. r28 in P+EX is 817C7C00
+    ori r12, r12, 0x8040
+    lbzx r0, r12, r27
+    cmpwi r0, 0
+    bne hasHat
+    li r3, 0        # force to fail
+hasHat:    
+    lwz r0, 0x14(r1)
+}
+```
+
 </details>
 
 <details>
