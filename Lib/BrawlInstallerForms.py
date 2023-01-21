@@ -3672,3 +3672,91 @@ class CostumeForm(Form):
         self.Close()
 
 #endregion COSTUME FORM
+
+#region PACKAGE CHARACTER FORM
+
+class PackageCharacterForm(Form):
+
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Package Character'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.MinimumSize = Size(267,344)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        costumeGroups = BindingSource()
+        costumeGroups.DataSource = CostumeGroup("Costume 1", ["F:\\ryant\Documents\\Ryan\\Brawl Mods\\Build Content\\Character Packages\\New Packages\\Bomberman\\CSPs\\0001\\0001.png"])
+
+        # Cosmetics Groupbox
+        cosmeticsGroupBox = GroupBox()
+        cosmeticsGroupBox.Location = Point(0,0)
+        cosmeticsGroupBox.AutoSize = True
+        cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        cosmeticsGroupBox.Text = "Cosmetics"
+
+        # CSP Groupbox
+        cspGroupBox = GroupBox()
+        cspGroupBox.Location = Point(0,16)
+        cspGroupBox.AutoSize = True
+        cspGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        cspGroupBox.Text = "CSPs"
+
+        cspCostumeLabel = Label()
+        cspCostumeLabel.Text = "Groups:"
+        cspCostumeLabel.Location = Point(16, 16)
+        cspCostumeLabel.Height = 16
+        cspCostumeLabel.Width = 80
+
+        self.cspCostumeListBox = ListBox()
+        self.cspCostumeListBox.Width = 80
+        self.cspCostumeListBox.Height = 120
+        self.cspCostumeListBox.Location = Point(cspCostumeLabel.Location.X, cspCostumeLabel.Location.Y + 16)
+        self.cspCostumeListBox.HorizontalScrollbar = True
+        self.cspCostumeListBox.DataSource = costumeGroups
+        self.cspCostumeListBox.DisplayMember = "costumeGroup"
+        self.cspCostumeListBox.SelectedValueChanged += self.cspCostumeChanged
+
+        self.cspListBox = ListBox()
+        self.cspListBox.Width = 120
+        self.cspListBox.Height = 120
+        self.cspListBox.Location = Point(self.cspCostumeListBox.Location.X + self.cspCostumeListBox.Width + 16, self.cspCostumeListBox.Location.Y)
+        self.cspListBox.HorizontalScrollbar = True
+        self.cspListBox.SelectedValueChanged += self.cspChanged
+
+        cspLabel = Label()
+        cspLabel.Text = "Portraits:"
+        cspLabel.Location = Point(self.cspListBox.Location.X, self.cspListBox.Location.Y - 16)
+        cspLabel.Height = 16
+
+        self.cspPictureBox = PictureBox()
+        self.cspPictureBox.Location = Point(self.cspListBox.Location.X + self.cspListBox.Width + 16, self.cspListBox.Location.Y)
+        self.cspPictureBox.Size = Size(64, 80)
+        self.cspPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        cspGroupBox.Controls.Add(cspCostumeLabel)
+        cspGroupBox.Controls.Add(self.cspCostumeListBox)
+        cspGroupBox.Controls.Add(self.cspListBox)
+        cspGroupBox.Controls.Add(cspLabel)
+        cspGroupBox.Controls.Add(self.cspPictureBox)
+        
+        cosmeticsGroupBox.Controls.Add(cspGroupBox)
+
+        self.Controls.Add(cosmeticsGroupBox)
+    
+    def cspCostumeChanged(self, sender, args):
+        self.cspListBox.DataSource = self.cspCostumeListBox.SelectedItem.images
+
+    def cspChanged(self, sender, args):
+        self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedValue)
+
+#endregion PACKAGE CHARACTER FORM
+
+class CostumeGroup:
+        def __init__(self, costumeGroup, images):
+            self.costumeGroup = costumeGroup
+            self.images = images
