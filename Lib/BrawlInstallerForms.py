@@ -2612,11 +2612,17 @@ class SettingsForm(Form):
 
         self.defaultKirbyHatText.Controls.Add(defaultKirbyHatButton)
 
+        self.installKirbyHatCheckbox = CheckBox()
+        self.installKirbyHatCheckbox.Text = "Install Kirby Hats"
+        self.installKirbyHatCheckbox.Location = Point(self.defaultKirbyHatText.Location.X + self.defaultKirbyHatText.Width + 16, self.defaultKirbyHatText.Location.Y)
+        self.installKirbyHatCheckbox.Height = 28
+
         kirbyGroupBox.Controls.Add(kirbyExeLabel)
         kirbyGroupBox.Controls.Add(self.kirbyExeFileBox)
         kirbyGroupBox.Controls.Add(kirbyExeButton)
         kirbyGroupBox.Controls.Add(defaultKirbyHatLabel)
         kirbyGroupBox.Controls.Add(self.defaultKirbyHatText)
+        kirbyGroupBox.Controls.Add(self.installKirbyHatCheckbox)
 
         # Code menu group
         codeMenuGroupBox = GroupBox()
@@ -2850,7 +2856,8 @@ class SettingsForm(Form):
         toolTip.SetToolTip(self.franchiseIconSizeLabel, "This determines both the height and width of franchise icons displayed behind character portraits on the character select screen. For vBrawl, this is 64. For P+, it is 128.") 
         toolTip.SetToolTip(self.stageGroupBox, "This is a list of .asm files containing custom stage lists used in your build. You can add new entries by clicking the '+'. Most builds do not use this.") 
         toolTip.SetToolTip(kirbyExeLabel, "The path to your preferred version of lavaKirbyHatManager .exe. Should be placed in your build. Required for Kirby hats to work on P+Ex builds.") 
-        toolTip.SetToolTip(defaultKirbyHatLabel, "The fighter ID to default to for Kirby hats when no Kirby hat is provided. Must be in either hex (0x21) or decimal (33) format. If left blank, Kirby hats will be set to none by default.") 
+        toolTip.SetToolTip(defaultKirbyHatLabel, "The fighter ID to default to for Kirby hats when no Kirby hat is provided. Must be in either hex (0x21) or decimal (33) format. If left blank, Kirby hats will be set to none by default.")
+        toolTip.SetToolTip(self.installKirbyHatCheckbox, "Whether or not you would like to install Kirby hats when available. If unchecked, Kirby hats will never be installed when installing a character, regardless of other settings.") 
         toolTip.SetToolTip(codeMenuLabel, "The path to your preferred version of QuickLava's PowerPC Assembly Functions .exe. Should be placed in your build. Required for fighters to be added to the code menu.") 
         toolTip.SetToolTip(sawndReplaceExeLabel, "The path to lavaSawndIDReplaceAssist.exe. Required to resolve soundbank conflicts during character installs.") 
         toolTip.SetToolTip(sfxChangeExeLabel, "The path to Codes' sfxchange.exe. Required to resolve soundbank conflicts during character installs.") 
@@ -2891,6 +2898,7 @@ class SettingsForm(Form):
         self.franchiseIconSizeText.Text = self.settings.franchiseIconSizeCSS
         self.kirbyExeFileBox.Text = self.settings.kirbyHatExe
         self.defaultKirbyHatText.Text = self.settings.defaultKirbyHat
+        self.installKirbyHatCheckbox.Checked = textBool(self.settings.installKirbyHats)
         self.codeMenuFileBox.Text = self.settings.assemblyFunctionsExe
         self.sawndReplaceExeText.Text = self.settings.sawndReplaceExe
         self.sfxChangeExeText.Text = self.settings.sfxChangeExe
@@ -2925,6 +2933,7 @@ class SettingsForm(Form):
         settings.installVictoryThemes = "true"
         settings.installBPNames = "false"
         settings.installSingleplayerCosmetics = "true"
+        settings.installKirbyHats = "true"
 
         self.settings = settings
         self.initializeControls()
@@ -2948,6 +2957,7 @@ class SettingsForm(Form):
         settings.installVictoryThemes = "true"
         settings.installBPNames = "false"
         settings.installSingleplayerCosmetics = "false"
+        settings.installKirbyHats = "true"
 
         self.settings = settings
         self.initializeControls()
@@ -3046,7 +3056,7 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
         settings.kirbyHatExe = self.kirbyExeFileBox.Text
-        settings.installKirbyHats = boolText(self.kirbyExeFileBox.Text.strip() != "")
+        settings.installKirbyHats = boolText(self.installKirbyHatCheckbox.Checked)
         settings.defaultKirbyHat = hexId(self.defaultKirbyHatText.Text) if self.defaultKirbyHatText.Text.strip() != "" else "none"
         settings.assemblyFunctionsExe = self.codeMenuFileBox.Text
         settings.sawndReplaceExe = self.sawndReplaceExeText.Text
