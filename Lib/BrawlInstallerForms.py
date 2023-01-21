@@ -3700,8 +3700,6 @@ class PackageCharacterForm(Form):
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.costumeGroups = BindingSource()
-        #costume = CostumeObject(csp="F:\\ryant\Documents\\Ryan\\Brawl Mods\\Build Content\\Character Packages\\New Packages\\Bomberman\\CSPs\\0001\\0001.png")
-        #costumeGroups.DataSource = [CostumeGroup("Costume 1", [costume])]
         self.costumeGroups.DataSource = []
 
         # Cosmetics Groupbox
@@ -3740,7 +3738,7 @@ class PackageCharacterForm(Form):
         cspCostumeButton.Click += self.cspCostumeButtonPressed
 
         self.cspListBox = ListBox()
-        self.cspListBox.Width = 120
+        self.cspListBox.Width = 80
         self.cspListBox.Height = 120
         self.cspListBox.Location = Point(cspCostumeButton.Location.X + cspCostumeButton.Width + 16, cspCostumeButton.Location.Y)
         self.cspListBox.HorizontalScrollbar = True
@@ -3766,6 +3764,7 @@ class PackageCharacterForm(Form):
 
         cspPictureBoxLabel = Label()
         cspPictureBoxLabel.Text = "CSP:"
+        cspPictureBoxLabel.Width = 32
         cspPictureBoxLabel.Location = Point(self.cspPictureBox.Location.X, self.cspPictureBox.Location.Y - 16)
 
         self.cspButton = Button()
@@ -3773,6 +3772,21 @@ class PackageCharacterForm(Form):
         self.cspButton.Location = Point(self.cspPictureBox.Location.X, self.cspPictureBox.Location.Y + self.cspPictureBox.Height + 4)
         self.cspButton.Enabled = len(self.cspCostumeListBox.Items) > 0
         self.cspButton.Click += self.cspButtonPressed
+
+        self.cspHdPictureBox = PictureBox()
+        self.cspHdPictureBox.Location = Point(self.cspPictureBox.Location.X + self.cspPictureBox.Width + 16, self.cspPictureBox.Location.Y)
+        self.cspHdPictureBox.Size = Size(64, 80)
+        self.cspHdPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        cspHdPictureBoxLabel = Label()
+        cspHdPictureBoxLabel.Text = "HD CSP:"
+        cspHdPictureBoxLabel.Location = Point(self.cspHdPictureBox.Location.X, self.cspHdPictureBox.Location.Y - 16)
+
+        self.cspHdButton = Button()
+        self.cspHdButton.Text = "Browse..."
+        self.cspHdButton.Location = Point(self.cspHdPictureBox.Location.X, self.cspHdPictureBox.Location.Y + self.cspHdPictureBox.Height + 4)
+        self.cspHdButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.cspHdButton.Click += self.cspHdButtonPressed
 
         cspGroupBox.Controls.Add(cspCostumeLabel)
         cspGroupBox.Controls.Add(self.cspCostumeListBox)
@@ -3783,6 +3797,9 @@ class PackageCharacterForm(Form):
         cspGroupBox.Controls.Add(self.cspPictureBox)
         cspGroupBox.Controls.Add(self.cspButton)
         cspGroupBox.Controls.Add(cspPictureBoxLabel)
+        cspGroupBox.Controls.Add(self.cspHdPictureBox)
+        cspGroupBox.Controls.Add(self.cspHdButton)
+        cspGroupBox.Controls.Add(cspHdPictureBoxLabel)
         
         cosmeticsGroupBox.Controls.Add(cspGroupBox)
 
@@ -3799,40 +3816,72 @@ class PackageCharacterForm(Form):
         self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
 
     def cspChanged(self, sender, args):
-        self.cspButton.Enabled = self.cspCostumeListBox.SelectedItem != None
+        buttonsEnabled = self.cspCostumeListBox.SelectedItem != None
+        self.cspButton.Enabled = buttonsEnabled
+        self.cspHdButton.Enabled = buttonsEnabled
         if self.cspListBox.SelectedValue:
             if self.cspListBox.SelectedValue.csp:
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.csp)
             else:
                 self.cspPictureBox.Image = None
+            if self.cspListBox.SelectedValue.cspHd:
+                self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.cspHd)
+            else:
+                self.cspHdPictureBox.Image = None
         else:
             self.cspPictureBox.Image = None
+            self.cspHdPictureBox.Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
         self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
-        self.cspButton.Enabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
+        buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
+        self.cspButton.Enabled = buttonsEnabled
+        self.cspHdButton.Enabled = buttonsEnabled
 
     def addColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
             self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1)))
             self.cspListBox.DisplayMember = "name"
 
-    def cspButtonPressed(self, sender, args):
-        images = BrawlAPI.OpenMultiFileDialog("Select your SD CSP images", "PNG files|*.png")
+    # imageType - csp, cspHd, stock, stockHd
+    def updateImages(self, dialogText, imageType):
+        images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
         if images:
             if len(images) == 1 and self.cspListBox.SelectedItem:
-                self.cspListBox.SelectedItem.csp = images[0]
-                self.cspPictureBox.Image = Bitmap(images[0])
+                if imageType == "csp":
+                    self.cspListBox.SelectedItem.csp = images[0]
+                elif imageType == "cspHd":
+                    self.cspListBox.SelectedItem.cspHd = images[0]
+                elif imageType == "stock":
+                    self.cspListBox.SelectedItem.stock = images[0]
+                elif imageType == "stockHd":
+                    self.cspListBox.SelectedItem.stockHd = images[0]
             else:
                 i = 0
                 while i < len(images):
                     if i < len(self.cspListBox.Items):
-                        self.cspListBox.Items[i].csp = images[i]
+                        if imageType == "csp":
+                            self.cspListBox.Items[i].csp = images[i]
+                        elif imageType == "cspHd":
+                            self.cspListBox.Items[i].cspHd = images[i]
+                        elif imageType == "stock":
+                            self.cspListBox.Items[i].stock = images[i]
+                        elif imageType == "stockHd":
+                            self.cspListBox.Items[i].stockHd = images[i]
                     else:
-                        self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1), csp=images[i]))
+                        self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1), csp=images[i] if imageType == "csp" else "", cspHd=images[i] if imageType == "cspHd" else "", stock=images[i] if imageType == "stock" else "", stockHd=images[i] if imageType == "stockHd" else ""))
                         self.cspListBox.DisplayMember = "name"
                     i += 1
+            if imageType == "csp":
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.csp)
+            elif imageType == "cspHd":
+                self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.cspHd)
+
+    def cspButtonPressed(self, sender, args):
+        self.updateImages("Select your SD CSP images", "csp")
+
+    def cspHdButtonPressed(self, sender, args):
+        self.updateImages("Select your HD CSP images", "cspHd")
 
 #endregion PACKAGE CHARACTER FORM
 
