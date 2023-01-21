@@ -3763,6 +3763,13 @@ class PackageCharacterForm(Form):
         self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem
         self.addColorButton.Click += self.addColorButtonPressed
 
+        self.removeColorButton = Button()
+        self.removeColorButton.Text = "-"
+        self.removeColorButton.Size = Size(16, 16)
+        self.removeColorButton.Location = Point(self.addColorButton.Location.X, self.addColorButton.Location.Y + self.addColorButton.Height + 4)
+        self.removeColorButton.Enabled = self.cspCostumeListBox.SelectedItem
+        self.removeColorButton.Click += self.removeColorButtonPressed
+
         self.cspPictureBox = PictureBox()
         self.cspPictureBox.Location = Point(self.addColorButton.Location.X + self.addColorButton.Width + 16, self.addColorButton.Location.Y)
         self.cspPictureBox.Size = Size(64, 80)
@@ -3831,6 +3838,7 @@ class PackageCharacterForm(Form):
         cspGroupBox.Controls.Add(self.cspCostumeListBox)
         cspGroupBox.Controls.Add(self.cspListBox)
         cspGroupBox.Controls.Add(self.addColorButton)
+        cspGroupBox.Controls.Add(self.removeColorButton)
         cspGroupBox.Controls.Add(cspCostumeButton)
         cspGroupBox.Controls.Add(cspCostumeRemoveButton)
         cspGroupBox.Controls.Add(cspLabel)
@@ -3860,6 +3868,7 @@ class PackageCharacterForm(Form):
             else:
                 self.cspPictureBox.Image = None
         self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
+        self.removeColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
 
     def cspChanged(self, sender, args):
         buttonsEnabled = self.cspCostumeListBox.SelectedItem != None
@@ -3920,6 +3929,21 @@ class PackageCharacterForm(Form):
         if self.cspCostumeListBox.SelectedItem:
             self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1)))
             self.cspListBox.DisplayMember = "name"
+
+    def removeColorButtonPressed(self, sender, args):
+        if self.cspCostumeListBox.SelectedItem:
+            if len(self.cspCostumeListBox.SelectedItem.costumeObjects) > 0:
+                i = 0
+                j = 0
+                while i < len(self.cspListBox.Items):
+                    if self.cspListBox.Items[i] == self.cspListBox.SelectedItem:
+                        i += 1
+                        continue
+                    self.cspListBox.Items[i].name = "Color " + str(j + 1)
+                    j += 1
+                    i += 1
+                self.cspCostumeListBox.SelectedItem.costumeObjects.Remove(self.cspListBox.SelectedItem)
+                self.cspListBox.DisplayMember = "name"
 
     # imageType - csp, cspHd, stock, stockHd
     def updateImages(self, dialogText, imageType):
