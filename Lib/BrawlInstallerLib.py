@@ -1250,8 +1250,9 @@ def updateModule(file, directory, fighterId, fighterName):
 		BrawlAPI.OpenFile(file.FullName)
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [8]")
-		node.Export(directory.FullName + "/Section [8]")
-		sectionFile = directory.FullName + "/Section [8]"
+		if node:
+			node.Export(directory.FullName + "/Section [8]")
+			sectionFile = directory.FullName + "/Section [8]"
 		with open(sectionFile,  mode='r+b') as readFile:
 			data = str(binascii.hexlify(readFile.read(3)))
 			readFile.close()
