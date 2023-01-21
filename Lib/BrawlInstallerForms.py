@@ -3744,6 +3744,7 @@ class PackageCharacterForm(Form):
         self.cspListBox.Height = 120
         self.cspListBox.Location = Point(cspCostumeButton.Location.X + cspCostumeButton.Width + 16, cspCostumeButton.Location.Y)
         self.cspListBox.HorizontalScrollbar = True
+        self.cspListBox.DisplayMember = "name"
         self.cspListBox.SelectedValueChanged += self.cspChanged
 
         cspLabel = Label()
@@ -3790,6 +3791,7 @@ class PackageCharacterForm(Form):
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
             self.cspListBox.DataSource = self.cspCostumeListBox.SelectedItem.costumeObjects
+            self.cspListBox.DisplayMember = "name"
             if self.cspListBox.SelectedItem and self.cspListBox.SelectedItem.csp:
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.csp)
             else:
@@ -3797,7 +3799,7 @@ class PackageCharacterForm(Form):
         self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
 
     def cspChanged(self, sender, args):
-        self.cspButton.Enabled = self.cspListBox.SelectedItem != None
+        self.cspButton.Enabled = self.cspCostumeListBox.SelectedItem != None
         if self.cspListBox.SelectedValue:
             if self.cspListBox.SelectedValue.csp:
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.csp)
@@ -3808,11 +3810,12 @@ class PackageCharacterForm(Form):
 
     def cspCostumeButtonPressed(self, sender, args):
         self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
-        self.cspButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.cspButton.Enabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
 
     def addColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
-            self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject())
+            self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1)))
+            self.cspListBox.DisplayMember = "name"
 
     def cspButtonPressed(self, sender, args):
         images = BrawlAPI.OpenMultiFileDialog("Select your SD CSP images", "PNG files|*.png")
@@ -3826,7 +3829,8 @@ class PackageCharacterForm(Form):
                     if i < len(self.cspListBox.Items):
                         self.cspListBox.Items[i].csp = images[i]
                     else:
-                        self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(csp=images[i]))
+                        self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1), csp=images[i]))
+                        self.cspListBox.DisplayMember = "name"
                     i += 1
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.csp)
 
@@ -3838,7 +3842,8 @@ class CostumeGroup:
             self.costumeObjects = costumeObjects
 
 class CostumeObject:
-        def __init__(self, csp="", cspHd="", stock="", stockHd=""):
+        def __init__(self, name="", csp="", cspHd="", stock="", stockHd=""):
+            self.name = name
             self.csp = csp
             self.cspHd = cspHd
             self.stock = stock
