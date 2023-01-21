@@ -3788,6 +3788,23 @@ class PackageCharacterForm(Form):
         self.cspHdButton.Enabled = len(self.cspCostumeListBox.Items) > 0
         self.cspHdButton.Click += self.cspHdButtonPressed
 
+        stockPictureBoxLabel = Label()
+        stockPictureBoxLabel.Text = "Stock:"
+        stockPictureBoxLabel.Width = 36
+        stockPictureBoxLabel.Height = 16
+        stockPictureBoxLabel.Location = Point(self.cspButton.Location.X, self.cspButton.Location.Y + self.cspButton.Height + 16)
+
+        self.stockPictureBox = PictureBox()
+        self.stockPictureBox.Location = Point(stockPictureBoxLabel.Location.X, stockPictureBoxLabel.Location.Y + 16)
+        self.stockPictureBox.Size = Size(32, 32)
+        self.stockPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        self.stockButton = Button()
+        self.stockButton.Text = "Browse..."
+        self.stockButton.Location = Point(self.stockPictureBox.Location.X, self.stockPictureBox.Location.Y + self.stockPictureBox.Height + 4)
+        self.stockButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.stockButton.Click += self.stockButtonPressed
+
         cspGroupBox.Controls.Add(cspCostumeLabel)
         cspGroupBox.Controls.Add(self.cspCostumeListBox)
         cspGroupBox.Controls.Add(self.cspListBox)
@@ -3800,6 +3817,9 @@ class PackageCharacterForm(Form):
         cspGroupBox.Controls.Add(self.cspHdPictureBox)
         cspGroupBox.Controls.Add(self.cspHdButton)
         cspGroupBox.Controls.Add(cspHdPictureBoxLabel)
+        cspGroupBox.Controls.Add(stockPictureBoxLabel)
+        cspGroupBox.Controls.Add(self.stockPictureBox)
+        cspGroupBox.Controls.Add(self.stockButton)
         
         cosmeticsGroupBox.Controls.Add(cspGroupBox)
 
@@ -3819,6 +3839,7 @@ class PackageCharacterForm(Form):
         buttonsEnabled = self.cspCostumeListBox.SelectedItem != None
         self.cspButton.Enabled = buttonsEnabled
         self.cspHdButton.Enabled = buttonsEnabled
+        self.stockButton.Enabled= buttonsEnabled
         if self.cspListBox.SelectedValue:
             if self.cspListBox.SelectedValue.csp:
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.csp)
@@ -3828,15 +3849,21 @@ class PackageCharacterForm(Form):
                 self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.cspHd)
             else:
                 self.cspHdPictureBox.Image = None
+            if self.cspListBox.SelectedValue.stock:
+                self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stock)
+            else:
+                self.stockPictureBox.Image = None
         else:
             self.cspPictureBox.Image = None
             self.cspHdPictureBox.Image = None
+            self.stockPictureBox.Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
         self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
         buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
         self.cspButton.Enabled = buttonsEnabled
         self.cspHdButton.Enabled = buttonsEnabled
+        self.stockButton.Enabled = buttonsEnabled
 
     def addColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -3876,12 +3903,17 @@ class PackageCharacterForm(Form):
                 self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.csp)
             elif imageType == "cspHd":
                 self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.cspHd)
+            elif imageType == "stock":
+                self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
 
     def cspButtonPressed(self, sender, args):
         self.updateImages("Select your SD CSP images", "csp")
 
     def cspHdButtonPressed(self, sender, args):
         self.updateImages("Select your HD CSP images", "cspHd")
+
+    def stockButtonPressed(self, sender, args):
+        self.updateImages("Select your SD stock images", "stock")
 
 #endregion PACKAGE CHARACTER FORM
 
