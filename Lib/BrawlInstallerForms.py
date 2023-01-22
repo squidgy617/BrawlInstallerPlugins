@@ -3904,7 +3904,7 @@ class PackageCharacterForm(Form):
             self.bpListBoxes[i].Location = Point(bpListBoxLabels[i].Location.X, bpListBoxLabels[i].Location.Y + bpListBoxLabels[i].Height)
             self.bpListBoxes[i].HorizontalScrollbar = True
             self.bpListBoxes[i].DataSource = self.bps[i]
-            #self.bpListBoxes[i].DisplayMember = "name"
+            self.bpListBoxes[i].DisplayMember = "name"
             #self.bpListBoxes[i].SelectedValueChanged += self.cspChanged
 
             # Add Buttons
@@ -3912,7 +3912,7 @@ class PackageCharacterForm(Form):
             bpAddButtons[i].Text = "+"
             bpAddButtons[i].Size = Size(16, 16)
             bpAddButtons[i].Location = Point(self.bpListBoxes[i].Location.X + self.bpListBoxes[i].Width + 4, self.bpListBoxes[i].Location.Y)
-            #bpAddButtons[i].Click += self.cspCostumeButtonPressed
+            bpAddButtons[i].Click += self.addBpButtonPressed
 
             # Remove Buttons
             bpRemoveButtons[i] = Button()
@@ -4033,6 +4033,10 @@ class PackageCharacterForm(Form):
             self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1)))
             self.cspListBox.DisplayMember = "name"
 
+    def addBpButtonPressed(self, sender, args):
+        self.bps[self.bpTabControl.SelectedIndex].Add(BpObject(name="Image " + str(len(self.bpListBoxes[self.bpTabControl.SelectedIndex].Items) + 1)))
+        #self.bps[self.bpTabControl.SelectedIndex].DisplayMember = "name"
+
     def removeColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
             if len(self.cspCostumeListBox.SelectedItem.costumeObjects) > 0:
@@ -4112,3 +4116,11 @@ class CostumeObject:
             self.cspHd = cspHd
             self.stock = stock
             self.stockHd = stockHd
+
+class BpObject:
+        def __init__(self, name="", bp="", bpHd="", bpName="", bpNameHd=""):
+            self.name = name
+            self.bp = bp
+            self.bpHd = bpHd
+            self.bpName = bpName
+            self.bpNameHd = bpNameHd
