@@ -3865,7 +3865,7 @@ class PackageCharacterForm(Form):
         bpGroupBox = GroupBox()
         bpGroupBox.AutoSize = True
         bpGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        bpGroupBox.MinimumSize = Size(250, 250)
+        bpGroupBox.MinimumSize = Size(350, 250)
         bpGroupBox.Text = "BPs"
 
         self.bpTabControl = TabControl()
@@ -3879,6 +3879,9 @@ class PackageCharacterForm(Form):
         self.bpPictureBoxes = [None] * len(bpTabNames)
         bpPictureBoxLabels = [None] * len(bpTabNames)
         self.bpButtons = [None] * len(bpTabNames)
+        self.bpHdButtons = [None] * len(bpTabNames)
+        self.bpHdPictureBoxes = [None] * len(bpTabNames)
+        bpHdPictureBoxLabels = [None] * len(bpTabNames)
         self.bps = [None] * len(bpTabNames)
 
         i = 0
@@ -3889,6 +3892,7 @@ class PackageCharacterForm(Form):
             # Tabs
             bpTabs[i] = TabPage()
             bpTabs[i].Text = bpTabNames[i]
+            bpTabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
 
             # Labels
             bpListBoxLabels[i] = Label()
@@ -3938,8 +3942,24 @@ class PackageCharacterForm(Form):
             self.bpButtons[i] = Button()
             self.bpButtons[i].Text = "Browse..."
             self.bpButtons[i].Location = Point(self.bpPictureBoxes[i].Location.X, self.bpPictureBoxes[i].Location.Y + self.bpPictureBoxes[i].Height + 4)
-            #self.bpButtons[i].Enabled = len(self.cspCostumeListBox.Items) > 0
             self.bpButtons[i].Click += self.bpButtonPressed
+
+            # BP HD
+            self.bpHdPictureBoxes[i] = PictureBox()
+            self.bpHdPictureBoxes[i].Location = Point(self.bpPictureBoxes[i].Location.X + self.bpButtons[i].Width + 4, self.bpPictureBoxes[i].Location.Y)
+            self.bpHdPictureBoxes[i].Size = Size(48, 56)
+            self.bpHdPictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            bpHdPictureBoxLabels[i] = Label()
+            bpHdPictureBoxLabels[i].Text = "HD BP:"
+            bpHdPictureBoxLabels[i].Location = Point(self.bpHdPictureBoxes[i].Location.X, self.bpHdPictureBoxes[i].Location.Y - 16)
+            bpHdPictureBoxLabels[i].Height = 16
+            bpHdPictureBoxLabels[i].Width = 80
+
+            self.bpHdButtons[i] = Button()
+            self.bpHdButtons[i].Text = "Browse..."
+            self.bpHdButtons[i].Location = Point(self.bpHdPictureBoxes[i].Location.X, self.bpHdPictureBoxes[i].Location.Y + self.bpHdPictureBoxes[i].Height + 4)
+            self.bpHdButtons[i].Click += self.bpHdButtonPressed
 
             # Add to page
             bpTabs[i].Controls.Add(bpListBoxLabels[i])
@@ -3949,6 +3969,9 @@ class PackageCharacterForm(Form):
             bpTabs[i].Controls.Add(self.bpPictureBoxes[i])
             bpTabs[i].Controls.Add(bpPictureBoxLabels[i])
             bpTabs[i].Controls.Add(self.bpButtons[i])
+            bpTabs[i].Controls.Add(self.bpHdPictureBoxes[i])
+            bpTabs[i].Controls.Add(bpHdPictureBoxLabels[i])
+            bpTabs[i].Controls.Add(self.bpHdButtons[i])
 
             # Add to control
             self.bpTabControl.Controls.Add(bpTabs[i])
@@ -4009,10 +4032,10 @@ class PackageCharacterForm(Form):
                 self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedValue.bp)
             else:
                 self.bpPictureBoxes[index].Image = None
-            #if self.cspListBox.SelectedValue.cspHd:
-            #    self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.cspHd)
-            #else:
-            #    self.cspHdPictureBox.Image = None
+            if self.bpListBoxes[index].SelectedValue.bpHd:
+                self.bpHdPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedValue.bpHd)
+            else:
+                self.bpHdPictureBoxes[index].Image = None
             #if self.cspListBox.SelectedValue.stock:
             #    self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stock)
             #else:
@@ -4023,7 +4046,7 @@ class PackageCharacterForm(Form):
             #    self.stockHdPictureBox.Image = None
         else:
             self.bpPictureBoxes[index].Image = None
-            #self.cspHdPictureBox.Image = None
+            self.bpHdPictureBoxes[index].Image = None
             #self.stockPictureBox.Image = None
             #self.stockHdPictureBox.Image = None
 
@@ -4161,8 +4184,8 @@ class PackageCharacterForm(Form):
                     i += 1
             if imageType == "bp":
                 self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bp)
-            #elif imageType == "cspHd":
-            #    self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.cspHd)
+            elif imageType == "bpHd":
+                self.bpHdPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bpHd)
             #elif imageType == "stock":
             #    self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
             #elif imageType == "stockHd":
@@ -4170,6 +4193,9 @@ class PackageCharacterForm(Form):
 
     def bpButtonPressed(self, sender, args):
         self.updateBpImages("Select your SD BP images", "bp")
+
+    def bpHdButtonPressed(self, sender, args):
+        self.updateBpImages("Select your HD BP images", "bpHd")
 
     def cspButtonPressed(self, sender, args):
         self.updateImages("Select your SD CSP images", "csp")
