@@ -3905,7 +3905,7 @@ class PackageCharacterForm(Form):
             self.bpListBoxes[i].HorizontalScrollbar = True
             self.bpListBoxes[i].DataSource = self.bps[i]
             self.bpListBoxes[i].DisplayMember = "name"
-            #self.bpListBoxes[i].SelectedValueChanged += self.cspChanged
+            self.bpListBoxes[i].SelectedValueChanged += self.bpChanged
 
             # Add Buttons
             bpAddButtons[i] = Button()
@@ -3919,7 +3919,7 @@ class PackageCharacterForm(Form):
             bpRemoveButtons[i].Text = "-"
             bpRemoveButtons[i].Size = Size(16, 16)
             bpRemoveButtons[i].Location = Point(bpAddButtons[i].Location.X, bpAddButtons[i].Location.Y + bpAddButtons[i].Height + 4)
-            #bpRemoveButtons[i].Click += self.cspCostumeButtonPressed
+            bpRemoveButtons[i].Click += self.removeBpButtonPressed
 
             # BP Picture Boxes
             self.bpPictureBoxes[i] = PictureBox()
@@ -3939,7 +3939,7 @@ class PackageCharacterForm(Form):
             self.bpButtons[i].Text = "Browse..."
             self.bpButtons[i].Location = Point(self.bpPictureBoxes[i].Location.X, self.bpPictureBoxes[i].Location.Y + self.bpPictureBoxes[i].Height + 4)
             #self.bpButtons[i].Enabled = len(self.cspCostumeListBox.Items) > 0
-            #self.bpButtons[i].Click += self.cspButtonPressed
+            self.bpButtons[i].Click += self.bpButtonPressed
 
             # Add to page
             bpTabs[i].Controls.Add(bpListBoxLabels[i])
@@ -4002,6 +4002,31 @@ class PackageCharacterForm(Form):
             self.stockPictureBox.Image = None
             self.stockHdPictureBox.Image = None
 
+    def bpChanged(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        if self.bpListBoxes[index].SelectedValue:
+            if self.bpListBoxes[index].SelectedValue.bp:
+                self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedValue.bp)
+            else:
+                self.bpPictureBoxes[index].Image = None
+            #if self.cspListBox.SelectedValue.cspHd:
+            #    self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.cspHd)
+            #else:
+            #    self.cspHdPictureBox.Image = None
+            #if self.cspListBox.SelectedValue.stock:
+            #    self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stock)
+            #else:
+            #    self.stockPictureBox.Image = None
+            #if self.cspListBox.SelectedValue.stockHd:
+            #    self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stockHd)
+            #else:
+            #    self.stockHdPictureBox.Image = None
+        else:
+            self.bpPictureBoxes[index].Image = None
+            #self.cspHdPictureBox.Image = None
+            #self.stockPictureBox.Image = None
+            #self.stockHdPictureBox.Image = None
+
     def cspCostumeButtonPressed(self, sender, args):
         self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
         buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
@@ -4035,7 +4060,21 @@ class PackageCharacterForm(Form):
 
     def addBpButtonPressed(self, sender, args):
         self.bps[self.bpTabControl.SelectedIndex].Add(BpObject(name="Image " + str(len(self.bpListBoxes[self.bpTabControl.SelectedIndex].Items) + 1)))
-        #self.bps[self.bpTabControl.SelectedIndex].DisplayMember = "name"
+
+    def removeBpButtonPressed(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        if self.bpListBoxes[index].SelectedItem:
+            if len(self.bpListBoxes[index].Items) > 0:
+                i = 0
+                j = 0
+                while i < len(self.bpListBoxes[index].Items):
+                    if self.bpListBoxes[index].Items[i] == self.bpListBoxes[index].SelectedItem:
+                        i += 1
+                        continue
+                    self.bpListBoxes[index].Items[i].name = "Image " + str(j + 1)
+                    j += 1
+                    i += 1
+                self.bps[index].Remove(self.bpListBoxes[index].SelectedItem)
 
     def removeColorButtonPressed(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -4089,6 +4128,48 @@ class PackageCharacterForm(Form):
                 self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
             elif imageType == "stockHd":
                 self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stockHd)
+
+    # imageType - bp, bpHd, bpName, bpNameHd
+    def updateBpImages(self, dialogText, imageType):
+        index = self.bpTabControl.SelectedIndex
+        images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
+        if images:
+            if len(images) == 1 and self.bpListBoxes[index].SelectedItem:
+                if imageType == "bp":
+                    self.bpListBoxes[index].SelectedItem.bp = images[0]
+                elif imageType == "bpHd":
+                    self.bpListBoxes[index].SelectedItem.bpHd = images[0]
+                elif imageType == "bpName":
+                    self.bpListBoxes[index].SelectedItem.bpName = images[0]
+                elif imageType == "bpNameHd":
+                    self.bpListBoxes[index].SelectedItem.bpNameHd = images[0]
+            else:
+                i = 0
+                while i < len(images):
+                    if i < len(self.bpListBoxes[index].Items):
+                        if imageType == "bp":
+                            self.bpListBoxes[index].Items[i].bp = images[i]
+                        elif imageType == "bpHd":
+                            self.bpListBoxes[index].Items[i].bpHd = images[i]
+                        elif imageType == "bpName":
+                            self.bpListBoxes[index].Items[i].bpName = images[i]
+                        elif imageType == "bpNameHd":
+                            self.bpListBoxes[index].Items[i].bpNameHd = images[i]
+                    else:
+                        self.bps[index].Add(BpObject(name="Image " + str(len(self.bpListBoxes[index].Items) + 1), bp=images[i] if imageType == "bp" else "", bpHd=images[i] if imageType == "bpHd" else "", bpName=images[i] if imageType == "bpName" else "", bpNameHd=images[i] if imageType == "bpNameHd" else ""))
+                        #self.bpListBoxes[index].DisplayMember = "name"
+                    i += 1
+            if imageType == "bp":
+                self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bp)
+            #elif imageType == "cspHd":
+            #    self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.cspHd)
+            #elif imageType == "stock":
+            #    self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
+            #elif imageType == "stockHd":
+            #    self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stockHd)
+
+    def bpButtonPressed(self, sender, args):
+        self.updateBpImages("Select your SD BP images", "bp")
 
     def cspButtonPressed(self, sender, args):
         self.updateImages("Select your SD CSP images", "csp")
