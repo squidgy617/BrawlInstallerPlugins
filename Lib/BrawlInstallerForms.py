@@ -3883,6 +3883,14 @@ class PackageCharacterForm(Form):
         self.bpHdPictureBoxes = [None] * len(bpTabNames)
         bpHdPictureBoxLabels = [None] * len(bpTabNames)
         self.bps = [None] * len(bpTabNames)
+        self.bpNameImage = [None] * len(bpTabNames)
+        bpNameLabels = [None] * len(bpTabNames)
+        self.bpNamePictureBoxes = [None] * len(bpTabNames)
+        self.bpNameButtons = [None] * len(bpTabNames)
+        self.bpNameHdImage = [None] * len(bpTabNames)
+        self.bpNameHdPictureBoxes = [None] * len(bpTabNames)
+        bpNameHdLabels = [None] * len(bpTabNames)
+        self.bpNameHdButtons = [None] * len(bpTabNames)
 
         i = 0
         while i < len(bpTabs):
@@ -3961,6 +3969,42 @@ class PackageCharacterForm(Form):
             self.bpHdButtons[i].Location = Point(self.bpHdPictureBoxes[i].Location.X, self.bpHdPictureBoxes[i].Location.Y + self.bpHdPictureBoxes[i].Height + 4)
             self.bpHdButtons[i].Click += self.bpHdButtonPressed
 
+            # BP Name
+            self.bpNameImage[i] = ""
+            bpNameLabels[i] = Label()
+            bpNameLabels[i].Text = "BP Name:"
+            bpNameLabels[i].Location = Point(self.bpButtons[i].Location.X, self.bpButtons[i].Location.Y + self.bpButtons[i].Height + 16)
+            bpNameLabels[i].Height = 16
+            bpNameLabels[i].Width = 80
+
+            self.bpNamePictureBoxes[i] = PictureBox()
+            self.bpNamePictureBoxes[i].Location = Point(bpNameLabels[i].Location.X, bpNameLabels[i].Location.Y + bpNameLabels[i].Height + 16)
+            self.bpNamePictureBoxes[i].Size = Size(72, 12)
+            self.bpNamePictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            self.bpNameButtons[i] = Button()
+            self.bpNameButtons[i].Text = "Browse..."
+            self.bpNameButtons[i].Location = Point(self.bpNamePictureBoxes[i].Location.X, self.bpNamePictureBoxes[i].Location.Y + self.bpNamePictureBoxes[i].Height + 4)
+            self.bpNameButtons[i].Click += self.bpNameButtonPressed
+            
+            # BP Name HD
+            self.bpNameHdImage[i] = ""
+            self.bpNameHdPictureBoxes[i] = PictureBox()
+            self.bpNameHdPictureBoxes[i].Location = Point(self.bpNamePictureBoxes[i].Location.X + self.bpNameButtons[i].Width + 4, self.bpNamePictureBoxes[i].Location.Y)
+            self.bpNameHdPictureBoxes[i].Size = Size(72, 12)
+            self.bpNameHdPictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            bpNameHdLabels[i] = Label()
+            bpNameHdLabels[i].Text = "HD BP Name:"
+            bpNameHdLabels[i].Location = Point(self.bpNameHdPictureBoxes[i].Location.X, bpNameLabels[i].Location.Y)
+            bpNameHdLabels[i].Height = 16
+            bpNameHdLabels[i].Width = 80
+
+            self.bpNameHdButtons[i] = Button()
+            self.bpNameHdButtons[i].Text = "Browse..."
+            self.bpNameHdButtons[i].Location = Point(self.bpNameHdPictureBoxes[i].Location.X, self.bpNameHdPictureBoxes[i].Location.Y + 16)
+            self.bpNameHdButtons[i].Click += self.bpNameHdButtonPressed
+
             # Add to page
             bpTabs[i].Controls.Add(bpListBoxLabels[i])
             bpTabs[i].Controls.Add(self.bpListBoxes[i])
@@ -3972,6 +4016,12 @@ class PackageCharacterForm(Form):
             bpTabs[i].Controls.Add(self.bpHdPictureBoxes[i])
             bpTabs[i].Controls.Add(bpHdPictureBoxLabels[i])
             bpTabs[i].Controls.Add(self.bpHdButtons[i])
+            bpTabs[i].Controls.Add(bpNameLabels[i])
+            bpTabs[i].Controls.Add(self.bpNamePictureBoxes[i])
+            bpTabs[i].Controls.Add(self.bpNameButtons[i])
+            bpTabs[i].Controls.Add(self.bpNameHdPictureBoxes[i])
+            bpTabs[i].Controls.Add(bpNameHdLabels[i])
+            bpTabs[i].Controls.Add(self.bpNameHdButtons[i])
 
             # Add to control
             self.bpTabControl.Controls.Add(bpTabs[i])
@@ -4036,19 +4086,9 @@ class PackageCharacterForm(Form):
                 self.bpHdPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedValue.bpHd)
             else:
                 self.bpHdPictureBoxes[index].Image = None
-            #if self.cspListBox.SelectedValue.stock:
-            #    self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stock)
-            #else:
-            #    self.stockPictureBox.Image = None
-            #if self.cspListBox.SelectedValue.stockHd:
-            #    self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stockHd)
-            #else:
-            #    self.stockHdPictureBox.Image = None
         else:
             self.bpPictureBoxes[index].Image = None
             self.bpHdPictureBoxes[index].Image = None
-            #self.stockPictureBox.Image = None
-            #self.stockHdPictureBox.Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
         self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
@@ -4162,10 +4202,6 @@ class PackageCharacterForm(Form):
                     self.bpListBoxes[index].SelectedItem.bp = images[0]
                 elif imageType == "bpHd":
                     self.bpListBoxes[index].SelectedItem.bpHd = images[0]
-                elif imageType == "bpName":
-                    self.bpListBoxes[index].SelectedItem.bpName = images[0]
-                elif imageType == "bpNameHd":
-                    self.bpListBoxes[index].SelectedItem.bpNameHd = images[0]
             else:
                 i = 0
                 while i < len(images):
@@ -4174,22 +4210,13 @@ class PackageCharacterForm(Form):
                             self.bpListBoxes[index].Items[i].bp = images[i]
                         elif imageType == "bpHd":
                             self.bpListBoxes[index].Items[i].bpHd = images[i]
-                        elif imageType == "bpName":
-                            self.bpListBoxes[index].Items[i].bpName = images[i]
-                        elif imageType == "bpNameHd":
-                            self.bpListBoxes[index].Items[i].bpNameHd = images[i]
                     else:
-                        self.bps[index].Add(BpObject(name="Image " + str(len(self.bpListBoxes[index].Items) + 1), bp=images[i] if imageType == "bp" else "", bpHd=images[i] if imageType == "bpHd" else "", bpName=images[i] if imageType == "bpName" else "", bpNameHd=images[i] if imageType == "bpNameHd" else ""))
-                        #self.bpListBoxes[index].DisplayMember = "name"
+                        self.bps[index].Add(BpObject(name="Image " + str(len(self.bpListBoxes[index].Items) + 1), bp=images[i] if imageType == "bp" else "", bpHd=images[i] if imageType == "bpHd" else ""))
                     i += 1
             if imageType == "bp":
                 self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bp)
             elif imageType == "bpHd":
                 self.bpHdPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bpHd)
-            #elif imageType == "stock":
-            #    self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
-            #elif imageType == "stockHd":
-            #    self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stockHd)
 
     def bpButtonPressed(self, sender, args):
         self.updateBpImages("Select your SD BP images", "bp")
@@ -4209,6 +4236,16 @@ class PackageCharacterForm(Form):
     def stockHdButtonPressed(self, sender, args):
         self.updateImages("Select your HD stock images", "stockHd")
 
+    def bpNameButtonPressed(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        self.bpNameImage[index] = BrawlAPI.OpenFileDialog("Select your SD BP name image", "PNG files|*.png")
+        self.bpNamePictureBoxes[index].Image = Bitmap(self.bpNameImage[index])
+
+    def bpNameHdButtonPressed(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        self.bpNameHdImage[index] = BrawlAPI.OpenFileDialog("Select your HD BP name image", "PNG files|*.png")
+        self.bpNameHdPictureBoxes[index].Image = Bitmap(self.bpNameHdImage[index])
+
 #endregion PACKAGE CHARACTER FORM
 
 class CostumeGroup:
@@ -4225,9 +4262,7 @@ class CostumeObject:
             self.stockHd = stockHd
 
 class BpObject:
-        def __init__(self, name="", bp="", bpHd="", bpName="", bpNameHd=""):
+        def __init__(self, name="", bp="", bpHd=""):
             self.name = name
             self.bp = bp
             self.bpHd = bpHd
-            self.bpName = bpName
-            self.bpNameHd = bpNameHd
