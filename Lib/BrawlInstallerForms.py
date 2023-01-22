@@ -3709,6 +3709,8 @@ class PackageCharacterForm(Form):
         cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
         cosmeticsGroupBox.Text = "Cosmetics"
 
+        #region CSP and Stocks
+
         # CSP Groupbox
         cspGroupBox = GroupBox()
         cspGroupBox.Location = Point(0,16)
@@ -3854,8 +3856,109 @@ class PackageCharacterForm(Form):
         cspGroupBox.Controls.Add(stockHdPictureBoxLabel)
         cspGroupBox.Controls.Add(self.stockHdPictureBox)
         cspGroupBox.Controls.Add(self.stockHdButton)
+
+        #endregion CSPs and Stocks
         
+        bpTabNames = ["vBrawl", "REMIX"]
+
+        # BP Groupbox
+        bpGroupBox = GroupBox()
+        bpGroupBox.AutoSize = True
+        bpGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        bpGroupBox.MinimumSize = Size(250, 250)
+        bpGroupBox.Text = "BPs"
+
+        self.bpTabControl = TabControl()
+        self.bpTabControl.Dock = DockStyle.Fill
+
+        bpTabs = [None] * len(bpTabNames)
+        bpListBoxLabels = [None] * len(bpTabNames)
+        self.bpListBoxes = [None] * len(bpTabNames)
+        bpAddButtons = [None] * len(bpTabNames)
+        bpRemoveButtons = [None] * len(bpTabNames)
+        self.bpPictureBoxes = [None] * len(bpTabNames)
+        bpPictureBoxLabels = [None] * len(bpTabNames)
+        self.bpButtons = [None] * len(bpTabNames)
+        self.bps = [None] * len(bpTabNames)
+
+        i = 0
+        while i < len(bpTabs):
+            self.bps[i] = BindingSource()
+            self.bps[i].DataSource = []
+
+            # Tabs
+            bpTabs[i] = TabPage()
+            bpTabs[i].Text = bpTabNames[i]
+
+            # Labels
+            bpListBoxLabels[i] = Label()
+            bpListBoxLabels[i].Text = "BPs:"
+            bpListBoxLabels[i].Location = Point(16, 4)
+            bpListBoxLabels[i].Height = 16
+            bpListBoxLabels[i].Width = 80
+
+            # Listboxes
+            self.bpListBoxes[i] = ListBox()
+            self.bpListBoxes[i].Width = 80
+            self.bpListBoxes[i].Height = 120
+            self.bpListBoxes[i].Location = Point(bpListBoxLabels[i].Location.X, bpListBoxLabels[i].Location.Y + bpListBoxLabels[i].Height)
+            self.bpListBoxes[i].HorizontalScrollbar = True
+            self.bpListBoxes[i].DataSource = self.bps[i]
+            #self.bpListBoxes[i].DisplayMember = "name"
+            #self.bpListBoxes[i].SelectedValueChanged += self.cspChanged
+
+            # Add Buttons
+            bpAddButtons[i] = Button()
+            bpAddButtons[i].Text = "+"
+            bpAddButtons[i].Size = Size(16, 16)
+            bpAddButtons[i].Location = Point(self.bpListBoxes[i].Location.X + self.bpListBoxes[i].Width + 4, self.bpListBoxes[i].Location.Y)
+            #bpAddButtons[i].Click += self.cspCostumeButtonPressed
+
+            # Remove Buttons
+            bpRemoveButtons[i] = Button()
+            bpRemoveButtons[i].Text = "-"
+            bpRemoveButtons[i].Size = Size(16, 16)
+            bpRemoveButtons[i].Location = Point(bpAddButtons[i].Location.X, bpAddButtons[i].Location.Y + bpAddButtons[i].Height + 4)
+            #bpRemoveButtons[i].Click += self.cspCostumeButtonPressed
+
+            # BP Picture Boxes
+            self.bpPictureBoxes[i] = PictureBox()
+            self.bpPictureBoxes[i].Location = Point(bpAddButtons[i].Location.X + bpAddButtons[i].Width + 16, bpAddButtons[i].Location.Y)
+            self.bpPictureBoxes[i].Size = Size(48, 56)
+            self.bpPictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            # Labels
+            bpPictureBoxLabels[i] = Label()
+            bpPictureBoxLabels[i].Text = "BP:"
+            bpPictureBoxLabels[i].Location = Point(self.bpPictureBoxes[i].Location.X, self.bpPictureBoxes[i].Location.Y - 16)
+            bpPictureBoxLabels[i].Height = 16
+            bpPictureBoxLabels[i].Width = 80
+
+            # BP Buttons
+            self.bpButtons[i] = Button()
+            self.bpButtons[i].Text = "Browse..."
+            self.bpButtons[i].Location = Point(self.bpPictureBoxes[i].Location.X, self.bpPictureBoxes[i].Location.Y + self.bpPictureBoxes[i].Height + 4)
+            #self.bpButtons[i].Enabled = len(self.cspCostumeListBox.Items) > 0
+            #self.bpButtons[i].Click += self.cspButtonPressed
+
+            # Add to page
+            bpTabs[i].Controls.Add(bpListBoxLabels[i])
+            bpTabs[i].Controls.Add(self.bpListBoxes[i])
+            bpTabs[i].Controls.Add(bpAddButtons[i])
+            bpTabs[i].Controls.Add(bpRemoveButtons[i])
+            bpTabs[i].Controls.Add(self.bpPictureBoxes[i])
+            bpTabs[i].Controls.Add(bpPictureBoxLabels[i])
+            bpTabs[i].Controls.Add(self.bpButtons[i])
+
+            # Add to control
+            self.bpTabControl.Controls.Add(bpTabs[i])
+            i += 1
+
+        bpGroupBox.Controls.Add(self.bpTabControl)
+
         cosmeticsGroupBox.Controls.Add(cspGroupBox)
+        cosmeticsGroupBox.Controls.Add(bpGroupBox)
+        bpGroupBox.Location = Point(cspGroupBox.Location.X, cspGroupBox.Location.Y + cspGroupBox.Height + 16)
 
         self.Controls.Add(cosmeticsGroupBox)
     
