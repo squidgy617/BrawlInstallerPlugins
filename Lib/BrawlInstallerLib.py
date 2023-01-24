@@ -3001,7 +3001,7 @@ def removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName="", filePa
 				node = getChildByName(rootNode, tex0BresName)
 			else:
 				node = rootNode
-			if node:
+			if node and len(node.Children) > 0:
 				# Remove the texture nodes
 				texFolder = getChildByName(node, "Textures(NW4R)")
 				# End of loop changes depending on if we use 50 CC or not
@@ -3699,7 +3699,7 @@ def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2
 				node = getChildByName(rootNode, tex0BresName)
 			else:
 				node = rootNode
-			if node:
+			if node and len(node.Children) > 0:
 				# Extract the texture nodes
 				texFolder = getChildByName(node, "Textures(NW4R)")
 				# End of loop changes depending on if we use 50 CC or not
