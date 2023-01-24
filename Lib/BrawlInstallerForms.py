@@ -3712,11 +3712,12 @@ class PackageCharacterForm(Form):
         #region CSP and Stocks
 
         # CSP Groupbox
-        cspGroupBox = GroupBox()
-        cspGroupBox.Location = Point(0,16)
-        cspGroupBox.AutoSize = True
-        cspGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        cspGroupBox.Text = "CSPs and Stocks"
+        self.cspGroupBox = GroupBox()
+        self.cspGroupBox.Location = Point(0,16)
+        self.cspGroupBox.AutoSize = True
+        self.cspGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.cspGroupBox.Text = "CSPs and Stocks"
+        self.cspGroupBox.Click += self.toggleGroupBox
 
         cspCostumeLabel = Label()
         cspCostumeLabel.Text = "Groups:"
@@ -3836,37 +3837,39 @@ class PackageCharacterForm(Form):
         self.stockHdButton.Enabled = len(self.cspCostumeListBox.Items) > 0
         self.stockHdButton.Click += self.stockHdButtonPressed
 
-        cspGroupBox.Controls.Add(cspCostumeLabel)
-        cspGroupBox.Controls.Add(self.cspCostumeListBox)
-        cspGroupBox.Controls.Add(self.cspListBox)
-        cspGroupBox.Controls.Add(self.addColorButton)
-        cspGroupBox.Controls.Add(self.removeColorButton)
-        cspGroupBox.Controls.Add(cspCostumeButton)
-        cspGroupBox.Controls.Add(cspCostumeRemoveButton)
-        cspGroupBox.Controls.Add(cspLabel)
-        cspGroupBox.Controls.Add(self.cspPictureBox)
-        cspGroupBox.Controls.Add(self.cspButton)
-        cspGroupBox.Controls.Add(cspPictureBoxLabel)
-        cspGroupBox.Controls.Add(self.cspHdPictureBox)
-        cspGroupBox.Controls.Add(self.cspHdButton)
-        cspGroupBox.Controls.Add(cspHdPictureBoxLabel)
-        cspGroupBox.Controls.Add(stockPictureBoxLabel)
-        cspGroupBox.Controls.Add(self.stockPictureBox)
-        cspGroupBox.Controls.Add(self.stockButton)
-        cspGroupBox.Controls.Add(stockHdPictureBoxLabel)
-        cspGroupBox.Controls.Add(self.stockHdPictureBox)
-        cspGroupBox.Controls.Add(self.stockHdButton)
+        self.cspGroupBox.Controls.Add(cspCostumeLabel)
+        self.cspGroupBox.Controls.Add(self.cspCostumeListBox)
+        self.cspGroupBox.Controls.Add(self.cspListBox)
+        self.cspGroupBox.Controls.Add(self.addColorButton)
+        self.cspGroupBox.Controls.Add(self.removeColorButton)
+        self.cspGroupBox.Controls.Add(cspCostumeButton)
+        self.cspGroupBox.Controls.Add(cspCostumeRemoveButton)
+        self.cspGroupBox.Controls.Add(cspLabel)
+        self.cspGroupBox.Controls.Add(self.cspPictureBox)
+        self.cspGroupBox.Controls.Add(self.cspButton)
+        self.cspGroupBox.Controls.Add(cspPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(self.cspHdPictureBox)
+        self.cspGroupBox.Controls.Add(self.cspHdButton)
+        self.cspGroupBox.Controls.Add(cspHdPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(stockPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(self.stockPictureBox)
+        self.cspGroupBox.Controls.Add(self.stockButton)
+        self.cspGroupBox.Controls.Add(stockHdPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(self.stockHdPictureBox)
+        self.cspGroupBox.Controls.Add(self.stockHdButton)
 
         #endregion CSPs and Stocks
         
         bpTabNames = ["vBrawl", "REMIX"]
 
         # BP Groupbox
-        bpGroupBox = GroupBox()
-        bpGroupBox.AutoSize = True
-        bpGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        bpGroupBox.MinimumSize = Size(350, 250)
-        bpGroupBox.Text = "BPs"
+        self.bpGroupBox = GroupBox()
+        self.bpGroupBox.AutoSize = True
+        self.bpGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.bpGroupBox.MinimumSize = Size(350, 250)
+        self.bpGroupBox.MaximumSize = Size(350, 250)
+        self.bpGroupBox.Text = "BPs"
+        self.bpGroupBox.Click += self.toggleGroupBox
 
         self.bpTabControl = TabControl()
         self.bpTabControl.Dock = DockStyle.Fill
@@ -4027,11 +4030,11 @@ class PackageCharacterForm(Form):
             self.bpTabControl.Controls.Add(bpTabs[i])
             i += 1
 
-        bpGroupBox.Controls.Add(self.bpTabControl)
+        self.bpGroupBox.Controls.Add(self.bpTabControl)
 
-        cosmeticsGroupBox.Controls.Add(cspGroupBox)
-        cosmeticsGroupBox.Controls.Add(bpGroupBox)
-        bpGroupBox.Location = Point(cspGroupBox.Location.X, cspGroupBox.Location.Y + cspGroupBox.Height + 16)
+        cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
+        cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
+        self.recalculateGroupLocations()
 
         self.Controls.Add(cosmeticsGroupBox)
     
@@ -4245,6 +4248,27 @@ class PackageCharacterForm(Form):
         index = self.bpTabControl.SelectedIndex
         self.bpNameHdImage[index] = BrawlAPI.OpenFileDialog("Select your HD BP name image", "PNG files|*.png")
         self.bpNameHdPictureBoxes[index].Image = Bitmap(self.bpNameHdImage[index])
+
+    def toggleGroupBox(self, sender, args):
+        collapsed = False
+        if args.Location.X < 128 and args.Location.Y < 20:
+            if sender.AutoSize:
+                sender.AutoSize = False
+                if sender.MinimumSize:
+                    sender.MinimumSize = Size(128, 16)
+                    sender.Size = Size(128, 16)
+                collapsed = True
+            else:
+                sender.AutoSize = True
+                # If box has maximum size, will be expanded to maximum size
+                if sender.MaximumSize:
+                    sender.MinimumSize = sender.MaximumSize
+        self.recalculateGroupLocations()
+        return collapsed
+
+    def recalculateGroupLocations(self):
+        self.cspGroupBox.Location = Point(0,16)
+        self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 16)
 
 #endregion PACKAGE CHARACTER FORM
 
