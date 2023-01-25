@@ -4331,7 +4331,8 @@ class PackageCharacterForm(Form):
         self.cspGroupBox.Location = Point(0,16)
         self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 16)
         self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 16)
-        self.replayGroupBox.Location = Point(self.cspGroupBox.Location.X + self.cspGroupBox.Width + 16, self.cspGroupBox.Location.Y)
+        x = max(self.cspGroupBox.Location.X + self.cspGroupBox.Width, self.bpGroupBox.Location.X + self.bpGroupBox.Width, self.cssGroupBox.Location.X + self.cssGroupBox.Width)
+        self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
 
