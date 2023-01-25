@@ -1090,16 +1090,19 @@ def importCSSIcon(cosmeticId, iconImagePath, format):
 		if fileOpened:
 			# Import icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			newNode = importTexture(node, iconImagePath, format)
-			newNode.Name = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
-			# Sort textures
-			newNode.Parent.SortChildren()
+			if node:
+				newNode = importTexture(node, iconImagePath, format)
+				newNode.Name = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
+				# Sort textures
+				newNode.Parent.SortChildren()
 			# Add CSS icon to CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				addToPat0(node, pat0Node.Name, "Face02", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), palette=newNode.Name, frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						addToPat0(node, pat0Node.Name, "Face02", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), palette=newNode.Name, frameCountOffset=10)
 			writeLog("Finished importing CSS icon")
 
 # Import replay icon
@@ -1125,16 +1128,19 @@ def importCSSIconName(cosmeticId, nameImagePath):
 		if fileOpened:
 			# Import icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			newNode = importTexture(node, nameImagePath, WiiPixelFormat.I4)
-			newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
-			# Sort textures
-			newNode.Parent.SortChildren()
+			if node:
+				newNode = importTexture(node, nameImagePath, WiiPixelFormat.I4)
+				newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
+				# Sort textures
+				newNode.Parent.SortChildren()
 			# Add CSS icon name to CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				addToPat0(node, pat0Node.Name, "Face06", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						addToPat0(node, pat0Node.Name, "Face06", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
 			writeLog("Finished importing CSS icon name")
 				
 # Import name for character select portrait
@@ -2846,18 +2852,22 @@ def removeCSSIcon(cosmeticId):
 		if fileOpened:
 			# Remove icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				# Pass in bool to force remove palette
-				textureNode.Remove(True)
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				if texFolder:
+					nodeName = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						# Pass in bool to force remove palette
+						textureNode.Remove(True)
 			# Remove CSS icon from CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				removeFromPat0(node, pat0Node.Name, "Face02", nodeName, frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						removeFromPat0(node, pat0Node.Name, "Face02", nodeName, frameCountOffset=10)
 		writeLog("Remove CSS icon finished")
 
 # Remove replay icon
@@ -2885,18 +2895,22 @@ def removeCSSIconName(cosmeticId):
 		if fileOpened:
 			# Remove icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				# Pass in bool to force remove palette
-				textureNode.Remove(True)
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				if texFolder:
+					nodeName = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						# Pass in bool to force remove palette
+						textureNode.Remove(True)
 			# Remove CSS icon name from CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				removeFromPat0(node, pat0Node.Name, "Face06", nodeName, frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						removeFromPat0(node, pat0Node.Name, "Face06", nodeName, frameCountOffset=10)
 		writeLog("Remove CSS icon name finished")
 
 # Remove portrait name
