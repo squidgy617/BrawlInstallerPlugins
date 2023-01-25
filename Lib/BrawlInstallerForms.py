@@ -4036,12 +4036,53 @@ class PackageCharacterForm(Form):
 
         #endregion BPs
 
+        self.cssGroupBox = GroupBox()
+        self.cssGroupBox.AutoSize = True
+        self.cssGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.cssGroupBox.MinimumSize = Size(350, 250)
+        self.cssGroupBox.MaximumSize = Size(350, 250)
+        self.cssGroupBox.Text = "CSS Icons"
+        self.cssGroupBox.Click += self.toggleGroupBox
+
+        cssTabNames = ["vBrawl", "PM", "P+", "REMIX"]
+        cssImageObjects = [ImageObject("CSS Icon", Size(64,64)), ImageObject("HD CSS Icon", Size(64,64)), ImageObject("Name", Size(56,24)), ImageObject("HD Name", Size(56,24))]
+
+        self.cssTabControl = self.generateTabImageControl(cssTabNames, cssImageObjects)
+        
+        self.cssGroupBox.Controls.Add(self.cssTabControl)
+
         cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
         cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
+        cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
         self.recalculateGroupLocations()
 
         self.Controls.Add(cosmeticsGroupBox)
     
+    def generateTabImageControl(self, tabNames, imageObjects):
+        tabControl = TabControl()
+        tabControl.Dock = DockStyle.Fill
+
+        tabs = [None] * len(tabNames)
+        controls = [None] * len(tabNames)
+
+        i = 0
+        while i < len(tabs):
+            # Tabs
+            tabs[i] = TabPage()
+            tabs[i].Text = tabNames[i]
+            tabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
+            
+            controls[i] = ImageControl(imageObjects)
+            controls[i].Location = Point(4,4)
+
+            tabs[i].Controls.Add(controls[i])
+
+            # Add to control
+            tabControl.Controls.Add(tabs[i])
+            i += 1
+        
+        return tabControl
+
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
             self.cspListBox.DataSource = self.cspCostumeListBox.SelectedItem.costumeObjects
@@ -4273,6 +4314,7 @@ class PackageCharacterForm(Form):
     def recalculateGroupLocations(self):
         self.cspGroupBox.Location = Point(0,16)
         self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 16)
+        self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 16)
 
 #endregion PACKAGE CHARACTER FORM
 
@@ -4298,7 +4340,7 @@ class BpObject:
             self.bpHd = bpHd
 
 class ImageObject:
-        def __init__(self, label="Label:", size=Size(64, 64)):
+        def __init__(self, label="Label", size=Size(64, 64)):
             self.label = label
             self.size = size
 
@@ -4355,7 +4397,8 @@ class ImageControl(UserControl):
         
         def buttonPressed(self, sender, args):
             image = BrawlAPI.OpenFileDialog("Select image file", "PNG files|*.png")
-            self.pictureBox[sender.TabIndex].Image = Bitmap(image)
-            self.Images[sender.TabIndex] = image
+            if image:
+                self.pictureBox[sender.TabIndex].Image = Bitmap(image)
+                self.Images[sender.TabIndex] = image
 
 #endregion
