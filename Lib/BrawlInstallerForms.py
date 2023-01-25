@@ -4051,9 +4051,25 @@ class PackageCharacterForm(Form):
         
         self.cssGroupBox.Controls.Add(self.cssTabControl)
 
+        self.replayGroupBox = GroupBox()
+        self.replayGroupBox.AutoSize = True
+        self.replayGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.replayGroupBox.MinimumSize = Size(225, 125)
+        self.replayGroupBox.MaximumSize = Size(225, 125)
+        self.replayGroupBox.Text = "Replay Icons"
+        self.replayGroupBox.Click += self.toggleGroupBox
+
+        replayTabNames = ["vBrawl", "P+"]
+        replayImageObjects = [ImageObject("Replay Icon", Size(64,24)), ImageObject("HD Replay Icon", Size(64,24))]
+
+        self.replayTabControl = self.generateTabImageControl(replayTabNames, replayImageObjects)
+        
+        self.replayGroupBox.Controls.Add(self.replayTabControl)
+
         cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
         cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
         cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
+        cosmeticsGroupBox.Controls.Add(self.replayGroupBox)
         self.recalculateGroupLocations()
 
         self.Controls.Add(cosmeticsGroupBox)
@@ -4315,6 +4331,7 @@ class PackageCharacterForm(Form):
         self.cspGroupBox.Location = Point(0,16)
         self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 16)
         self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 16)
+        self.replayGroupBox.Location = Point(self.cspGroupBox.Location.X + self.cspGroupBox.Width + 16, self.cspGroupBox.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
 
@@ -4372,7 +4389,7 @@ class ImageControl(UserControl):
                 else:
                     label[i].Location = Point(label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
                 label[i].Height = 16
-                label[i].Width = 80
+                label[i].Width = 90
 
                 self.pictureBox[i] = PictureBox()
                 self.pictureBox[i].Location = Point(label[i].Location.X, label[i].Location.Y + label[i].Height + 4)
