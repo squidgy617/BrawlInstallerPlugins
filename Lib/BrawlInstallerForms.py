@@ -4272,6 +4272,8 @@ class PackageCharacterForm(Form):
 
 #endregion PACKAGE CHARACTER FORM
 
+#region CLASSES AND CONTROLS
+
 class CostumeGroup:
         def __init__(self, costumeGroup, costumeObjects):
             self.costumeGroup = costumeGroup
@@ -4290,3 +4292,66 @@ class BpObject:
             self.name = name
             self.bp = bp
             self.bpHd = bpHd
+
+class ImageObject:
+        def __init__(self, label="Label:", size=Size(64, 64)):
+            self.label = label
+            self.size = size
+
+# A control for importing multiple images. Pass in a number of ImageObjects to customize appearance.
+class ImageControl(UserControl):
+        def __init__(self, imageObjects):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+            count = len(imageObjects)
+
+            label = [None] * count
+            self.pictureBox = [None] * count
+            button = [None] * count
+
+            # Access the image paths by referencing this property for the desired index
+            self.Images = [None] * count
+
+            i = 0
+            rowTracker = 0
+            while i < count:
+                label[i] = Label()
+                label[i].Text = imageObjects[i].label + ":"
+                if i == 0:
+                    label[i].Location = Point(0, 0)
+                elif rowTracker == 1:
+                    x = max([label[i-1].Location.X + label[i-1].Width, self.pictureBox[i-1].Location.X + self.pictureBox[i-1].Width, button[i-1].Location.X + button[i-1].Width])
+                    label[i].Location = Point(x, label[i].Location.Y)
+                else:
+                    label[i].Location = Point(label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
+                label[i].Height = 16
+                label[i].Width = 80
+
+                self.pictureBox[i] = PictureBox()
+                self.pictureBox[i].Location = Point(label[i].Location.X, label[i].Location.Y + label[i].Height + 4)
+                self.pictureBox[i].Size = imageObjects[i].size
+                self.pictureBox[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+                button[i] = Button()
+                button[i].Text = "Browse..."
+                button[i].Location = Point(self.pictureBox[i].Location.X, self.pictureBox[i].Location.Y + self.pictureBox[i].Height + 4)
+                button[i].TabIndex = i
+                button[i].Click += self.buttonPressed
+
+                self.Controls.Add(label[i])
+                self.Controls.Add(self.pictureBox[i])
+                self.Controls.Add(button[i])
+
+                i += 1
+                if rowTracker < 1:
+                    rowTracker += 1
+                else:
+                    rowTracker = 0
+        
+        def buttonPressed(self, sender, args):
+            image = BrawlAPI.OpenFileDialog("Select image file", "PNG files|*.png")
+            self.pictureBox[sender.TabIndex].Image = Bitmap(image)
+            self.Images[sender.TabIndex] = image
+
+#endregion
