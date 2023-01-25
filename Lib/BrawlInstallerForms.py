@@ -3860,6 +3860,8 @@ class PackageCharacterForm(Form):
 
         #endregion CSPs and Stocks
         
+        #region BPs
+
         bpTabNames = ["vBrawl", "REMIX"]
 
         # BP Groupbox
@@ -4031,6 +4033,8 @@ class PackageCharacterForm(Form):
             i += 1
 
         self.bpGroupBox.Controls.Add(self.bpTabControl)
+
+        #endregion BPs
 
         cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
         cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
