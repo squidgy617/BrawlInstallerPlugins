@@ -4322,7 +4322,7 @@ class ImageControl(UserControl):
                     label[i].Location = Point(0, 0)
                 elif rowTracker == 1:
                     x = max([label[i-1].Location.X + label[i-1].Width, self.pictureBox[i-1].Location.X + self.pictureBox[i-1].Width, button[i-1].Location.X + button[i-1].Width])
-                    label[i].Location = Point(x, label[i].Location.Y)
+                    label[i].Location = Point(x, label[i-1].Location.Y)
                 else:
                     label[i].Location = Point(label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
                 label[i].Height = 16
