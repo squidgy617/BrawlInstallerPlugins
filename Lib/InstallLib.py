@@ -941,6 +941,8 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			if fighterInfo:
 				fighterName = fighterInfo.fighterName
 			else:
+				if fighterId == "2D":
+					fighterName = "Knuckles"
 				if not FighterNameGenerators.generated:
 					FighterNameGenerators.GenerateLists()
 				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
