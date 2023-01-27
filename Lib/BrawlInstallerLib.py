@@ -1188,12 +1188,13 @@ def importBPName(cosmeticId, image, filePath):
 		if fileOpened:
 			# Import name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			format = WiiPixelFormat.I4
-			newNode = importTexture(node, image, format)
-			pat0texNodeName = "Character_Name_Mat"
-			pat0NodeName = "InfFace_TopN__0"
-			newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId) + '1', 3)
-			addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1'), frameCountOffset=10)
+			if node:
+				format = WiiPixelFormat.I4
+				newNode = importTexture(node, image, format)
+				pat0texNodeName = "Character_Name_Mat"
+				pat0NodeName = "InfFace_TopN__0"
+				newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId) + '1', 3)
+				addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1'), frameCountOffset=10)
 		writeLog("Import BP name finished.")
 
 # Import classic intro file
@@ -2960,14 +2961,16 @@ def removeBPName(cosmeticId, filePath):
 		if fileOpened:
 			# Remove BP name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNmS."+ addLeadingZeros(str(cosmeticId) + '1', 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				textureNode.Remove(True)
-			pat0texNodeName = "Character_Name_Mat"
-			pat0NodeName = "InfFace_TopN__0"
-			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=10)
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				nodeName = "MenSelchrChrNmS."+ addLeadingZeros(str(cosmeticId) + '1', 3)
+				if texFolder:
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						textureNode.Remove(True)
+				pat0texNodeName = "Character_Name_Mat"
+				pat0NodeName = "InfFace_TopN__0"
+				removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=10)
 		writeLog("Remove BP name finished")
 
 # Delete classic intro file
@@ -3758,12 +3761,14 @@ def extractBPName(cosmeticId, filePath, folderName):
 		if fileOpened:
 			# Extract BP name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNmS." +addLeadingZeros(str(cosmeticId) + '1', 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				nodeName = "MenSelchrChrNmS." +addLeadingZeros(str(cosmeticId) + '1', 3)
+				if texFolder:
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
+						textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting BP name")
 
 # Extract Classic intro
