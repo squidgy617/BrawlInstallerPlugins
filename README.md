@@ -146,6 +146,15 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   
 </details>
 
+<details>
+  <summary><b>I don't see a certain character's IDs when using the ID picker.</b></summary>
+  
+  For character IDs to show in the ID pickers, you need to [modify the ID list](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Using-ID-Pickers#modifying-id-lists) used by BrawlCrate. For Ex builds, you might want to consider doing this for your Ex characters. For base P+ builds, the only character that will not appear by default. You can add him by adding the following line to `FighterList.txt` located in the `CustomLists` folder in your BrawlCrate directory:
+
+`       |0x35   |0x2D       |0x2A       |0x2F       |Knuckles        |Knuckles (Project+ Only) // IDs are based on P+`
+  
+</details>
+
 # Credits
 This tool was made possible by:
 - Soopercool101, Kryal, BlackJax96, and libertyernie for BrawlLib, BrawlBox, and BrawlCrate. Extra thanks to Soopercool101 for making additions to BrawlCrate to support features needed for the BrawlInstaller plugins.
