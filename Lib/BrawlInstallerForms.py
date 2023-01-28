@@ -3708,6 +3708,7 @@ class PackageCharacterForm(Form):
         cosmeticsGroupBox.AutoSize = True
         cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
         cosmeticsGroupBox.Text = "Cosmetics"
+        cosmeticsGroupBox.Click += self.toggleGroupBox
 
         #region CSP and Stocks
 
@@ -4081,11 +4082,29 @@ class PackageCharacterForm(Form):
         
         self.portraitNameGroupBox.Controls.Add(self.portraitNameTabControl)
 
+        self.franchiseIconGroupBox = GroupBox()
+        self.franchiseIconGroupBox.AutoSize = True
+        self.franchiseIconGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.franchiseIconGroupBox.Text = "Franchise Icon"
+        self.franchiseIconGroupBox.Click += self.toggleGroupBox
+
+        franchiseIconImageObjects = [ImageObject("Black", Size(64,64)), ImageObject("Transparent", Size(64,64))]
+
+        self.franchiseIconImageControl = ImageControl(franchiseIconImageObjects)
+        self.franchiseIconImageControl.Location = Point(16, 16)
+
+        self.franchiseModelControl = FileControl("Select your franchise icon model file", "MDL0 files|*.mdl0", "Model")
+        self.franchiseModelControl.Location = Point(self.franchiseIconImageControl.Location.X, self.franchiseIconImageControl.Location.Y + self.franchiseIconImageControl.Height)
+        
+        self.franchiseIconGroupBox.Controls.Add(self.franchiseIconImageControl)
+        self.franchiseIconGroupBox.Controls.Add(self.franchiseModelControl)
+
         cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
         cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
         cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
         cosmeticsGroupBox.Controls.Add(self.replayGroupBox)
         cosmeticsGroupBox.Controls.Add(self.portraitNameGroupBox)
+        cosmeticsGroupBox.Controls.Add(self.franchiseIconGroupBox)
         self.recalculateGroupLocations()
 
         self.Controls.Add(cosmeticsGroupBox)
@@ -4276,7 +4295,7 @@ class PackageCharacterForm(Form):
     def updateBpImages(self, dialogText, imageType):
         index = self.bpTabControl.SelectedIndex
         images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
-        if images:
+        if images and len(images) > 0:
             if len(images) == 1 and self.bpListBoxes[index].SelectedItem:
                 if imageType == "bp":
                     self.bpListBoxes[index].SelectedItem.bp = images[0]
@@ -4350,6 +4369,7 @@ class PackageCharacterForm(Form):
         x = max(self.cspGroupBox.Location.X + self.cspGroupBox.Width, self.bpGroupBox.Location.X + self.bpGroupBox.Width, self.cssGroupBox.Location.X + self.cssGroupBox.Width)
         self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
         self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 16)
+        self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 16)
 
 #endregion PACKAGE CHARACTER FORM
 
@@ -4378,6 +4398,37 @@ class ImageObject:
         def __init__(self, label="Label", size=Size(64, 64)):
             self.label = label
             self.size = size
+
+# A control for importing a single file
+class FileControl(UserControl):
+        def __init__(self, title="Select your file", filter="PAC files|*.pac", labelText="File"):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.textBox = TextBox()
+            self.textBox.ReadOnly = True
+            self.textBox.Location = Point(48, 0)
+
+            label = Label()
+            label.Text = labelText + ":"
+            label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
+            label.TextAlign = ContentAlignment.TopRight
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
+            button.Click += self.buttonPressed
+
+            self.Controls.Add(self.textBox)
+            self.Controls.Add(label)
+            self.Controls.Add(button)
+
+        def buttonPressed(self, sender, args):
+            file = BrawlAPI.OpenFileDialog(self.title, self.filter)
+            if file:
+                self.textBox.Text = file
 
 # A control for importing multiple images. Pass in a number of ImageObjects to customize appearance.
 class ImageControl(UserControl):
