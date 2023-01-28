@@ -92,7 +92,7 @@ def main():
 					usedIds = getUsedCostumeIds(cssSlotConfigId)
 					availableIds = []
 					i = 0
-					while i <= 50:
+					while i < 50:
 						if i not in usedIds:
 							availableIds.append(addLeadingZeros(str(i), 2))
 						i += 1
