@@ -173,4 +173,3 @@ This tool was made possible by:
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
-- Extract vanilla characters from builds
