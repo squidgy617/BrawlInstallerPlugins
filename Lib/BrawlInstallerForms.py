@@ -4066,10 +4066,26 @@ class PackageCharacterForm(Form):
         
         self.replayGroupBox.Controls.Add(self.replayTabControl)
 
+        self.portraitNameGroupBox = GroupBox()
+        self.portraitNameGroupBox.AutoSize = True
+        self.portraitNameGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.portraitNameGroupBox.MinimumSize = Size(315, 150)
+        self.portraitNameGroupBox.MaximumSize = Size(315, 150)
+        self.portraitNameGroupBox.Text = "Portrait Name"
+        self.portraitNameGroupBox.Click += self.toggleGroupBox
+
+        portraitTabNames = ["vBrawl", "PM"]
+        portraitNameImageObjects = [ImageObject("Name", Size(144,32)), ImageObject("HD Name", Size(144,32))]
+
+        self.portraitNameTabControl = self.generateTabImageControl(portraitTabNames, portraitNameImageObjects)
+        
+        self.portraitNameGroupBox.Controls.Add(self.portraitNameTabControl)
+
         cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
         cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
         cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
         cosmeticsGroupBox.Controls.Add(self.replayGroupBox)
+        cosmeticsGroupBox.Controls.Add(self.portraitNameGroupBox)
         self.recalculateGroupLocations()
 
         self.Controls.Add(cosmeticsGroupBox)
@@ -4333,6 +4349,7 @@ class PackageCharacterForm(Form):
         self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 16)
         x = max(self.cspGroupBox.Location.X + self.cspGroupBox.Width, self.bpGroupBox.Location.X + self.bpGroupBox.Width, self.cssGroupBox.Location.X + self.cssGroupBox.Width)
         self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
+        self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 16)
 
 #endregion PACKAGE CHARACTER FORM
 
@@ -4386,7 +4403,7 @@ class ImageControl(UserControl):
                     label[i].Location = Point(0, 0)
                 elif rowTracker == 1:
                     x = max([label[i-1].Location.X + label[i-1].Width, self.pictureBox[i-1].Location.X + self.pictureBox[i-1].Width, button[i-1].Location.X + button[i-1].Width])
-                    label[i].Location = Point(x, label[i-1].Location.Y)
+                    label[i].Location = Point(x + 4, label[i-1].Location.Y)
                 else:
                     label[i].Location = Point(label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
                 label[i].Height = 16
