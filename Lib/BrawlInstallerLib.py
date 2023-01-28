@@ -39,6 +39,8 @@ BACKUP_PATH = BASE_BACKUP_PATH + '\\backup'
 
 LOG_PATH = AppPath + '\\Logs'
 
+TEMP_PATH = AppPath + '\\temp'
+
 FIGHTER_IDS = {
 	0 : "Mario",
 	1 : "Donkey",
@@ -299,6 +301,13 @@ def getFileInfo(filePath):
 		except Exception as e:
 			BrawlAPI.ShowMessage("Error occurred trying to process filepath " + filePath + ", please check that the default build path and all paths in settings.ini are formatted correctly.", "Filepath Error")
 			raise e
+
+# Helper function to get FileInfo objects for a list of files
+def getFileInfos(filePaths):
+		files = []
+		for filePath in filePaths:
+			files.append(getFileInfo(filePath))
+		return files
 
 # Helper function that gets names of all files in the provided directory
 def getFileNames(directory):

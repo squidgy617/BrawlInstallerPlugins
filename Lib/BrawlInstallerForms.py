@@ -4172,8 +4172,13 @@ class PackageCharacterForm(Form):
         self.fighterGroupBox.Controls.Add(self.kirbyHatGroupBox)
         self.fighterGroupBox.Controls.Add(self.soundGroupBox)
 
+        self.openButton = Button()
+        self.openButton.Text = "Open"
+        self.openButton.Click += self.openButtonPressed
+
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.fighterGroupBox)
+        self.Controls.Add(self.openButton)
         
         self.recalculateGroupLocations()
     
@@ -4201,6 +4206,30 @@ class PackageCharacterForm(Form):
             i += 1
         
         return tabControl
+
+    def openButtonPressed(self, sender, args):
+        file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
+        if file:
+            self.Controls.Clear()
+            self.__init__()
+            if Directory.Exists(TEMP_PATH):
+                Directory.Delete(TEMP_PATH, 1)
+            unzipFile(file)
+            if Directory.Exists(TEMP_PATH):
+                if Directory.Exists(TEMP_PATH + '\\CSPs'):
+                    #self.costumeGroups.Clear()
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\CSPs'):
+                        group = self.addCostumeGroup()
+                        images = Directory.GetFiles(directory, "*.png")
+                        self.updateImages("", "csp", images, group)
+                if Directory.Exists(TEMP_PATH + '\\Fighter'):
+                    self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
+                    self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\ExConfigs', "*.dat"))
+                if Directory.Exists(TEMP_PATH + '\\Module'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Module')
+                    if file and len(file) > 0:
+                        self.moduleControl.textBox.textBox.Text = file[0]
 
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -4258,12 +4287,17 @@ class PackageCharacterForm(Form):
             self.bpHdPictureBoxes[index].Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
-        self.costumeGroups.Add(CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource()))
+        self.addCostumeGroup()
+
+    def addCostumeGroup(self):
+        newGroup = CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource())
+        self.costumeGroups.Add(newGroup)
         buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
         self.cspButton.Enabled = buttonsEnabled
         self.cspHdButton.Enabled = buttonsEnabled
         self.stockButton.Enabled = buttonsEnabled
         self.stockHdButton.Enabled= buttonsEnabled
+        return newGroup
 
     def cspCostumeRemoveButtonPressed(self, sender, args):
         if len(self.costumeGroups) > 0:
@@ -4322,10 +4356,15 @@ class PackageCharacterForm(Form):
                 self.cspListBox.DisplayMember = "name"
 
     # imageType - csp, cspHd, stock, stockHd
-    def updateImages(self, dialogText, imageType):
-        images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
+    def updateImages(self, dialogText, imageType, images="", costume=None):
+        auto = True
+        if not images:
+            images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
+        if not costume:
+            auto = False
+            costume = self.cspCostumeListBox.SelectedItem
         if images:
-            if len(images) == 1 and self.cspListBox.SelectedItem:
+            if len(images) == 1 and self.cspListBox.SelectedItem and not auto:
                 if imageType == "csp":
                     self.cspListBox.SelectedItem.csp = images[0]
                 elif imageType == "cspHd":
@@ -4337,17 +4376,17 @@ class PackageCharacterForm(Form):
             else:
                 i = 0
                 while i < len(images):
-                    if i < len(self.cspListBox.Items):
+                    if i < len(costume.costumeObjects):
                         if imageType == "csp":
-                            self.cspListBox.Items[i].csp = images[i]
+                            costume.costumeObjects[i].csp = images[i]
                         elif imageType == "cspHd":
-                            self.cspListBox.Items[i].cspHd = images[i]
+                            costume.costumeObjects[i].cspHd = images[i]
                         elif imageType == "stock":
-                            self.cspListBox.Items[i].stock = images[i]
+                            costume.costumeObjects[i].stock = images[i]
                         elif imageType == "stockHd":
-                            self.cspListBox.Items[i].stockHd = images[i]
+                            costume.costumeObjects[i].stockHd = images[i]
                     else:
-                        self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1), csp=images[i] if imageType == "csp" else "", cspHd=images[i] if imageType == "cspHd" else "", stock=images[i] if imageType == "stock" else "", stockHd=images[i] if imageType == "stockHd" else ""))
+                        costume.costumeObjects.Add(CostumeObject(name="Color " + str(len(costume.costumeObjects) + 1), csp=images[i] if imageType == "csp" else "", cspHd=images[i] if imageType == "cspHd" else "", stock=images[i] if imageType == "stock" else "", stockHd=images[i] if imageType == "stockHd" else ""))
                         self.cspListBox.DisplayMember = "name"
                     i += 1
             if imageType == "csp":
@@ -4442,6 +4481,8 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Location = Point(4, 16)
         self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 16)
         self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 16)
+        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height)
+        self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
 
 #endregion PACKAGE CHARACTER FORM
 
