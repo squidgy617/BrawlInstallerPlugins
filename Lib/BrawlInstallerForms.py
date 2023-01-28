@@ -3703,12 +3703,12 @@ class PackageCharacterForm(Form):
         self.costumeGroups.DataSource = []
 
         # Cosmetics Groupbox
-        cosmeticsGroupBox = GroupBox()
-        cosmeticsGroupBox.Location = Point(0,0)
-        cosmeticsGroupBox.AutoSize = True
-        cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        cosmeticsGroupBox.Text = "Cosmetics"
-        cosmeticsGroupBox.Click += self.toggleGroupBox
+        self.cosmeticsGroupBox = GroupBox()
+        self.cosmeticsGroupBox.Location = Point(0,0)
+        self.cosmeticsGroupBox.AutoSize = True
+        self.cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.cosmeticsGroupBox.Text = "Cosmetics"
+        self.cosmeticsGroupBox.Click += self.toggleGroupBox
 
         #region CSP and Stocks
 
@@ -4099,15 +4099,45 @@ class PackageCharacterForm(Form):
         self.franchiseIconGroupBox.Controls.Add(self.franchiseIconImageControl)
         self.franchiseIconGroupBox.Controls.Add(self.franchiseModelControl)
 
-        cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
-        cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
-        cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
-        cosmeticsGroupBox.Controls.Add(self.replayGroupBox)
-        cosmeticsGroupBox.Controls.Add(self.portraitNameGroupBox)
-        cosmeticsGroupBox.Controls.Add(self.franchiseIconGroupBox)
-        self.recalculateGroupLocations()
+        self.cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.replayGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.portraitNameGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.franchiseIconGroupBox)
 
-        self.Controls.Add(cosmeticsGroupBox)
+        # Fighter Files Groupbox
+        self.fighterGroupBox = GroupBox()
+        self.fighterGroupBox.AutoSize = True
+        self.fighterGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.fighterGroupBox.Text = "Fighter Files"
+        self.fighterGroupBox.Click += self.toggleGroupBox
+
+        self.mainFighterGroupBox = GroupBox()
+        self.mainFighterGroupBox.AutoSize = True
+        self.mainFighterGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.mainFighterGroupBox.Text = "Main Fighter Files"
+        self.mainFighterGroupBox.Click += self.toggleGroupBox
+
+        pacFilesControl = MultiFileControl("Select your fighter pac files", labelText="PAC Files")
+        pacFilesControl.Location = Point(16, 16)
+
+        exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
+        exConfigsControl.Location = Point(pacFilesControl.Location.X + pacFilesControl.Width, pacFilesControl.Location.Y)
+
+        moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
+        moduleControl.Location = Point(pacFilesControl.Location.X, pacFilesControl.Location.Y + pacFilesControl.Height + 32)
+        
+        self.mainFighterGroupBox.Controls.Add(pacFilesControl)
+        self.mainFighterGroupBox.Controls.Add(exConfigsControl)
+        self.mainFighterGroupBox.Controls.Add(moduleControl)
+        
+        self.fighterGroupBox.Controls.Add(self.mainFighterGroupBox)
+
+        self.Controls.Add(self.cosmeticsGroupBox)
+        self.Controls.Add(self.fighterGroupBox)
+        
+        self.recalculateGroupLocations()
     
     def generateTabImageControl(self, tabNames, imageObjects):
         tabControl = TabControl()
@@ -4370,6 +4400,8 @@ class PackageCharacterForm(Form):
         self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
         self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 16)
         self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 16)
+        self.fighterGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width + 16, self.cosmeticsGroupBox.Location.Y)
+        self.mainFighterGroupBox.Location = Point(4, 16)
 
 #endregion PACKAGE CHARACTER FORM
 
@@ -4399,6 +4431,23 @@ class ImageObject:
             self.label = label
             self.size = size
 
+# A textbox with a label
+class LabeledTextBox(UserControl):
+        def __init__(self, labelText):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+            self.textBox = TextBox()
+            self.textBox.Location = Point(48, 0)
+
+            label = Label()
+            label.Text = labelText + ":"
+            label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
+            label.TextAlign = ContentAlignment.TopRight
+
+            self.Controls.Add(self.textBox)
+            self.Controls.Add(label)
+
 # A control for importing a single file
 class FileControl(UserControl):
         def __init__(self, title="Select your file", filter="PAC files|*.pac", labelText="File"):
@@ -4407,14 +4456,8 @@ class FileControl(UserControl):
             self.title = title
             self.filter = filter
 
-            self.textBox = TextBox()
-            self.textBox.ReadOnly = True
-            self.textBox.Location = Point(48, 0)
-
-            label = Label()
-            label.Text = labelText + ":"
-            label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
-            label.TextAlign = ContentAlignment.TopRight
+            self.textBox = LabeledTextBox(labelText)
+            self.textBox.textBox.ReadOnly = True
 
             button = Button()
             button.Text = "Browse..."
@@ -4422,13 +4465,54 @@ class FileControl(UserControl):
             button.Click += self.buttonPressed
 
             self.Controls.Add(self.textBox)
-            self.Controls.Add(label)
             self.Controls.Add(button)
 
         def buttonPressed(self, sender, args):
             file = BrawlAPI.OpenFileDialog(self.title, self.filter)
             if file:
-                self.textBox.Text = file
+                self.textBox.textBox.Text = file
+
+# A control for importing multiple files
+class MultiFileControl(UserControl):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files"):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.files = BindingSource()
+            self.files.DataSource = []
+
+            label = Label()
+            label.Text = labelText + ":"
+            label.Location = Point(0, 0)
+            label.Height = 16
+
+            self.listBox = ListBox()
+            self.listBox.Width = 100
+            self.listBox.Height = 120
+            self.listBox.Location = Point(label.Location.X, label.Location.Y + 16)
+            self.listBox.HorizontalScrollbar = True
+            self.listBox.DataSource = self.files
+            self.listBox.DisplayMember = "Name"
+            self.listBox.ValueMember = "FullName"
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
+            button.Click += self.buttonPressed
+
+            self.Controls.Add(label)
+            self.Controls.Add(self.listBox)
+            self.Controls.Add(button)
+
+        def buttonPressed(self, sender, args):
+            files = BrawlAPI.OpenMultiFileDialog(self.title, self.filter)
+            if files and len(files) > 0:
+                self.files.DataSource = []
+                for file in files:
+                    self.files.Add(getFileInfo(file))
+                #self.files.DataSource = files
 
 # A control for importing multiple images. Pass in a number of ImageObjects to customize appearance.
 class ImageControl(UserControl):
