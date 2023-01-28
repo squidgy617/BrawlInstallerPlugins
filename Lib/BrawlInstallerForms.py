@@ -4119,20 +4119,58 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Text = "Main Fighter Files"
         self.mainFighterGroupBox.Click += self.toggleGroupBox
 
-        pacFilesControl = MultiFileControl("Select your fighter pac files", labelText="PAC Files")
-        pacFilesControl.Location = Point(16, 16)
+        self.pacFilesControl = MultiFileControl("Select your fighter pac files", labelText="PAC Files")
+        self.pacFilesControl.Location = Point(16, 16)
 
-        exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
-        exConfigsControl.Location = Point(pacFilesControl.Location.X + pacFilesControl.Width, pacFilesControl.Location.Y)
+        self.exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
+        self.exConfigsControl.Location = Point(self.pacFilesControl.Location.X + self.pacFilesControl.Width, self.pacFilesControl.Location.Y)
 
-        moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
-        moduleControl.Location = Point(pacFilesControl.Location.X, pacFilesControl.Location.Y + pacFilesControl.Height + 32)
+        self.moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
+        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 32)
         
-        self.mainFighterGroupBox.Controls.Add(pacFilesControl)
-        self.mainFighterGroupBox.Controls.Add(exConfigsControl)
-        self.mainFighterGroupBox.Controls.Add(moduleControl)
+        self.mainFighterGroupBox.Controls.Add(self.pacFilesControl)
+        self.mainFighterGroupBox.Controls.Add(self.exConfigsControl)
+        self.mainFighterGroupBox.Controls.Add(self.moduleControl)
+
+        # Kirby hats
+        self.kirbyHatGroupBox = GroupBox()
+        self.kirbyHatGroupBox.AutoSize = True
+        self.kirbyHatGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.kirbyHatGroupBox.Text = "Kirby Hat"
+        self.kirbyHatGroupBox.Click += self.toggleGroupBox
+
+        self.kirbyHatFilesControl = MultiFileControl("Select your Kirby hat PAC files", "PAC files|*.pac", "Kirby Hat Files")
+        self.kirbyHatFilesControl.Location = Point(16,16)
+
+        self.kirbyHatTextBox = LabeledTextBox("Kirby Hat ID")
+        self.kirbyHatTextBox.Location = Point(self.kirbyHatFilesControl.Location.X, self.kirbyHatFilesControl.Location.Y + self.kirbyHatFilesControl.Height + 32)
+
+        self.kirbyHatGroupBox.Controls.Add(self.kirbyHatFilesControl)
+        self.kirbyHatGroupBox.Controls.Add(self.kirbyHatTextBox)
+
+        # Sound/Music
+        self.soundGroupBox = GroupBox()
+        self.soundGroupBox.AutoSize = True
+        self.soundGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.soundGroupBox.Text = "Sound"
+        self.soundGroupBox.Click += self.toggleGroupBox
+
+        self.soundBankControl = FileControl("Select your soundbank file", "SAWND files|*.sawnd", "Soundbank")
+        self.soundBankControl.Location = Point(16, 16)
+
+        self.victoryThemeControl = FileControl("Select your victory theme file", "BRSTM files|*.brstm", "Vict. Theme")
+        self.victoryThemeControl.Location = Point(self.soundBankControl.Location.X, self.soundBankControl.Location.Y + 32)
+
+        self.creditsThemeControl = FileControl("Select your credits theme file", "BRSTM files|*.brstm", "Crdt Theme")
+        self.creditsThemeControl.Location = Point(self.victoryThemeControl.Location.X, self.victoryThemeControl.Location.Y + 32)
+
+        self.soundGroupBox.Controls.Add(self.soundBankControl)
+        self.soundGroupBox.Controls.Add(self.victoryThemeControl)
+        self.soundGroupBox.Controls.Add(self.creditsThemeControl)
         
         self.fighterGroupBox.Controls.Add(self.mainFighterGroupBox)
+        self.fighterGroupBox.Controls.Add(self.kirbyHatGroupBox)
+        self.fighterGroupBox.Controls.Add(self.soundGroupBox)
 
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.fighterGroupBox)
@@ -4402,6 +4440,8 @@ class PackageCharacterForm(Form):
         self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 16)
         self.fighterGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width + 16, self.cosmeticsGroupBox.Location.Y)
         self.mainFighterGroupBox.Location = Point(4, 16)
+        self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 16)
+        self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 16)
 
 #endregion PACKAGE CHARACTER FORM
 
@@ -4438,7 +4478,7 @@ class LabeledTextBox(UserControl):
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
             self.textBox = TextBox()
-            self.textBox.Location = Point(48, 0)
+            self.textBox.Location = Point(64, 0)
 
             label = Label()
             label.Text = labelText + ":"
