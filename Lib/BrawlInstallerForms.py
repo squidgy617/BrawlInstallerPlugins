@@ -3907,6 +3907,7 @@ class PackageCharacterForm(Form):
             # Tabs
             bpTabs[i] = TabPage()
             bpTabs[i].Text = bpTabNames[i]
+            bpTabs[i].Name = bpTabNames[i]
             bpTabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
 
             # Labels
@@ -4049,7 +4050,7 @@ class PackageCharacterForm(Form):
         cssTabNames = ["vBrawl", "PM", "P+", "REMIX"]
         cssImageObjects = [ImageObject("CSS Icon", Size(64,64)), ImageObject("HD CSS Icon", Size(64,64)), ImageObject("Name", Size(56,24)), ImageObject("HD Name", Size(56,24))]
 
-        self.cssTabControl = self.generateTabImageControl(cssTabNames, cssImageObjects)
+        self.cssTabControl = TabImageControl(cssTabNames, cssImageObjects)
         
         self.cssGroupBox.Controls.Add(self.cssTabControl)
 
@@ -4064,7 +4065,7 @@ class PackageCharacterForm(Form):
         replayTabNames = ["vBrawl", "P+"]
         replayImageObjects = [ImageObject("Replay Icon", Size(64,24)), ImageObject("HD Replay Icon", Size(64,24))]
 
-        self.replayTabControl = self.generateTabImageControl(replayTabNames, replayImageObjects)
+        self.replayTabControl = TabImageControl(replayTabNames, replayImageObjects)
         
         self.replayGroupBox.Controls.Add(self.replayTabControl)
 
@@ -4079,7 +4080,7 @@ class PackageCharacterForm(Form):
         portraitTabNames = ["vBrawl", "PM"]
         portraitNameImageObjects = [ImageObject("Name", Size(144,32)), ImageObject("HD Name", Size(144,32))]
 
-        self.portraitNameTabControl = self.generateTabImageControl(portraitTabNames, portraitNameImageObjects)
+        self.portraitNameTabControl = TabImageControl(portraitTabNames, portraitNameImageObjects)
         
         self.portraitNameGroupBox.Controls.Add(self.portraitNameTabControl)
 
@@ -4191,6 +4192,7 @@ class PackageCharacterForm(Form):
                 Directory.Delete(TEMP_PATH, 1)
             unzipFile(file)
             if Directory.Exists(TEMP_PATH):
+                # CSPs
                 if Directory.Exists(TEMP_PATH + '\\CSPs'):
                     i = 0
                     for directory in Directory.GetDirectories(TEMP_PATH + '\\CSPs'):
@@ -4201,6 +4203,7 @@ class PackageCharacterForm(Form):
                             hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
                             self.updateImages("", "cspHd", hdImages, group)
                         i += 1
+                # Stocks
                 if Directory.Exists(TEMP_PATH + '\\StockIcons'):
                     i = 0
                     for directory in Directory.GetDirectories(TEMP_PATH + '\\StockIcons'):
@@ -4211,6 +4214,42 @@ class PackageCharacterForm(Form):
                             hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
                             self.updateImages("", "stockHd", hdImages, group)
                         i += 1
+                # BPs
+                if Directory.Exists(TEMP_PATH + '\\BPs'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\BPs'):
+                        name = DirectoryInfo(directory).Name
+                        index = self.bpTabControl.TabPages.IndexOfKey(name)
+                        if index > -1:
+                            images = Directory.GetFiles(directory, "*.png")
+                            self.updateBpImages("", "bp", images, index)
+                            if Directory.Exists(directory + '\\HD'):
+                                hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                                self.updateBpImages("", "bpHd", hdImages, index)
+                            if Directory.Exists(directory + '\\Name'):
+                                nameImage = Directory.GetFiles(directory + '\\Name', "*.png")
+                                if nameImage and len(nameImage) > 0:
+                                    self.bpNameImage[index] = nameImage[0]
+                                    self.bpNamePictureBoxes[index].Image = createBitmap(self.bpNameImage[index])
+                                if Directory.Exists(directory + '\\Name\\HD'):
+                                    nameHdImage = Directory.GetFiles(directory + '\\Name\\HD', "*.png")
+                                    if nameHdImage and len(nameHdImage) > 0:
+                                        self.bpNameHdImage[index] = nameHdImage[0]
+                                        self.bpNameHdPictureBoxes[index].Image = createBitmap(self.bpNameHdImage[index])
+                # CSS Icons
+                if Directory.Exists(TEMP_PATH + '\\CSSIcon'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\CSSIcon'):
+                        name = DirectoryInfo(directory).Name
+                        index = self.cssTabControl.tabControl.TabPages.IndexOfKey(name)
+                        if index > -1:
+                            images = Directory.GetFiles(directory, "*.png")
+                            if images and len(images) > 0:
+                                self.cssTabControl.controls[index].Images[0] = images[0]
+                                self.cssTabControl.controls[index].pictureBox[0].Image = createBitmap(images[0])
+                            if Directory.Exists(directory + '\\HD'):
+                                hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                                if hdImages and len(hdImages) > 0:
+                                    self.cssTabControl.controls[index].Images[1] = hdImages[0]
+                                    self.cssTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImages[0])
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
                 if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
@@ -4219,31 +4258,6 @@ class PackageCharacterForm(Form):
                     file = Directory.GetFiles(TEMP_PATH + '\\Module')
                     if file and len(file) > 0:
                         self.moduleControl.textBox.textBox.Text = file[0]
-    
-    def generateTabImageControl(self, tabNames, imageObjects):
-        tabControl = TabControl()
-        tabControl.Dock = DockStyle.Fill
-
-        tabs = [None] * len(tabNames)
-        controls = [None] * len(tabNames)
-
-        i = 0
-        while i < len(tabs):
-            # Tabs
-            tabs[i] = TabPage()
-            tabs[i].Text = tabNames[i]
-            tabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
-            
-            controls[i] = ImageControl(imageObjects)
-            controls[i].Location = Point(4,4)
-
-            tabs[i].Controls.Add(controls[i])
-
-            # Add to control
-            tabControl.Controls.Add(tabs[i])
-            i += 1
-        
-        return tabControl
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
@@ -4423,9 +4437,11 @@ class PackageCharacterForm(Form):
                 self.stockHdPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.stockHd)
 
     # imageType - bp, bpHd, bpName, bpNameHd
-    def updateBpImages(self, dialogText, imageType):
-        index = self.bpTabControl.SelectedIndex
-        images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
+    def updateBpImages(self, dialogText, imageType, images="", index=-1):
+        if index < 0:
+            index = self.bpTabControl.SelectedIndex
+        if not images:
+            images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
         if images and len(images) > 0:
             if len(images) == 1 and self.bpListBoxes[index].SelectedItem:
                 if imageType == "bp":
@@ -4469,12 +4485,12 @@ class PackageCharacterForm(Form):
     def bpNameButtonPressed(self, sender, args):
         index = self.bpTabControl.SelectedIndex
         self.bpNameImage[index] = BrawlAPI.OpenFileDialog("Select your SD BP name image", "PNG files|*.png")
-        self.bpNamePictureBoxes[index].Image = Bitmap(self.bpNameImage[index])
+        self.bpNamePictureBoxes[index].Image = createBitmap(self.bpNameImage[index])
 
     def bpNameHdButtonPressed(self, sender, args):
         index = self.bpTabControl.SelectedIndex
         self.bpNameHdImage[index] = BrawlAPI.OpenFileDialog("Select your HD BP name image", "PNG files|*.png")
-        self.bpNameHdPictureBoxes[index].Image = Bitmap(self.bpNameHdImage[index])
+        self.bpNameHdPictureBoxes[index].Image = createBitmap(self.bpNameHdImage[index])
 
     def toggleGroupBox(self, sender, args):
         collapsed = False
@@ -4618,6 +4634,34 @@ class MultiFileControl(UserControl):
                 for file in files:
                     self.files.Add(getFileInfo(file))
                 #self.files.DataSource = files
+
+class TabImageControl(UserControl):
+    def __init__(self, tabNames, imageObjects):
+        self.Dock = DockStyle.Fill
+        self.tabControl = TabControl()
+        self.tabControl.Dock = DockStyle.Fill
+
+        tabs = [None] * len(tabNames)
+        self.controls = [None] * len(tabNames)
+
+        i = 0
+        while i < len(tabs):
+            # Tabs
+            tabs[i] = TabPage()
+            tabs[i].Text = tabNames[i]
+            tabs[i].Name = tabNames[i]
+            tabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
+            
+            self.controls[i] = ImageControl(imageObjects)
+            self.controls[i].Location = Point(4,4)
+
+            tabs[i].Controls.Add(self.controls[i])
+
+            # Add to control
+            self.tabControl.Controls.Add(tabs[i])
+            i += 1
+
+        self.Controls.Add(self.tabControl)
 
 # A control for importing multiple images. Pass in a number of ImageObjects to customize appearance.
 class ImageControl(UserControl):
