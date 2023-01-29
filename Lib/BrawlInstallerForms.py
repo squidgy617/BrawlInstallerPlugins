@@ -4482,6 +4482,24 @@ class PackageCharacterForm(Form):
                     file = Directory.GetFiles(TEMP_PATH + '\\Ending', "*.thp")
                     if file and len(file) > 0:
                         self.endingMovieControl.textBox.textBox.Text = file[0]
+                # Fighter settings
+                fighterSettings = getFighterSettings()
+                if fighterSettings:
+                    self.creditsIdControl.textBox.Text = fighterSettings.creditsThemeId
+                    self.trophyIdControl.textBox.Text = fighterSettings.trophyId
+                    if len(fighterSettings.throwReleasePoint) == 2:
+                        self.throwRelease1Control.textBox.Text = fighterSettings.throwReleasePoint[0]
+                        self.throwRelease2Control.textBox.Text = fighterSettings.throwReleasePoint[1]
+                    self.lucarioBoneControl.textBox.Text = fighterSettings.lucarioBoneId
+                    self.lucarioKirbyEffectControl.textBox.Text = fighterSettings.lucarioKirbyEffectId
+                    self.jigglypuffBoneControl.textBox.Text = fighterSettings.jigglypuffBoneId
+                    self.jigglypuffEflsControl.textBox.Text = fighterSettings.jigglypuffEFLSId
+                    if len(fighterSettings.jigglypuffSfxIds) == len(self.jigglypuffSfxIdBox):
+                        i = 0
+                        while i < len(self.jigglypuffSfxIdBox):
+                            self.jigglypuffSfxIdBox[i].Text = fighterSettings.jigglypuffSfxIds[i]
+                            i += 1
+                    self.bowserBoneControl.textBox.Text = fighterSettings.bowserBoneId
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
