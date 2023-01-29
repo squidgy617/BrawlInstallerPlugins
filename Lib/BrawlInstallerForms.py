@@ -4192,10 +4192,25 @@ class PackageCharacterForm(Form):
             unzipFile(file)
             if Directory.Exists(TEMP_PATH):
                 if Directory.Exists(TEMP_PATH + '\\CSPs'):
+                    i = 0
                     for directory in Directory.GetDirectories(TEMP_PATH + '\\CSPs'):
-                        group = self.addCostumeGroup()
+                        group = self.addCostumeGroup(i)
                         images = Directory.GetFiles(directory, "*.png")
                         self.updateImages("", "csp", images, group)
+                        if Directory.Exists(directory + '\\HD'):
+                            hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                            self.updateImages("", "cspHd", hdImages, group)
+                        i += 1
+                if Directory.Exists(TEMP_PATH + '\\StockIcons'):
+                    i = 0
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\StockIcons'):
+                        group = self.addCostumeGroup(i)
+                        images = Directory.GetFiles(directory, "*.png")
+                        self.updateImages("", "stock", images, group)
+                        if Directory.Exists(directory + '\\HD'):
+                            hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                            self.updateImages("", "stockHd", hdImages, group)
+                        i += 1
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
                 if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
@@ -4295,14 +4310,17 @@ class PackageCharacterForm(Form):
     def cspCostumeButtonPressed(self, sender, args):
         self.addCostumeGroup()
 
-    def addCostumeGroup(self):
-        newGroup = CostumeGroup("Costume " + str(len(self.costumeGroups) + 1), BindingSource())
-        self.costumeGroups.Add(newGroup)
-        buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
-        self.cspButton.Enabled = buttonsEnabled
-        self.cspHdButton.Enabled = buttonsEnabled
-        self.stockButton.Enabled = buttonsEnabled
-        self.stockHdButton.Enabled= buttonsEnabled
+    def addCostumeGroup(self, index):
+        if len(self.costumeGroups) <= index:
+            newGroup = CostumeGroup("Costume " + str(index + 1), BindingSource())
+            self.costumeGroups.Add(newGroup)
+            buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
+            self.cspButton.Enabled = buttonsEnabled
+            self.cspHdButton.Enabled = buttonsEnabled
+            self.stockButton.Enabled = buttonsEnabled
+            self.stockHdButton.Enabled= buttonsEnabled
+        else:
+            newGroup = self.costumeGroups[index]
         return newGroup
 
     def cspCostumeRemoveButtonPressed(self, sender, args):
