@@ -4250,6 +4250,77 @@ class PackageCharacterForm(Form):
                                 if hdImages and len(hdImages) > 0:
                                     self.cssTabControl.controls[index].Images[1] = hdImages[0]
                                     self.cssTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImages[0])
+                            if Directory.Exists(directory + '\\Name'):
+                                nameImages = Directory.GetFiles(directory + '\\Name', "*.png")
+                                if nameImages and len(nameImages) > 0:
+                                    self.cssTabControl.controls[index].Images[2] = nameImages[0]
+                                    self.cssTabControl.controls[index].pictureBox[2].Image = createBitmap(nameImages[0])
+                                if Directory.Exists(directory + '\\Name\\HD'):
+                                    nameHdImages = Directory.GetFiles(directory + '\\Name\\HD', "*.png")
+                                    if nameHdImages and len(nameHdImages) > 0:
+                                        self.cssTabControl.controls[index].Images[3] = nameHdImages[0]
+                                        self.cssTabControl.controls[index].pictureBox[3].Image = createBitmap(nameHdImages[0])
+                # Replay Icons
+                if Directory.Exists(TEMP_PATH + '\\ReplayIcon'):
+                    # To support legacy character packages, first check the root folder for replay icon
+                    index = self.replayTabControl.tabControl.TabPages.IndexOfKey("P+")
+                    if index > -1:
+                        image = Directory.GetFiles(TEMP_PATH + '\\ReplayIcon', "*.png")
+                        if image and len(image) > 0:
+                            self.replayTabControl.controls[index].Images[0] = image[0]
+                            self.replayTabControl.controls[index].pictureBox[0].Image = createBitmap(image[0])
+                        if Directory.Exists(TEMP_PATH + '\\ReplayIcon\\HD'):
+                            hdImage = Directory.GetFiles(TEMP_PATH + '\\ReplayIcon\\HD', "*.png")
+                            if hdImage and len(hdImage) > 0:
+                                self.replayTabControl.controls[index].Images[1] = hdImage[0]
+                                self.replayTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImage[0])
+                        # Modern implementation
+                        for directory in Directory.GetDirectories(TEMP_PATH + '\\ReplayIcon'):
+                            name = DirectoryInfo(directory).Name
+                            index = self.replayTabControl.tabControl.TabPages.IndexOfKey(name)
+                            if index > -1:
+                                image = Directory.GetFiles(directory, "*.png")
+                                if image and len(image) > 0:
+                                    self.replayTabControl.controls[index].Images[0] = image[0]
+                                    self.replayTabControl.controls[index].pictureBox[0].Image = createBitmap(image[0])
+                                if Directory.Exists(directory + '\\HD'):
+                                    hdImage = Directory.GetFiles(directory + '\\HD', "*.png")
+                                    if hdImage and len(hdImage) > 0:
+                                        self.replayTabControl.controls[index].Images[1] = hdImage[0]
+                                        self.replayTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImage[0])
+                # Portrait Name
+                if Directory.Exists(TEMP_PATH + '\\PortraitName'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\PortraitName'):
+                        name = DirectoryInfo(directory).Name
+                        index = self.portraitNameTabControl.tabControl.TabPages.IndexOfKey(name)
+                        if index > -1:
+                            image = Directory.GetFiles(directory, "*.png")
+                            if image and len(image) > 0:
+                                self.portraitNameTabControl.controls[index].Images[0] = image[0]
+                                self.portraitNameTabControl.controls[index].pictureBox[0].Image = createBitmap(image[0])
+                            if Directory.Exists(directory + '\\HD'):
+                                hdImage = Directory.GetFiles(directory + '\\HD', "*.png")
+                                if hdImage and len(hdImage) > 0:
+                                    self.portraitNameTabControl.controls[index].Images[1] = hdImage[0]
+                                    self.portraitNameTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImage[0])
+                # Franchise Icon
+                if Directory.Exists(TEMP_PATH + '\\FranchiseIcons'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\FranchiseIcons'):
+                        name = DirectoryInfo(directory).Name
+                        index = -1
+                        if name == "Black":
+                            index = 0
+                        elif name == "Transparent":
+                            index = 1
+                        if index > -1:
+                            image = Directory.GetFiles(directory, "*.png")
+                            if image and len(image) > 0:
+                                self.franchiseIconImageControl.Images[index] = image[0]
+                                self.franchiseIconImageControl.pictureBox[index].Image = createBitmap(image[0])
+                        if name == "Model":
+                            file = Directory.GetFiles(directory, "*.mdl0")
+                            if file and len(file) > 0:
+                                self.franchiseModelControl.textBox.textBox.Text = file[0]
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
                 if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
