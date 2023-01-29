@@ -4144,7 +4144,7 @@ class PackageCharacterForm(Form):
         self.kirbyHatFilesControl = MultiFileControl("Select your Kirby hat PAC files", "PAC files|*.pac", "Kirby Hat Files")
         self.kirbyHatFilesControl.Location = Point(16,16)
 
-        self.kirbyHatTextBox = LabeledTextBox("Kirby Hat ID")
+        self.kirbyHatTextBox = LabeledTextBox("Kirby Hat ID", "fighter")
         self.kirbyHatTextBox.Location = Point(self.kirbyHatFilesControl.Location.X, self.kirbyHatFilesControl.Location.Y + self.kirbyHatFilesControl.Height + 32)
 
         self.kirbyHatGroupBox.Controls.Add(self.kirbyHatFilesControl)
@@ -4195,12 +4195,114 @@ class PackageCharacterForm(Form):
         self.fighterGroupBox.Controls.Add(self.soundGroupBox)
         self.fighterGroupBox.Controls.Add(self.classicGroupBox)
 
+        # Misc Groupbox
+        self.miscGroupBox = GroupBox()
+        self.miscGroupBox.AutoSize = True
+        self.miscGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.miscGroupBox.Text = "Misc"
+        self.miscGroupBox.Click += self.toggleGroupBox
+
+        self.codeGroupBox = GroupBox()
+        self.codeGroupBox.AutoSize = True
+        self.codeGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.codeGroupBox.Text = "Code Settings"
+        self.codeGroupBox.Click += self.toggleGroupBox
+
+        self.creditsIdControl = LabeledTextBox("Credits\nTheme ID", "creditsTheme")
+        self.creditsIdControl.Location = Point(4, 16)
+
+        self.trophyIdControl = LabeledTextBox("Trophy ID")
+        self.trophyIdControl.Location = Point(self.creditsIdControl.Location.X, self.creditsIdControl.Location.Y + 32)
+
+        self.throwRelease1Control = LabeledTextBox("Throw\nRelease 1")
+        self.throwRelease1Control.Location = Point(self.trophyIdControl.Location.X, self.trophyIdControl.Location.Y + 32)
+        
+        self.throwRelease2Control = LabeledTextBox("Throw\nRelease 2")
+        self.throwRelease2Control.Location = Point(self.throwRelease1Control.Location.X, self.throwRelease1Control.Location.Y + 32)
+
+        # Fighter specific codes
+
+        # Lucario
+        self.lucarioGroupBox = GroupBox()
+        self.lucarioGroupBox.AutoSize = False
+        self.lucarioGroupBox.Size = Size(128, 16)
+        self.lucarioGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.lucarioGroupBox.Text = "Lucario"
+        self.lucarioGroupBox.Location = Point(self.throwRelease2Control.Location.X, self.throwRelease2Control.Location.Y + 32)
+        self.lucarioGroupBox.Click += self.toggleGroupBox
+
+        self.lucarioBoneControl = LabeledTextBox("Bone ID")
+        self.lucarioBoneControl.Location = Point(4,16)
+
+        self.lucarioKirbyEffectControl = LabeledTextBox("Kirby\nEffect ID")
+        self.lucarioKirbyEffectControl.Location = Point(self.lucarioBoneControl.Location.X, self.lucarioBoneControl.Location.Y + 32)
+
+        self.lucarioGroupBox.Controls.Add(self.lucarioBoneControl)
+        self.lucarioGroupBox.Controls.Add(self.lucarioKirbyEffectControl)
+
+        # Jigglypuff
+        self.jigglypuffGroupBox = GroupBox()
+        self.jigglypuffGroupBox.AutoSize = False
+        self.jigglypuffGroupBox.Size = Size(128, 16)
+        self.jigglypuffGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.jigglypuffGroupBox.Text = "JigglyPuff"
+        self.jigglypuffGroupBox.Click += self.toggleGroupBox
+
+        self.jigglypuffBoneControl = LabeledTextBox("Bone ID")
+        self.jigglypuffBoneControl.Location = Point(4,16)
+
+        self.jigglypuffEflsControl = LabeledTextBox("EFLS ID")
+        self.jigglypuffEflsControl.Location = Point(self.jigglypuffBoneControl.Location.X, self.jigglypuffBoneControl.Location.Y + 32)
+
+        jigglypuffSfxLabel = Label()
+        jigglypuffSfxLabel.Height = 16
+        jigglypuffSfxLabel.Text = "SFX IDs:"
+        jigglypuffSfxLabel.Location = Point(self.jigglypuffEflsControl.Location.X, self.jigglypuffEflsControl.Location.Y + 32)
+
+        self.jigglypuffGroupBox.Controls.Add(self.jigglypuffBoneControl)
+        self.jigglypuffGroupBox.Controls.Add(self.jigglypuffEflsControl)
+        self.jigglypuffGroupBox.Controls.Add(jigglypuffSfxLabel)
+
+        self.jigglypuffSfxIdBox = [None] * 4
+        i = 0
+        while i < 4:
+            y = jigglypuffSfxLabel.Location.Y + 16 if i == 0 else self.jigglypuffSfxIdBox[i-1].Location.Y + 32
+            self.jigglypuffSfxIdBox[i] = TextBox()
+            self.jigglypuffSfxIdBox[i].Location = Point(jigglypuffSfxLabel.Location.X + 16, y)
+            
+            self.jigglypuffGroupBox.Controls.Add(self.jigglypuffSfxIdBox[i])
+            i += 1
+
+        # Bowser
+        self.bowserGroupBox = GroupBox()
+        self.bowserGroupBox.AutoSize = False
+        self.bowserGroupBox.Size = Size(128, 16)
+        self.bowserGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.bowserGroupBox.Text = "Bowser"
+        self.bowserGroupBox.Click += self.toggleGroupBox
+
+        self.bowserBoneControl = LabeledTextBox("Bone ID")
+        self.bowserBoneControl.Location = Point(4,16)
+
+        self.bowserGroupBox.Controls.Add(self.bowserBoneControl)
+
+        self.codeGroupBox.Controls.Add(self.creditsIdControl)
+        self.codeGroupBox.Controls.Add(self.trophyIdControl)
+        self.codeGroupBox.Controls.Add(self.throwRelease1Control)
+        self.codeGroupBox.Controls.Add(self.throwRelease2Control)
+        self.codeGroupBox.Controls.Add(self.lucarioGroupBox)
+        self.codeGroupBox.Controls.Add(self.jigglypuffGroupBox)
+        self.codeGroupBox.Controls.Add(self.bowserGroupBox)
+
+        self.miscGroupBox.Controls.Add(self.codeGroupBox)
+
         self.openButton = Button()
         self.openButton.Text = "Open"
         self.openButton.Click += self.openButtonPressed
 
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.fighterGroupBox)
+        self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
         
         self.recalculateGroupLocations()
@@ -4633,18 +4735,22 @@ class PackageCharacterForm(Form):
 
     def recalculateGroupLocations(self):
         self.cspGroupBox.Location = Point(0,16)
-        self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 16)
-        self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 16)
+        self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 4)
+        self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 4)
         x = max(self.cspGroupBox.Location.X + self.cspGroupBox.Width, self.bpGroupBox.Location.X + self.bpGroupBox.Width, self.cssGroupBox.Location.X + self.cssGroupBox.Width)
         self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
-        self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 16)
-        self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 16)
+        self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 4)
+        self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 4)
         self.fighterGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width + 16, self.cosmeticsGroupBox.Location.Y)
         self.mainFighterGroupBox.Location = Point(4, 16)
-        self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 16)
-        self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 16)
-        self.classicGroupBox.Location = Point(self.soundGroupBox.Location.X, self.soundGroupBox.Location.Y + self.soundGroupBox.Height + 16)
-        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height)
+        self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 4)
+        self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 4)
+        self.classicGroupBox.Location = Point(self.soundGroupBox.Location.X, self.soundGroupBox.Location.Y + self.soundGroupBox.Height + 4)
+        self.miscGroupBox.Location = Point(self.fighterGroupBox.Location.X + self.fighterGroupBox.Width + 16, self.fighterGroupBox.Location.Y)
+        self.codeGroupBox.Location = Point(4, 16)
+        self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
+        self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
+        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
 
 #endregion PACKAGE CHARACTER FORM
@@ -4677,9 +4783,10 @@ class ImageObject:
 
 # A textbox with a label
 class LabeledTextBox(UserControl):
-        def __init__(self, labelText):
+        def __init__(self, labelText, idButtonType=""):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.idButtonType = idButtonType
 
             self.textBox = TextBox()
             self.textBox.Location = Point(64, 0)
@@ -4689,8 +4796,23 @@ class LabeledTextBox(UserControl):
             label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
             label.TextAlign = ContentAlignment.TopRight
 
+            idButton = Button()
+            idButton.Text = "..."
+            idButton.Size = Size(25, self.textBox.ClientSize.Height + 2)
+            idButton.Location = Point(self.textBox.ClientSize.Width - idButton.Width, -1)
+            idButton.Cursor = Cursors.Default
+            idButton.Click += self.idButtonPressed
+
+            if self.idButtonType:
+                self.textBox.Controls.Add(idButton)
+
             self.Controls.Add(self.textBox)
             self.Controls.Add(label)
+
+        def idButtonPressed(self, sender, args):
+            id = showIdPicker(self.idButtonType)
+            if id:
+                self.textBox.Text = id
 
 # A control for importing a single file
 class FileControl(UserControl):
