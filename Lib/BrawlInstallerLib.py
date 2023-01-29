@@ -1845,6 +1845,7 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 # Add song to tracklist
 def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		writeLog("Adding song file " + file)
+		currentSongId = 0
 		# Move to strm directory
 		file = getFileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory + '/' + file.Name
@@ -1853,32 +1854,34 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		getFileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		writeLog("Opening tracklist " + tracklist)
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Back up tracklist
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Check if song is already installed
-		writeLog("Checking if song already exists")
-		for song in BrawlAPI.RootNode.Children:
-			if song.SongFileName == songDirectory + '/' + file.Name.split('.')[0]:
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+			if fileOpened:
+				# Back up tracklist
+				createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+				# Check if song is already installed
+				writeLog("Checking if song already exists")
+				for song in BrawlAPI.RootNode.Children:
+					if song.SongFileName == songDirectory + '/' + file.Name.split('.')[0]:
+						BrawlAPI.ForceCloseFile()
+						return song.SongID
+				# Calculate song ID
+				writeLog("Calculating song ID")
+				usedSongIds = getUsedSongIds(BrawlAPI.RootNode)
+				currentSongId = 61440
+				while currentSongId in usedSongIds:
+					currentSongId += 1
+				# Add to tracklist file
+				writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
+				newNode = TLSTEntryNode()
+				newNode.Name = file.Name.split('.')[0]
+				newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
+				newNode.Volume = 80
+				newNode.Frequency = 40
+				newNode.SongID = currentSongId
+				BrawlAPI.RootNode.AddChild(newNode)
+				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
-				return song.SongID
-		# Calculate song ID
-		writeLog("Calculating song ID")
-		usedSongIds = getUsedSongIds(BrawlAPI.RootNode)
-		currentSongId = 61440
-		while currentSongId in usedSongIds:
-			currentSongId += 1
-		# Add to tracklist file
-		writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
-		newNode = TLSTEntryNode()
-		newNode.Name = file.Name.split('.')[0]
-		newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
-		newNode.Volume = 80
-		newNode.Frequency = 40
-		newNode.SongID = currentSongId
-		BrawlAPI.RootNode.AddChild(newNode)
-		BrawlAPI.SaveFile()
-		BrawlAPI.ForceCloseFile()
 		writeLog("Finished adding song.")
 		return currentSongId
 
