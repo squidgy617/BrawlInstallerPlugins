@@ -210,6 +210,12 @@ def clearTextBoxes(groupBox):
 			elif control.GetType() == TextBox:
 				control.Text = ""
 
+# Create a copy of a bitmap from an image path, rather than calling on the actual image
+def createBitmap(imagePath):
+	with Bitmap(imagePath) as bmpTemp:
+		img = Bitmap(bmpTemp)
+	return img
+
 # Validate all text boxes in a Windows form group are valid hex IDs
 def validateTextBoxes(groupBox):
 		validationPassed = True

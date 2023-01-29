@@ -6,6 +6,11 @@ from BrawlInstallerForms import *
 def main():
 		form = PackageCharacterForm()
 		result = form.ShowDialog(MainForm.Instance)
+		while(result == DialogResult.Retry):
+			zipFile = form.zipFile
+			form.Dispose()
+			form = PackageCharacterForm(zipFile)
+			result = form.ShowDialog(MainForm.Instance)
 		form.Dispose()
 
 main()

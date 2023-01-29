@@ -3687,7 +3687,7 @@ class CostumeForm(Form):
 
 class PackageCharacterForm(Form):
 
-    def __init__(self):
+    def __init__(self, zipFile=""):
         # Form parameters
         self.Text = 'Package Character'
         self.StartPosition = FormStartPosition.CenterParent
@@ -3701,6 +3701,7 @@ class PackageCharacterForm(Form):
 
         self.costumeGroups = BindingSource()
         self.costumeGroups.DataSource = []
+        self.zipFile = zipFile
 
         # Cosmetics Groupbox
         self.cosmeticsGroupBox = GroupBox()
@@ -4181,6 +4182,28 @@ class PackageCharacterForm(Form):
         self.Controls.Add(self.openButton)
         
         self.recalculateGroupLocations()
+        self.Load += self.openCharacterPackage
+
+    def openCharacterPackage(self, sender, args):
+        if self.zipFile:
+            file = self.zipFile
+            if Directory.Exists(TEMP_PATH):
+                Directory.Delete(TEMP_PATH, 1)
+            unzipFile(file)
+            if Directory.Exists(TEMP_PATH):
+                if Directory.Exists(TEMP_PATH + '\\CSPs'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\CSPs'):
+                        group = self.addCostumeGroup()
+                        images = Directory.GetFiles(directory, "*.png")
+                        self.updateImages("", "csp", images, group)
+                if Directory.Exists(TEMP_PATH + '\\Fighter'):
+                    self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
+                    self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\ExConfigs', "*.dat"))
+                if Directory.Exists(TEMP_PATH + '\\Module'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Module')
+                    if file and len(file) > 0:
+                        self.moduleControl.textBox.textBox.Text = file[0]
     
     def generateTabImageControl(self, tabNames, imageObjects):
         tabControl = TabControl()
@@ -4210,33 +4233,16 @@ class PackageCharacterForm(Form):
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
         if file:
-            self.Controls.Clear()
-            self.__init__()
-            if Directory.Exists(TEMP_PATH):
-                Directory.Delete(TEMP_PATH, 1)
-            unzipFile(file)
-            if Directory.Exists(TEMP_PATH):
-                if Directory.Exists(TEMP_PATH + '\\CSPs'):
-                    #self.costumeGroups.Clear()
-                    for directory in Directory.GetDirectories(TEMP_PATH + '\\CSPs'):
-                        group = self.addCostumeGroup()
-                        images = Directory.GetFiles(directory, "*.png")
-                        self.updateImages("", "csp", images, group)
-                if Directory.Exists(TEMP_PATH + '\\Fighter'):
-                    self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
-                if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
-                    self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\ExConfigs', "*.dat"))
-                if Directory.Exists(TEMP_PATH + '\\Module'):
-                    file = Directory.GetFiles(TEMP_PATH + '\\Module')
-                    if file and len(file) > 0:
-                        self.moduleControl.textBox.textBox.Text = file[0]
+            self.zipFile = file
+            self.DialogResult = DialogResult.Retry
+            self.Close()
 
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
             self.cspListBox.DataSource = self.cspCostumeListBox.SelectedItem.costumeObjects
             self.cspListBox.DisplayMember = "name"
             if self.cspListBox.SelectedItem and self.cspListBox.SelectedItem.csp:
-                self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.csp)
+                self.cspPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.csp)
             else:
                 self.cspPictureBox.Image = None
         self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
@@ -4250,19 +4256,19 @@ class PackageCharacterForm(Form):
         self.stockHdButton.Enabled = buttonsEnabled
         if self.cspListBox.SelectedValue:
             if self.cspListBox.SelectedValue.csp:
-                self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.csp)
+                self.cspPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.csp)
             else:
                 self.cspPictureBox.Image = None
             if self.cspListBox.SelectedValue.cspHd:
-                self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.cspHd)
+                self.cspHdPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.cspHd) 
             else:
                 self.cspHdPictureBox.Image = None
             if self.cspListBox.SelectedValue.stock:
-                self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stock)
+                self.stockPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.stock)
             else:
                 self.stockPictureBox.Image = None
             if self.cspListBox.SelectedValue.stockHd:
-                self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedValue.stockHd)
+                self.stockHdPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.stockHd)
             else:
                 self.stockHdPictureBox.Image = None
         else:
@@ -4275,11 +4281,11 @@ class PackageCharacterForm(Form):
         index = self.bpTabControl.SelectedIndex
         if self.bpListBoxes[index].SelectedValue:
             if self.bpListBoxes[index].SelectedValue.bp:
-                self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedValue.bp)
+                self.bpPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedValue.bp)
             else:
                 self.bpPictureBoxes[index].Image = None
             if self.bpListBoxes[index].SelectedValue.bpHd:
-                self.bpHdPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedValue.bpHd)
+                self.bpHdPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedValue.bpHd)
             else:
                 self.bpHdPictureBoxes[index].Image = None
         else:
@@ -4390,13 +4396,13 @@ class PackageCharacterForm(Form):
                         self.cspListBox.DisplayMember = "name"
                     i += 1
             if imageType == "csp":
-                self.cspPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.csp)
+                self.cspPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.csp)
             elif imageType == "cspHd":
-                self.cspHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.cspHd)
+                self.cspHdPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.cspHd)
             elif imageType == "stock":
-                self.stockPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stock)
+                self.stockPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.stock)
             elif imageType == "stockHd":
-                self.stockHdPictureBox.Image = Bitmap(self.cspListBox.SelectedItem.stockHd)
+                self.stockHdPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.stockHd)
 
     # imageType - bp, bpHd, bpName, bpNameHd
     def updateBpImages(self, dialogText, imageType):
@@ -4420,9 +4426,9 @@ class PackageCharacterForm(Form):
                         self.bps[index].Add(BpObject(name="Image " + str(len(self.bpListBoxes[index].Items) + 1), bp=images[i] if imageType == "bp" else "", bpHd=images[i] if imageType == "bpHd" else ""))
                     i += 1
             if imageType == "bp":
-                self.bpPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bp)
+                self.bpPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedItem.bp)
             elif imageType == "bpHd":
-                self.bpHdPictureBoxes[index].Image = Bitmap(self.bpListBoxes[index].SelectedItem.bpHd)
+                self.bpHdPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedItem.bpHd)
 
     def bpButtonPressed(self, sender, args):
         self.updateBpImages("Select your SD BP images", "bp")
@@ -4649,7 +4655,7 @@ class ImageControl(UserControl):
         def buttonPressed(self, sender, args):
             image = BrawlAPI.OpenFileDialog("Select image file", "PNG files|*.png")
             if image:
-                self.pictureBox[sender.TabIndex].Image = Bitmap(image)
+                self.pictureBox[sender.TabIndex].Image = createBitmap(image)
                 self.Images[sender.TabIndex] = image
 
 #endregion
