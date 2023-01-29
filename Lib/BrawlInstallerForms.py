@@ -3695,7 +3695,7 @@ class PackageCharacterForm(Form):
         self.AutoSize = True
         self.MinimizeBox = False
         self.MaximizeBox = False
-        self.MinimumSize = Size(267,344)
+        #self.MinimumSize = Size(267,344)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
@@ -4321,14 +4321,35 @@ class PackageCharacterForm(Form):
                             file = Directory.GetFiles(directory, "*.mdl0")
                             if file and len(file) > 0:
                                 self.franchiseModelControl.textBox.textBox.Text = file[0]
+                # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
                 if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
                     self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\ExConfigs', "*.dat"))
                 if Directory.Exists(TEMP_PATH + '\\Module'):
-                    file = Directory.GetFiles(TEMP_PATH + '\\Module')
+                    file = Directory.GetFiles(TEMP_PATH + '\\Module', "*.rel")
                     if file and len(file) > 0:
                         self.moduleControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\KirbyHats'):
+                    self.kirbyHatFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\KirbyHats', "*.pac"))
+                    if File.Exists(TEMP_PATH + '\\KirbyHats\\FighterID.txt'):
+                        self.kirbyHatTextBox.textBox.Text = File.ReadAllText(TEMP_PATH + '\\KirbyHats\\FighterID.txt')
+                if Directory.Exists(TEMP_PATH + '\\Soundbank'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Soundbank')
+                    if file and len(file) > 0:
+                        self.soundBankControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\Soundbank'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Soundbank', "*.sawnd")
+                    if file and len(file) > 0:
+                        self.soundBankControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\VictoryTheme'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\VictoryTheme', "*.brstm")
+                    if file and len(file) > 0:
+                        self.victoryThemeControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\CreditsTheme'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\CreditsTheme', "*.brstm")
+                    if file and len(file) > 0:
+                        self.creditsThemeControl.textBox.textBox.Text = file[0]
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
