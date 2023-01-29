@@ -4220,6 +4220,9 @@ class PackageCharacterForm(Form):
         self.throwRelease2Control = LabeledTextBox("Throw\nRelease 2")
         self.throwRelease2Control.Location = Point(self.throwRelease1Control.Location.X, self.throwRelease1Control.Location.Y + 32)
 
+        self.asmControl = MultiFileControl("Select your Gecko code ASM files", "ASM files|*.asm", "ASM Files")
+        self.asmControl.Location = Point(self.throwRelease2Control.Location.X + 16, self.throwRelease2Control.Location.Y + 32)
+
         # Fighter specific codes
 
         # Lucario
@@ -4228,7 +4231,7 @@ class PackageCharacterForm(Form):
         self.lucarioGroupBox.Size = Size(128, 16)
         self.lucarioGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
         self.lucarioGroupBox.Text = "Lucario"
-        self.lucarioGroupBox.Location = Point(self.throwRelease2Control.Location.X, self.throwRelease2Control.Location.Y + 32)
+        self.lucarioGroupBox.Location = Point(self.asmControl.Location.X - 16, self.asmControl.Location.Y + self.asmControl.Height + 32)
         self.lucarioGroupBox.Click += self.toggleGroupBox
 
         self.lucarioBoneControl = LabeledTextBox("Bone ID")
@@ -4290,6 +4293,7 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Controls.Add(self.trophyIdControl)
         self.codeGroupBox.Controls.Add(self.throwRelease1Control)
         self.codeGroupBox.Controls.Add(self.throwRelease2Control)
+        self.codeGroupBox.Controls.Add(self.asmControl)
         self.codeGroupBox.Controls.Add(self.lucarioGroupBox)
         self.codeGroupBox.Controls.Add(self.jigglypuffGroupBox)
         self.codeGroupBox.Controls.Add(self.bowserGroupBox)
@@ -4500,6 +4504,8 @@ class PackageCharacterForm(Form):
                             self.jigglypuffSfxIdBox[i].Text = fighterSettings.jigglypuffSfxIds[i]
                             i += 1
                     self.bowserBoneControl.textBox.Text = fighterSettings.bowserBoneId
+                    if Directory.Exists(TEMP_PATH + '\\Codes'):
+                        self.asmControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Codes', "*.asm"))
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
