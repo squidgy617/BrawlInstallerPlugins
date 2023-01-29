@@ -4298,7 +4298,39 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Controls.Add(self.jigglypuffGroupBox)
         self.codeGroupBox.Controls.Add(self.bowserGroupBox)
 
+        self.trophyGroupBox = GroupBox()
+        self.trophyGroupBox.AutoSize = True
+        self.trophyGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.trophyGroupBox.Text = "Trophy Settings"
+        self.trophyGroupBox.Click += self.toggleGroupBox
+
+        self.trophyNameControl = LabeledTextBox("Name")
+        self.trophyNameControl.Location = Point(4,16)
+
+        self.trophyDescriptionControl = LabeledTextBox("Description", multiline=True)
+        self.trophyDescriptionControl.Location = Point(self.trophyNameControl.Location.X, self.trophyNameControl.Location.Y + 32)
+
+        self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
+        self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+
+        self.gameIcon2Control = LabeledDropDown("Game\nIcon 2", TROPHY_GAME_ICONS)
+        self.gameIcon2Control.Location = Point(self.gameIcon1Control.Location.X, self.gameIcon1Control.Location.Y + 32)
+
+        self.gameName1Control = LabeledTextBox("Game\nName 1")
+        self.gameName1Control.Location = Point(self.gameIcon2Control.Location.X, self.gameIcon2Control.Location.Y + 32)
+
+        self.gameName2Control = LabeledTextBox("Game\nName 2")
+        self.gameName2Control.Location = Point(self.gameName1Control.Location.X, self.gameName1Control.Location.Y + 32)
+
+        self.trophyGroupBox.Controls.Add(self.trophyNameControl)
+        self.trophyGroupBox.Controls.Add(self.trophyDescriptionControl)
+        self.trophyGroupBox.Controls.Add(self.gameIcon1Control)
+        self.trophyGroupBox.Controls.Add(self.gameIcon2Control)
+        self.trophyGroupBox.Controls.Add(self.gameName1Control)
+        self.trophyGroupBox.Controls.Add(self.gameName2Control)
+
         self.miscGroupBox.Controls.Add(self.codeGroupBox)
+        self.miscGroupBox.Controls.Add(self.trophyGroupBox)
 
         self.openButton = Button()
         self.openButton.Text = "Open"
@@ -4506,6 +4538,12 @@ class PackageCharacterForm(Form):
                     self.bowserBoneControl.textBox.Text = fighterSettings.bowserBoneId
                     if Directory.Exists(TEMP_PATH + '\\Codes'):
                         self.asmControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Codes', "*.asm"))
+                # Trophy Settings
+                if Directory.Exists(TEMP_PATH + '\\Trophy'):
+                    trophySettings = getTrophySettings()
+                    if trophySettings:
+                        self.trophyNameControl.textBox.Text = trophySettings.trophyName
+                        self.trophyDescriptionControl.textBox.Text = trophySettings.description.replace('<br/>', '\r\n')
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
@@ -4774,6 +4812,7 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Location = Point(4, 16)
         self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
         self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
+        self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
 
@@ -4807,13 +4846,19 @@ class ImageObject:
 
 # A textbox with a label
 class LabeledTextBox(UserControl):
-        def __init__(self, labelText, idButtonType=""):
+        def __init__(self, labelText, idButtonType="", multiline=False):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
             self.idButtonType = idButtonType
 
             self.textBox = TextBox()
             self.textBox.Location = Point(64, 0)
+            if multiline:
+                self.textBox.Multiline = True
+                self.textBox.ScrollBars = ScrollBars.Vertical
+                self.textBox.AcceptsReturn = True
+                self.textBox.WordWrap = True
+                self.textBox.Size = Size(100, 120)
 
             label = Label()
             label.Text = labelText + ":"
@@ -4837,6 +4882,28 @@ class LabeledTextBox(UserControl):
             id = showIdPicker(self.idButtonType)
             if id:
                 self.textBox.Text = id
+
+# A dropdown with a label
+class LabeledDropDown(UserControl):
+        def __init__(self, labelText, dataSource):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+            self.dropDown = ComboBox()
+            self.dropDown.Location = Point(64, 0)
+            self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+            self.dropDown.DisplayMember = "Key"
+            self.dropDown.ValueMember = "Value"
+            for object in dataSource:
+                self.dropDown.Items.Add(object)
+
+            label = Label()
+            label.Text = labelText + ":"
+            label.Location = Point(self.dropDown.Location.X - self.dropDown.Width, self.dropDown.Location.Y)
+            label.TextAlign = ContentAlignment.TopRight
+
+            self.Controls.Add(self.dropDown)
+            self.Controls.Add(label)
 
 # A control for importing a single file
 class FileControl(UserControl):

@@ -182,6 +182,20 @@ TROPHY_SERIES = {
 	"Sonic the Hedgehog" : 21
 }
 
+TROPHY_GAME_ICONS = {
+	"None" : 0,
+	"Nintendo 64" : 1,
+	"Gamecube" : 2,
+	"NES" : 3,
+	"Famicom Disk System" : 4,
+	"Nintendo DS" : 5,
+	"Super Nintendo" : 6,
+	"Gameboy Advance" : 7,
+	"Gameboy" : 8,
+	"Wii" : 9,
+	"Game and Watch" : 10
+}
+
 COSTUME_COLOR = {
 	"Red" : 0,
 	"Blue" : 1,
