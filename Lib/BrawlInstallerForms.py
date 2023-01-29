@@ -4160,19 +4160,40 @@ class PackageCharacterForm(Form):
         self.soundBankControl = FileControl("Select your soundbank file", "SAWND files|*.sawnd", "Soundbank")
         self.soundBankControl.Location = Point(16, 16)
 
-        self.victoryThemeControl = FileControl("Select your victory theme file", "BRSTM files|*.brstm", "Vict. Theme")
+        self.victoryThemeControl = FileControl("Select your victory theme file", "BRSTM files|*.brstm", "Victory\nTheme")
         self.victoryThemeControl.Location = Point(self.soundBankControl.Location.X, self.soundBankControl.Location.Y + 32)
 
-        self.creditsThemeControl = FileControl("Select your credits theme file", "BRSTM files|*.brstm", "Crdt Theme")
+        self.creditsThemeControl = FileControl("Select your credits theme file", "BRSTM files|*.brstm", "Credits\nTheme")
         self.creditsThemeControl.Location = Point(self.victoryThemeControl.Location.X, self.victoryThemeControl.Location.Y + 32)
 
         self.soundGroupBox.Controls.Add(self.soundBankControl)
         self.soundGroupBox.Controls.Add(self.victoryThemeControl)
         self.soundGroupBox.Controls.Add(self.creditsThemeControl)
+
+        # Intro/Ending
+        self.classicGroupBox = GroupBox()
+        self.classicGroupBox.AutoSize = True
+        self.classicGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.classicGroupBox.Text = "Classic Mode"
+        self.classicGroupBox.Click += self.toggleGroupBox
+
+        self.introControl = FileControl("Select your classic intro file", "BRRES files|*.brres", "Classic\nIntro")
+        self.introControl.Location = Point(16,16)
+
+        self.endingControl = MultiFileControl("Select your ending PAC files", "PAC files|*.pac", "Ending PAC Files", Size(100, 60))
+        self.endingControl.Location = Point(self.introControl.Location.X, self.introControl.Location.Y + 32)
         
+        self.endingMovieControl = FileControl("Select your ending THP file", "THP files|*.thp", "Ending\nMovie")
+        self.endingMovieControl.Location = Point(self.endingControl.Location.X, self.endingControl.Location.Y + 112)
+
+        self.classicGroupBox.Controls.Add(self.introControl)
+        self.classicGroupBox.Controls.Add(self.endingControl)
+        self.classicGroupBox.Controls.Add(self.endingMovieControl)
+
         self.fighterGroupBox.Controls.Add(self.mainFighterGroupBox)
         self.fighterGroupBox.Controls.Add(self.kirbyHatGroupBox)
         self.fighterGroupBox.Controls.Add(self.soundGroupBox)
+        self.fighterGroupBox.Controls.Add(self.classicGroupBox)
 
         self.openButton = Button()
         self.openButton.Text = "Open"
@@ -4350,6 +4371,15 @@ class PackageCharacterForm(Form):
                     file = Directory.GetFiles(TEMP_PATH + '\\CreditsTheme', "*.brstm")
                     if file and len(file) > 0:
                         self.creditsThemeControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\ClassicIntro'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\ClassicIntro', "*.brres")
+                    if file and len(file) > 0:
+                        self.introControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\Ending'):
+                    self.endingControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Ending', "*.pac"))
+                    file = Directory.GetFiles(TEMP_PATH + '\\Ending', "*.thp")
+                    if file and len(file) > 0:
+                        self.endingMovieControl.textBox.textBox.Text = file[0]
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
@@ -4613,6 +4643,7 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Location = Point(4, 16)
         self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 16)
         self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 16)
+        self.classicGroupBox.Location = Point(self.soundGroupBox.Location.X, self.soundGroupBox.Location.Y + self.soundGroupBox.Height + 16)
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
 
@@ -4687,7 +4718,7 @@ class FileControl(UserControl):
 
 # A control for importing multiple files
 class MultiFileControl(UserControl):
-        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files"):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
             self.title = title
@@ -4702,8 +4733,7 @@ class MultiFileControl(UserControl):
             label.Height = 16
 
             self.listBox = ListBox()
-            self.listBox.Width = 100
-            self.listBox.Height = 120
+            self.listBox.Size = size
             self.listBox.Location = Point(label.Location.X, label.Location.Y + 16)
             self.listBox.HorizontalScrollbar = True
             self.listBox.DataSource = self.files
