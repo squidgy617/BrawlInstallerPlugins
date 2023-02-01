@@ -1886,6 +1886,7 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 # Add song to tracklist
 def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		writeLog("Adding song file " + file)
+		currentSongId = 0
 		# Move to strm directory
 		file = getFileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory + '/' + file.Name
@@ -1894,32 +1895,34 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		getFileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		writeLog("Opening tracklist " + tracklist)
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Back up tracklist
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Check if song is already installed
-		writeLog("Checking if song already exists")
-		for song in BrawlAPI.RootNode.Children:
-			if song.SongFileName == songDirectory + '/' + file.Name.split('.')[0]:
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+			if fileOpened:
+				# Back up tracklist
+				createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+				# Check if song is already installed
+				writeLog("Checking if song already exists")
+				for song in BrawlAPI.RootNode.Children:
+					if song.SongFileName == songDirectory + '/' + file.Name.split('.')[0]:
+						BrawlAPI.ForceCloseFile()
+						return song.SongID
+				# Calculate song ID
+				writeLog("Calculating song ID")
+				usedSongIds = getUsedSongIds(BrawlAPI.RootNode)
+				currentSongId = 61440
+				while currentSongId in usedSongIds:
+					currentSongId += 1
+				# Add to tracklist file
+				writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
+				newNode = TLSTEntryNode()
+				newNode.Name = file.Name.split('.')[0]
+				newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
+				newNode.Volume = 80
+				newNode.Frequency = 40
+				newNode.SongID = currentSongId
+				BrawlAPI.RootNode.AddChild(newNode)
+				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
-				return song.SongID
-		# Calculate song ID
-		writeLog("Calculating song ID")
-		usedSongIds = getUsedSongIds(BrawlAPI.RootNode)
-		currentSongId = 61440
-		while currentSongId in usedSongIds:
-			currentSongId += 1
-		# Add to tracklist file
-		writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
-		newNode = TLSTEntryNode()
-		newNode.Name = file.Name.split('.')[0]
-		newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
-		newNode.Volume = 80
-		newNode.Frequency = 40
-		newNode.SongID = currentSongId
-		BrawlAPI.RootNode.AddChild(newNode)
-		BrawlAPI.SaveFile()
-		BrawlAPI.ForceCloseFile()
 		writeLog("Finished adding song.")
 		return currentSongId
 
@@ -3192,35 +3195,37 @@ def removeFromRoster(fighterId):
 # Remove character victory theme
 def removeSong(songID, songDirectory='Victory!', tracklist='Results'):
 		writeLog("Removing theme with song ID " + str(songID))
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Back up tracklist file
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Remove from tracklist file
-		node = BrawlAPI.RootNode
-		if node.Children:
-			for child in node.Children:
-				if child.SongID == songID:
-					childNode = child
-					break
-		if 'childNode' in locals():
-			# Get filename
-			path = MainForm.BuildPath + '/pf/sound/strm/'
-			#directory = Directory.CreateDirectory(path)
-			if '/' in childNode.SongFileName:
-				if File.Exists(path + childNode.SongFileName + '.brstm'):
-					brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
-					# Back up song file
-					createBackup(brstmFile.FullName)
-					# Remove from tracklist
-					if childNode:
-						writeLog("Removing from" + tracklist + ".tlst")
-						childNode.Remove()
-					# Delete from directory
-					if brstmFile:
-						writeLog("Deleting file " + brstmFile.FullName)
-						brstmFile.Delete()
-		BrawlAPI.SaveFile()
-		BrawlAPI.ForceCloseFile()
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+			if fileOpened:
+				# Back up tracklist file
+				createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+				# Remove from tracklist file
+				node = BrawlAPI.RootNode
+				if node and node.Children:
+					for child in node.Children:
+						if child.SongID == songID:
+							childNode = child
+							break
+				if 'childNode' in locals():
+					# Get filename
+					path = MainForm.BuildPath + '/pf/sound/strm/'
+					#directory = Directory.CreateDirectory(path)
+					if '/' in childNode.SongFileName:
+						if File.Exists(path + childNode.SongFileName + '.brstm'):
+							brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
+							# Back up song file
+							createBackup(brstmFile.FullName)
+							# Remove from tracklist
+							if childNode:
+								writeLog("Removing from" + tracklist + ".tlst")
+								childNode.Remove()
+							# Delete from directory
+							if brstmFile:
+								writeLog("Deleting file " + brstmFile.FullName)
+								brstmFile.Delete()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing theme")
 
 # Remove kirby hat
@@ -4629,25 +4634,25 @@ def getAllFighterInfo():
 
 			# Get fighter config info
 			fighterConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "*.dat"):
 				fighterConfigInfo.append(getfighterConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get slot config info
 			slotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "*.dat"):
 				slotConfigInfo.append(getSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get cosmetic config info
 			cosmeticConfigInfo = []
-			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig'):
+			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "*.dat"):
 				cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get CSS slot config info
 			cssSlotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', "*.dat"):
 				cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
