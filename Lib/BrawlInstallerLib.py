@@ -3154,36 +3154,37 @@ def removeFromRoster(fighterId):
 # Remove character victory theme
 def removeSong(songID, songDirectory='Victory!', tracklist='Results'):
 		writeLog("Removing theme with song ID " + str(songID))
-		fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		if fileOpened:
-			# Back up tracklist file
-			createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-			# Remove from tracklist file
-			node = BrawlAPI.RootNode
-			if node and node.Children:
-				for child in node.Children:
-					if child.SongID == songID:
-						childNode = child
-						break
-			if 'childNode' in locals():
-				# Get filename
-				path = MainForm.BuildPath + '/pf/sound/strm/'
-				#directory = Directory.CreateDirectory(path)
-				if '/' in childNode.SongFileName:
-					if File.Exists(path + childNode.SongFileName + '.brstm'):
-						brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
-						# Back up song file
-						createBackup(brstmFile.FullName)
-						# Remove from tracklist
-						if childNode:
-							writeLog("Removing from" + tracklist + ".tlst")
-							childNode.Remove()
-						# Delete from directory
-						if brstmFile:
-							writeLog("Deleting file " + brstmFile.FullName)
-							brstmFile.Delete()
-			BrawlAPI.SaveFile()
-			BrawlAPI.ForceCloseFile()
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+			if fileOpened:
+				# Back up tracklist file
+				createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+				# Remove from tracklist file
+				node = BrawlAPI.RootNode
+				if node and node.Children:
+					for child in node.Children:
+						if child.SongID == songID:
+							childNode = child
+							break
+				if 'childNode' in locals():
+					# Get filename
+					path = MainForm.BuildPath + '/pf/sound/strm/'
+					#directory = Directory.CreateDirectory(path)
+					if '/' in childNode.SongFileName:
+						if File.Exists(path + childNode.SongFileName + '.brstm'):
+							brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
+							# Back up song file
+							createBackup(brstmFile.FullName)
+							# Remove from tracklist
+							if childNode:
+								writeLog("Removing from" + tracklist + ".tlst")
+								childNode.Remove()
+							# Delete from directory
+							if brstmFile:
+								writeLog("Deleting file " + brstmFile.FullName)
+								brstmFile.Delete()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing theme")
 
 # Remove kirby hat
