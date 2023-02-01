@@ -224,6 +224,16 @@ def clearTextBoxes(groupBox):
 			elif control.GetType() == TextBox:
 				control.Text = ""
 
+# Select a drop down item by a value
+def selectItemByValue(dropDown, dictionary, value):
+		if value in dictionary.values():
+			index = list(dictionary.values()).index(value)
+			key = list(dictionary.keys())[index]
+			if key:
+				for item in dropDown.Items:
+					if item == key:
+						dropDown.SelectedItem = item
+
 # Create a copy of a bitmap from an image path, rather than calling on the actual image
 def createBitmap(imagePath):
 	with Bitmap(imagePath) as bmpTemp:

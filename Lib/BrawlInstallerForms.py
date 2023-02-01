@@ -4322,12 +4322,24 @@ class PackageCharacterForm(Form):
         self.gameName2Control = LabeledTextBox("Game\nName 2")
         self.gameName2Control.Location = Point(self.gameName1Control.Location.X, self.gameName1Control.Location.Y + 32)
 
+        self.trophySeriesControl = LabeledDropDown("Series", TROPHY_SERIES)
+        self.trophySeriesControl.Location = Point(self.gameName2Control.Location.X, self.gameName2Control.Location.Y + 32)
+
+        self.trophyModelControl = FileControl("Select your trophy brres file", "BRRES files|*.brres", "Model")
+        self.trophyModelControl.Location = Point(self.trophySeriesControl.Location.X, self.trophySeriesControl.Location.Y + 32)
+
+        self.trophyImageControl = ImageControl([ImageObject("Thumbnail",Size(56,48)), ImageObject("HD Thumbnail",Size(56,48))])
+        self.trophyImageControl.Location = Point(self.trophyModelControl.Location.X, self.trophyModelControl.Location.Y + 32)
+
         self.trophyGroupBox.Controls.Add(self.trophyNameControl)
         self.trophyGroupBox.Controls.Add(self.trophyDescriptionControl)
         self.trophyGroupBox.Controls.Add(self.gameIcon1Control)
         self.trophyGroupBox.Controls.Add(self.gameIcon2Control)
         self.trophyGroupBox.Controls.Add(self.gameName1Control)
         self.trophyGroupBox.Controls.Add(self.gameName2Control)
+        self.trophyGroupBox.Controls.Add(self.trophySeriesControl)
+        self.trophyGroupBox.Controls.Add(self.trophyModelControl)
+        self.trophyGroupBox.Controls.Add(self.trophyImageControl)
 
         self.miscGroupBox.Controls.Add(self.codeGroupBox)
         self.miscGroupBox.Controls.Add(self.trophyGroupBox)
@@ -4544,6 +4556,26 @@ class PackageCharacterForm(Form):
                     if trophySettings:
                         self.trophyNameControl.textBox.Text = trophySettings.trophyName
                         self.trophyDescriptionControl.textBox.Text = trophySettings.description.replace('<br/>', '\r\n')
+                        if trophySettings.gameIcon1:
+                            selectItemByValue(self.gameIcon1Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon1))
+                        if trophySettings.gameIcon2:
+                            selectItemByValue(self.gameIcon2Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon2))
+                        self.gameName1Control.textBox.Text = trophySettings.gameName1
+                        self.gameName2Control.textBox.Text = trophySettings.gameName2
+                        if trophySettings.seriesIndex:
+                            selectItemByValue(self.trophySeriesControl.dropDown, TROPHY_SERIES, int(trophySettings.seriesIndex))
+                        file = Directory.GetFiles(TEMP_PATH + '\\Trophy', "*.brres")
+                        if file and len(file) > 0:
+                            self.trophyModelControl.textBox.textBox.Text = file[0]
+                        image = Directory.GetFiles(TEMP_PATH + '\\Trophy', "*.png")
+                        if image and len(image) > 0:
+                            self.trophyImageControl.Images[0] = image[0]
+                            self.trophyImageControl.pictureBox[0].Image = createBitmap(image[0])
+                        if Directory.Exists(TEMP_PATH + '\\Trophy\\HD'):
+                            image = Directory.GetFiles(TEMP_PATH + '\\Trophy\\HD', "*.png")
+                            if image and len(image) > 0:
+                                self.trophyImageControl.Images[1] = image[0]
+                                self.trophyImageControl.pictureBox[1].Image = createBitmap(image[0])
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
