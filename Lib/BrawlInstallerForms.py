@@ -4394,6 +4394,18 @@ class PackageCharacterForm(Form):
                 if self.bpNameHdImage[i]:
                     copyRenameFile(self.bpNameHdImage[i], 'Name.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\Name\\HD')
                 i += 1
+        if len(self.cssTabControl.tabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.cssTabControl.tabControl.TabPages):
+                if len(self.cssTabControl.controls[i].Images) > 0 and self.cssTabControl.controls[i].Images[0]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[0], 'Icon.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text)
+                if len(self.cssTabControl.controls[i].Images) > 1 and self.cssTabControl.controls[i].Images[1]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[1], 'Icon.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\HD')
+                if len(self.cssTabControl.controls[i].Images) > 2 and self.cssTabControl.controls[i].Images[2]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[2], 'Name.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\Name')
+                if len(self.cssTabControl.controls[i].Images) > 3 and self.cssTabControl.controls[i].Images[3]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[3], 'Name.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\Name\\HD')
+                i += 1
 
     def openCharacterPackage(self, sender, args):
         if self.zipFile:
