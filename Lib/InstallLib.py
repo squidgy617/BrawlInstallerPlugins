@@ -412,7 +412,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 							if nameFolders:
 								if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
-									installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
+									installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac', settings.fiftyCostumeCode)
 					fileOpened = checkOpenFile("info")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -460,7 +460,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 										if nameFolders:
 											if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
-												installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
+												installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName, settings.fiftyCostumeCode)
 								fileOpened = checkOpenFile(fileName.split('.pac')[0])
 								if fileOpened:
 									BrawlAPI.SaveFile()

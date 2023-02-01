@@ -1182,7 +1182,7 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 			writeLog("Finished importing franchise icon")
 
 # Import BP name into info
-def importBPName(cosmeticId, image, filePath):
+def importBPName(cosmeticId, image, filePath, fiftyCC="true"):
 		writeLog("Importing BP name into " + filePath + " with cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
@@ -1194,7 +1194,7 @@ def importBPName(cosmeticId, image, filePath):
 				pat0texNodeName = "Character_Name_Mat"
 				pat0NodeName = "InfFace_TopN__0"
 				newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId) + '1', 3)
-				addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1'), frameCountOffset=10)
+				addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1') if fiftyCC!="true" else int(str((cosmeticId * 50) + 1)), frameCountOffset=10, overrideFrameCount=0 if fiftyCC!="true" else 9011)
 		writeLog("Import BP name finished.")
 
 # Import classic intro file
@@ -4206,9 +4206,9 @@ def installFranchiseIcon(franchiseIconId, image, filePath, size=0):
 		importFranchiseIcon(franchiseIconId, image, filePath, size)
 
 # Install BP name into info
-def installBPName(cosmeticId, image, filePath):
+def installBPName(cosmeticId, image, filePath, fiftyCC="true"):
 		removeBPName(cosmeticId, filePath)
-		importBPName(cosmeticId, image, filePath)
+		importBPName(cosmeticId, image, filePath, fiftyCC="true")
 
 # Install franchise icon into STGRESULT
 def installFranchiseIconResult(franchiseIconId, image="", model=""):
