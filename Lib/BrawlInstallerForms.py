@@ -4371,7 +4371,28 @@ class PackageCharacterForm(Form):
                 for costume in costumeGroup.costumeObjects:
                     if costume.csp:
                         copyRenameFile(costume.csp, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\CSPs\\' + addLeadingZeros(str(i), 4))
+                    if costume.cspHd:
+                        copyRenameFile(costume.cspHd, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\CSPs\\' + addLeadingZeros(str(i), 4) + '\\HD')
+                    if costume.stock:
+                        copyRenameFile(costume.stock, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\StockIcons\\' + addLeadingZeros(str(i), 4))
+                    if costume.stockHd:
+                        copyRenameFile(costume.stockHd, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\StockIcons\\' + addLeadingZeros(str(i), 4) + '\\HD')
                     j += 1
+                i += 1
+        if len(self.bpTabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.bpTabControl.TabPages):
+                j = 1
+                for bpObject in self.bps[i]:
+                    if bpObject.bp:
+                        copyRenameFile(bpObject.bp, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text)
+                    if bpObject.bpHd:
+                        copyRenameFile(bpObject.bpHd, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\HD')
+                    j += 1
+                if self.bpNameImage[i]:
+                    copyRenameFile(self.bpNameImage[i], 'Name.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\Name')
+                if self.bpNameHdImage[i]:
+                    copyRenameFile(self.bpNameHdImage[i], 'Name.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\Name\\HD')
                 i += 1
 
     def openCharacterPackage(self, sender, args):
