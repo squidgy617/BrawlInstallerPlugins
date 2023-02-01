@@ -203,7 +203,7 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 			progressBar.Update(progressCounter)
 
 			# Extract SSE CSS icon
-			if settings.cssIconStyle != "vBrawl":
+			if settings.cssIconStyle != "vBrawl" and settings.installToSse == "true":
 				extractCSSIconSSE(cosmeticId)
 
 			progressCounter += 1
