@@ -41,6 +41,8 @@ LOG_PATH = AppPath + '\\Logs'
 
 TEMP_PATH = AppPath + '\\temp'
 
+PACK_PATH = AppPath + '\\tempPack'
+
 FIGHTER_IDS = {
 	0 : "Mario",
 	1 : "Donkey",

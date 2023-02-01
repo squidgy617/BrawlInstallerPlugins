@@ -4348,13 +4348,31 @@ class PackageCharacterForm(Form):
         self.openButton.Text = "Open"
         self.openButton.Click += self.openButtonPressed
 
+        self.saveButton = Button()
+        self.saveButton.Text = "Save"
+        self.saveButton.Click += self.saveButtonPressed
+
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
+        self.Controls.Add(self.saveButton)
         
         self.recalculateGroupLocations()
         self.Load += self.openCharacterPackage
+
+    def saveButtonPressed(self, sender, args):
+        if Directory.Exists(PACK_PATH):
+            Directory.Delete(PACK_PATH, 1)
+        if len(self.costumeGroups) > 0:
+            i = 1
+            for costumeGroup in self.costumeGroups:
+                j = 1
+                for costume in costumeGroup.costumeObjects:
+                    if costume.csp:
+                        copyRenameFile(costume.csp, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\CSPs\\' + addLeadingZeros(str(i), 4))
+                    j += 1
+                i += 1
 
     def openCharacterPackage(self, sender, args):
         if self.zipFile:
@@ -4847,6 +4865,7 @@ class PackageCharacterForm(Form):
         self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
+        self.saveButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
 
