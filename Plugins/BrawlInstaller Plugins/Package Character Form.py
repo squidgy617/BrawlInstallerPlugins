@@ -12,5 +12,7 @@ def main():
 			form = PackageCharacterForm(zipFile)
 			result = form.ShowDialog(MainForm.Instance)
 		form.Dispose()
+		if Directory.Exists(TEMP_PATH):
+			Directory.Delete(TEMP_PATH, 1)
 
 main()

@@ -4367,16 +4367,21 @@ class PackageCharacterForm(Form):
         self.saveButton.Text = "Save"
         self.saveButton.Click += self.saveButtonPressed
 
+        self.saveAsButton = Button()
+        self.saveAsButton.Text = "Save As..."
+        self.saveAsButton.Click += self.saveAsButtonPressed
+
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
         self.Controls.Add(self.saveButton)
+        self.Controls.Add(self.saveAsButton)
         
         self.recalculateGroupLocations()
         self.Load += self.openCharacterPackage
 
-    def saveButtonPressed(self, sender, args):
+    def createPackage(self, path):
         if Directory.Exists(PACK_PATH):
             Directory.Delete(PACK_PATH, 1)
         if len(self.costumeGroups) > 0:
@@ -4534,6 +4539,25 @@ class PackageCharacterForm(Form):
                 copyRenameFile(self.trophyImageControl.Images[0], 'TrophyIcon.png', PACK_PATH + '\\Trophy')
             if self.trophyImageControl.Images[1]:
                 copyRenameFile(self.trophyImageControl.Images[1], 'TrophyIcon.png', PACK_PATH + '\\Trophy\\HD')
+        # Create zip
+        if File.Exists(path):
+            File.Delete(path)
+        ZipFile.CreateFromDirectory(PACK_PATH, path)
+        if Directory.Exists(PACK_PATH):
+            Directory.Delete(PACK_PATH, 1)
+        BrawlAPI.ShowMessage("Character package created at " + path, "Success")
+
+    def saveButtonPressed(self, sender, args):
+        self.createPackage(self.zipFile)
+
+    def saveAsButtonPressed(self, sender, args):
+        saveDialog = SaveFileDialog()
+        saveDialog.Filter = "ZIP File|*.zip"
+        saveDialog.Title = "Save character package"
+        result = saveDialog.ShowDialog()
+        if result == DialogResult.OK and saveDialog.FileName:
+            self.createPackage(saveDialog.FileName)
+            saveDialog.Dispose()
 
     def openCharacterPackage(self, sender, args):
         if self.zipFile:
@@ -5039,6 +5063,7 @@ class PackageCharacterForm(Form):
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
         self.saveButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
+        self.saveAsButton.Location = Point(self.saveButton.Location.X - self.saveButton.Width - 4, self.saveButton.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
 
