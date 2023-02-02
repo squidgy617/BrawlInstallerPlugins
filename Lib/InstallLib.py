@@ -543,8 +543,15 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Replay Icon
 
 					if replayIconFolder:
+						# Legacy
 						if len(Directory.GetFiles(replayIconFolder.FullName, "*.png")) > 0:
 							installReplayIcon(cosmeticId, Directory.GetFiles(replayIconFolder.FullName, "*.png")[0])
+						# Modern way
+						elif settings.replayIconStyle:
+							replayFolders = Directory.GetDirectories(replayIconFolder.FullName, settings.replayIconStyle)
+							if replayFolders:
+								if len(Directory.GetFiles(replayFolders[0], "*.png")) > 0:
+									installReplayIcon(cosmeticId, Directory.GetFiles(replayFolders[0], "*.png")[0])
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 

@@ -3875,7 +3875,7 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		writeLog("Finished extracting BPs")
 
 # Extract replay icon
-def extractReplayIcon(cosmeticId):
+def extractReplayIcon(cosmeticId, replayIconStyle=""):
 		writeLog("Extract replay icon for cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
 		if fileOpened:
@@ -3883,7 +3883,10 @@ def extractReplayIcon(cosmeticId):
 			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
 			textureNode = getChildByName(texFolder, nodeName)
 			if textureNode:
-				exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
+				if replayIconStyle:
+					exportPath = createDirectory(AppPath + '/temp/ReplayIcon/' + replayIconStyle)
+				else:
+					exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting replay icon")
 

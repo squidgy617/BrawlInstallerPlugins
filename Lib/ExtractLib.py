@@ -139,7 +139,7 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 			progressBar.Update(progressCounter)
 
 			# Extract replay icon
-			extractReplayIcon(cosmeticId)
+			extractReplayIcon(cosmeticId, settings.replayIconStyle)
 			BrawlAPI.ForceCloseFile()
 			progressCounter += 1
 			progressBar.Update(progressCounter)
