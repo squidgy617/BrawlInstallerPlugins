@@ -4421,6 +4421,28 @@ class PackageCharacterForm(Form):
                 if len(self.cssTabControl.controls[i].Images) > 3 and self.cssTabControl.controls[i].Images[3]:
                     copyRenameFile(self.cssTabControl.controls[i].Images[3], 'Name.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\Name\\HD')
                 i += 1
+        if len(self.replayTabControl.tabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.replayTabControl.tabControl.TabPages):
+                if len(self.replayTabControl.controls[i].Images) > 0 and self.replayTabControl.controls[i].Images[0]:
+                    copyRenameFile(self.replayTabControl.controls[i].Images[0], 'Icon.png', PACK_PATH + '\\ReplayIcon\\' + self.replayTabControl.tabControl.TabPages[i].Text)
+                if len(self.replayTabControl.controls[i].Images) > 1 and self.replayTabControl.controls[i].Images[1]:
+                    copyRenameFile(self.replayTabControl.controls[i].Images[1], 'Icon.png', PACK_PATH + '\\ReplayIcon\\' + self.replayTabControl.tabControl.TabPages[i].Text + '\\HD')
+                i += 1
+        if len(self.portraitNameTabControl.tabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.portraitNameTabControl.tabControl.TabPages):
+                if len(self.portraitNameTabControl.controls[i].Images) > 0 and self.portraitNameTabControl.controls[i].Images[0]:
+                    copyRenameFile(self.portraitNameTabControl.controls[i].Images[0], 'Name.png', PACK_PATH + '\\PortraitName\\' + self.portraitNameTabControl.tabControl.TabPages[i].Text)
+                if len(self.portraitNameTabControl.controls[i].Images) > 1 and self.portraitNameTabControl.controls[i].Images[1]:
+                    copyRenameFile(self.portraitNameTabControl.controls[i].Images[1], 'Name.png', PACK_PATH + '\\PortraitName\\' + self.portraitNameTabControl.tabControl.TabPages[i].Text + '\\HD')
+                i += 1
+        if self.franchiseIconImageControl.Images[0]:
+            copyRenameFile(self.franchiseIconImageControl.Images[0], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Black')
+        if self.franchiseIconImageControl.Images[1]:
+            copyRenameFile(self.franchiseIconImageControl.Images[1], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Transparent')
+        if self.franchiseModelControl.textBox.textBox.Text:
+            copyRenameFile(self.franchiseModelControl.textBox.textBox.Text, 'Model.mdl0', PACK_PATH + '\\FranchiseIcons\\Model')
 
     def openCharacterPackage(self, sender, args):
         if self.zipFile:
