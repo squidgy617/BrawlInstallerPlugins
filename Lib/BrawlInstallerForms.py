@@ -2445,11 +2445,32 @@ class SettingsForm(Form):
         nameGroup.Controls.Add(self.vBrawlNameRadioButton)
         nameGroup.Controls.Add(self.PMNameRadioButton)
 
+        # Replay Icon Style
+        replayGroup = GroupBox()
+        replayGroup.Location = Point(nameGroup.Location.X, nameGroup.Location.Y + nameGroup.Height/2 + 16)
+        replayGroup.Text = "Replay Icon Style"
+        replayGroup.AutoSize = True
+        replayGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.vBrawlReplayRadioButton = RadioButton()
+        self.vBrawlReplayRadioButton.Text = "vBrawl"
+        self.vBrawlReplayRadioButton.Location = Point(16, 16)
+        self.vBrawlReplayRadioButton.Width = 64
+        self.vBrawlReplayRadioButton.Checked = True
+
+        self.pPlusReplayRadioButton = RadioButton()
+        self.pPlusReplayRadioButton.Text = "P+"
+        self.pPlusReplayRadioButton.Location = Point(80, 16)
+        self.pPlusReplayRadioButton.Width = 64
+
+        replayGroup.Controls.Add(self.vBrawlReplayRadioButton)
+        replayGroup.Controls.Add(self.pPlusReplayRadioButton)
+
         # Stock locations
         stockGroupBox = GroupBox()
         stockGroupBox.AutoSize = True
         stockGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        stockGroupBox.Location = Point(4, 240)
+        stockGroupBox.Location = Point(replayGroup.Location.X, replayGroup.Location.Y + replayGroup.Height/2 + 16)
         stockGroupBox.Text = "Stock Icon Install Locations"
 
         self.stockCssCheckbox = CheckBox()
@@ -2487,25 +2508,25 @@ class SettingsForm(Form):
         self.portraitNameCheckBox = CheckBox()
         self.portraitNameCheckBox.Text = "Install Portrait Names"
         self.portraitNameCheckBox.Width = 140
-        self.portraitNameCheckBox.Location = Point(16, 348)
+        self.portraitNameCheckBox.Location = Point(16, stockGroupBox.Location.Y + stockGroupBox.Height + 4)
 
         self.bpNameCheckbox = CheckBox()
         self.bpNameCheckbox.Text = "Install BP Names"
         self.bpNameCheckbox.Width = 140
-        self.bpNameCheckbox.Location = Point(16, 372)
+        self.bpNameCheckbox.Location = Point(16, self.portraitNameCheckBox.Location.Y + 24)
 
         self.singlePlayerCheckBox = CheckBox()
         self.singlePlayerCheckBox.Text = "Install Single Player Cosmetics"
         self.singlePlayerCheckBox.Width = 200
-        self.singlePlayerCheckBox.Location = Point(16, 396)
+        self.singlePlayerCheckBox.Location = Point(16, self.bpNameCheckbox.Location.Y + 24)
 
         self.franchiseIconSizeLabel = Label()
-        self.franchiseIconSizeLabel.Location = Point(16, 428)
+        self.franchiseIconSizeLabel.Location = Point(16, self.singlePlayerCheckBox.Location.Y + 24)
         self.franchiseIconSizeLabel.Text = "Franchise Icon Size:"
         self.franchiseIconSizeLabel.Width = 112
 
         self.franchiseIconSizeText = NumericUpDown()
-        self.franchiseIconSizeText.Location = Point(128, 428)
+        self.franchiseIconSizeText.Location = Point(128, self.franchiseIconSizeLabel.Location.Y)
         self.franchiseIconSizeText.Width = 48
         self.franchiseIconSizeText.Maximum = 256
         self.franchiseIconSizeText.Minimum = 0
@@ -2515,6 +2536,7 @@ class SettingsForm(Form):
         cosmeticGroupBox.Controls.Add(cssIconGroup)
         cosmeticGroupBox.Controls.Add(bpGroup)
         cosmeticGroupBox.Controls.Add(nameGroup)
+        cosmeticGroupBox.Controls.Add(replayGroup)
         cosmeticGroupBox.Controls.Add(stockGroupBox)
         cosmeticGroupBox.Controls.Add(self.portraitNameCheckBox)
         cosmeticGroupBox.Controls.Add(self.bpNameCheckbox)
@@ -2524,7 +2546,7 @@ class SettingsForm(Form):
 
         # Stage Settings group
         self.stageGroupBox = GroupBox()
-        self.stageGroupBox.Location = Point(0,475)
+        self.stageGroupBox.Location = Point(0, 525)
         self.stageGroupBox.Text = "Custom Stage Lists"
         self.stageGroupBox.AutoSize = True
         self.stageGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -2554,13 +2576,13 @@ class SettingsForm(Form):
 
         pPlusDefaultsButton = Button()
         pPlusDefaultsButton.Text = "P+Ex Defaults"
-        pPlusDefaultsButton.Location = Point(4, 620)
+        pPlusDefaultsButton.Location = Point(4, 640)
         pPlusDefaultsButton.Width = 90
         pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
 
         remixDefaultsButton = Button()
         remixDefaultsButton.Text = "REMIX Defaults"
-        remixDefaultsButton.Location = Point(98, 620)
+        remixDefaultsButton.Location = Point(98, 640)
         remixDefaultsButton.Width = 95
         remixDefaultsButton.Click += self.remixDefaultsButtonPressed
 
@@ -2813,12 +2835,12 @@ class SettingsForm(Form):
 
         self.cancelButton = Button()
         self.cancelButton.Text = "Close"
-        self.cancelButton.Location = Point(525, 620)
+        self.cancelButton.Location = Point(525, 640)
         self.cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
         saveButton.Text = "Save"
-        saveButton.Location = Point(445, 620)
+        saveButton.Location = Point(445, 640)
         saveButton.Click += self.saveButtonPressed
 
         self.Controls.Add(cosmeticGroupBox)
@@ -2844,6 +2866,9 @@ class SettingsForm(Form):
         toolTip.SetToolTip(nameGroup, "The style of names used on portraits displayed on the character select screen. If your build doesn't use these, this setting will have no effect.") 
         toolTip.SetToolTip(self.vBrawlNameRadioButton, "Select this if your build uses vanilla Brawl style portrait names.") 
         toolTip.SetToolTip(self.PMNameRadioButton, "Select this if your build uses Project M style portrait names.") 
+        toolTip.SetToolTip(replayGroup, "The style of icons displayed on the replay screen.")
+        toolTip.SetToolTip(self.vBrawlReplayRadioButton, "Select this if your build uses vanilla Brawl style replay icons.")
+        toolTip.SetToolTip(self.pPlusReplayRadioButton, "Select this if your build uses Project+ style replay icons.")
         toolTip.SetToolTip(stockGroupBox, "The locations where character-specific stock icons are used in your build.") 
         toolTip.SetToolTip(self.stockCssCheckbox, "Check this if your build uses stock icons on the character select screen for modes like Classic mode. When checked, stock icons will be installed to sc_selcharacter.pac.") 
         toolTip.SetToolTip(self.stockSssCheckbox, "Check this if your build uses stock icons on the stage select screen. When checked, stock icons will be installed to sc_selmap.pac.") 
@@ -2887,6 +2912,9 @@ class SettingsForm(Form):
         self.remixBPRadioButton.Checked = self.settings.bpStyle == "REMIX"
         self.vBrawlNameRadioButton.Checked = self.settings.portraitNameStyle == "vBrawl"
         self.PMNameRadioButton.Checked = self.settings.portraitNameStyle == "PM"
+        if self.settings.replayIconStyle:
+            self.vBrawlReplayRadioButton.Checked = self.settings.replayIconStyle == "vBrawl"
+            self.pPlusReplayRadioButton.Checked = self.settings.replayIconStyle == "P+"
         self.stockCssCheckbox.Checked = textBool(self.settings.installStocksToCSS)
         self.stockSssCheckbox.Checked = textBool(self.settings.installStocksToSSS)
         self.stockResultCheckbox.Checked = textBool(self.settings.installStockIconsToResult)
@@ -2921,6 +2949,7 @@ class SettingsForm(Form):
         settings.bpStyle = "vBrawl"
         settings.installPortraitNames = "false"
         settings.portraitNameStyle = "vBrawl"
+        settings.replayIconStyle = "P+"
         settings.franchiseIconSizeCSS = str(128)
         settings.installStocksToCSS = "true"
         settings.installStocksToInfo = "true"
@@ -2945,6 +2974,7 @@ class SettingsForm(Form):
         settings.bpStyle = "REMIX"
         settings.installPortraitNames = "true"
         settings.portraitNameStyle = "PM"
+        settings.replayIconStyle = "P+"
         settings.franchiseIconSizeCSS = str(64)
         settings.installStocksToCSS = "false"
         settings.installStocksToInfo = "false"
@@ -3046,6 +3076,10 @@ class SettingsForm(Form):
             settings.portraitNameStyle = "vBrawl"
         elif self.PMNameRadioButton.Checked:
             settings.portraitNameStyle = "PM"
+        if self.vBrawlReplayRadioButton.Checked:
+            settings.replayIconStyle = "vBrawl"
+        elif self.pPlusReplayRadioButton.Checked:
+            settings.replayIconStyle = "P+"
         settings.installStocksToCSS = boolText(self.stockCssCheckbox.Checked)
         settings.installStocksToSSS = boolText(self.stockSssCheckbox.Checked)
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)

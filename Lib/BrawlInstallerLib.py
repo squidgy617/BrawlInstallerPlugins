@@ -4722,6 +4722,7 @@ def getSettings():
 		settings.bpStyle = readValueFromKey(fileText, "bpStyle")
 		settings.portraitNameStyle = readValueFromKey(fileText, "portraitNameStyle")
 		settings.installPortraitNames = readValueFromKey(fileText, "installPortraitNames")
+		settings.replayIconStyle = readValueFromKey(fileText, "replayIconStyle")
 		settings.franchiseIconSizeCSS = readValueFromKey(fileText, "franchiseIconSizeCSS")
 		settings.installStocksToCSS = readValueFromKey(fileText, "installStocksToCSS")
 		settings.installStocksToInfo = readValueFromKey(fileText, "installStocksToInfo")
@@ -4920,6 +4921,7 @@ class Settings:
 		bpStyle = "vBrawl"
 		portraitNameStyle = "PM"
 		installPortraitNames = "false"
+		replayIconStyle = "P+"
 		franchiseIconSizeCSS = "128"
 		installStocksToCSS = "true"
 		installStocksToInfo = "true"
