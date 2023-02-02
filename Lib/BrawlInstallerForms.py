@@ -4142,6 +4142,17 @@ class PackageCharacterForm(Form):
         self.cosmeticsGroupBox.Controls.Add(self.portraitNameGroupBox)
         self.cosmeticsGroupBox.Controls.Add(self.franchiseIconGroupBox)
 
+        self.readmeGroupBox = GroupBox()
+        self.readmeGroupBox.AutoSize = True
+        self.readmeGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.readmeGroupBox.Text = "README"
+        self.readmeGroupBox.Click += self.toggleGroupBox
+
+        self.readmeControl = LabeledTextBox("Body", multiline=True, size=Size(500,80))
+        self.readmeControl.Location = Point(4,16)
+
+        self.readmeGroupBox.Controls.Add(self.readmeControl)
+
         # Fighter Files Groupbox
         self.fighterGroupBox = GroupBox()
         self.fighterGroupBox.AutoSize = True
@@ -4410,6 +4421,7 @@ class PackageCharacterForm(Form):
         self.cancelButton.Click += self.cancelButtonPressed
 
         self.Controls.Add(self.cosmeticsGroupBox)
+        self.Controls.Add(self.readmeGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
@@ -4496,6 +4508,7 @@ class PackageCharacterForm(Form):
         for file in self.kirbyHatFilesControl.files:
             copyFile(file.FullName, PACK_PATH + '\\KirbyHats')
         if self.kirbyHatTextBox.textBox.Text:
+            Directory.CreateDirectory(PACK_PATH + '\\KirbyHats')
             File.WriteAllText(PACK_PATH + '\\KirbyHats\\FighterID.txt', self.kirbyHatTextBox.textBox.Text)
         if self.soundBankControl.textBox.textBox.Text:
             copyFile(self.soundBankControl.textBox.textBox.Text, PACK_PATH + '\\Soundbank')
@@ -4511,6 +4524,9 @@ class PackageCharacterForm(Form):
             copyFile(self.endingMovieControl.textBox.textBox.Text, PACK_PATH + '\\Ending')
         for file in self.asmControl.files:
             copyFile(file.FullName, PACK_PATH + '\\Codes')
+        if self.readmeControl.textBox.Text:
+            Directory.CreateDirectory(PACK_PATH)
+            File.WriteAllText(PACK_PATH + '\\README.txt', self.readmeControl.textBox.Text)
         # Fighter settings
         fighterSettings = FighterSettings()
         if self.creditsIdControl.textBox.Text:
@@ -4738,6 +4754,8 @@ class PackageCharacterForm(Form):
                             file = Directory.GetFiles(directory, "*.mdl0")
                             if file and len(file) > 0:
                                 self.franchiseModelControl.textBox.textBox.Text = file[0]
+                if File.Exists(TEMP_PATH + '\\README.txt'):
+                    self.readmeControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\README.txt')
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
@@ -5093,7 +5111,9 @@ class PackageCharacterForm(Form):
         self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
         self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 4)
         self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 4)
-        self.fighterGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width + 16, self.cosmeticsGroupBox.Location.Y)
+        self.readmeGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X, self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height + 4)
+        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width)
+        self.fighterGroupBox.Location = Point(x + 16, self.cosmeticsGroupBox.Location.Y)
         self.mainFighterGroupBox.Location = Point(4, 16)
         self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 4)
         self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 4)
@@ -5103,7 +5123,7 @@ class PackageCharacterForm(Form):
         self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
         self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
         self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
-        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height)
+        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height, self.readmeGroupBox.Location.Y + self.readmeGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
         self.cancelButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
         self.saveButton.Location = Point(self.cancelButton.Location.X - self.cancelButton.Width - 4, self.cancelButton.Location.Y)
@@ -5139,7 +5159,7 @@ class ImageObject:
 
 # A textbox with a label
 class LabeledTextBox(UserControl):
-        def __init__(self, labelText, idButtonType="", multiline=False):
+        def __init__(self, labelText, idButtonType="", multiline=False, size=Size(100,120)):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
             self.idButtonType = idButtonType
@@ -5151,7 +5171,7 @@ class LabeledTextBox(UserControl):
                 self.textBox.ScrollBars = ScrollBars.Vertical
                 self.textBox.AcceptsReturn = True
                 self.textBox.WordWrap = True
-                self.textBox.Size = Size(100, 120)
+                self.textBox.Size = size
 
             label = Label()
             label.Text = labelText + ":"
