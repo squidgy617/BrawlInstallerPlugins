@@ -4306,32 +4306,47 @@ class PackageCharacterForm(Form):
 
         self.trophyNameControl = LabeledTextBox("Name")
         self.trophyNameControl.Location = Point(4,16)
+        self.trophyNameControl.textBox.Enabled = False
+
+        self.trophyCheckBox = CheckBox()
+        self.trophyCheckBox.Text = "Include Trophy?"
+        self.trophyCheckBox.Location = Point(self.trophyNameControl.Location.X + self.trophyNameControl.Width + 32, self.trophyNameControl.Location.Y)
+        self.trophyCheckBox.CheckedChanged += self.trophyCheckChanged
 
         self.trophyDescriptionControl = LabeledTextBox("Description", multiline=True)
         self.trophyDescriptionControl.Location = Point(self.trophyNameControl.Location.X, self.trophyNameControl.Location.Y + 32)
+        self.trophyDescriptionControl.textBox.Enabled = False
 
         self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
         self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+        self.gameIcon1Control.dropDown.Enabled = False
 
         self.gameIcon2Control = LabeledDropDown("Game\nIcon 2", TROPHY_GAME_ICONS)
         self.gameIcon2Control.Location = Point(self.gameIcon1Control.Location.X, self.gameIcon1Control.Location.Y + 32)
+        self.gameIcon2Control.dropDown.Enabled = False
 
         self.gameName1Control = LabeledTextBox("Game\nName 1")
         self.gameName1Control.Location = Point(self.gameIcon2Control.Location.X, self.gameIcon2Control.Location.Y + 32)
+        self.gameName1Control.textBox.Enabled = False
 
         self.gameName2Control = LabeledTextBox("Game\nName 2")
         self.gameName2Control.Location = Point(self.gameName1Control.Location.X, self.gameName1Control.Location.Y + 32)
+        self.gameName2Control.textBox.Enabled = False
 
         self.trophySeriesControl = LabeledDropDown("Series", TROPHY_SERIES)
         self.trophySeriesControl.Location = Point(self.gameName2Control.Location.X, self.gameName2Control.Location.Y + 32)
+        self.trophySeriesControl.dropDown.Enabled = False
 
         self.trophyModelControl = FileControl("Select your trophy brres file", "BRRES files|*.brres", "Model")
         self.trophyModelControl.Location = Point(self.trophySeriesControl.Location.X, self.trophySeriesControl.Location.Y + 32)
+        self.trophyModelControl.Enabled = False
 
         self.trophyImageControl = ImageControl([ImageObject("Thumbnail",Size(56,48)), ImageObject("HD Thumbnail",Size(56,48))])
         self.trophyImageControl.Location = Point(self.trophyModelControl.Location.X, self.trophyModelControl.Location.Y + 32)
+        self.trophyImageControl.Enabled = False
 
         self.trophyGroupBox.Controls.Add(self.trophyNameControl)
+        self.trophyGroupBox.Controls.Add(self.trophyCheckBox)
         self.trophyGroupBox.Controls.Add(self.trophyDescriptionControl)
         self.trophyGroupBox.Controls.Add(self.gameIcon1Control)
         self.trophyGroupBox.Controls.Add(self.gameIcon2Control)
@@ -4605,6 +4620,7 @@ class PackageCharacterForm(Form):
                 if Directory.Exists(TEMP_PATH + '\\Trophy'):
                     trophySettings = getTrophySettings()
                     if trophySettings:
+                        self.trophyCheckBox.Checked = True
                         self.trophyNameControl.textBox.Text = trophySettings.trophyName
                         self.trophyDescriptionControl.textBox.Text = trophySettings.description.replace('<br/>', '\r\n')
                         if trophySettings.gameIcon1:
@@ -4634,6 +4650,17 @@ class PackageCharacterForm(Form):
             self.zipFile = file
             self.DialogResult = DialogResult.Retry
             self.Close()
+
+    def trophyCheckChanged(self, sender, args):
+        self.trophyNameControl.textBox.Enabled = sender.Checked
+        self.trophyDescriptionControl.textBox.Enabled = sender.Checked
+        self.gameIcon1Control.dropDown.Enabled = sender.Checked
+        self.gameIcon2Control.dropDown.Enabled = sender.Checked
+        self.gameName1Control.textBox.Enabled = sender.Checked
+        self.gameName2Control.textBox.Enabled = sender.Checked
+        self.trophySeriesControl.dropDown.Enabled = sender.Checked
+        self.trophyModelControl.Enabled = sender.Checked
+        self.trophyImageControl.Enabled = sender.Checked
 
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
