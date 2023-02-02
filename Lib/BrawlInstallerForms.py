@@ -4443,6 +4443,97 @@ class PackageCharacterForm(Form):
             copyRenameFile(self.franchiseIconImageControl.Images[1], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Transparent')
         if self.franchiseModelControl.textBox.textBox.Text:
             copyRenameFile(self.franchiseModelControl.textBox.textBox.Text, 'Model.mdl0', PACK_PATH + '\\FranchiseIcons\\Model')
+        for file in self.pacFilesControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Fighter')
+        for file in self.exConfigsControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\ExConfigs')
+        if self.moduleControl.textBox.textBox.Text:
+            copyFile(self.moduleControl.textBox.textBox.Text, PACK_PATH + '\\Module')
+        for file in self.kirbyHatFilesControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\KirbyHats')
+        if self.kirbyHatTextBox.textBox.Text:
+            File.WriteAllText(PACK_PATH + '\\KirbyHats\\FighterID.txt', self.kirbyHatTextBox.textBox.Text)
+        if self.soundBankControl.textBox.textBox.Text:
+            copyFile(self.soundBankControl.textBox.textBox.Text, PACK_PATH + '\\Soundbank')
+        if self.victoryThemeControl.textBox.textBox.Text:
+            copyFile(self.victoryThemeControl.textBox.textBox.Text, PACK_PATH + '\\VictoryTheme')
+        if self.creditsThemeControl.textBox.textBox.Text:
+            copyFile(self.creditsThemeControl.textBox.textBox.Text, PACK_PATH + '\\CreditsTheme')
+        if self.introControl.textBox.textBox.Text:
+            copyFile(self.introControl.textBox.textBox.Text, PACK_PATH + '\\ClassicIntro')
+        for file in self.endingControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Ending')
+        if self.endingMovieControl.textBox.textBox.Text:
+            copyFile(self.endingMovieControl.textBox.textBox.Text, PACK_PATH + '\\Ending')
+        for file in self.asmControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Codes')
+        # Fighter settings
+        fighterSettings = FighterSettings()
+        if self.creditsIdControl.textBox.Text:
+            fighterSettings.creditsThemeId = self.creditsIdControl.textBox.Text
+        if self.trophyIdControl.textBox.Text:
+            fighterSettings.trophyId = self.trophyIdControl.textBox.Text
+        if self.throwRelease1Control.textBox.Text and self.throwRelease2Control.textBox.Text:
+            fighterSettings.throwReleasePoint = self.throwRelease1Control.textBox.Text + ',' + self.throwRelease2Control.textBox.Text
+        # Lucario
+        if self.lucarioBoneControl.textBox.Text:
+            fighterSettings.lucarioBoneId = self.lucarioBoneControl.textBox.Text
+        if self.lucarioKirbyEffectControl.textBox.Text:
+            fighterSettings.lucarioKirbyEffectId = self.lucarioKirbyEffectControl.textBox.Text
+        # Jigglypuff
+        if self.jigglypuffBoneControl.textBox.Text:
+            fighterSettings.jigglypuffBoneId = self.jigglypuffBoneControl.textBox.Text
+        if self.jigglypuffEflsControl.textBox.Text:
+            fighterSettings.jigglypuffEFLSId = self.jigglypuffEflsControl.textBox.Text
+        i = 0
+        jigglypuffSfxIds = ""
+        while i < len(self.jigglypuffSfxIdBox):
+            if self.jigglypuffSfxIdBox[i].Text:
+                jigglypuffSfxIds += self.jigglypuffSfxIdBox[i].Text + ("," if i < 3 else "")
+            else:
+                jigglypuffSfxIds = ""
+                break
+            i += 1
+        if jigglypuffSfxIds:
+            fighterSettings.jigglypuffSfxIds = jigglypuffSfxIds
+        # Bowser
+        if self.bowserBoneControl.textBox.Text:
+            fighterSettings.bowserBoneId = self.bowserBoneControl.textBox.Text
+        attrs = vars(fighterSettings)
+        writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+        if writeString:
+            File.WriteAllText(PACK_PATH + '\\FighterSettings.txt', writeString)
+        # Trophy
+        if self.trophyCheckBox.Checked:
+            Directory.CreateDirectory(PACK_PATH + '\\Trophy')
+            trophySettings = TrophySettings()
+            trophySettings.trophyName = self.trophyNameControl.textBox.Text
+            trophySettings.description = self.trophyDescriptionControl.textBox.Text.replace('\r\n', '<br/>')
+            if self.gameIcon1Control.dropDown.SelectedItem:
+                trophySettings.gameIcon1 = str(TROPHY_GAME_ICONS[self.gameIcon1Control.dropDown.SelectedItem])
+            else:
+                trophySettings.gameIcon1 = str(0)
+            if self.gameIcon2Control.dropDown.SelectedItem:
+                trophySettings.gameIcon2 = str(TROPHY_GAME_ICONS[self.gameIcon2Control.dropDown.SelectedItem])
+            else:
+                trophySettings.gameIcon2 = str(0)
+            trophySettings.gameName1 = self.gameName1Control.textBox.Text
+            if self.gameName2Control.textBox.Text:
+                trophySettings.gameName2 = self.gameName2Control.textBox.Text
+            if self.trophySeriesControl.dropDown.SelectedItem:
+                trophySettings.seriesIndex = str(TROPHY_SERIES[self.trophySeriesControl.dropDown.SelectedItem])
+            else:
+                trophySettings.seriesIndex = str(19)
+            attrs = vars(trophySettings)
+            writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+            if writeString:
+                File.WriteAllText(PACK_PATH + '\\Trophy\\TrophySettings.txt', writeString)
+            if self.trophyModelControl.textBox.textBox.Text:
+                copyFile(self.trophyModelControl.textBox.textBox.Text, PACK_PATH + '\\Trophy')
+            if self.trophyImageControl.Images[0]:
+                copyRenameFile(self.trophyImageControl.Images[0], 'TrophyIcon.png', PACK_PATH + '\\Trophy')
+            if self.trophyImageControl.Images[1]:
+                copyRenameFile(self.trophyImageControl.Images[1], 'TrophyIcon.png', PACK_PATH + '\\Trophy\\HD')
 
     def openCharacterPackage(self, sender, args):
         if self.zipFile:
