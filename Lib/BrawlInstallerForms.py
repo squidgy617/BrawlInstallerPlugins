@@ -4371,10 +4371,15 @@ class PackageCharacterForm(Form):
         self.saveAsButton.Text = "Save As..."
         self.saveAsButton.Click += self.saveAsButtonPressed
 
+        self.cancelButton = Button()
+        self.cancelButton.Text = "Cancel"
+        self.cancelButton.Click += self.cancelButtonPressed
+
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
+        self.Controls.Add(self.cancelButton)
         self.Controls.Add(self.saveButton)
         self.Controls.Add(self.saveAsButton)
         
@@ -4558,6 +4563,10 @@ class PackageCharacterForm(Form):
         if result == DialogResult.OK and saveDialog.FileName:
             self.createPackage(saveDialog.FileName)
             saveDialog.Dispose()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
 
     def openCharacterPackage(self, sender, args):
         if self.zipFile:
@@ -5062,7 +5071,8 @@ class PackageCharacterForm(Form):
         self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
-        self.saveButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
+        self.cancelButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
+        self.saveButton.Location = Point(self.cancelButton.Location.X - self.cancelButton.Width - 4, self.cancelButton.Location.Y)
         self.saveAsButton.Location = Point(self.saveButton.Location.X - self.saveButton.Width - 4, self.saveButton.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
