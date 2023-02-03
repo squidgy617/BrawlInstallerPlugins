@@ -701,7 +701,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if uninstallCreditsTheme:
 						uninstallCreditsSong(slotConfigId)
 
-					# Update credits codde if ID is provided
+					# Update credits code if ID is provided
 					if fighterSettings.creditsThemeId:
 						updateCreditsCode(slotConfigId, fighterSettings.creditsThemeId)
 

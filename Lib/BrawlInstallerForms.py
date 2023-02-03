@@ -4431,6 +4431,83 @@ class PackageCharacterForm(Form):
         
         self.recalculateGroupLocations()
         self.Load += self.openCharacterPackage
+        
+        #region TOOLTIPS
+
+        toolTip = ToolTip()
+        toolTip.SetToolTip(cspCostumeLabel, "The color smash groups for your character's stock icons and CSPs.")
+        toolTip.SetToolTip(cspLabel, "The different colors within the selected color smash group.")
+        toolTip.SetToolTip(cspPictureBoxLabel, "The portrait for your character as it appears on the character selection screen.")
+        toolTip.SetToolTip(cspHdPictureBoxLabel, "The HD CSP.")
+        toolTip.SetToolTip(stockPictureBoxLabel, "The stock icons for your character.")
+        toolTip.SetToolTip(stockHdPictureBoxLabel, "The HD stock icons.")
+        i = 0
+        while i < len(self.bpTabControl.TabPages):
+            toolTip.SetToolTip(bpListBoxLabels[i], "List of BPs in the package.")
+            toolTip.SetToolTip(bpPictureBoxLabels[i], "The portrait that appears in battle.")
+            toolTip.SetToolTip(bpHdPictureBoxLabels[i], "The HD BP.")
+            toolTip.SetToolTip(bpNameLabels[i], "The name that appears beneath BPs in battle.")
+            toolTip.SetToolTip(bpNameHdLabels[i], "The HD BP name.")
+            i += 1
+        i = 0
+        while i < len(self.cssTabControl.tabControl.TabPages):
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[0], "The icon that appears on the character select screen.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[1], "The HD CSS icon.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[2], "The name that appears on icons on the character select screen.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[3], "The HD CSS icon name.")
+            i += 1
+        i = 0
+        while i < len(self.replayTabControl.tabControl.TabPages):
+            toolTip.SetToolTip(self.replayTabControl.controls[i].label[0], "The icon that appears in the replay icon.")
+            toolTip.SetToolTip(self.replayTabControl.controls[i].label[1], "The HD replay icon.")
+            i += 1
+        i = 0
+        while i < len(self.portraitNameTabControl.tabControl.TabPages):
+            toolTip.SetToolTip(self.portraitNameTabControl.controls[i].label[0], "The name that appears on the portrait on the character select screen.")
+            toolTip.SetToolTip(self.portraitNameTabControl.controls[i].label[1], "The HD portrait name.")
+            i += 1
+        toolTip.SetToolTip(self.franchiseIconImageControl.label[0], "Franchise icon with a black background.")
+        toolTip.SetToolTip(self.franchiseIconImageControl.label[1], "Franchise icon with a transparent background.")
+        toolTip.SetToolTip(self.franchiseModelControl.textBox.label, "Franchise icon model for results screen.")
+        toolTip.SetToolTip(self.readmeGroupBox, "Text of README file if you wish to include one in your character package.")
+        toolTip.SetToolTip(self.pacFilesControl.label, "Fighter PAC files.")
+        toolTip.SetToolTip(self.exConfigsControl.label, "Fighter Ex config files.")
+        toolTip.SetToolTip(self.moduleControl.textBox.label, "Fighter module file.")
+        toolTip.SetToolTip(self.kirbyHatFilesControl.label, "Fighter Kirby hat files, if included.")
+        toolTip.SetToolTip(self.kirbyHatTextBox.label, "The ID of the fighter (in hex or decimal format) whose Kirby hat the new hat is based on.")
+        toolTip.SetToolTip(self.soundBankControl.textBox.label, "The soundbank file for the fighter.")
+        toolTip.SetToolTip(self.victoryThemeControl.textBox.label, "The victory theme to use for the fighter.")
+        toolTip.SetToolTip(self.creditsThemeControl.textBox.label, "The classic mode credits theme to use for the fighter.")
+        toolTip.SetToolTip(self.introControl.textBox.label, "The .brres file for the character's classic mode intro.")
+        toolTip.SetToolTip(self.endingControl.label, "The .pac files for the character's classic mode ending.")
+        toolTip.SetToolTip(self.endingMovieControl.textBox.label, "The .thp file for the character's classic mode ending movie.")
+        toolTip.SetToolTip(self.creditsIdControl.label, "The song ID (in hex or decimal format) to use for your character's credits theme. Only set if using a vanilla theme.")
+        toolTip.SetToolTip(self.trophyIdControl.label, "The trophy ID (in hex or decimal format) to use for your character's trophy. Only set if using a vanilla trophy.")
+        toolTip.SetToolTip(self.throwRelease1Control.label, "The first value for your fighter's throw release point.")
+        toolTip.SetToolTip(self.throwRelease2Control.label, "The second value for your fighter's throw release point.")
+        toolTip.SetToolTip(self.asmControl.label, "Any ASM files with Gecko codes to include with your fighter.")
+        toolTip.SetToolTip(self.lucarioGroupBox, "Values for Lucario-specific Gecko codes used in some builds. Only set for Lucario clones.")
+        toolTip.SetToolTip(self.lucarioBoneControl.label, "The bone ID to use for the code 'Lucario Clone Aura Sphere Bone ID Fix'.")
+        toolTip.SetToolTip(self.lucarioKirbyEffectControl.label, "The GFX ID to use for the code 'Kirby Lucario Clone Aura Sphere GFX Fix'.")
+        toolTip.SetToolTip(self.jigglypuffGroupBox, "Values for Jigglypuff-specific Gecko codes used in some builds. Only set for Jigglypuff clones.")
+        toolTip.SetToolTip(self.jigglypuffBoneControl.label, "The bone ID to use for the code 'Jigglypuff Clone Rollout Bone Fix'.")
+        toolTip.SetToolTip(self.jigglypuffEflsControl.label, "The EFLS ID to use for the code 'Jigglypuff Clone Rollout Max Charge GFX Fix'.")
+        toolTip.SetToolTip(jigglypuffSfxLabel, "The SFX IDs to use for the code 'Jigglypuff Clone Rollout SFX Fix', in order as they would appear in the code.")
+        toolTip.SetToolTip(self.bowserGroupBox, "Values for Bowser-specific Gecko codes used in some builds. Only set for Bowser clones.")
+        toolTip.SetToolTip(self.bowserBoneControl.label, "The bone ID used for the code 'Bowser Clone Fire Breath Bone Fix'.")
+        toolTip.SetToolTip(self.trophyNameControl.label, "The name to display when viewing the trophy.")
+        toolTip.SetToolTip(self.trophyCheckBox, "Check if you would like to include a trophy with the character package. Leave unchecked otherwise.")
+        toolTip.SetToolTip(self.trophyDescriptionControl.label, "The description to display when viewing the trophy.")
+        toolTip.SetToolTip(self.gameIcon1Control.label, "The first console the character appeared on.")
+        toolTip.SetToolTip(self.gameIcon2Control.label, "The last console the character appeared on.")
+        toolTip.SetToolTip(self.gameName1Control.label, "The first game the character appeared in.")
+        toolTip.SetToolTip(self.gameName2Control.label, "The last game the character appeared in.")
+        toolTip.SetToolTip(self.trophySeriesControl.label, "The series the character comes from.")
+        toolTip.SetToolTip(self.trophyModelControl.textBox.label, "The .brres file containing the trophy's model.")
+        toolTip.SetToolTip(self.trophyImageControl.label[0], "The thumbnail for the trophy that appears in the gallery.")
+        toolTip.SetToolTip(self.trophyImageControl.label[1], "The HD trophy thumbnail.")
+
+        #endregion TOOLTIPS
 
     def createPackage(self, path):
         if Directory.Exists(PACK_PATH):
@@ -5173,10 +5250,10 @@ class LabeledTextBox(UserControl):
                 self.textBox.WordWrap = True
                 self.textBox.Size = size
 
-            label = Label()
-            label.Text = labelText + ":"
-            label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
-            label.TextAlign = ContentAlignment.TopRight
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
+            self.label.TextAlign = ContentAlignment.TopRight
 
             idButton = Button()
             idButton.Text = "..."
@@ -5189,7 +5266,7 @@ class LabeledTextBox(UserControl):
                 self.textBox.Controls.Add(idButton)
 
             self.Controls.Add(self.textBox)
-            self.Controls.Add(label)
+            self.Controls.Add(self.label)
 
         def idButtonPressed(self, sender, args):
             id = showIdPicker(self.idButtonType)
@@ -5210,13 +5287,13 @@ class LabeledDropDown(UserControl):
             for object in dataSource:
                 self.dropDown.Items.Add(object)
 
-            label = Label()
-            label.Text = labelText + ":"
-            label.Location = Point(self.dropDown.Location.X - self.dropDown.Width, self.dropDown.Location.Y)
-            label.TextAlign = ContentAlignment.TopRight
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(self.dropDown.Location.X - self.dropDown.Width, self.dropDown.Location.Y)
+            self.label.TextAlign = ContentAlignment.TopRight
 
             self.Controls.Add(self.dropDown)
-            self.Controls.Add(label)
+            self.Controls.Add(self.label)
 
 # A control for importing a single file
 class FileControl(UserControl):
@@ -5253,14 +5330,14 @@ class MultiFileControl(UserControl):
             self.files = BindingSource()
             self.files.DataSource = []
 
-            label = Label()
-            label.Text = labelText + ":"
-            label.Location = Point(0, 0)
-            label.Height = 16
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(0, 0)
+            self.label.Height = 16
 
             self.listBox = ListBox()
             self.listBox.Size = size
-            self.listBox.Location = Point(label.Location.X, label.Location.Y + 16)
+            self.listBox.Location = Point(self.label.Location.X, self.label.Location.Y + 16)
             self.listBox.HorizontalScrollbar = True
             self.listBox.DataSource = self.files
             self.listBox.DisplayMember = "Name"
@@ -5271,7 +5348,7 @@ class MultiFileControl(UserControl):
             button.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
             button.Click += self.buttonPressed
 
-            self.Controls.Add(label)
+            self.Controls.Add(self.label)
             self.Controls.Add(self.listBox)
             self.Controls.Add(button)
 
@@ -5319,7 +5396,7 @@ class ImageControl(UserControl):
 
             count = len(imageObjects)
 
-            label = [None] * count
+            self.label = [None] * count
             self.pictureBox = [None] * count
             button = [None] * count
 
@@ -5329,20 +5406,20 @@ class ImageControl(UserControl):
             i = 0
             rowTracker = 0
             while i < count:
-                label[i] = Label()
-                label[i].Text = imageObjects[i].label + ":"
+                self.label[i] = Label()
+                self.label[i].Text = imageObjects[i].label + ":"
                 if i == 0:
-                    label[i].Location = Point(0, 0)
+                    self.label[i].Location = Point(0, 0)
                 elif rowTracker == 1:
-                    x = max([label[i-1].Location.X + label[i-1].Width, self.pictureBox[i-1].Location.X + self.pictureBox[i-1].Width, button[i-1].Location.X + button[i-1].Width])
-                    label[i].Location = Point(x + 4, label[i-1].Location.Y)
+                    x = max([self.label[i-1].Location.X + self.label[i-1].Width, self.pictureBox[i-1].Location.X + self.pictureBox[i-1].Width, button[i-1].Location.X + button[i-1].Width])
+                    self.label[i].Location = Point(x + 4, self.label[i-1].Location.Y)
                 else:
-                    label[i].Location = Point(label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
-                label[i].Height = 16
-                label[i].Width = 90
+                    self.label[i].Location = Point(self.label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
+                self.label[i].Height = 16
+                self.label[i].Width = 90
 
                 self.pictureBox[i] = PictureBox()
-                self.pictureBox[i].Location = Point(label[i].Location.X, label[i].Location.Y + label[i].Height + 4)
+                self.pictureBox[i].Location = Point(self.label[i].Location.X, self.label[i].Location.Y + self.label[i].Height + 4)
                 self.pictureBox[i].Size = imageObjects[i].size
                 self.pictureBox[i].SizeMode = PictureBoxSizeMode.StretchImage
 
@@ -5352,7 +5429,7 @@ class ImageControl(UserControl):
                 button[i].TabIndex = i
                 button[i].Click += self.buttonPressed
 
-                self.Controls.Add(label[i])
+                self.Controls.Add(self.label[i])
                 self.Controls.Add(self.pictureBox[i])
                 self.Controls.Add(button[i])
 
