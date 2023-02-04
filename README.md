@@ -68,7 +68,7 @@ The plugins create backups of your files during execution, however, I cannot gua
 - [Managing Costumes](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Costumes)
 - [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Music)
 - [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Stages)
-- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing) (OUTDATE)
+- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing) (OUTDATED)
 
 # Character Packages
 
