@@ -4153,6 +4153,17 @@ class PackageCharacterForm(Form):
 
         self.readmeGroupBox.Controls.Add(self.readmeControl)
 
+        self.bonusGroupBox = GroupBox()
+        self.bonusGroupBox.AutoSize = True
+        self.bonusGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.bonusGroupBox.Text = "Bonus Files"
+        self.bonusGroupBox.Click += self.toggleGroupBox
+
+        self.bonusControl = MultiFileControl("Select any extra files you'd like to include", "All file types|*.*", "Files", Size(100,60))
+        self.bonusControl.Location = Point(4, 16)
+
+        self.bonusGroupBox.Controls.Add(self.bonusControl)
+
         # Fighter Files Groupbox
         self.fighterGroupBox = GroupBox()
         self.fighterGroupBox.AutoSize = True
@@ -4422,6 +4433,7 @@ class PackageCharacterForm(Form):
 
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.readmeGroupBox)
+        self.Controls.Add(self.bonusGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
@@ -4604,6 +4616,8 @@ class PackageCharacterForm(Form):
         if self.readmeControl.textBox.Text:
             Directory.CreateDirectory(PACK_PATH)
             File.WriteAllText(PACK_PATH + '\\README.txt', self.readmeControl.textBox.Text)
+        for file in self.bonusControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Bonus')
         # Fighter settings
         fighterSettings = FighterSettings()
         if self.creditsIdControl.textBox.Text:
@@ -4861,6 +4875,8 @@ class PackageCharacterForm(Form):
                                 self.franchiseModelControl.textBox.textBox.Text = file[0]
                 if File.Exists(TEMP_PATH + '\\README.txt'):
                     self.readmeControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\README.txt')
+                if Directory.Exists(TEMP_PATH + '\\Bonus'):
+                    self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
@@ -5217,7 +5233,8 @@ class PackageCharacterForm(Form):
         self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 4)
         self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 4)
         self.readmeGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X, self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height + 4)
-        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width)
+        self.bonusGroupBox.Location = Point(self.readmeGroupBox.Location.X + self.readmeGroupBox.Width + 16, self.readmeGroupBox.Location.Y)
+        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width, self.bonusGroupBox.Location.X + self.bonusGroupBox.Width)
         self.fighterGroupBox.Location = Point(x + 16, self.cosmeticsGroupBox.Location.Y)
         self.mainFighterGroupBox.Location = Point(4, 16)
         self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 4)
@@ -5228,7 +5245,7 @@ class PackageCharacterForm(Form):
         self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
         self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
         self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
-        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height, self.readmeGroupBox.Location.Y + self.readmeGroupBox.Height)
+        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height, self.readmeGroupBox.Location.Y + self.readmeGroupBox.Height, self.bonusGroupBox.Location.Y + self.bonusGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
         self.cancelButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
         self.saveButton.Location = Point(self.cancelButton.Location.X - self.cancelButton.Width - 4, self.cancelButton.Location.Y)
