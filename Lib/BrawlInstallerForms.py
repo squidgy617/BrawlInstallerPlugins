@@ -2445,11 +2445,32 @@ class SettingsForm(Form):
         nameGroup.Controls.Add(self.vBrawlNameRadioButton)
         nameGroup.Controls.Add(self.PMNameRadioButton)
 
+        # Replay Icon Style
+        replayGroup = GroupBox()
+        replayGroup.Location = Point(nameGroup.Location.X, nameGroup.Location.Y + nameGroup.Height/2 + 16)
+        replayGroup.Text = "Replay Icon Style"
+        replayGroup.AutoSize = True
+        replayGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.vBrawlReplayRadioButton = RadioButton()
+        self.vBrawlReplayRadioButton.Text = "vBrawl"
+        self.vBrawlReplayRadioButton.Location = Point(16, 16)
+        self.vBrawlReplayRadioButton.Width = 64
+        self.vBrawlReplayRadioButton.Checked = True
+
+        self.pPlusReplayRadioButton = RadioButton()
+        self.pPlusReplayRadioButton.Text = "P+"
+        self.pPlusReplayRadioButton.Location = Point(80, 16)
+        self.pPlusReplayRadioButton.Width = 64
+
+        replayGroup.Controls.Add(self.vBrawlReplayRadioButton)
+        replayGroup.Controls.Add(self.pPlusReplayRadioButton)
+
         # Stock locations
         stockGroupBox = GroupBox()
         stockGroupBox.AutoSize = True
         stockGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        stockGroupBox.Location = Point(4, 240)
+        stockGroupBox.Location = Point(replayGroup.Location.X, replayGroup.Location.Y + replayGroup.Height/2 + 16)
         stockGroupBox.Text = "Stock Icon Install Locations"
 
         self.stockCssCheckbox = CheckBox()
@@ -2487,25 +2508,25 @@ class SettingsForm(Form):
         self.portraitNameCheckBox = CheckBox()
         self.portraitNameCheckBox.Text = "Install Portrait Names"
         self.portraitNameCheckBox.Width = 140
-        self.portraitNameCheckBox.Location = Point(16, 348)
+        self.portraitNameCheckBox.Location = Point(16, stockGroupBox.Location.Y + stockGroupBox.Height + 4)
 
         self.bpNameCheckbox = CheckBox()
         self.bpNameCheckbox.Text = "Install BP Names"
         self.bpNameCheckbox.Width = 140
-        self.bpNameCheckbox.Location = Point(16, 372)
+        self.bpNameCheckbox.Location = Point(16, self.portraitNameCheckBox.Location.Y + 24)
 
         self.singlePlayerCheckBox = CheckBox()
         self.singlePlayerCheckBox.Text = "Install Single Player Cosmetics"
         self.singlePlayerCheckBox.Width = 200
-        self.singlePlayerCheckBox.Location = Point(16, 396)
+        self.singlePlayerCheckBox.Location = Point(16, self.bpNameCheckbox.Location.Y + 24)
 
         self.franchiseIconSizeLabel = Label()
-        self.franchiseIconSizeLabel.Location = Point(16, 428)
+        self.franchiseIconSizeLabel.Location = Point(16, self.singlePlayerCheckBox.Location.Y + 24)
         self.franchiseIconSizeLabel.Text = "Franchise Icon Size:"
         self.franchiseIconSizeLabel.Width = 112
 
         self.franchiseIconSizeText = NumericUpDown()
-        self.franchiseIconSizeText.Location = Point(128, 428)
+        self.franchiseIconSizeText.Location = Point(128, self.franchiseIconSizeLabel.Location.Y)
         self.franchiseIconSizeText.Width = 48
         self.franchiseIconSizeText.Maximum = 256
         self.franchiseIconSizeText.Minimum = 0
@@ -2515,6 +2536,7 @@ class SettingsForm(Form):
         cosmeticGroupBox.Controls.Add(cssIconGroup)
         cosmeticGroupBox.Controls.Add(bpGroup)
         cosmeticGroupBox.Controls.Add(nameGroup)
+        cosmeticGroupBox.Controls.Add(replayGroup)
         cosmeticGroupBox.Controls.Add(stockGroupBox)
         cosmeticGroupBox.Controls.Add(self.portraitNameCheckBox)
         cosmeticGroupBox.Controls.Add(self.bpNameCheckbox)
@@ -2524,7 +2546,7 @@ class SettingsForm(Form):
 
         # Stage Settings group
         self.stageGroupBox = GroupBox()
-        self.stageGroupBox.Location = Point(0,475)
+        self.stageGroupBox.Location = Point(0, 525)
         self.stageGroupBox.Text = "Custom Stage Lists"
         self.stageGroupBox.AutoSize = True
         self.stageGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -2554,13 +2576,13 @@ class SettingsForm(Form):
 
         pPlusDefaultsButton = Button()
         pPlusDefaultsButton.Text = "P+Ex Defaults"
-        pPlusDefaultsButton.Location = Point(4, 620)
+        pPlusDefaultsButton.Location = Point(4, 640)
         pPlusDefaultsButton.Width = 90
         pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
 
         remixDefaultsButton = Button()
         remixDefaultsButton.Text = "REMIX Defaults"
-        remixDefaultsButton.Location = Point(98, 620)
+        remixDefaultsButton.Location = Point(98, 640)
         remixDefaultsButton.Width = 95
         remixDefaultsButton.Click += self.remixDefaultsButtonPressed
 
@@ -2813,12 +2835,12 @@ class SettingsForm(Form):
 
         self.cancelButton = Button()
         self.cancelButton.Text = "Close"
-        self.cancelButton.Location = Point(525, 620)
+        self.cancelButton.Location = Point(525, 640)
         self.cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
         saveButton.Text = "Save"
-        saveButton.Location = Point(445, 620)
+        saveButton.Location = Point(445, 640)
         saveButton.Click += self.saveButtonPressed
 
         self.Controls.Add(cosmeticGroupBox)
@@ -2844,6 +2866,9 @@ class SettingsForm(Form):
         toolTip.SetToolTip(nameGroup, "The style of names used on portraits displayed on the character select screen. If your build doesn't use these, this setting will have no effect.") 
         toolTip.SetToolTip(self.vBrawlNameRadioButton, "Select this if your build uses vanilla Brawl style portrait names.") 
         toolTip.SetToolTip(self.PMNameRadioButton, "Select this if your build uses Project M style portrait names.") 
+        toolTip.SetToolTip(replayGroup, "The style of icons displayed on the replay screen.")
+        toolTip.SetToolTip(self.vBrawlReplayRadioButton, "Select this if your build uses vanilla Brawl style replay icons.")
+        toolTip.SetToolTip(self.pPlusReplayRadioButton, "Select this if your build uses Project+ style replay icons.")
         toolTip.SetToolTip(stockGroupBox, "The locations where character-specific stock icons are used in your build.") 
         toolTip.SetToolTip(self.stockCssCheckbox, "Check this if your build uses stock icons on the character select screen for modes like Classic mode. When checked, stock icons will be installed to sc_selcharacter.pac.") 
         toolTip.SetToolTip(self.stockSssCheckbox, "Check this if your build uses stock icons on the stage select screen. When checked, stock icons will be installed to sc_selmap.pac.") 
@@ -2887,6 +2912,9 @@ class SettingsForm(Form):
         self.remixBPRadioButton.Checked = self.settings.bpStyle == "REMIX"
         self.vBrawlNameRadioButton.Checked = self.settings.portraitNameStyle == "vBrawl"
         self.PMNameRadioButton.Checked = self.settings.portraitNameStyle == "PM"
+        if self.settings.replayIconStyle:
+            self.vBrawlReplayRadioButton.Checked = self.settings.replayIconStyle == "vBrawl"
+            self.pPlusReplayRadioButton.Checked = self.settings.replayIconStyle == "P+"
         self.stockCssCheckbox.Checked = textBool(self.settings.installStocksToCSS)
         self.stockSssCheckbox.Checked = textBool(self.settings.installStocksToSSS)
         self.stockResultCheckbox.Checked = textBool(self.settings.installStockIconsToResult)
@@ -2921,6 +2949,7 @@ class SettingsForm(Form):
         settings.bpStyle = "vBrawl"
         settings.installPortraitNames = "false"
         settings.portraitNameStyle = "vBrawl"
+        settings.replayIconStyle = "P+"
         settings.franchiseIconSizeCSS = str(128)
         settings.installStocksToCSS = "true"
         settings.installStocksToInfo = "true"
@@ -2945,6 +2974,7 @@ class SettingsForm(Form):
         settings.bpStyle = "REMIX"
         settings.installPortraitNames = "true"
         settings.portraitNameStyle = "PM"
+        settings.replayIconStyle = "P+"
         settings.franchiseIconSizeCSS = str(64)
         settings.installStocksToCSS = "false"
         settings.installStocksToInfo = "false"
@@ -3046,6 +3076,10 @@ class SettingsForm(Form):
             settings.portraitNameStyle = "vBrawl"
         elif self.PMNameRadioButton.Checked:
             settings.portraitNameStyle = "PM"
+        if self.vBrawlReplayRadioButton.Checked:
+            settings.replayIconStyle = "vBrawl"
+        elif self.pPlusReplayRadioButton.Checked:
+            settings.replayIconStyle = "P+"
         settings.installStocksToCSS = boolText(self.stockCssCheckbox.Checked)
         settings.installStocksToSSS = boolText(self.stockSssCheckbox.Checked)
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
@@ -3682,3 +3716,1778 @@ class CostumeForm(Form):
         self.Close()
 
 #endregion COSTUME FORM
+
+#region PACKAGE CHARACTER FORM
+
+class PackageCharacterForm(Form):
+
+    def __init__(self, zipFile=""):
+        # Form parameters
+        self.Text = 'Package Character'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        #self.MinimumSize = Size(267,344)
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.costumeGroups = BindingSource()
+        self.costumeGroups.DataSource = []
+        self.zipFile = zipFile
+
+        # Cosmetics Groupbox
+        self.cosmeticsGroupBox = GroupBox()
+        self.cosmeticsGroupBox.Location = Point(0,0)
+        self.cosmeticsGroupBox.AutoSize = True
+        self.cosmeticsGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.cosmeticsGroupBox.Text = "Cosmetics"
+        self.cosmeticsGroupBox.Click += self.toggleGroupBox
+
+        #region CSP and Stocks
+
+        # CSP Groupbox
+        self.cspGroupBox = GroupBox()
+        self.cspGroupBox.Location = Point(0,16)
+        self.cspGroupBox.AutoSize = True
+        self.cspGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.cspGroupBox.Text = "CSPs and Stocks"
+        self.cspGroupBox.Click += self.toggleGroupBox
+
+        cspCostumeLabel = Label()
+        cspCostumeLabel.Text = "Groups:"
+        cspCostumeLabel.Location = Point(16, 16)
+        cspCostumeLabel.Height = 16
+        cspCostumeLabel.Width = 80
+
+        self.cspCostumeListBox = ListBox()
+        self.cspCostumeListBox.Width = 80
+        self.cspCostumeListBox.Height = 120
+        self.cspCostumeListBox.Location = Point(cspCostumeLabel.Location.X, cspCostumeLabel.Location.Y + 16)
+        self.cspCostumeListBox.HorizontalScrollbar = True
+        self.cspCostumeListBox.DataSource = self.costumeGroups
+        self.cspCostumeListBox.DisplayMember = "costumeGroup"
+        self.cspCostumeListBox.SelectedValueChanged += self.cspCostumeChanged
+
+        cspCostumeButton = Button()
+        cspCostumeButton.Text = "+"
+        cspCostumeButton.Size = Size(16, 16)
+        cspCostumeButton.Location = Point(self.cspCostumeListBox.Location.X + self.cspCostumeListBox.Width + 4, self.cspCostumeListBox.Location.Y)
+        cspCostumeButton.Click += self.cspCostumeButtonPressed
+
+        cspCostumeRemoveButton = Button()
+        cspCostumeRemoveButton.Text = "-"
+        cspCostumeRemoveButton.Size = Size(16, 16)
+        cspCostumeRemoveButton.Location = Point(cspCostumeButton.Location.X, cspCostumeButton.Location.Y + cspCostumeButton.Height + 4)
+        cspCostumeRemoveButton.Click += self.cspCostumeRemoveButtonPressed
+
+        self.cspListBox = ListBox()
+        self.cspListBox.Width = 80
+        self.cspListBox.Height = 120
+        self.cspListBox.Location = Point(cspCostumeButton.Location.X + cspCostumeButton.Width + 16, cspCostumeButton.Location.Y)
+        self.cspListBox.HorizontalScrollbar = True
+        self.cspListBox.DisplayMember = "name"
+        self.cspListBox.SelectedValueChanged += self.cspChanged
+
+        cspLabel = Label()
+        cspLabel.Text = "Colors:"
+        cspLabel.Location = Point(self.cspListBox.Location.X, self.cspListBox.Location.Y - 16)
+        cspLabel.Height = 16
+
+        self.addColorButton = Button()
+        self.addColorButton.Text = "+"
+        self.addColorButton.Size = Size(16, 16)
+        self.addColorButton.Location = Point(self.cspListBox.Location.X + self.cspListBox.Width + 4, self.cspListBox.Location.Y)
+        self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem
+        self.addColorButton.Click += self.addColorButtonPressed
+
+        self.removeColorButton = Button()
+        self.removeColorButton.Text = "-"
+        self.removeColorButton.Size = Size(16, 16)
+        self.removeColorButton.Location = Point(self.addColorButton.Location.X, self.addColorButton.Location.Y + self.addColorButton.Height + 4)
+        self.removeColorButton.Enabled = self.cspCostumeListBox.SelectedItem
+        self.removeColorButton.Click += self.removeColorButtonPressed
+
+        self.cspPictureBox = PictureBox()
+        self.cspPictureBox.Location = Point(self.addColorButton.Location.X + self.addColorButton.Width + 16, self.addColorButton.Location.Y)
+        self.cspPictureBox.Size = Size(64, 80)
+        self.cspPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        cspPictureBoxLabel = Label()
+        cspPictureBoxLabel.Text = "CSP:"
+        cspPictureBoxLabel.Width = 32
+        cspPictureBoxLabel.Location = Point(self.cspPictureBox.Location.X, self.cspPictureBox.Location.Y - 16)
+
+        self.cspButton = Button()
+        self.cspButton.Text = "Browse..."
+        self.cspButton.Location = Point(self.cspPictureBox.Location.X, self.cspPictureBox.Location.Y + self.cspPictureBox.Height + 4)
+        self.cspButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.cspButton.Click += self.cspButtonPressed
+
+        self.cspHdPictureBox = PictureBox()
+        self.cspHdPictureBox.Location = Point(self.cspPictureBox.Location.X + self.cspPictureBox.Width + 16, self.cspPictureBox.Location.Y)
+        self.cspHdPictureBox.Size = Size(64, 80)
+        self.cspHdPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        cspHdPictureBoxLabel = Label()
+        cspHdPictureBoxLabel.Text = "HD CSP:"
+        cspHdPictureBoxLabel.Location = Point(self.cspHdPictureBox.Location.X, self.cspHdPictureBox.Location.Y - 16)
+
+        self.cspHdButton = Button()
+        self.cspHdButton.Text = "Browse..."
+        self.cspHdButton.Location = Point(self.cspHdPictureBox.Location.X, self.cspHdPictureBox.Location.Y + self.cspHdPictureBox.Height + 4)
+        self.cspHdButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.cspHdButton.Click += self.cspHdButtonPressed
+
+        stockPictureBoxLabel = Label()
+        stockPictureBoxLabel.Text = "Stock:"
+        stockPictureBoxLabel.Width = 36
+        stockPictureBoxLabel.Height = 16
+        stockPictureBoxLabel.Location = Point(self.cspButton.Location.X, self.cspButton.Location.Y + self.cspButton.Height + 16)
+
+        self.stockPictureBox = PictureBox()
+        self.stockPictureBox.Location = Point(stockPictureBoxLabel.Location.X, stockPictureBoxLabel.Location.Y + 16)
+        self.stockPictureBox.Size = Size(32, 32)
+        self.stockPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        self.stockButton = Button()
+        self.stockButton.Text = "Browse..."
+        self.stockButton.Location = Point(self.stockPictureBox.Location.X, self.stockPictureBox.Location.Y + self.stockPictureBox.Height + 4)
+        self.stockButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.stockButton.Click += self.stockButtonPressed
+
+        self.stockHdPictureBox = PictureBox()
+        self.stockHdPictureBox.Location = Point(self.stockPictureBox.Location.X + self.stockButton.Width + 4, self.stockPictureBox.Location.Y)
+        self.stockHdPictureBox.Size = Size(32, 32)
+        self.stockHdPictureBox.SizeMode = PictureBoxSizeMode.StretchImage
+
+        stockHdPictureBoxLabel = Label()
+        stockHdPictureBoxLabel.Text = "HD Stock:"
+        stockHdPictureBoxLabel.Height = 16
+        stockHdPictureBoxLabel.Location = Point(self.stockHdPictureBox.Location.X, self.stockHdPictureBox.Location.Y - 16)
+
+        self.stockHdButton = Button()
+        self.stockHdButton.Text = "Browse..."
+        self.stockHdButton.Location = Point(self.stockHdPictureBox.Location.X, self.stockHdPictureBox.Location.Y + self.stockHdPictureBox.Height + 4)
+        self.stockHdButton.Enabled = len(self.cspCostumeListBox.Items) > 0
+        self.stockHdButton.Click += self.stockHdButtonPressed
+
+        self.cspGroupBox.Controls.Add(cspCostumeLabel)
+        self.cspGroupBox.Controls.Add(self.cspCostumeListBox)
+        self.cspGroupBox.Controls.Add(self.cspListBox)
+        self.cspGroupBox.Controls.Add(self.addColorButton)
+        self.cspGroupBox.Controls.Add(self.removeColorButton)
+        self.cspGroupBox.Controls.Add(cspCostumeButton)
+        self.cspGroupBox.Controls.Add(cspCostumeRemoveButton)
+        self.cspGroupBox.Controls.Add(cspLabel)
+        self.cspGroupBox.Controls.Add(self.cspPictureBox)
+        self.cspGroupBox.Controls.Add(self.cspButton)
+        self.cspGroupBox.Controls.Add(cspPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(self.cspHdPictureBox)
+        self.cspGroupBox.Controls.Add(self.cspHdButton)
+        self.cspGroupBox.Controls.Add(cspHdPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(stockPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(self.stockPictureBox)
+        self.cspGroupBox.Controls.Add(self.stockButton)
+        self.cspGroupBox.Controls.Add(stockHdPictureBoxLabel)
+        self.cspGroupBox.Controls.Add(self.stockHdPictureBox)
+        self.cspGroupBox.Controls.Add(self.stockHdButton)
+
+        #endregion CSPs and Stocks
+        
+        #region BPs
+
+        bpTabNames = ["vBrawl", "REMIX"]
+
+        # BP Groupbox
+        self.bpGroupBox = GroupBox()
+        self.bpGroupBox.AutoSize = True
+        self.bpGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.bpGroupBox.MinimumSize = Size(350, 250)
+        self.bpGroupBox.MaximumSize = Size(350, 250)
+        self.bpGroupBox.Text = "BPs"
+        self.bpGroupBox.Click += self.toggleGroupBox
+
+        self.bpTabControl = TabControl()
+        self.bpTabControl.Dock = DockStyle.Fill
+
+        bpTabs = [None] * len(bpTabNames)
+        bpListBoxLabels = [None] * len(bpTabNames)
+        self.bpListBoxes = [None] * len(bpTabNames)
+        bpAddButtons = [None] * len(bpTabNames)
+        bpRemoveButtons = [None] * len(bpTabNames)
+        self.bpPictureBoxes = [None] * len(bpTabNames)
+        bpPictureBoxLabels = [None] * len(bpTabNames)
+        self.bpButtons = [None] * len(bpTabNames)
+        self.bpHdButtons = [None] * len(bpTabNames)
+        self.bpHdPictureBoxes = [None] * len(bpTabNames)
+        bpHdPictureBoxLabels = [None] * len(bpTabNames)
+        self.bps = [None] * len(bpTabNames)
+        self.bpNameImage = [None] * len(bpTabNames)
+        bpNameLabels = [None] * len(bpTabNames)
+        self.bpNamePictureBoxes = [None] * len(bpTabNames)
+        self.bpNameButtons = [None] * len(bpTabNames)
+        self.bpNameHdImage = [None] * len(bpTabNames)
+        self.bpNameHdPictureBoxes = [None] * len(bpTabNames)
+        bpNameHdLabels = [None] * len(bpTabNames)
+        self.bpNameHdButtons = [None] * len(bpTabNames)
+
+        i = 0
+        while i < len(bpTabs):
+            self.bps[i] = BindingSource()
+            self.bps[i].DataSource = []
+
+            # Tabs
+            bpTabs[i] = TabPage()
+            bpTabs[i].Text = bpTabNames[i]
+            bpTabs[i].Name = bpTabNames[i]
+            bpTabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
+
+            # Labels
+            bpListBoxLabels[i] = Label()
+            bpListBoxLabels[i].Text = "BPs:"
+            bpListBoxLabels[i].Location = Point(16, 4)
+            bpListBoxLabels[i].Height = 16
+            bpListBoxLabels[i].Width = 80
+
+            # Listboxes
+            self.bpListBoxes[i] = ListBox()
+            self.bpListBoxes[i].Width = 80
+            self.bpListBoxes[i].Height = 120
+            self.bpListBoxes[i].Location = Point(bpListBoxLabels[i].Location.X, bpListBoxLabels[i].Location.Y + bpListBoxLabels[i].Height)
+            self.bpListBoxes[i].HorizontalScrollbar = True
+            self.bpListBoxes[i].DataSource = self.bps[i]
+            self.bpListBoxes[i].DisplayMember = "name"
+            self.bpListBoxes[i].SelectedValueChanged += self.bpChanged
+
+            # Add Buttons
+            bpAddButtons[i] = Button()
+            bpAddButtons[i].Text = "+"
+            bpAddButtons[i].Size = Size(16, 16)
+            bpAddButtons[i].Location = Point(self.bpListBoxes[i].Location.X + self.bpListBoxes[i].Width + 4, self.bpListBoxes[i].Location.Y)
+            bpAddButtons[i].Click += self.addBpButtonPressed
+
+            # Remove Buttons
+            bpRemoveButtons[i] = Button()
+            bpRemoveButtons[i].Text = "-"
+            bpRemoveButtons[i].Size = Size(16, 16)
+            bpRemoveButtons[i].Location = Point(bpAddButtons[i].Location.X, bpAddButtons[i].Location.Y + bpAddButtons[i].Height + 4)
+            bpRemoveButtons[i].Click += self.removeBpButtonPressed
+
+            # BP Picture Boxes
+            self.bpPictureBoxes[i] = PictureBox()
+            self.bpPictureBoxes[i].Location = Point(bpAddButtons[i].Location.X + bpAddButtons[i].Width + 16, bpAddButtons[i].Location.Y)
+            self.bpPictureBoxes[i].Size = Size(48, 56)
+            self.bpPictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            # Labels
+            bpPictureBoxLabels[i] = Label()
+            bpPictureBoxLabels[i].Text = "BP:"
+            bpPictureBoxLabels[i].Location = Point(self.bpPictureBoxes[i].Location.X, self.bpPictureBoxes[i].Location.Y - 16)
+            bpPictureBoxLabels[i].Height = 16
+            bpPictureBoxLabels[i].Width = 80
+
+            # BP Buttons
+            self.bpButtons[i] = Button()
+            self.bpButtons[i].Text = "Browse..."
+            self.bpButtons[i].Location = Point(self.bpPictureBoxes[i].Location.X, self.bpPictureBoxes[i].Location.Y + self.bpPictureBoxes[i].Height + 4)
+            self.bpButtons[i].Click += self.bpButtonPressed
+
+            # BP HD
+            self.bpHdPictureBoxes[i] = PictureBox()
+            self.bpHdPictureBoxes[i].Location = Point(self.bpPictureBoxes[i].Location.X + self.bpButtons[i].Width + 4, self.bpPictureBoxes[i].Location.Y)
+            self.bpHdPictureBoxes[i].Size = Size(48, 56)
+            self.bpHdPictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            bpHdPictureBoxLabels[i] = Label()
+            bpHdPictureBoxLabels[i].Text = "HD BP:"
+            bpHdPictureBoxLabels[i].Location = Point(self.bpHdPictureBoxes[i].Location.X, self.bpHdPictureBoxes[i].Location.Y - 16)
+            bpHdPictureBoxLabels[i].Height = 16
+            bpHdPictureBoxLabels[i].Width = 80
+
+            self.bpHdButtons[i] = Button()
+            self.bpHdButtons[i].Text = "Browse..."
+            self.bpHdButtons[i].Location = Point(self.bpHdPictureBoxes[i].Location.X, self.bpHdPictureBoxes[i].Location.Y + self.bpHdPictureBoxes[i].Height + 4)
+            self.bpHdButtons[i].Click += self.bpHdButtonPressed
+
+            # BP Name
+            self.bpNameImage[i] = ""
+            bpNameLabels[i] = Label()
+            bpNameLabels[i].Text = "BP Name:"
+            bpNameLabels[i].Location = Point(self.bpButtons[i].Location.X, self.bpButtons[i].Location.Y + self.bpButtons[i].Height + 16)
+            bpNameLabels[i].Height = 16
+            bpNameLabels[i].Width = 80
+
+            self.bpNamePictureBoxes[i] = PictureBox()
+            self.bpNamePictureBoxes[i].Location = Point(bpNameLabels[i].Location.X, bpNameLabels[i].Location.Y + bpNameLabels[i].Height + 16)
+            self.bpNamePictureBoxes[i].Size = Size(72, 12)
+            self.bpNamePictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            self.bpNameButtons[i] = Button()
+            self.bpNameButtons[i].Text = "Browse..."
+            self.bpNameButtons[i].Location = Point(self.bpNamePictureBoxes[i].Location.X, self.bpNamePictureBoxes[i].Location.Y + self.bpNamePictureBoxes[i].Height + 4)
+            self.bpNameButtons[i].Click += self.bpNameButtonPressed
+            
+            # BP Name HD
+            self.bpNameHdImage[i] = ""
+            self.bpNameHdPictureBoxes[i] = PictureBox()
+            self.bpNameHdPictureBoxes[i].Location = Point(self.bpNamePictureBoxes[i].Location.X + self.bpNameButtons[i].Width + 4, self.bpNamePictureBoxes[i].Location.Y)
+            self.bpNameHdPictureBoxes[i].Size = Size(72, 12)
+            self.bpNameHdPictureBoxes[i].SizeMode = PictureBoxSizeMode.StretchImage
+
+            bpNameHdLabels[i] = Label()
+            bpNameHdLabels[i].Text = "HD BP Name:"
+            bpNameHdLabels[i].Location = Point(self.bpNameHdPictureBoxes[i].Location.X, bpNameLabels[i].Location.Y)
+            bpNameHdLabels[i].Height = 16
+            bpNameHdLabels[i].Width = 80
+
+            self.bpNameHdButtons[i] = Button()
+            self.bpNameHdButtons[i].Text = "Browse..."
+            self.bpNameHdButtons[i].Location = Point(self.bpNameHdPictureBoxes[i].Location.X, self.bpNameHdPictureBoxes[i].Location.Y + 16)
+            self.bpNameHdButtons[i].Click += self.bpNameHdButtonPressed
+
+            # Add to page
+            bpTabs[i].Controls.Add(bpListBoxLabels[i])
+            bpTabs[i].Controls.Add(self.bpListBoxes[i])
+            bpTabs[i].Controls.Add(bpAddButtons[i])
+            bpTabs[i].Controls.Add(bpRemoveButtons[i])
+            bpTabs[i].Controls.Add(self.bpPictureBoxes[i])
+            bpTabs[i].Controls.Add(bpPictureBoxLabels[i])
+            bpTabs[i].Controls.Add(self.bpButtons[i])
+            bpTabs[i].Controls.Add(self.bpHdPictureBoxes[i])
+            bpTabs[i].Controls.Add(bpHdPictureBoxLabels[i])
+            bpTabs[i].Controls.Add(self.bpHdButtons[i])
+            bpTabs[i].Controls.Add(bpNameLabels[i])
+            bpTabs[i].Controls.Add(self.bpNamePictureBoxes[i])
+            bpTabs[i].Controls.Add(self.bpNameButtons[i])
+            bpTabs[i].Controls.Add(self.bpNameHdPictureBoxes[i])
+            bpTabs[i].Controls.Add(bpNameHdLabels[i])
+            bpTabs[i].Controls.Add(self.bpNameHdButtons[i])
+
+            # Add to control
+            self.bpTabControl.Controls.Add(bpTabs[i])
+            i += 1
+
+        self.bpGroupBox.Controls.Add(self.bpTabControl)
+
+        #endregion BPs
+
+        self.cssGroupBox = GroupBox()
+        self.cssGroupBox.AutoSize = True
+        self.cssGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.cssGroupBox.MinimumSize = Size(350, 250)
+        self.cssGroupBox.MaximumSize = Size(350, 250)
+        self.cssGroupBox.Text = "CSS Icons"
+        self.cssGroupBox.Click += self.toggleGroupBox
+
+        cssTabNames = ["vBrawl", "PM", "P+", "REMIX"]
+        cssImageObjects = [ImageObject("CSS Icon", Size(64,64)), ImageObject("HD CSS Icon", Size(64,64)), ImageObject("Name", Size(56,24)), ImageObject("HD Name", Size(56,24))]
+
+        self.cssTabControl = TabImageControl(cssTabNames, cssImageObjects)
+        
+        self.cssGroupBox.Controls.Add(self.cssTabControl)
+
+        self.replayGroupBox = GroupBox()
+        self.replayGroupBox.AutoSize = True
+        self.replayGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.replayGroupBox.MinimumSize = Size(225, 125)
+        self.replayGroupBox.MaximumSize = Size(225, 125)
+        self.replayGroupBox.Text = "Replay Icons"
+        self.replayGroupBox.Click += self.toggleGroupBox
+
+        replayTabNames = ["vBrawl", "P+"]
+        replayImageObjects = [ImageObject("Replay Icon", Size(64,24)), ImageObject("HD Replay Icon", Size(64,24))]
+
+        self.replayTabControl = TabImageControl(replayTabNames, replayImageObjects)
+        
+        self.replayGroupBox.Controls.Add(self.replayTabControl)
+
+        self.portraitNameGroupBox = GroupBox()
+        self.portraitNameGroupBox.AutoSize = True
+        self.portraitNameGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.portraitNameGroupBox.MinimumSize = Size(315, 150)
+        self.portraitNameGroupBox.MaximumSize = Size(315, 150)
+        self.portraitNameGroupBox.Text = "Portrait Name"
+        self.portraitNameGroupBox.Click += self.toggleGroupBox
+
+        portraitTabNames = ["vBrawl", "PM"]
+        portraitNameImageObjects = [ImageObject("Name", Size(144,32)), ImageObject("HD Name", Size(144,32))]
+
+        self.portraitNameTabControl = TabImageControl(portraitTabNames, portraitNameImageObjects)
+        
+        self.portraitNameGroupBox.Controls.Add(self.portraitNameTabControl)
+
+        self.franchiseIconGroupBox = GroupBox()
+        self.franchiseIconGroupBox.AutoSize = True
+        self.franchiseIconGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.franchiseIconGroupBox.Text = "Franchise Icon"
+        self.franchiseIconGroupBox.Click += self.toggleGroupBox
+
+        franchiseIconImageObjects = [ImageObject("Black", Size(64,64)), ImageObject("Transparent", Size(64,64))]
+
+        self.franchiseIconImageControl = ImageControl(franchiseIconImageObjects)
+        self.franchiseIconImageControl.Location = Point(16, 16)
+
+        self.franchiseModelControl = FileControl("Select your franchise icon model file", "MDL0 files|*.mdl0", "Model")
+        self.franchiseModelControl.Location = Point(self.franchiseIconImageControl.Location.X, self.franchiseIconImageControl.Location.Y + self.franchiseIconImageControl.Height)
+        
+        self.franchiseIconGroupBox.Controls.Add(self.franchiseIconImageControl)
+        self.franchiseIconGroupBox.Controls.Add(self.franchiseModelControl)
+
+        self.cosmeticsGroupBox.Controls.Add(self.cspGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.bpGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.cssGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.replayGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.portraitNameGroupBox)
+        self.cosmeticsGroupBox.Controls.Add(self.franchiseIconGroupBox)
+
+        self.readmeGroupBox = GroupBox()
+        self.readmeGroupBox.AutoSize = True
+        self.readmeGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.readmeGroupBox.Text = "README"
+        self.readmeGroupBox.Click += self.toggleGroupBox
+
+        self.readmeControl = LabeledTextBox("Body", multiline=True, size=Size(500,80))
+        self.readmeControl.Location = Point(4,16)
+
+        self.readmeGroupBox.Controls.Add(self.readmeControl)
+
+        self.bonusGroupBox = GroupBox()
+        self.bonusGroupBox.AutoSize = True
+        self.bonusGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.bonusGroupBox.Text = "Bonus Files"
+        self.bonusGroupBox.Click += self.toggleGroupBox
+
+        self.bonusControl = MultiFileControl("Select any extra files you'd like to include", "All file types|*.*", "Files", Size(100,60))
+        self.bonusControl.Location = Point(4, 16)
+
+        self.bonusGroupBox.Controls.Add(self.bonusControl)
+
+        # Fighter Files Groupbox
+        self.fighterGroupBox = GroupBox()
+        self.fighterGroupBox.AutoSize = True
+        self.fighterGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.fighterGroupBox.Text = "Fighter Files"
+        self.fighterGroupBox.Click += self.toggleGroupBox
+
+        self.mainFighterGroupBox = GroupBox()
+        self.mainFighterGroupBox.AutoSize = True
+        self.mainFighterGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.mainFighterGroupBox.Text = "Main Fighter Files"
+        self.mainFighterGroupBox.Click += self.toggleGroupBox
+
+        self.pacFilesControl = MultiFileControl("Select your fighter pac files", labelText="PAC Files")
+        self.pacFilesControl.Location = Point(16, 16)
+
+        self.exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
+        self.exConfigsControl.Location = Point(self.pacFilesControl.Location.X + self.pacFilesControl.Width, self.pacFilesControl.Location.Y)
+
+        self.moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
+        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 32)
+        
+        self.mainFighterGroupBox.Controls.Add(self.pacFilesControl)
+        self.mainFighterGroupBox.Controls.Add(self.exConfigsControl)
+        self.mainFighterGroupBox.Controls.Add(self.moduleControl)
+
+        # Kirby hats
+        self.kirbyHatGroupBox = GroupBox()
+        self.kirbyHatGroupBox.AutoSize = True
+        self.kirbyHatGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.kirbyHatGroupBox.Text = "Kirby Hat"
+        self.kirbyHatGroupBox.Click += self.toggleGroupBox
+
+        self.kirbyHatFilesControl = MultiFileControl("Select your Kirby hat PAC files", "PAC files|*.pac", "Kirby Hat Files")
+        self.kirbyHatFilesControl.Location = Point(16,16)
+
+        self.kirbyHatTextBox = LabeledTextBox("Kirby Hat ID", "fighter")
+        self.kirbyHatTextBox.Location = Point(self.kirbyHatFilesControl.Location.X, self.kirbyHatFilesControl.Location.Y + self.kirbyHatFilesControl.Height + 32)
+
+        self.kirbyHatGroupBox.Controls.Add(self.kirbyHatFilesControl)
+        self.kirbyHatGroupBox.Controls.Add(self.kirbyHatTextBox)
+
+        # Sound/Music
+        self.soundGroupBox = GroupBox()
+        self.soundGroupBox.AutoSize = True
+        self.soundGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.soundGroupBox.Text = "Sound"
+        self.soundGroupBox.Click += self.toggleGroupBox
+
+        self.soundBankControl = FileControl("Select your soundbank file", "SAWND files|*.sawnd", "Soundbank")
+        self.soundBankControl.Location = Point(16, 16)
+
+        self.victoryThemeControl = FileControl("Select your victory theme file", "BRSTM files|*.brstm", "Victory\nTheme")
+        self.victoryThemeControl.Location = Point(self.soundBankControl.Location.X, self.soundBankControl.Location.Y + 32)
+
+        self.creditsThemeControl = FileControl("Select your credits theme file", "BRSTM files|*.brstm", "Credits\nTheme")
+        self.creditsThemeControl.Location = Point(self.victoryThemeControl.Location.X, self.victoryThemeControl.Location.Y + 32)
+
+        self.soundGroupBox.Controls.Add(self.soundBankControl)
+        self.soundGroupBox.Controls.Add(self.victoryThemeControl)
+        self.soundGroupBox.Controls.Add(self.creditsThemeControl)
+
+        # Intro/Ending
+        self.classicGroupBox = GroupBox()
+        self.classicGroupBox.AutoSize = True
+        self.classicGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.classicGroupBox.Text = "Classic Mode"
+        self.classicGroupBox.Click += self.toggleGroupBox
+
+        self.introControl = FileControl("Select your classic intro file", "BRRES files|*.brres", "Classic\nIntro")
+        self.introControl.Location = Point(16,16)
+
+        self.endingControl = MultiFileControl("Select your ending PAC files", "PAC files|*.pac", "Ending PAC Files", Size(100, 60))
+        self.endingControl.Location = Point(self.introControl.Location.X, self.introControl.Location.Y + 32)
+        
+        self.endingMovieControl = FileControl("Select your ending THP file", "THP files|*.thp", "Ending\nMovie")
+        self.endingMovieControl.Location = Point(self.endingControl.Location.X, self.endingControl.Location.Y + 112)
+
+        self.classicGroupBox.Controls.Add(self.introControl)
+        self.classicGroupBox.Controls.Add(self.endingControl)
+        self.classicGroupBox.Controls.Add(self.endingMovieControl)
+
+        self.fighterGroupBox.Controls.Add(self.mainFighterGroupBox)
+        self.fighterGroupBox.Controls.Add(self.kirbyHatGroupBox)
+        self.fighterGroupBox.Controls.Add(self.soundGroupBox)
+        self.fighterGroupBox.Controls.Add(self.classicGroupBox)
+
+        # Misc Groupbox
+        self.miscGroupBox = GroupBox()
+        self.miscGroupBox.AutoSize = True
+        self.miscGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.miscGroupBox.Text = "Misc"
+        self.miscGroupBox.Click += self.toggleGroupBox
+
+        self.codeGroupBox = GroupBox()
+        self.codeGroupBox.AutoSize = True
+        self.codeGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.codeGroupBox.Text = "Code Settings"
+        self.codeGroupBox.Click += self.toggleGroupBox
+
+        self.creditsIdControl = LabeledTextBox("Credits\nTheme ID", "creditsTheme")
+        self.creditsIdControl.Location = Point(4, 16)
+
+        self.trophyIdControl = LabeledTextBox("Trophy ID")
+        self.trophyIdControl.Location = Point(self.creditsIdControl.Location.X, self.creditsIdControl.Location.Y + 32)
+
+        self.throwRelease1Control = LabeledTextBox("Throw\nRelease 1")
+        self.throwRelease1Control.Location = Point(self.trophyIdControl.Location.X, self.trophyIdControl.Location.Y + 32)
+        
+        self.throwRelease2Control = LabeledTextBox("Throw\nRelease 2")
+        self.throwRelease2Control.Location = Point(self.throwRelease1Control.Location.X, self.throwRelease1Control.Location.Y + 32)
+
+        self.asmControl = MultiFileControl("Select your Gecko code ASM files", "ASM files|*.asm", "ASM Files")
+        self.asmControl.Location = Point(self.throwRelease2Control.Location.X + 16, self.throwRelease2Control.Location.Y + 32)
+
+        # Fighter specific codes
+
+        # Lucario
+        self.lucarioGroupBox = GroupBox()
+        self.lucarioGroupBox.AutoSize = False
+        self.lucarioGroupBox.Size = Size(128, 16)
+        self.lucarioGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.lucarioGroupBox.Text = "Lucario"
+        self.lucarioGroupBox.Location = Point(self.asmControl.Location.X - 16, self.asmControl.Location.Y + self.asmControl.Height + 32)
+        self.lucarioGroupBox.Click += self.toggleGroupBox
+
+        self.lucarioBoneControl = LabeledTextBox("Bone ID")
+        self.lucarioBoneControl.Location = Point(4,16)
+
+        self.lucarioKirbyEffectControl = LabeledTextBox("Kirby\nEffect ID")
+        self.lucarioKirbyEffectControl.Location = Point(self.lucarioBoneControl.Location.X, self.lucarioBoneControl.Location.Y + 32)
+
+        self.lucarioGroupBox.Controls.Add(self.lucarioBoneControl)
+        self.lucarioGroupBox.Controls.Add(self.lucarioKirbyEffectControl)
+
+        # Jigglypuff
+        self.jigglypuffGroupBox = GroupBox()
+        self.jigglypuffGroupBox.AutoSize = False
+        self.jigglypuffGroupBox.Size = Size(128, 16)
+        self.jigglypuffGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.jigglypuffGroupBox.Text = "JigglyPuff"
+        self.jigglypuffGroupBox.Click += self.toggleGroupBox
+
+        self.jigglypuffBoneControl = LabeledTextBox("Bone ID")
+        self.jigglypuffBoneControl.Location = Point(4,16)
+
+        self.jigglypuffEflsControl = LabeledTextBox("EFLS ID")
+        self.jigglypuffEflsControl.Location = Point(self.jigglypuffBoneControl.Location.X, self.jigglypuffBoneControl.Location.Y + 32)
+
+        jigglypuffSfxLabel = Label()
+        jigglypuffSfxLabel.Height = 16
+        jigglypuffSfxLabel.Text = "SFX IDs:"
+        jigglypuffSfxLabel.Location = Point(self.jigglypuffEflsControl.Location.X, self.jigglypuffEflsControl.Location.Y + 32)
+
+        self.jigglypuffGroupBox.Controls.Add(self.jigglypuffBoneControl)
+        self.jigglypuffGroupBox.Controls.Add(self.jigglypuffEflsControl)
+        self.jigglypuffGroupBox.Controls.Add(jigglypuffSfxLabel)
+
+        self.jigglypuffSfxIdBox = [None] * 4
+        i = 0
+        while i < 4:
+            y = jigglypuffSfxLabel.Location.Y + 16 if i == 0 else self.jigglypuffSfxIdBox[i-1].Location.Y + 32
+            self.jigglypuffSfxIdBox[i] = TextBox()
+            self.jigglypuffSfxIdBox[i].Location = Point(jigglypuffSfxLabel.Location.X + 16, y)
+            
+            self.jigglypuffGroupBox.Controls.Add(self.jigglypuffSfxIdBox[i])
+            i += 1
+
+        # Bowser
+        self.bowserGroupBox = GroupBox()
+        self.bowserGroupBox.AutoSize = False
+        self.bowserGroupBox.Size = Size(128, 16)
+        self.bowserGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.bowserGroupBox.Text = "Bowser"
+        self.bowserGroupBox.Click += self.toggleGroupBox
+
+        self.bowserBoneControl = LabeledTextBox("Bone ID")
+        self.bowserBoneControl.Location = Point(4,16)
+
+        self.bowserGroupBox.Controls.Add(self.bowserBoneControl)
+
+        self.codeGroupBox.Controls.Add(self.creditsIdControl)
+        self.codeGroupBox.Controls.Add(self.trophyIdControl)
+        self.codeGroupBox.Controls.Add(self.throwRelease1Control)
+        self.codeGroupBox.Controls.Add(self.throwRelease2Control)
+        self.codeGroupBox.Controls.Add(self.asmControl)
+        self.codeGroupBox.Controls.Add(self.lucarioGroupBox)
+        self.codeGroupBox.Controls.Add(self.jigglypuffGroupBox)
+        self.codeGroupBox.Controls.Add(self.bowserGroupBox)
+
+        self.trophyGroupBox = GroupBox()
+        self.trophyGroupBox.AutoSize = True
+        self.trophyGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.trophyGroupBox.Text = "Trophy Settings"
+        self.trophyGroupBox.Click += self.toggleGroupBox
+
+        self.trophyNameControl = LabeledTextBox("Name")
+        self.trophyNameControl.Location = Point(4,16)
+        self.trophyNameControl.textBox.Enabled = False
+
+        self.trophyCheckBox = CheckBox()
+        self.trophyCheckBox.Text = "Include Trophy?"
+        self.trophyCheckBox.Location = Point(self.trophyNameControl.Location.X + self.trophyNameControl.Width + 32, self.trophyNameControl.Location.Y)
+        self.trophyCheckBox.CheckedChanged += self.trophyCheckChanged
+
+        self.trophyDescriptionControl = LabeledTextBox("Description", multiline=True)
+        self.trophyDescriptionControl.Location = Point(self.trophyNameControl.Location.X, self.trophyNameControl.Location.Y + 32)
+        self.trophyDescriptionControl.textBox.Enabled = False
+
+        self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
+        self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+        self.gameIcon1Control.dropDown.Enabled = False
+
+        self.gameIcon2Control = LabeledDropDown("Game\nIcon 2", TROPHY_GAME_ICONS)
+        self.gameIcon2Control.Location = Point(self.gameIcon1Control.Location.X, self.gameIcon1Control.Location.Y + 32)
+        self.gameIcon2Control.dropDown.Enabled = False
+
+        self.gameName1Control = LabeledTextBox("Game\nName 1")
+        self.gameName1Control.Location = Point(self.gameIcon2Control.Location.X, self.gameIcon2Control.Location.Y + 32)
+        self.gameName1Control.textBox.Enabled = False
+
+        self.gameName2Control = LabeledTextBox("Game\nName 2")
+        self.gameName2Control.Location = Point(self.gameName1Control.Location.X, self.gameName1Control.Location.Y + 32)
+        self.gameName2Control.textBox.Enabled = False
+
+        self.trophySeriesControl = LabeledDropDown("Series", TROPHY_SERIES)
+        self.trophySeriesControl.Location = Point(self.gameName2Control.Location.X, self.gameName2Control.Location.Y + 32)
+        self.trophySeriesControl.dropDown.Enabled = False
+
+        self.trophyModelControl = FileControl("Select your trophy brres file", "BRRES files|*.brres", "Model")
+        self.trophyModelControl.Location = Point(self.trophySeriesControl.Location.X, self.trophySeriesControl.Location.Y + 32)
+        self.trophyModelControl.Enabled = False
+
+        self.trophyImageControl = ImageControl([ImageObject("Thumbnail",Size(56,48)), ImageObject("HD Thumbnail",Size(56,48))])
+        self.trophyImageControl.Location = Point(self.trophyModelControl.Location.X, self.trophyModelControl.Location.Y + 32)
+        self.trophyImageControl.Enabled = False
+
+        self.trophyGroupBox.Controls.Add(self.trophyNameControl)
+        self.trophyGroupBox.Controls.Add(self.trophyCheckBox)
+        self.trophyGroupBox.Controls.Add(self.trophyDescriptionControl)
+        self.trophyGroupBox.Controls.Add(self.gameIcon1Control)
+        self.trophyGroupBox.Controls.Add(self.gameIcon2Control)
+        self.trophyGroupBox.Controls.Add(self.gameName1Control)
+        self.trophyGroupBox.Controls.Add(self.gameName2Control)
+        self.trophyGroupBox.Controls.Add(self.trophySeriesControl)
+        self.trophyGroupBox.Controls.Add(self.trophyModelControl)
+        self.trophyGroupBox.Controls.Add(self.trophyImageControl)
+
+        self.miscGroupBox.Controls.Add(self.codeGroupBox)
+        self.miscGroupBox.Controls.Add(self.trophyGroupBox)
+
+        self.openButton = Button()
+        self.openButton.Text = "Open"
+        self.openButton.Click += self.openButtonPressed
+
+        self.saveButton = Button()
+        self.saveButton.Text = "Save"
+        self.saveButton.Click += self.saveButtonPressed
+
+        self.saveAsButton = Button()
+        self.saveAsButton.Text = "Save As..."
+        self.saveAsButton.Click += self.saveAsButtonPressed
+
+        self.cancelButton = Button()
+        self.cancelButton.Text = "Cancel"
+        self.cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(self.cosmeticsGroupBox)
+        self.Controls.Add(self.readmeGroupBox)
+        self.Controls.Add(self.bonusGroupBox)
+        self.Controls.Add(self.fighterGroupBox)
+        self.Controls.Add(self.miscGroupBox)
+        self.Controls.Add(self.openButton)
+        self.Controls.Add(self.cancelButton)
+        self.Controls.Add(self.saveButton)
+        self.Controls.Add(self.saveAsButton)
+        
+        self.recalculateGroupLocations()
+        self.Load += self.openCharacterPackage
+        
+        #region TOOLTIPS
+
+        toolTip = ToolTip()
+        toolTip.SetToolTip(cspCostumeLabel, "The color smash groups for your character's stock icons and CSPs.")
+        toolTip.SetToolTip(cspLabel, "The different colors within the selected color smash group.")
+        toolTip.SetToolTip(cspPictureBoxLabel, "The portrait for your character as it appears on the character selection screen.")
+        toolTip.SetToolTip(cspHdPictureBoxLabel, "The HD CSP.")
+        toolTip.SetToolTip(stockPictureBoxLabel, "The stock icons for your character.")
+        toolTip.SetToolTip(stockHdPictureBoxLabel, "The HD stock icons.")
+        i = 0
+        while i < len(self.bpTabControl.TabPages):
+            toolTip.SetToolTip(bpListBoxLabels[i], "List of BPs in the package.")
+            toolTip.SetToolTip(bpPictureBoxLabels[i], "The portrait that appears in battle.")
+            toolTip.SetToolTip(bpHdPictureBoxLabels[i], "The HD BP.")
+            toolTip.SetToolTip(bpNameLabels[i], "The name that appears beneath BPs in battle. Not used for REMIX BPs.")
+            toolTip.SetToolTip(bpNameHdLabels[i], "The HD BP name.")
+            i += 1
+        i = 0
+        while i < len(self.cssTabControl.tabControl.TabPages):
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[0], "The icon that appears on the character select screen.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[1], "The HD CSS icon.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[2], "The name that appears on icons on the character select screen. Not used for P+ or REMIX icons.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[3], "The HD CSS icon name.")
+            i += 1
+        i = 0
+        while i < len(self.replayTabControl.tabControl.TabPages):
+            toolTip.SetToolTip(self.replayTabControl.controls[i].label[0], "The icon that appears in the replay icon.")
+            toolTip.SetToolTip(self.replayTabControl.controls[i].label[1], "The HD replay icon.")
+            i += 1
+        i = 0
+        while i < len(self.portraitNameTabControl.tabControl.TabPages):
+            toolTip.SetToolTip(self.portraitNameTabControl.controls[i].label[0], "The name that appears on the portrait on the character select screen.")
+            toolTip.SetToolTip(self.portraitNameTabControl.controls[i].label[1], "The HD portrait name.")
+            i += 1
+        toolTip.SetToolTip(self.franchiseIconImageControl.label[0], "Franchise icon with a black background.")
+        toolTip.SetToolTip(self.franchiseIconImageControl.label[1], "Franchise icon with a transparent background.")
+        toolTip.SetToolTip(self.franchiseModelControl.textBox.label, "Franchise icon model for results screen.")
+        toolTip.SetToolTip(self.readmeGroupBox, "Text of README file if you wish to include one in your character package.")
+        toolTip.SetToolTip(self.pacFilesControl.label, "Fighter PAC files.")
+        toolTip.SetToolTip(self.exConfigsControl.label, "Fighter Ex config files.")
+        toolTip.SetToolTip(self.moduleControl.textBox.label, "Fighter module file.")
+        toolTip.SetToolTip(self.kirbyHatFilesControl.label, "Fighter Kirby hat files, if included.")
+        toolTip.SetToolTip(self.kirbyHatTextBox.label, "The ID of the fighter (in hex or decimal format) whose Kirby hat the new hat is based on.")
+        toolTip.SetToolTip(self.soundBankControl.textBox.label, "The soundbank file for the fighter.")
+        toolTip.SetToolTip(self.victoryThemeControl.textBox.label, "The victory theme to use for the fighter.")
+        toolTip.SetToolTip(self.creditsThemeControl.textBox.label, "The classic mode credits theme to use for the fighter.")
+        toolTip.SetToolTip(self.introControl.textBox.label, "The .brres file for the character's classic mode intro.")
+        toolTip.SetToolTip(self.endingControl.label, "The .pac files for the character's classic mode ending.")
+        toolTip.SetToolTip(self.endingMovieControl.textBox.label, "The .thp file for the character's classic mode ending movie.")
+        toolTip.SetToolTip(self.creditsIdControl.label, "The song ID (in hex or decimal format) to use for your character's credits theme. Only set if using a vanilla theme.")
+        toolTip.SetToolTip(self.trophyIdControl.label, "The trophy ID (in hex or decimal format) to use for your character's trophy. Only set if using a vanilla trophy.")
+        toolTip.SetToolTip(self.throwRelease1Control.label, "The first value for your fighter's throw release point.")
+        toolTip.SetToolTip(self.throwRelease2Control.label, "The second value for your fighter's throw release point.")
+        toolTip.SetToolTip(self.asmControl.label, "Any ASM files with Gecko codes to include with your fighter.")
+        toolTip.SetToolTip(self.lucarioGroupBox, "Values for Lucario-specific Gecko codes used in some builds. Only set for Lucario clones.")
+        toolTip.SetToolTip(self.lucarioBoneControl.label, "The bone ID to use for the code 'Lucario Clone Aura Sphere Bone ID Fix'.")
+        toolTip.SetToolTip(self.lucarioKirbyEffectControl.label, "The GFX ID to use for the code 'Kirby Lucario Clone Aura Sphere GFX Fix'.")
+        toolTip.SetToolTip(self.jigglypuffGroupBox, "Values for Jigglypuff-specific Gecko codes used in some builds. Only set for Jigglypuff clones.")
+        toolTip.SetToolTip(self.jigglypuffBoneControl.label, "The bone ID to use for the code 'Jigglypuff Clone Rollout Bone Fix'.")
+        toolTip.SetToolTip(self.jigglypuffEflsControl.label, "The EFLS ID to use for the code 'Jigglypuff Clone Rollout Max Charge GFX Fix'.")
+        toolTip.SetToolTip(jigglypuffSfxLabel, "The SFX IDs to use for the code 'Jigglypuff Clone Rollout SFX Fix', in order as they would appear in the code.")
+        toolTip.SetToolTip(self.bowserGroupBox, "Values for Bowser-specific Gecko codes used in some builds. Only set for Bowser clones.")
+        toolTip.SetToolTip(self.bowserBoneControl.label, "The bone ID used for the code 'Bowser Clone Fire Breath Bone Fix'.")
+        toolTip.SetToolTip(self.trophyNameControl.label, "The name to display when viewing the trophy.")
+        toolTip.SetToolTip(self.trophyCheckBox, "Check if you would like to include a trophy with the character package. Leave unchecked otherwise.")
+        toolTip.SetToolTip(self.trophyDescriptionControl.label, "The description to display when viewing the trophy.")
+        toolTip.SetToolTip(self.gameIcon1Control.label, "The first console the character appeared on.")
+        toolTip.SetToolTip(self.gameIcon2Control.label, "The last console the character appeared on.")
+        toolTip.SetToolTip(self.gameName1Control.label, "The first game the character appeared in.")
+        toolTip.SetToolTip(self.gameName2Control.label, "The last game the character appeared in.")
+        toolTip.SetToolTip(self.trophySeriesControl.label, "The series the character comes from.")
+        toolTip.SetToolTip(self.trophyModelControl.textBox.label, "The .brres file containing the trophy's model.")
+        toolTip.SetToolTip(self.trophyImageControl.label[0], "The thumbnail for the trophy that appears in the gallery.")
+        toolTip.SetToolTip(self.trophyImageControl.label[1], "The HD trophy thumbnail.")
+
+        #endregion TOOLTIPS
+
+    def createPackage(self, path):
+        if Directory.Exists(PACK_PATH):
+            Directory.Delete(PACK_PATH, 1)
+        if len(self.costumeGroups) > 0:
+            i = 1
+            for costumeGroup in self.costumeGroups:
+                j = 1
+                for costume in costumeGroup.costumeObjects:
+                    if costume.csp:
+                        copyRenameFile(costume.csp, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\CSPs\\' + addLeadingZeros(str(i), 4))
+                    if costume.cspHd:
+                        copyRenameFile(costume.cspHd, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\CSPs\\' + addLeadingZeros(str(i), 4) + '\\HD')
+                    if costume.stock:
+                        copyRenameFile(costume.stock, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\StockIcons\\' + addLeadingZeros(str(i), 4))
+                    if costume.stockHd:
+                        copyRenameFile(costume.stockHd, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\StockIcons\\' + addLeadingZeros(str(i), 4) + '\\HD')
+                    j += 1
+                i += 1
+        if len(self.bpTabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.bpTabControl.TabPages):
+                j = 1
+                for bpObject in self.bps[i]:
+                    if bpObject.bp:
+                        copyRenameFile(bpObject.bp, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text)
+                    if bpObject.bpHd:
+                        copyRenameFile(bpObject.bpHd, addLeadingZeros(str(j), 4) + '.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\HD')
+                    j += 1
+                if self.bpNameImage[i]:
+                    copyRenameFile(self.bpNameImage[i], 'Name.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\Name')
+                if self.bpNameHdImage[i]:
+                    copyRenameFile(self.bpNameHdImage[i], 'Name.png', PACK_PATH + '\\BPs\\' + self.bpTabControl.TabPages[i].Text + '\\Name\\HD')
+                i += 1
+        if len(self.cssTabControl.tabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.cssTabControl.tabControl.TabPages):
+                if len(self.cssTabControl.controls[i].Images) > 0 and self.cssTabControl.controls[i].Images[0]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[0], 'Icon.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text)
+                if len(self.cssTabControl.controls[i].Images) > 1 and self.cssTabControl.controls[i].Images[1]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[1], 'Icon.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\HD')
+                if len(self.cssTabControl.controls[i].Images) > 2 and self.cssTabControl.controls[i].Images[2]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[2], 'Name.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\Name')
+                if len(self.cssTabControl.controls[i].Images) > 3 and self.cssTabControl.controls[i].Images[3]:
+                    copyRenameFile(self.cssTabControl.controls[i].Images[3], 'Name.png', PACK_PATH + '\\CSSIcon\\' + self.cssTabControl.tabControl.TabPages[i].Text + '\\Name\\HD')
+                i += 1
+        if len(self.replayTabControl.tabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.replayTabControl.tabControl.TabPages):
+                if len(self.replayTabControl.controls[i].Images) > 0 and self.replayTabControl.controls[i].Images[0]:
+                    copyRenameFile(self.replayTabControl.controls[i].Images[0], 'Icon.png', PACK_PATH + '\\ReplayIcon\\' + self.replayTabControl.tabControl.TabPages[i].Text)
+                if len(self.replayTabControl.controls[i].Images) > 1 and self.replayTabControl.controls[i].Images[1]:
+                    copyRenameFile(self.replayTabControl.controls[i].Images[1], 'Icon.png', PACK_PATH + '\\ReplayIcon\\' + self.replayTabControl.tabControl.TabPages[i].Text + '\\HD')
+                i += 1
+        if len(self.portraitNameTabControl.tabControl.TabPages) > 0:
+            i = 0
+            while i < len(self.portraitNameTabControl.tabControl.TabPages):
+                if len(self.portraitNameTabControl.controls[i].Images) > 0 and self.portraitNameTabControl.controls[i].Images[0]:
+                    copyRenameFile(self.portraitNameTabControl.controls[i].Images[0], 'Name.png', PACK_PATH + '\\PortraitName\\' + self.portraitNameTabControl.tabControl.TabPages[i].Text)
+                if len(self.portraitNameTabControl.controls[i].Images) > 1 and self.portraitNameTabControl.controls[i].Images[1]:
+                    copyRenameFile(self.portraitNameTabControl.controls[i].Images[1], 'Name.png', PACK_PATH + '\\PortraitName\\' + self.portraitNameTabControl.tabControl.TabPages[i].Text + '\\HD')
+                i += 1
+        if self.franchiseIconImageControl.Images[0]:
+            copyRenameFile(self.franchiseIconImageControl.Images[0], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Black')
+        if self.franchiseIconImageControl.Images[1]:
+            copyRenameFile(self.franchiseIconImageControl.Images[1], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Transparent')
+        if self.franchiseModelControl.textBox.textBox.Text:
+            copyRenameFile(self.franchiseModelControl.textBox.textBox.Text, 'Model.mdl0', PACK_PATH + '\\FranchiseIcons\\Model')
+        for file in self.pacFilesControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Fighter')
+        for file in self.exConfigsControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\EXConfigs')
+        if self.moduleControl.textBox.textBox.Text:
+            copyFile(self.moduleControl.textBox.textBox.Text, PACK_PATH + '\\Module')
+        for file in self.kirbyHatFilesControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\KirbyHats')
+        if self.kirbyHatTextBox.textBox.Text:
+            Directory.CreateDirectory(PACK_PATH + '\\KirbyHats')
+            File.WriteAllText(PACK_PATH + '\\KirbyHats\\FighterID.txt', self.kirbyHatTextBox.textBox.Text)
+        if self.soundBankControl.textBox.textBox.Text:
+            copyFile(self.soundBankControl.textBox.textBox.Text, PACK_PATH + '\\Soundbank')
+        if self.victoryThemeControl.textBox.textBox.Text:
+            copyFile(self.victoryThemeControl.textBox.textBox.Text, PACK_PATH + '\\VictoryTheme')
+        if self.creditsThemeControl.textBox.textBox.Text:
+            copyFile(self.creditsThemeControl.textBox.textBox.Text, PACK_PATH + '\\CreditsTheme')
+        if self.introControl.textBox.textBox.Text:
+            copyFile(self.introControl.textBox.textBox.Text, PACK_PATH + '\\ClassicIntro')
+        for file in self.endingControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Ending')
+        if self.endingMovieControl.textBox.textBox.Text:
+            copyFile(self.endingMovieControl.textBox.textBox.Text, PACK_PATH + '\\Ending')
+        for file in self.asmControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Codes')
+        if self.readmeControl.textBox.Text:
+            Directory.CreateDirectory(PACK_PATH)
+            File.WriteAllText(PACK_PATH + '\\README.txt', self.readmeControl.textBox.Text)
+        for file in self.bonusControl.files:
+            copyFile(file.FullName, PACK_PATH + '\\Bonus')
+        # Fighter settings
+        fighterSettings = FighterSettings()
+        if self.creditsIdControl.textBox.Text:
+            fighterSettings.creditsThemeId = self.creditsIdControl.textBox.Text
+        if self.trophyIdControl.textBox.Text:
+            fighterSettings.trophyId = self.trophyIdControl.textBox.Text
+        if self.throwRelease1Control.textBox.Text and self.throwRelease2Control.textBox.Text:
+            fighterSettings.throwReleasePoint = self.throwRelease1Control.textBox.Text + ',' + self.throwRelease2Control.textBox.Text
+        # Lucario
+        if self.lucarioBoneControl.textBox.Text:
+            fighterSettings.lucarioBoneId = self.lucarioBoneControl.textBox.Text
+        if self.lucarioKirbyEffectControl.textBox.Text:
+            fighterSettings.lucarioKirbyEffectId = self.lucarioKirbyEffectControl.textBox.Text
+        # Jigglypuff
+        if self.jigglypuffBoneControl.textBox.Text:
+            fighterSettings.jigglypuffBoneId = self.jigglypuffBoneControl.textBox.Text
+        if self.jigglypuffEflsControl.textBox.Text:
+            fighterSettings.jigglypuffEFLSId = self.jigglypuffEflsControl.textBox.Text
+        i = 0
+        jigglypuffSfxIds = ""
+        while i < len(self.jigglypuffSfxIdBox):
+            if self.jigglypuffSfxIdBox[i].Text:
+                jigglypuffSfxIds += self.jigglypuffSfxIdBox[i].Text + ("," if i < 3 else "")
+            else:
+                jigglypuffSfxIds = ""
+                break
+            i += 1
+        if jigglypuffSfxIds:
+            fighterSettings.jigglypuffSfxIds = jigglypuffSfxIds
+        # Bowser
+        if self.bowserBoneControl.textBox.Text:
+            fighterSettings.bowserBoneId = self.bowserBoneControl.textBox.Text
+        attrs = vars(fighterSettings)
+        writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+        if writeString:
+            File.WriteAllText(PACK_PATH + '\\FighterSettings.txt', writeString)
+        # Trophy
+        if self.trophyCheckBox.Checked:
+            Directory.CreateDirectory(PACK_PATH + '\\Trophy')
+            trophySettings = TrophySettings()
+            trophySettings.trophyName = self.trophyNameControl.textBox.Text
+            trophySettings.description = self.trophyDescriptionControl.textBox.Text.replace('\r\n', '<br/>')
+            if self.gameIcon1Control.dropDown.SelectedItem:
+                trophySettings.gameIcon1 = str(TROPHY_GAME_ICONS[self.gameIcon1Control.dropDown.SelectedItem])
+            else:
+                trophySettings.gameIcon1 = str(0)
+            if self.gameIcon2Control.dropDown.SelectedItem:
+                trophySettings.gameIcon2 = str(TROPHY_GAME_ICONS[self.gameIcon2Control.dropDown.SelectedItem])
+            else:
+                trophySettings.gameIcon2 = str(0)
+            trophySettings.gameName1 = self.gameName1Control.textBox.Text
+            if self.gameName2Control.textBox.Text:
+                trophySettings.gameName2 = self.gameName2Control.textBox.Text
+            if self.trophySeriesControl.dropDown.SelectedItem:
+                trophySettings.seriesIndex = str(TROPHY_SERIES[self.trophySeriesControl.dropDown.SelectedItem])
+            else:
+                trophySettings.seriesIndex = str(19)
+            attrs = vars(trophySettings)
+            writeString = '\n'.join("%s = %s" % item for item in attrs.items())
+            if writeString:
+                File.WriteAllText(PACK_PATH + '\\Trophy\\TrophySettings.txt', writeString)
+            if self.trophyModelControl.textBox.textBox.Text:
+                copyFile(self.trophyModelControl.textBox.textBox.Text, PACK_PATH + '\\Trophy')
+            if self.trophyImageControl.Images[0]:
+                copyRenameFile(self.trophyImageControl.Images[0], 'TrophyIcon.png', PACK_PATH + '\\Trophy')
+            if self.trophyImageControl.Images[1]:
+                copyRenameFile(self.trophyImageControl.Images[1], 'TrophyIcon.png', PACK_PATH + '\\Trophy\\HD')
+        # Create zip
+        if File.Exists(path):
+            File.Delete(path)
+        if Directory.Exists(PACK_PATH):
+            ZipFile.CreateFromDirectory(PACK_PATH, path)
+            Directory.Delete(PACK_PATH, 1)
+            BrawlAPI.ShowMessage("Character package created at " + path, "Success")
+        else:
+            BrawlAPI.ShowMessage("Character package is empty. No package created.", "Empty Package")
+
+    def validate(self):
+        validKirby = validateTextBoxes(self.kirbyHatGroupBox, True)
+        validCodes = validateTextBoxes(self.codeGroupBox, True, [self.throwRelease1Control, self.throwRelease2Control])
+        validThrowRelease1 = validateDecimal(self.throwRelease1Control.textBox, True)
+        validThrowRelease2 = validateDecimal(self.throwRelease2Control.textBox, True)
+        if not validKirby or not validCodes or not validThrowRelease1 or not validThrowRelease2:
+            BrawlAPI.ShowMessage("Some fields were invalid. Please ensure all IDs use values in either hex (e.g. 0x21) or decimal (e.g. 33) format.", "Validation Failed")
+        return validCodes and validKirby and validThrowRelease1 and validThrowRelease2
+
+    def saveButtonPressed(self, sender, args):
+        valid = self.validate()
+        if not valid:
+            return
+        if self.zipFile:
+            self.createPackage(self.zipFile)
+        else:
+            saveDialog = SaveFileDialog()
+            saveDialog.Filter = "ZIP File|*.zip"
+            saveDialog.Title = "Save character package"
+            result = saveDialog.ShowDialog()
+            if result == DialogResult.OK and saveDialog.FileName:
+                self.createPackage(saveDialog.FileName)
+                self.zipFile = saveDialog.FileName
+                saveDialog.Dispose()
+
+    def saveAsButtonPressed(self, sender, args):
+        valid = self.validate()
+        if not valid:
+            return
+        saveDialog = SaveFileDialog()
+        saveDialog.Filter = "ZIP File|*.zip"
+        saveDialog.Title = "Save character package"
+        result = saveDialog.ShowDialog()
+        if result == DialogResult.OK and saveDialog.FileName:
+            self.createPackage(saveDialog.FileName)
+            self.zipFile = saveDialog.FileName
+            saveDialog.Dispose()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+    def openCharacterPackage(self, sender, args):
+        if self.zipFile:
+            file = self.zipFile
+            if Directory.Exists(TEMP_PATH):
+                Directory.Delete(TEMP_PATH, 1)
+            unzipFile(file)
+            if Directory.Exists(TEMP_PATH):
+                # CSPs
+                if Directory.Exists(TEMP_PATH + '\\CSPs'):
+                    i = 0
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\CSPs'):
+                        group = self.addCostumeGroup(i)
+                        images = Directory.GetFiles(directory, "*.png")
+                        self.updateImages("", "csp", images, group)
+                        if Directory.Exists(directory + '\\HD'):
+                            hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                            self.updateImages("", "cspHd", hdImages, group)
+                        i += 1
+                # Stocks
+                if Directory.Exists(TEMP_PATH + '\\StockIcons'):
+                    i = 0
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\StockIcons'):
+                        group = self.addCostumeGroup(i)
+                        images = Directory.GetFiles(directory, "*.png")
+                        self.updateImages("", "stock", images, group)
+                        if Directory.Exists(directory + '\\HD'):
+                            hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                            self.updateImages("", "stockHd", hdImages, group)
+                        i += 1
+                # BPs
+                if Directory.Exists(TEMP_PATH + '\\BPs'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\BPs'):
+                        name = DirectoryInfo(directory).Name
+                        index = self.bpTabControl.TabPages.IndexOfKey(name)
+                        if index > -1:
+                            images = Directory.GetFiles(directory, "*.png")
+                            self.updateBpImages("", "bp", images, index)
+                            if Directory.Exists(directory + '\\HD'):
+                                hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                                self.updateBpImages("", "bpHd", hdImages, index)
+                            if Directory.Exists(directory + '\\Name'):
+                                nameImage = Directory.GetFiles(directory + '\\Name', "*.png")
+                                if nameImage and len(nameImage) > 0:
+                                    self.bpNameImage[index] = nameImage[0]
+                                    self.bpNamePictureBoxes[index].Image = createBitmap(self.bpNameImage[index])
+                                if Directory.Exists(directory + '\\Name\\HD'):
+                                    nameHdImage = Directory.GetFiles(directory + '\\Name\\HD', "*.png")
+                                    if nameHdImage and len(nameHdImage) > 0:
+                                        self.bpNameHdImage[index] = nameHdImage[0]
+                                        self.bpNameHdPictureBoxes[index].Image = createBitmap(self.bpNameHdImage[index])
+                # CSS Icons
+                if Directory.Exists(TEMP_PATH + '\\CSSIcon'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\CSSIcon'):
+                        name = DirectoryInfo(directory).Name
+                        index = self.cssTabControl.tabControl.TabPages.IndexOfKey(name)
+                        if index > -1:
+                            images = Directory.GetFiles(directory, "*.png")
+                            if images and len(images) > 0:
+                                self.cssTabControl.controls[index].Images[0] = images[0]
+                                self.cssTabControl.controls[index].pictureBox[0].Image = createBitmap(images[0])
+                            if Directory.Exists(directory + '\\HD'):
+                                hdImages = Directory.GetFiles(directory + '\\HD', "*.png")
+                                if hdImages and len(hdImages) > 0:
+                                    self.cssTabControl.controls[index].Images[1] = hdImages[0]
+                                    self.cssTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImages[0])
+                            if Directory.Exists(directory + '\\Name'):
+                                nameImages = Directory.GetFiles(directory + '\\Name', "*.png")
+                                if nameImages and len(nameImages) > 0:
+                                    self.cssTabControl.controls[index].Images[2] = nameImages[0]
+                                    self.cssTabControl.controls[index].pictureBox[2].Image = createBitmap(nameImages[0])
+                                if Directory.Exists(directory + '\\Name\\HD'):
+                                    nameHdImages = Directory.GetFiles(directory + '\\Name\\HD', "*.png")
+                                    if nameHdImages and len(nameHdImages) > 0:
+                                        self.cssTabControl.controls[index].Images[3] = nameHdImages[0]
+                                        self.cssTabControl.controls[index].pictureBox[3].Image = createBitmap(nameHdImages[0])
+                # Replay Icons
+                if Directory.Exists(TEMP_PATH + '\\ReplayIcon'):
+                    # To support legacy character packages, first check the root folder for replay icon
+                    index = self.replayTabControl.tabControl.TabPages.IndexOfKey("P+")
+                    if index > -1:
+                        image = Directory.GetFiles(TEMP_PATH + '\\ReplayIcon', "*.png")
+                        if image and len(image) > 0:
+                            self.replayTabControl.controls[index].Images[0] = image[0]
+                            self.replayTabControl.controls[index].pictureBox[0].Image = createBitmap(image[0])
+                        if Directory.Exists(TEMP_PATH + '\\ReplayIcon\\HD'):
+                            hdImage = Directory.GetFiles(TEMP_PATH + '\\ReplayIcon\\HD', "*.png")
+                            if hdImage and len(hdImage) > 0:
+                                self.replayTabControl.controls[index].Images[1] = hdImage[0]
+                                self.replayTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImage[0])
+                        # Modern implementation
+                        for directory in Directory.GetDirectories(TEMP_PATH + '\\ReplayIcon'):
+                            name = DirectoryInfo(directory).Name
+                            index = self.replayTabControl.tabControl.TabPages.IndexOfKey(name)
+                            if index > -1:
+                                image = Directory.GetFiles(directory, "*.png")
+                                if image and len(image) > 0:
+                                    self.replayTabControl.controls[index].Images[0] = image[0]
+                                    self.replayTabControl.controls[index].pictureBox[0].Image = createBitmap(image[0])
+                                if Directory.Exists(directory + '\\HD'):
+                                    hdImage = Directory.GetFiles(directory + '\\HD', "*.png")
+                                    if hdImage and len(hdImage) > 0:
+                                        self.replayTabControl.controls[index].Images[1] = hdImage[0]
+                                        self.replayTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImage[0])
+                # Portrait Name
+                if Directory.Exists(TEMP_PATH + '\\PortraitName'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\PortraitName'):
+                        name = DirectoryInfo(directory).Name
+                        index = self.portraitNameTabControl.tabControl.TabPages.IndexOfKey(name)
+                        if index > -1:
+                            image = Directory.GetFiles(directory, "*.png")
+                            if image and len(image) > 0:
+                                self.portraitNameTabControl.controls[index].Images[0] = image[0]
+                                self.portraitNameTabControl.controls[index].pictureBox[0].Image = createBitmap(image[0])
+                            if Directory.Exists(directory + '\\HD'):
+                                hdImage = Directory.GetFiles(directory + '\\HD', "*.png")
+                                if hdImage and len(hdImage) > 0:
+                                    self.portraitNameTabControl.controls[index].Images[1] = hdImage[0]
+                                    self.portraitNameTabControl.controls[index].pictureBox[1].Image = createBitmap(hdImage[0])
+                # Franchise Icon
+                if Directory.Exists(TEMP_PATH + '\\FranchiseIcons'):
+                    for directory in Directory.GetDirectories(TEMP_PATH + '\\FranchiseIcons'):
+                        name = DirectoryInfo(directory).Name
+                        index = -1
+                        if name == "Black":
+                            index = 0
+                        elif name == "Transparent":
+                            index = 1
+                        if index > -1:
+                            image = Directory.GetFiles(directory, "*.png")
+                            if image and len(image) > 0:
+                                self.franchiseIconImageControl.Images[index] = image[0]
+                                self.franchiseIconImageControl.pictureBox[index].Image = createBitmap(image[0])
+                        if name == "Model":
+                            file = Directory.GetFiles(directory, "*.mdl0")
+                            if file and len(file) > 0:
+                                self.franchiseModelControl.textBox.textBox.Text = file[0]
+                if File.Exists(TEMP_PATH + '\\README.txt'):
+                    self.readmeControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\README.txt')
+                if Directory.Exists(TEMP_PATH + '\\Bonus'):
+                    self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
+                # Fighter
+                if Directory.Exists(TEMP_PATH + '\\Fighter'):
+                    self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                if Directory.Exists(TEMP_PATH + '\\EXConfigs'):
+                    self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\EXConfigs', "*.dat"))
+                if Directory.Exists(TEMP_PATH + '\\Module'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Module', "*.rel")
+                    if file and len(file) > 0:
+                        self.moduleControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\KirbyHats'):
+                    self.kirbyHatFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\KirbyHats', "*.pac"))
+                    if File.Exists(TEMP_PATH + '\\KirbyHats\\FighterID.txt'):
+                        self.kirbyHatTextBox.textBox.Text = File.ReadAllText(TEMP_PATH + '\\KirbyHats\\FighterID.txt')
+                if Directory.Exists(TEMP_PATH + '\\Soundbank'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Soundbank')
+                    if file and len(file) > 0:
+                        self.soundBankControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\Soundbank'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Soundbank', "*.sawnd")
+                    if file and len(file) > 0:
+                        self.soundBankControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\VictoryTheme'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\VictoryTheme', "*.brstm")
+                    if file and len(file) > 0:
+                        self.victoryThemeControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\CreditsTheme'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\CreditsTheme', "*.brstm")
+                    if file and len(file) > 0:
+                        self.creditsThemeControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\ClassicIntro'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\ClassicIntro', "*.brres")
+                    if file and len(file) > 0:
+                        self.introControl.textBox.textBox.Text = file[0]
+                if Directory.Exists(TEMP_PATH + '\\Ending'):
+                    self.endingControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Ending', "*.pac"))
+                    file = Directory.GetFiles(TEMP_PATH + '\\Ending', "*.thp")
+                    if file and len(file) > 0:
+                        self.endingMovieControl.textBox.textBox.Text = file[0]
+                # Fighter settings
+                fighterSettings = getFighterSettings()
+                if fighterSettings:
+                    self.creditsIdControl.textBox.Text = fighterSettings.creditsThemeId
+                    self.trophyIdControl.textBox.Text = fighterSettings.trophyId
+                    if len(fighterSettings.throwReleasePoint) == 2:
+                        self.throwRelease1Control.textBox.Text = fighterSettings.throwReleasePoint[0]
+                        self.throwRelease2Control.textBox.Text = fighterSettings.throwReleasePoint[1]
+                    self.lucarioBoneControl.textBox.Text = fighterSettings.lucarioBoneId
+                    self.lucarioKirbyEffectControl.textBox.Text = fighterSettings.lucarioKirbyEffectId
+                    self.jigglypuffBoneControl.textBox.Text = fighterSettings.jigglypuffBoneId
+                    self.jigglypuffEflsControl.textBox.Text = fighterSettings.jigglypuffEFLSId
+                    if len(fighterSettings.jigglypuffSfxIds) == len(self.jigglypuffSfxIdBox):
+                        i = 0
+                        while i < len(self.jigglypuffSfxIdBox):
+                            self.jigglypuffSfxIdBox[i].Text = fighterSettings.jigglypuffSfxIds[i]
+                            i += 1
+                    self.bowserBoneControl.textBox.Text = fighterSettings.bowserBoneId
+                    if Directory.Exists(TEMP_PATH + '\\Codes'):
+                        self.asmControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Codes', "*.asm"))
+                # Trophy Settings
+                if Directory.Exists(TEMP_PATH + '\\Trophy'):
+                    trophySettings = getTrophySettings()
+                    if trophySettings:
+                        self.trophyCheckBox.Checked = True
+                        self.trophyNameControl.textBox.Text = trophySettings.trophyName
+                        self.trophyDescriptionControl.textBox.Text = trophySettings.description.replace('<br/>', '\r\n')
+                        if trophySettings.gameIcon1:
+                            selectItemByValue(self.gameIcon1Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon1))
+                        if trophySettings.gameIcon2:
+                            selectItemByValue(self.gameIcon2Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon2))
+                        self.gameName1Control.textBox.Text = trophySettings.gameName1
+                        self.gameName2Control.textBox.Text = trophySettings.gameName2
+                        if trophySettings.seriesIndex:
+                            selectItemByValue(self.trophySeriesControl.dropDown, TROPHY_SERIES, int(trophySettings.seriesIndex))
+                        file = Directory.GetFiles(TEMP_PATH + '\\Trophy', "*.brres")
+                        if file and len(file) > 0:
+                            self.trophyModelControl.textBox.textBox.Text = file[0]
+                        image = Directory.GetFiles(TEMP_PATH + '\\Trophy', "*.png")
+                        if image and len(image) > 0:
+                            self.trophyImageControl.Images[0] = image[0]
+                            self.trophyImageControl.pictureBox[0].Image = createBitmap(image[0])
+                        if Directory.Exists(TEMP_PATH + '\\Trophy\\HD'):
+                            image = Directory.GetFiles(TEMP_PATH + '\\Trophy\\HD', "*.png")
+                            if image and len(image) > 0:
+                                self.trophyImageControl.Images[1] = image[0]
+                                self.trophyImageControl.pictureBox[1].Image = createBitmap(image[0])
+
+    def openButtonPressed(self, sender, args):
+        file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
+        if file:
+            self.zipFile = file
+            self.DialogResult = DialogResult.Retry
+            self.Close()
+
+    def trophyCheckChanged(self, sender, args):
+        self.trophyNameControl.textBox.Enabled = sender.Checked
+        self.trophyDescriptionControl.textBox.Enabled = sender.Checked
+        self.gameIcon1Control.dropDown.Enabled = sender.Checked
+        self.gameIcon2Control.dropDown.Enabled = sender.Checked
+        self.gameName1Control.textBox.Enabled = sender.Checked
+        self.gameName2Control.textBox.Enabled = sender.Checked
+        self.trophySeriesControl.dropDown.Enabled = sender.Checked
+        self.trophyModelControl.Enabled = sender.Checked
+        self.trophyImageControl.Enabled = sender.Checked
+
+    def cspCostumeChanged(self, sender, args):
+        if self.cspCostumeListBox.SelectedItem:
+            self.cspListBox.DataSource = self.cspCostumeListBox.SelectedItem.costumeObjects
+            self.cspListBox.DisplayMember = "name"
+            if self.cspListBox.SelectedItem and self.cspListBox.SelectedItem.csp:
+                self.cspPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.csp)
+            else:
+                self.cspPictureBox.Image = None
+        self.addColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
+        self.removeColorButton.Enabled = self.cspCostumeListBox.SelectedItem != None
+
+    def cspChanged(self, sender, args):
+        buttonsEnabled = self.cspCostumeListBox.SelectedItem != None
+        self.cspButton.Enabled = buttonsEnabled
+        self.cspHdButton.Enabled = buttonsEnabled
+        self.stockButton.Enabled= buttonsEnabled
+        self.stockHdButton.Enabled = buttonsEnabled
+        if self.cspListBox.SelectedValue:
+            if self.cspListBox.SelectedValue.csp:
+                self.cspPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.csp)
+            else:
+                self.cspPictureBox.Image = None
+            if self.cspListBox.SelectedValue.cspHd:
+                self.cspHdPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.cspHd) 
+            else:
+                self.cspHdPictureBox.Image = None
+            if self.cspListBox.SelectedValue.stock:
+                self.stockPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.stock)
+            else:
+                self.stockPictureBox.Image = None
+            if self.cspListBox.SelectedValue.stockHd:
+                self.stockHdPictureBox.Image = createBitmap(self.cspListBox.SelectedValue.stockHd)
+            else:
+                self.stockHdPictureBox.Image = None
+        else:
+            self.cspPictureBox.Image = None
+            self.cspHdPictureBox.Image = None
+            self.stockPictureBox.Image = None
+            self.stockHdPictureBox.Image = None
+
+    def bpChanged(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        if self.bpListBoxes[index].SelectedValue:
+            if self.bpListBoxes[index].SelectedValue.bp:
+                self.bpPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedValue.bp)
+            else:
+                self.bpPictureBoxes[index].Image = None
+            if self.bpListBoxes[index].SelectedValue.bpHd:
+                self.bpHdPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedValue.bpHd)
+            else:
+                self.bpHdPictureBoxes[index].Image = None
+        else:
+            self.bpPictureBoxes[index].Image = None
+            self.bpHdPictureBoxes[index].Image = None
+
+    def cspCostumeButtonPressed(self, sender, args):
+        self.addCostumeGroup()
+
+    def addCostumeGroup(self, index):
+        if len(self.costumeGroups) <= index:
+            newGroup = CostumeGroup("Costume " + str(index + 1), BindingSource())
+            self.costumeGroups.Add(newGroup)
+            buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
+            self.cspButton.Enabled = buttonsEnabled
+            self.cspHdButton.Enabled = buttonsEnabled
+            self.stockButton.Enabled = buttonsEnabled
+            self.stockHdButton.Enabled= buttonsEnabled
+        else:
+            newGroup = self.costumeGroups[index]
+        return newGroup
+
+    def cspCostumeRemoveButtonPressed(self, sender, args):
+        if len(self.costumeGroups) > 0:
+            i = 0
+            j = 0
+            while i < len(self.costumeGroups):
+                if self.costumeGroups[i] == self.cspCostumeListBox.SelectedItem:
+                    i += 1
+                    continue
+                self.costumeGroups[i].costumeGroup = "Costume " + str(j + 1)
+                j += 1
+                i += 1
+            self.costumeGroups.Remove(self.cspCostumeListBox.SelectedItem)
+            buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
+            self.cspButton.Enabled = buttonsEnabled
+            self.cspHdButton.Enabled = buttonsEnabled
+            self.stockButton.Enabled = buttonsEnabled
+            self.stockHdButton.Enabled= buttonsEnabled
+
+    def addColorButtonPressed(self, sender, args):
+        if self.cspCostumeListBox.SelectedItem:
+            self.cspCostumeListBox.SelectedItem.costumeObjects.Add(CostumeObject(name="Color " + str(len(self.cspCostumeListBox.SelectedItem.costumeObjects) + 1)))
+            self.cspListBox.DisplayMember = "name"
+
+    def addBpButtonPressed(self, sender, args):
+        self.bps[self.bpTabControl.SelectedIndex].Add(BpObject(name="Image " + str(len(self.bpListBoxes[self.bpTabControl.SelectedIndex].Items) + 1)))
+
+    def removeBpButtonPressed(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        if self.bpListBoxes[index].SelectedItem:
+            if len(self.bpListBoxes[index].Items) > 0:
+                i = 0
+                j = 0
+                while i < len(self.bpListBoxes[index].Items):
+                    if self.bpListBoxes[index].Items[i] == self.bpListBoxes[index].SelectedItem:
+                        i += 1
+                        continue
+                    self.bpListBoxes[index].Items[i].name = "Image " + str(j + 1)
+                    j += 1
+                    i += 1
+                self.bps[index].Remove(self.bpListBoxes[index].SelectedItem)
+
+    def removeColorButtonPressed(self, sender, args):
+        if self.cspCostumeListBox.SelectedItem:
+            if len(self.cspCostumeListBox.SelectedItem.costumeObjects) > 0:
+                i = 0
+                j = 0
+                while i < len(self.cspListBox.Items):
+                    if self.cspListBox.Items[i] == self.cspListBox.SelectedItem:
+                        i += 1
+                        continue
+                    self.cspListBox.Items[i].name = "Color " + str(j + 1)
+                    j += 1
+                    i += 1
+                self.cspCostumeListBox.SelectedItem.costumeObjects.Remove(self.cspListBox.SelectedItem)
+                self.cspListBox.DisplayMember = "name"
+
+    # imageType - csp, cspHd, stock, stockHd
+    def updateImages(self, dialogText, imageType, images="", costume=None):
+        auto = True
+        if not images:
+            images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
+        if not costume:
+            auto = False
+            costume = self.cspCostumeListBox.SelectedItem
+        if images:
+            if len(images) == 1 and self.cspListBox.SelectedItem and not auto:
+                if imageType == "csp":
+                    self.cspListBox.SelectedItem.csp = images[0]
+                elif imageType == "cspHd":
+                    self.cspListBox.SelectedItem.cspHd = images[0]
+                elif imageType == "stock":
+                    self.cspListBox.SelectedItem.stock = images[0]
+                elif imageType == "stockHd":
+                    self.cspListBox.SelectedItem.stockHd = images[0]
+            else:
+                i = 0
+                while i < len(images):
+                    if i < len(costume.costumeObjects):
+                        if imageType == "csp":
+                            costume.costumeObjects[i].csp = images[i]
+                        elif imageType == "cspHd":
+                            costume.costumeObjects[i].cspHd = images[i]
+                        elif imageType == "stock":
+                            costume.costumeObjects[i].stock = images[i]
+                        elif imageType == "stockHd":
+                            costume.costumeObjects[i].stockHd = images[i]
+                    else:
+                        costume.costumeObjects.Add(CostumeObject(name="Color " + str(len(costume.costumeObjects) + 1), csp=images[i] if imageType == "csp" else "", cspHd=images[i] if imageType == "cspHd" else "", stock=images[i] if imageType == "stock" else "", stockHd=images[i] if imageType == "stockHd" else ""))
+                        self.cspListBox.DisplayMember = "name"
+                    i += 1
+            if imageType == "csp":
+                self.cspPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.csp)
+            elif imageType == "cspHd":
+                self.cspHdPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.cspHd)
+            elif imageType == "stock":
+                self.stockPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.stock)
+            elif imageType == "stockHd":
+                self.stockHdPictureBox.Image = createBitmap(self.cspListBox.SelectedItem.stockHd)
+
+    # imageType - bp, bpHd, bpName, bpNameHd
+    def updateBpImages(self, dialogText, imageType, images="", index=-1):
+        if index < 0:
+            index = self.bpTabControl.SelectedIndex
+        if not images:
+            images = BrawlAPI.OpenMultiFileDialog(dialogText, "PNG files|*.png")
+        if images and len(images) > 0:
+            if len(images) == 1 and self.bpListBoxes[index].SelectedItem:
+                if imageType == "bp":
+                    self.bpListBoxes[index].SelectedItem.bp = images[0]
+                elif imageType == "bpHd":
+                    self.bpListBoxes[index].SelectedItem.bpHd = images[0]
+            else:
+                i = 0
+                while i < len(images):
+                    if i < len(self.bpListBoxes[index].Items):
+                        if imageType == "bp":
+                            self.bpListBoxes[index].Items[i].bp = images[i]
+                        elif imageType == "bpHd":
+                            self.bpListBoxes[index].Items[i].bpHd = images[i]
+                    else:
+                        self.bps[index].Add(BpObject(name="Image " + str(len(self.bpListBoxes[index].Items) + 1), bp=images[i] if imageType == "bp" else "", bpHd=images[i] if imageType == "bpHd" else ""))
+                    i += 1
+            if imageType == "bp":
+                self.bpPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedItem.bp)
+            elif imageType == "bpHd":
+                self.bpHdPictureBoxes[index].Image = createBitmap(self.bpListBoxes[index].SelectedItem.bpHd)
+
+    def bpButtonPressed(self, sender, args):
+        self.updateBpImages("Select your SD BP images", "bp")
+
+    def bpHdButtonPressed(self, sender, args):
+        self.updateBpImages("Select your HD BP images", "bpHd")
+
+    def cspButtonPressed(self, sender, args):
+        self.updateImages("Select your SD CSP images", "csp")
+
+    def cspHdButtonPressed(self, sender, args):
+        self.updateImages("Select your HD CSP images", "cspHd")
+
+    def stockButtonPressed(self, sender, args):
+        self.updateImages("Select your SD stock images", "stock")
+
+    def stockHdButtonPressed(self, sender, args):
+        self.updateImages("Select your HD stock images", "stockHd")
+
+    def bpNameButtonPressed(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        self.bpNameImage[index] = BrawlAPI.OpenFileDialog("Select your SD BP name image", "PNG files|*.png")
+        self.bpNamePictureBoxes[index].Image = createBitmap(self.bpNameImage[index])
+
+    def bpNameHdButtonPressed(self, sender, args):
+        index = self.bpTabControl.SelectedIndex
+        self.bpNameHdImage[index] = BrawlAPI.OpenFileDialog("Select your HD BP name image", "PNG files|*.png")
+        self.bpNameHdPictureBoxes[index].Image = createBitmap(self.bpNameHdImage[index])
+
+    def toggleGroupBox(self, sender, args):
+        collapsed = False
+        if args.Location.X < 128 and args.Location.Y < 20:
+            if sender.AutoSize:
+                sender.AutoSize = False
+                if sender.MinimumSize:
+                    sender.MinimumSize = Size(128, 16)
+                    sender.Size = Size(128, 16)
+                collapsed = True
+            else:
+                sender.AutoSize = True
+                # If box has maximum size, will be expanded to maximum size
+                if sender.MaximumSize:
+                    sender.MinimumSize = sender.MaximumSize
+        self.recalculateGroupLocations()
+        return collapsed
+
+    def recalculateGroupLocations(self):
+        self.cspGroupBox.Location = Point(0,16)
+        self.bpGroupBox.Location = Point(self.cspGroupBox.Location.X, self.cspGroupBox.Location.Y + self.cspGroupBox.Height + 4)
+        self.cssGroupBox.Location = Point(self.bpGroupBox.Location.X, self.bpGroupBox.Location.Y + self.bpGroupBox.Height + 4)
+        x = max(self.cspGroupBox.Location.X + self.cspGroupBox.Width, self.bpGroupBox.Location.X + self.bpGroupBox.Width, self.cssGroupBox.Location.X + self.cssGroupBox.Width)
+        self.replayGroupBox.Location = Point(x + 16, self.cspGroupBox.Location.Y)
+        self.portraitNameGroupBox.Location = Point(x + 16, self.replayGroupBox.Location.Y + self.replayGroupBox.Height + 4)
+        self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 4)
+        self.readmeGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X, self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height + 4)
+        self.bonusGroupBox.Location = Point(self.readmeGroupBox.Location.X + self.readmeGroupBox.Width + 16, self.readmeGroupBox.Location.Y)
+        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width, self.bonusGroupBox.Location.X + self.bonusGroupBox.Width)
+        self.fighterGroupBox.Location = Point(x + 16, self.cosmeticsGroupBox.Location.Y)
+        self.mainFighterGroupBox.Location = Point(4, 16)
+        self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 4)
+        self.soundGroupBox.Location = Point(self.kirbyHatGroupBox.Location.X, self.kirbyHatGroupBox.Location.Y + self.kirbyHatGroupBox.Height + 4)
+        self.classicGroupBox.Location = Point(self.soundGroupBox.Location.X, self.soundGroupBox.Location.Y + self.soundGroupBox.Height + 4)
+        self.miscGroupBox.Location = Point(self.fighterGroupBox.Location.X + self.fighterGroupBox.Width + 16, self.fighterGroupBox.Location.Y)
+        self.codeGroupBox.Location = Point(4, 16)
+        self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
+        self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
+        self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
+        y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height, self.readmeGroupBox.Location.Y + self.readmeGroupBox.Height, self.bonusGroupBox.Location.Y + self.bonusGroupBox.Height)
+        self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
+        self.cancelButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
+        self.saveButton.Location = Point(self.cancelButton.Location.X - self.cancelButton.Width - 4, self.cancelButton.Location.Y)
+        self.saveAsButton.Location = Point(self.saveButton.Location.X - self.saveButton.Width - 4, self.saveButton.Location.Y)
+
+#endregion PACKAGE CHARACTER FORM
+
+#region CLASSES AND CONTROLS
+
+class CostumeGroup:
+        def __init__(self, costumeGroup, costumeObjects):
+            self.costumeGroup = costumeGroup
+            self.costumeObjects = costumeObjects
+
+class CostumeObject:
+        def __init__(self, name="", csp="", cspHd="", stock="", stockHd=""):
+            self.name = name
+            self.csp = csp
+            self.cspHd = cspHd
+            self.stock = stock
+            self.stockHd = stockHd
+
+class BpObject:
+        def __init__(self, name="", bp="", bpHd=""):
+            self.name = name
+            self.bp = bp
+            self.bpHd = bpHd
+
+class ImageObject:
+        def __init__(self, label="Label", size=Size(64, 64)):
+            self.label = label
+            self.size = size
+
+# A textbox with a label
+class LabeledTextBox(UserControl):
+        def __init__(self, labelText, idButtonType="", multiline=False, size=Size(100,120)):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.idButtonType = idButtonType
+
+            self.textBox = TextBox()
+            self.textBox.Location = Point(64, 0)
+            if multiline:
+                self.textBox.Multiline = True
+                self.textBox.ScrollBars = ScrollBars.Vertical
+                self.textBox.AcceptsReturn = True
+                self.textBox.WordWrap = True
+                self.textBox.Size = size
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
+            self.label.TextAlign = ContentAlignment.TopRight
+
+            idButton = Button()
+            idButton.Text = "..."
+            idButton.Size = Size(25, self.textBox.ClientSize.Height + 2)
+            idButton.Location = Point(self.textBox.ClientSize.Width - idButton.Width, -1)
+            idButton.Cursor = Cursors.Default
+            idButton.Click += self.idButtonPressed
+
+            if self.idButtonType:
+                self.textBox.Controls.Add(idButton)
+
+            self.Controls.Add(self.textBox)
+            self.Controls.Add(self.label)
+
+        def idButtonPressed(self, sender, args):
+            id = showIdPicker(self.idButtonType)
+            if id:
+                self.textBox.Text = id
+
+# A dropdown with a label
+class LabeledDropDown(UserControl):
+        def __init__(self, labelText, dataSource):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+            self.dropDown = ComboBox()
+            self.dropDown.Location = Point(64, 0)
+            self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+            self.dropDown.DisplayMember = "Key"
+            self.dropDown.ValueMember = "Value"
+            for object in dataSource:
+                self.dropDown.Items.Add(object)
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(self.dropDown.Location.X - self.dropDown.Width, self.dropDown.Location.Y)
+            self.label.TextAlign = ContentAlignment.TopRight
+
+            self.Controls.Add(self.dropDown)
+            self.Controls.Add(self.label)
+
+# A control for importing a single file
+class FileControl(UserControl):
+        def __init__(self, title="Select your file", filter="PAC files|*.pac", labelText="File"):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.textBox = LabeledTextBox(labelText)
+            self.textBox.textBox.ReadOnly = True
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
+            button.Click += self.buttonPressed
+
+            self.Controls.Add(self.textBox)
+            self.Controls.Add(button)
+
+        def buttonPressed(self, sender, args):
+            file = BrawlAPI.OpenFileDialog(self.title, self.filter)
+            if file:
+                self.textBox.textBox.Text = file
+
+# A control for importing multiple files
+class MultiFileControl(UserControl):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.files = BindingSource()
+            self.files.DataSource = []
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(0, 0)
+            self.label.Height = 16
+
+            self.listBox = ListBox()
+            self.listBox.Size = size
+            self.listBox.Location = Point(self.label.Location.X, self.label.Location.Y + 16)
+            self.listBox.HorizontalScrollbar = True
+            self.listBox.DataSource = self.files
+            self.listBox.DisplayMember = "Name"
+            self.listBox.ValueMember = "FullName"
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
+            button.Click += self.buttonPressed
+
+            self.Controls.Add(self.label)
+            self.Controls.Add(self.listBox)
+            self.Controls.Add(button)
+
+        def buttonPressed(self, sender, args):
+            files = BrawlAPI.OpenMultiFileDialog(self.title, self.filter)
+            if files and len(files) > 0:
+                self.files.DataSource = []
+                for file in files:
+                    self.files.Add(getFileInfo(file))
+                #self.files.DataSource = files
+
+class TabImageControl(UserControl):
+    def __init__(self, tabNames, imageObjects):
+        self.Dock = DockStyle.Fill
+        self.tabControl = TabControl()
+        self.tabControl.Dock = DockStyle.Fill
+
+        tabs = [None] * len(tabNames)
+        self.controls = [None] * len(tabNames)
+
+        i = 0
+        while i < len(tabs):
+            # Tabs
+            tabs[i] = TabPage()
+            tabs[i].Text = tabNames[i]
+            tabs[i].Name = tabNames[i]
+            tabs[i].Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left)
+            
+            self.controls[i] = ImageControl(imageObjects)
+            self.controls[i].Location = Point(4,4)
+
+            tabs[i].Controls.Add(self.controls[i])
+
+            # Add to control
+            self.tabControl.Controls.Add(tabs[i])
+            i += 1
+
+        self.Controls.Add(self.tabControl)
+
+# A control for importing multiple images. Pass in a number of ImageObjects to customize appearance.
+class ImageControl(UserControl):
+        def __init__(self, imageObjects):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+            count = len(imageObjects)
+
+            self.label = [None] * count
+            self.pictureBox = [None] * count
+            button = [None] * count
+
+            # Access the image paths by referencing this property for the desired index
+            self.Images = [None] * count
+
+            i = 0
+            rowTracker = 0
+            while i < count:
+                self.label[i] = Label()
+                self.label[i].Text = imageObjects[i].label + ":"
+                if i == 0:
+                    self.label[i].Location = Point(0, 0)
+                elif rowTracker == 1:
+                    x = max([self.label[i-1].Location.X + self.label[i-1].Width, self.pictureBox[i-1].Location.X + self.pictureBox[i-1].Width, button[i-1].Location.X + button[i-1].Width])
+                    self.label[i].Location = Point(x + 4, self.label[i-1].Location.Y)
+                else:
+                    self.label[i].Location = Point(self.label[i-2].Location.X, button[i-2].Location.Y + button[i-2].Height + 16)
+                self.label[i].Height = 16
+                self.label[i].Width = 90
+
+                self.pictureBox[i] = PictureBox()
+                self.pictureBox[i].Location = Point(self.label[i].Location.X, self.label[i].Location.Y + self.label[i].Height + 4)
+                self.pictureBox[i].Size = imageObjects[i].size
+                self.pictureBox[i].SizeMode = PictureBoxSizeMode.Zoom
+
+                button[i] = Button()
+                button[i].Text = "Browse..."
+                button[i].Location = Point(self.pictureBox[i].Location.X, self.pictureBox[i].Location.Y + self.pictureBox[i].Height + 4)
+                button[i].TabIndex = i
+                button[i].Click += self.buttonPressed
+
+                self.Controls.Add(self.label[i])
+                self.Controls.Add(self.pictureBox[i])
+                self.Controls.Add(button[i])
+
+                i += 1
+                if rowTracker < 1:
+                    rowTracker += 1
+                else:
+                    rowTracker = 0
+        
+        def buttonPressed(self, sender, args):
+            image = BrawlAPI.OpenFileDialog("Select image file", "PNG files|*.png")
+            if image:
+                self.pictureBox[sender.TabIndex].Image = createBitmap(image)
+                self.Images[sender.TabIndex] = image
+
+#endregion

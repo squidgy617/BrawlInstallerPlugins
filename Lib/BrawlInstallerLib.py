@@ -39,6 +39,10 @@ BACKUP_PATH = BASE_BACKUP_PATH + '\\backup'
 
 LOG_PATH = AppPath + '\\Logs'
 
+TEMP_PATH = AppPath + '\\temp'
+
+PACK_PATH = AppPath + '\\tempPack'
+
 FIGHTER_IDS = {
 	0 : "Mario",
 	1 : "Donkey",
@@ -180,6 +184,20 @@ TROPHY_SERIES = {
 	"Sonic the Hedgehog" : 21
 }
 
+TROPHY_GAME_ICONS = {
+	"None" : 0,
+	"Nintendo 64" : 1,
+	"Gamecube" : 2,
+	"NES" : 3,
+	"Famicom Disk System" : 4,
+	"Nintendo DS" : 5,
+	"Super Nintendo" : 6,
+	"Gameboy Advance" : 7,
+	"Gameboy" : 8,
+	"Wii" : 9,
+	"Game and Watch" : 10
+}
+
 COSTUME_COLOR = {
 	"Red" : 0,
 	"Blue" : 1,
@@ -208,16 +226,34 @@ def clearTextBoxes(groupBox):
 			elif control.GetType() == TextBox:
 				control.Text = ""
 
+# Select a drop down item by a value
+def selectItemByValue(dropDown, dictionary, value):
+		if value in dictionary.values():
+			index = list(dictionary.values()).index(value)
+			key = list(dictionary.keys())[index]
+			if key:
+				for item in dropDown.Items:
+					if item == key:
+						dropDown.SelectedItem = item
+
+# Create a copy of a bitmap from an image path, rather than calling on the actual image
+def createBitmap(imagePath):
+	with Bitmap(imagePath) as bmpTemp:
+		img = Bitmap(bmpTemp)
+	return img
+
 # Validate all text boxes in a Windows form group are valid hex IDs
-def validateTextBoxes(groupBox):
+def validateTextBoxes(groupBox, allowBlank=False, excludedControls=[]):
 		validationPassed = True
 		for control in groupBox.Controls:
-			if control.GetType() == Panel:
-				valid = validateTextBoxes(control)
+			if control in excludedControls:
+				return validationPassed
+			elif control.GetType() != TextBox:
+				valid = validateTextBoxes(control, allowBlank)
 				if not valid:
 					validationPassed = False
 			elif control.GetType() == TextBox:
-				valid = hexId(control.Text)
+				valid = hexId(control.Text) or (control.Text == "" and allowBlank) or control in excludedControls
 				control.BackColor = Color.White if valid else Color.LightPink
 				if not valid:
 					validationPassed = False
@@ -227,6 +263,15 @@ def validateTextBoxes(groupBox):
 def validateTextBox(textBox):
 		validationPassed = True
 		valid = hexId(textBox.Text)
+		textBox.BackColor = Color.White if valid else Color.LightPink
+		if not valid:
+			validationPassed = False
+		return validationPassed
+
+# Validate a single text box is a decimal value
+def validateDecimal(textBox, allowBlank=False):
+		validationPassed = True
+		valid = textBox.Text.replace('.', '').replace('-','').isdecimal() or (textBox.Text == "" and allowBlank)
 		textBox.BackColor = Color.White if valid else Color.LightPink
 		if not valid:
 			validationPassed = False
@@ -299,6 +344,13 @@ def getFileInfo(filePath):
 		except Exception as e:
 			BrawlAPI.ShowMessage("Error occurred trying to process filepath " + filePath + ", please check that the default build path and all paths in settings.ini are formatted correctly.", "Filepath Error")
 			raise e
+
+# Helper function to get FileInfo objects for a list of files
+def getFileInfos(filePaths):
+		files = []
+		for filePath in filePaths:
+			files.append(getFileInfo(filePath))
+		return files
 
 # Helper function that gets names of all files in the provided directory
 def getFileNames(directory):
@@ -3834,7 +3886,7 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		writeLog("Finished extracting BPs")
 
 # Extract replay icon
-def extractReplayIcon(cosmeticId):
+def extractReplayIcon(cosmeticId, replayIconStyle=""):
 		writeLog("Extract replay icon for cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
 		if fileOpened:
@@ -3842,7 +3894,10 @@ def extractReplayIcon(cosmeticId):
 			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
 			textureNode = getChildByName(texFolder, nodeName)
 			if textureNode:
-				exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
+				if replayIconStyle:
+					exportPath = createDirectory(AppPath + '/temp/ReplayIcon/' + replayIconStyle)
+				else:
+					exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting replay icon")
 
@@ -4681,6 +4736,7 @@ def getSettings():
 		settings.bpStyle = readValueFromKey(fileText, "bpStyle")
 		settings.portraitNameStyle = readValueFromKey(fileText, "portraitNameStyle")
 		settings.installPortraitNames = readValueFromKey(fileText, "installPortraitNames")
+		settings.replayIconStyle = readValueFromKey(fileText, "replayIconStyle")
 		settings.franchiseIconSizeCSS = readValueFromKey(fileText, "franchiseIconSizeCSS")
 		settings.installStocksToCSS = readValueFromKey(fileText, "installStocksToCSS")
 		settings.installStocksToInfo = readValueFromKey(fileText, "installStocksToInfo")
@@ -4879,6 +4935,7 @@ class Settings:
 		bpStyle = "vBrawl"
 		portraitNameStyle = "PM"
 		installPortraitNames = "false"
+		replayIconStyle = "P+"
 		franchiseIconSizeCSS = "128"
 		installStocksToCSS = "true"
 		installStocksToInfo = "true"
