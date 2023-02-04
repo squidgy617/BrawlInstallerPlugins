@@ -4591,7 +4591,7 @@ class PackageCharacterForm(Form):
         for file in self.pacFilesControl.files:
             copyFile(file.FullName, PACK_PATH + '\\Fighter')
         for file in self.exConfigsControl.files:
-            copyFile(file.FullName, PACK_PATH + '\\ExConfigs')
+            copyFile(file.FullName, PACK_PATH + '\\EXConfigs')
         if self.moduleControl.textBox.textBox.Text:
             copyFile(self.moduleControl.textBox.textBox.Text, PACK_PATH + '\\Module')
         for file in self.kirbyHatFilesControl.files:
@@ -4880,8 +4880,8 @@ class PackageCharacterForm(Form):
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
-                if Directory.Exists(TEMP_PATH + '\\ExConfigs'):
-                    self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\ExConfigs', "*.dat"))
+                if Directory.Exists(TEMP_PATH + '\\EXConfigs'):
+                    self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\EXConfigs', "*.dat"))
                 if Directory.Exists(TEMP_PATH + '\\Module'):
                     file = Directory.GetFiles(TEMP_PATH + '\\Module', "*.rel")
                     if file and len(file) > 0:
