@@ -62,12 +62,13 @@ The plugins create backups of your files during execution, however, I cannot gua
 
 # Guides
 
-- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
 - [Configuring Settings](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Configuring-Settings)
+- [Packaging Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Packaging-Characters)
 - [Managing Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Characters)
 - [Managing Costumes](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Costumes)
 - [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Music)
 - [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Stages)
+- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing) (OUTDATED)
 
 # Character Packages
 
@@ -153,6 +154,13 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   For character IDs to show in the ID pickers, you need to [modify the ID list](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Using-ID-Pickers#modifying-id-lists) used by BrawlCrate. For Ex builds, you might want to consider doing this for your Ex characters. For base P+ builds, the only character that will not appear by default. You can add him by adding the following line to `FighterList.txt` located in the `CustomLists` folder in your BrawlCrate directory:
 
 `       |0x35   |0x2D       |0x2A       |0x2F       |Knuckles        |Knuckles (Project+ Only) // IDs are based on P+`
+  
+</details>
+
+<details>
+  <summary><b>Opening my character package with the "Package Character" plugin doesn't work.</b></summary>
+  
+  Most likely, this is due to the structure of your character package being invalid. Try comparing the package to one of the template packages to get an idea of where everything needs to be, or start fresh using the form to create your package to ensure everything is structured right automatically.
   
 </details>
 
