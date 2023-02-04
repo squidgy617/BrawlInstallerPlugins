@@ -4446,14 +4446,14 @@ class PackageCharacterForm(Form):
             toolTip.SetToolTip(bpListBoxLabels[i], "List of BPs in the package.")
             toolTip.SetToolTip(bpPictureBoxLabels[i], "The portrait that appears in battle.")
             toolTip.SetToolTip(bpHdPictureBoxLabels[i], "The HD BP.")
-            toolTip.SetToolTip(bpNameLabels[i], "The name that appears beneath BPs in battle.")
+            toolTip.SetToolTip(bpNameLabels[i], "The name that appears beneath BPs in battle. Not used for REMIX BPs.")
             toolTip.SetToolTip(bpNameHdLabels[i], "The HD BP name.")
             i += 1
         i = 0
         while i < len(self.cssTabControl.tabControl.TabPages):
             toolTip.SetToolTip(self.cssTabControl.controls[i].label[0], "The icon that appears on the character select screen.")
             toolTip.SetToolTip(self.cssTabControl.controls[i].label[1], "The HD CSS icon.")
-            toolTip.SetToolTip(self.cssTabControl.controls[i].label[2], "The name that appears on icons on the character select screen.")
+            toolTip.SetToolTip(self.cssTabControl.controls[i].label[2], "The name that appears on icons on the character select screen. Not used for P+ or REMIX icons.")
             toolTip.SetToolTip(self.cssTabControl.controls[i].label[3], "The HD CSS icon name.")
             i += 1
         i = 0
@@ -4674,15 +4674,41 @@ class PackageCharacterForm(Form):
         # Create zip
         if File.Exists(path):
             File.Delete(path)
-        ZipFile.CreateFromDirectory(PACK_PATH, path)
         if Directory.Exists(PACK_PATH):
+            ZipFile.CreateFromDirectory(PACK_PATH, path)
             Directory.Delete(PACK_PATH, 1)
-        BrawlAPI.ShowMessage("Character package created at " + path, "Success")
+            BrawlAPI.ShowMessage("Character package created at " + path, "Success")
+        else:
+            BrawlAPI.ShowMessage("Character package is empty. No package created.", "Empty Package")
+
+    def validate(self):
+        validKirby = validateTextBoxes(self.kirbyHatGroupBox, True)
+        validCodes = validateTextBoxes(self.codeGroupBox, True, [self.throwRelease1Control, self.throwRelease2Control])
+        validThrowRelease1 = validateDecimal(self.throwRelease1Control.textBox, True)
+        validThrowRelease2 = validateDecimal(self.throwRelease2Control.textBox, True)
+        if not validKirby or not validCodes or not validThrowRelease1 or not validThrowRelease2:
+            BrawlAPI.ShowMessage("Some fields were invalid. Please ensure all IDs use values in either hex (e.g. 0x21) or decimal (e.g. 33) format.", "Validation Failed")
+        return validCodes and validKirby and validThrowRelease1 and validThrowRelease2
 
     def saveButtonPressed(self, sender, args):
-        self.createPackage(self.zipFile)
+        valid = self.validate()
+        if not valid:
+            return
+        if self.zipFile:
+            self.createPackage(self.zipFile)
+        else:
+            saveDialog = SaveFileDialog()
+            saveDialog.Filter = "ZIP File|*.zip"
+            saveDialog.Title = "Save character package"
+            result = saveDialog.ShowDialog()
+            if result == DialogResult.OK and saveDialog.FileName:
+                self.createPackage(saveDialog.FileName)
+                saveDialog.Dispose()
 
     def saveAsButtonPressed(self, sender, args):
+        valid = self.validate()
+        if not valid:
+            return
         saveDialog = SaveFileDialog()
         saveDialog.Filter = "ZIP File|*.zip"
         saveDialog.Title = "Save character package"
@@ -5421,7 +5447,7 @@ class ImageControl(UserControl):
                 self.pictureBox[i] = PictureBox()
                 self.pictureBox[i].Location = Point(self.label[i].Location.X, self.label[i].Location.Y + self.label[i].Height + 4)
                 self.pictureBox[i].Size = imageObjects[i].size
-                self.pictureBox[i].SizeMode = PictureBoxSizeMode.StretchImage
+                self.pictureBox[i].SizeMode = PictureBoxSizeMode.Zoom
 
                 button[i] = Button()
                 button[i].Text = "Browse..."

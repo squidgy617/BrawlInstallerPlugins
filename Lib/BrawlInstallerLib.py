@@ -243,15 +243,17 @@ def createBitmap(imagePath):
 	return img
 
 # Validate all text boxes in a Windows form group are valid hex IDs
-def validateTextBoxes(groupBox):
+def validateTextBoxes(groupBox, allowBlank=False, excludedControls=[]):
 		validationPassed = True
 		for control in groupBox.Controls:
-			if control.GetType() == Panel:
-				valid = validateTextBoxes(control)
+			if control in excludedControls:
+				return validationPassed
+			elif control.GetType() != TextBox:
+				valid = validateTextBoxes(control, allowBlank)
 				if not valid:
 					validationPassed = False
 			elif control.GetType() == TextBox:
-				valid = hexId(control.Text)
+				valid = hexId(control.Text) or (control.Text == "" and allowBlank) or control in excludedControls
 				control.BackColor = Color.White if valid else Color.LightPink
 				if not valid:
 					validationPassed = False
@@ -261,6 +263,15 @@ def validateTextBoxes(groupBox):
 def validateTextBox(textBox):
 		validationPassed = True
 		valid = hexId(textBox.Text)
+		textBox.BackColor = Color.White if valid else Color.LightPink
+		if not valid:
+			validationPassed = False
+		return validationPassed
+
+# Validate a single text box is a decimal value
+def validateDecimal(textBox, allowBlank=False):
+		validationPassed = True
+		valid = textBox.Text.replace('.', '').replace('-','').isdecimal() or (textBox.Text == "" and allowBlank)
 		textBox.BackColor = Color.White if valid else Color.LightPink
 		if not valid:
 			validationPassed = False
