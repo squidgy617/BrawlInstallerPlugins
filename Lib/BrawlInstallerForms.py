@@ -4703,6 +4703,7 @@ class PackageCharacterForm(Form):
             result = saveDialog.ShowDialog()
             if result == DialogResult.OK and saveDialog.FileName:
                 self.createPackage(saveDialog.FileName)
+                self.zipFile = saveDialog.FileName
                 saveDialog.Dispose()
 
     def saveAsButtonPressed(self, sender, args):
@@ -4715,6 +4716,7 @@ class PackageCharacterForm(Form):
         result = saveDialog.ShowDialog()
         if result == DialogResult.OK and saveDialog.FileName:
             self.createPackage(saveDialog.FileName)
+            self.zipFile = saveDialog.FileName
             saveDialog.Dispose()
 
     def cancelButtonPressed(self, sender, args):
