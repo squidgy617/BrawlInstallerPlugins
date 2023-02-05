@@ -5200,12 +5200,14 @@ class PackageCharacterForm(Form):
     def bpNameButtonPressed(self, sender, args):
         index = self.bpTabControl.SelectedIndex
         self.bpNameImage[index] = BrawlAPI.OpenFileDialog("Select your SD BP name image", "PNG files|*.png")
-        self.bpNamePictureBoxes[index].Image = createBitmap(self.bpNameImage[index])
+        if self.bpNameImage[index]:
+            self.bpNamePictureBoxes[index].Image = createBitmap(self.bpNameImage[index])
 
     def bpNameHdButtonPressed(self, sender, args):
         index = self.bpTabControl.SelectedIndex
         self.bpNameHdImage[index] = BrawlAPI.OpenFileDialog("Select your HD BP name image", "PNG files|*.png")
-        self.bpNameHdPictureBoxes[index].Image = createBitmap(self.bpNameHdImage[index])
+        if self.bpNameHdImage[index]:
+            self.bpNameHdPictureBoxes[index].Image = createBitmap(self.bpNameHdImage[index])
 
     def toggleGroupBox(self, sender, args):
         collapsed = False
