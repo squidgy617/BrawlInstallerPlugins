@@ -5037,11 +5037,11 @@ class PackageCharacterForm(Form):
             self.bpHdPictureBoxes[index].Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
-        self.addCostumeGroup(0)
+        self.addCostumeGroup()
 
-    def addCostumeGroup(self, index):
-        if len(self.costumeGroups) <= index:
-            newGroup = CostumeGroup("Costume " + str(index + 1), BindingSource())
+    def addCostumeGroup(self, index=-1):
+        if len(self.costumeGroups) <= index or index == -1:
+            newGroup = CostumeGroup("Costume " + (str(index + 1) if index > -1 else str(len(self.costumeGroups) + 1)), BindingSource())
             self.costumeGroups.Add(newGroup)
             buttonsEnabled = len(self.cspCostumeListBox.Items) > 0 and self.cspCostumeListBox.SelectedItem != None
             self.cspButton.Enabled = buttonsEnabled
