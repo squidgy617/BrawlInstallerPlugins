@@ -5037,7 +5037,7 @@ class PackageCharacterForm(Form):
             self.bpHdPictureBoxes[index].Image = None
 
     def cspCostumeButtonPressed(self, sender, args):
-        self.addCostumeGroup()
+        self.addCostumeGroup(0)
 
     def addCostumeGroup(self, index):
         if len(self.costumeGroups) <= index:
