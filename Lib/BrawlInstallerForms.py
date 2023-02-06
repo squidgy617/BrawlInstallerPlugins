@@ -1295,6 +1295,10 @@ class StageList(Form):
                 usedStageIds.append(stageSlot.stageId)
         for stageSlot in self.removeSlots:
             usedStageIds.append(stageSlot.stageId)
+        if Directory.Exists(MainForm.BuildPath + '\\pf\\stage\\stageslot'):
+            files = Directory.GetFiles(MainForm.BuildPath + '\\pf\\stage\\stageslot', '*.asl')
+            for file in files:
+                usedStageIds.append(getFileInfo(file).Name.replace('.asl',''))
         # Get first available
         stageId = 1
         while hexId(stageId).replace('0x','') in usedStageIds:
