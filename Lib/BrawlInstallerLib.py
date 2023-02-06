@@ -5459,6 +5459,7 @@ def getStageName(stageId):
 					writeLog("Found stage name " + str(node.Name))
 					return node.Name
 			BrawlAPI.ForceCloseFile()
+		return ""
 		writeLog("Finished getting stage name")
 
 # Get stage cosmetics by cosmetic ID

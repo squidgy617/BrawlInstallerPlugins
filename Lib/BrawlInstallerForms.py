@@ -1009,9 +1009,11 @@ class StageList(Form):
                     self.stageSlots[i].Add(pageSlot)
                     for slotId in page:
                         stageIds = getStageIdsByNumber(slotId, self.stageLists[i])
-                        stageName = getStageName(stageIds[2:4])
-                        stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
-                        self.stageSlots[i].Add(stageSlot)
+                        if stageIds and stageIds != -1:
+                            stageName = getStageName(stageIds[2:4])
+                            if stageName:
+                                stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
+                                self.stageSlots[i].Add(stageSlot)
 
             self.unusedSlots[i] = BindingSource()
             self.unusedSlots[i].DataSource = getUnusedStageSlots(self.stageSlots[i], self.stageLists[i])
