@@ -1313,6 +1313,30 @@ class StageList(Form):
                 usedCosmeticIds.append(stageSlot.cosmeticId)
         for stageSlot in self.removeSlots:
             usedCosmeticIds.append(stageSlot.cosmeticId)
+        fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selmap.pac')
+        if fileOpened:
+            node = getChildByName(BrawlAPI.RootNode, "Misc Data [80]")
+            if node:
+                texFolder = getChildByName(node, "Textures(NW4R)")
+                if texFolder and texFolder.Children:
+                    for texNode in texFolder.Children:
+                        if texNode.Name.startswith('MenSelmapFrontStname.') or texNode.Name.startswith('MenSelmapIcon.') or texNode.Name.startswith('MenSelmapPrevbase.'):
+                            if len(texNode.Name.split('.')) > 1:
+                                id = texNode.Name.split('.')[1]
+                                usedCosmeticIds.append(hexId(id).replace('0x',''))
+                anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+                if anmTexPat and anmTexPat.Children:
+                    for pat0 in anmTexPat.Children:
+                        if pat0.Name == 'MenSelmapPreview' or pat0.Name == 'MenSelmapIcon':
+                            for pat0Entry in pat0.Children:
+                                pat0EntryNames = ['basebgM', 'pasted__stnameM', 'pasted__stnameshadowM', 'basebgMShadow', 'pasted__stnameM_start', 'pasted__stnameshadowM_start']
+                                if pat0Entry.Name in pat0EntryNames:
+                                    if len(pat0Entry.Children) > 0:
+                                        texEntry = pat0Entry.Children[0]
+                                        if texEntry and texEntry.Children:
+                                            for texPat in texEntry.Children:
+                                                id = int(texPat.FrameIndex)
+                                                usedCosmeticIds.append(hexId(id).replace('0x',''))
         # Get first available
         cosmeticId = 1
         while hexId(cosmeticId).replace('0x','') in usedCosmeticIds:
