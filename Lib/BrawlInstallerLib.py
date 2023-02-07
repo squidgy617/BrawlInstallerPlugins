@@ -5309,11 +5309,11 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 		ids = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 		if len(ids) < 4:
 			splitLine = line.split('|')
-			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ splitLine[1] + ", " + stageName
+			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ ((splitLine[1] + ", ") if len(splitLine) > 1 else "# ") + stageName
 			fileText[i - 1] = newLine
 		else:
 			splitLine = line.split('|')
-			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + splitLine[1]
+			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + (splitLine[1] if len(splitLine) > 1 else "")
 			newLine = '0x' + fullId + '\t| #' + stageName
 			fileText[i] = newLine
 		# Update counter
