@@ -5627,6 +5627,8 @@ def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 		foundName = getChildByName(texFolder, prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2))
 		if foundName and not new:
 			return foundName.Name
+		elif not foundName:
+			return prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2)
 		else:
 			i = 0
 			newCosmeticId = 1
