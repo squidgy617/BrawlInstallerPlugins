@@ -156,6 +156,47 @@ class IdPicker(Form):
 
 #endregion ID PICKER
 
+#region INSTALL OPTION FORM
+
+class InstallOptionForm(Form):
+    def __init__(self, options=[], folderName="Files"):
+        # Form parameters
+        self.Text = 'Option Select'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        # Tooltips
+        toolTip = ToolTip()
+
+        label = Label()
+        label.Text = "Select option for: " + folderName
+        label.Location = Point(16, 4)
+        label.Width = 160
+
+        self.Controls.Add(label)
+
+        i = 0
+        radioButton = [None] * len(options)
+        while i < len(options):
+            radioButton[i] = RadioButton()
+            radioButton[i].Text = options[i].name
+            radioButton[i].Location = Point(16, ((label.Location.Y + label.Height + 4) if i == 0 else radioButton[i - 1].Location.Y + radioButton[i - 1].Height))
+
+            toolTip.SetToolTip(radioButton[i], options[i].description)
+            
+            self.Controls.Add(radioButton[i])
+            i += 1
+        if len(radioButton) >= 1:
+            radioButton[0].Checked = True
+
+
+#endregion INSTALL OPTION FORM
+
 #region IMAGE ID PICKER
 
 def getCosmeticNodes():
