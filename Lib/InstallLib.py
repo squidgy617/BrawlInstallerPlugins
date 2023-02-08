@@ -35,14 +35,18 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								optionDirectories = Directory.GetDirectories(optionDirectory[0])
 								if optionDirectories and len(optionDirectories) > 0:
 									description = ""
-									if File.Exists(directory + '\\#Description.txt'):
-										description = File.ReadAllText(directory + '\\#Description.txt')
-									installOptions = [InstallOption(directory, "Standard", description)]
+									if File.Exists(directory + '\\OptionSettings.txt'):
+										optionSettings = File.ReadAllLines(directory + '\\OptionSettings.txt')
+										name = readValueFromKey(optionSettings, "name")
+										description = readValueFromKey(optionSettings, "description")
+									installOptions = [InstallOption(directory, name, description)]
 									for option in optionDirectories:
 										description = ""
-										if File.Exists(option + '\\#Description.txt'):
-											description = File.ReadAllText(option + '\\#Description.txt')
-										installOptions.append(InstallOption(option, DirectoryInfo(option).Name, description))
+										if File.Exists(option + '\\OptionSettings.txt'):
+											optionSettings = File.ReadAllLines(option + '\\OptionSettings.txt')
+											name = readValueFromKey(optionSettings, "name")
+											description = readValueFromKey(optionSettings, "description")
+										installOptions.append(InstallOption(option, name, description))
 									form = InstallOptionForm(installOptions, "Fighter")
 									result = form.ShowDialog(MainForm.Instance)
 									# If we did not choose the standard option, remove files from main folder, copy chosen file contents back into it, and
