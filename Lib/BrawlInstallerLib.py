@@ -5285,15 +5285,19 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 		fileText = File.ReadAllLines(file)
 		tableStart = 0
 		tableValues = []
+		foundTable = False
 		# Find the stages table
 		i = 0
 		while i < len(fileText):
 			line = fileText[i]
 			if line.startswith("TABLE_STAGES:"):
 				writeLog("Found stages table at line " + str(i))
+				foundTable = True
 				tableStart = i + 3
 				break
 			i += 1
+		if not foundTable:
+			return 0
 		# Get to end of table
 		i = tableStart
 		while i < len(fileText):
@@ -5834,7 +5838,7 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 							copyFile(stageParam.pacFile, MainForm.BuildPath + '/pf/stage/melee')
 			if stageParam.moduleFile:
 				if File.Exists(stageParam.moduleFile):
-					if not File.Exists(MainForm.BuildPath + "/pf/module/" + getFileInfo(stageParam.moduleFile).Name):
+					if not File.Exists(MainForm.BuildPath + "/pf/module/" + getFileInfo(stageParam.module).Name):
 						if stageParam.module:
 							copyRenameFile(stageParam.moduleFile, stageParam.module, MainForm.BuildPath + '/pf/module')
 						else:
