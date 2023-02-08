@@ -5395,7 +5395,7 @@ def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 		i = 0
 		while i < len(fileText):
 			if i == tableStart - 1:
-				writeText.append("half[" + str(len(tableValues) - 1) + "] |\t# Stage Count + 2")
+				writeText.append("half[" + str(len(tableValues)) + "] |\t# Stage Count + 2")
 				i += 1
 				continue
 			elif i == tableStart:
