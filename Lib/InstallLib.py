@@ -29,21 +29,33 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 				if folder:
 					# Get options
 					for directory in Directory.GetDirectories(folder, "*", SearchOption.AllDirectories):
-						optionDirectory = Directory.GetDirectories(directory, '#Options')
-						if optionDirectory and len(optionDirectory) > 0:
-							optionDirectories = Directory.GetDirectories(optionDirectory[0])
-							if optionDirectories and len(optionDirectories) > 0:
-								description = ""
-								if File.Exists(directory + '\\#Description.txt'):
-									description = File.ReadAllText(directory + '\\#Description.txt')
-								installOptions = [InstallOption(directory, "Standard", description)]
-								for option in optionDirectories:
+						if directory and Directory.Exists(directory):
+							optionDirectory = Directory.GetDirectories(directory, '#Options')
+							if optionDirectory and len(optionDirectory) > 0:
+								optionDirectories = Directory.GetDirectories(optionDirectory[0])
+								if optionDirectories and len(optionDirectories) > 0:
 									description = ""
-									if File.Exists(option + '\\#Description.txt'):
-										description = File.ReadAllText(option + '\\#Description.txt')
-									installOptions.append(InstallOption(option, DirectoryInfo(option).Name, description))
-								form = InstallOptionForm(installOptions, "Fighter")
-								result = form.ShowDialog(MainForm.Instance)
+									if File.Exists(directory + '\\#Description.txt'):
+										description = File.ReadAllText(directory + '\\#Description.txt')
+									installOptions = [InstallOption(directory, "Standard", description)]
+									for option in optionDirectories:
+										description = ""
+										if File.Exists(option + '\\#Description.txt'):
+											description = File.ReadAllText(option + '\\#Description.txt')
+										installOptions.append(InstallOption(option, DirectoryInfo(option).Name, description))
+									form = InstallOptionForm(installOptions, "Fighter")
+									result = form.ShowDialog(MainForm.Instance)
+									# If we did not choose the standard option, remove files from main folder, copy chosen file contents back into it, and
+									#then delete options
+									if form.chosenFolder != directory:
+										filesToDelete = Directory.GetFiles(directory)
+										i = 0
+										while i < len(filesToDelete):
+											File.Delete(filesToDelete[i])
+											i += 1
+										for file in Directory.GetFiles(form.chosenFolder):
+											copyFile(file, directory)
+									Directory.Delete(directory + '\\#Options', True)
 
 					# Get all subdirectories in the folder
 					fighterDir = Directory.CreateDirectory(folder).GetDirectories()

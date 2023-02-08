@@ -170,6 +170,10 @@ class InstallOptionForm(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
+        self.options = options
+
+        self.chosenFolder = self.options[0].folder
+
         # Tooltips
         toolTip = ToolTip()
 
@@ -181,19 +185,23 @@ class InstallOptionForm(Form):
         self.Controls.Add(label)
 
         i = 0
-        radioButton = [None] * len(options)
-        while i < len(options):
+        radioButton = [None] * len(self.options)
+        while i < len(self.options):
             radioButton[i] = RadioButton()
-            radioButton[i].Text = options[i].name
+            radioButton[i].Text = self.options[i].name
             radioButton[i].Location = Point(16, ((label.Location.Y + label.Height + 4) if i == 0 else radioButton[i - 1].Location.Y + radioButton[i - 1].Height))
+            radioButton[i].Tag = i
+            radioButton[i].CheckedChanged += self.rbChecked
 
-            toolTip.SetToolTip(radioButton[i], options[i].description)
+            toolTip.SetToolTip(radioButton[i], self.options[i].description)
             
             self.Controls.Add(radioButton[i])
             i += 1
         if len(radioButton) >= 1:
             radioButton[0].Checked = True
 
+    def rbChecked(self, sender, args):
+        self.chosenFolder = self.options[sender.Tag].folder
 
 #endregion INSTALL OPTION FORM
 
