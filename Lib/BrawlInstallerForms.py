@@ -4263,14 +4263,14 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Text = "Main Fighter Files"
         self.mainFighterGroupBox.Click += self.toggleGroupBox
 
-        self.pacFilesControl = MultiFileControl("Select your fighter pac files", labelText="PAC Files")
+        self.pacFilesControl = MultiFileSetControl("Select your fighter pac files", labelText="PAC Files")
         self.pacFilesControl.Location = Point(16, 16)
 
         self.exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
         self.exConfigsControl.Location = Point(self.pacFilesControl.Location.X + self.pacFilesControl.Width, self.pacFilesControl.Location.Y)
 
         self.moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
-        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 32)
+        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 96)
         
         self.mainFighterGroupBox.Controls.Add(self.pacFilesControl)
         self.mainFighterGroupBox.Controls.Add(self.exConfigsControl)
@@ -4674,8 +4674,16 @@ class PackageCharacterForm(Form):
             copyRenameFile(self.franchiseIconImageControl.Images[1], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Transparent')
         if self.franchiseModelControl.textBox.textBox.Text:
             copyRenameFile(self.franchiseModelControl.textBox.textBox.Text, 'Model.mdl0', PACK_PATH + '\\FranchiseIcons\\Model')
-        for file in self.pacFilesControl.files:
-            copyFile(file.FullName, PACK_PATH + '\\Fighter')
+        for fileSet in self.pacFilesControl.fileSets:
+            fighterPath = (PACK_PATH + '\\Fighter') if fileSet == self.pacFilesControl.dropDown.Items[0] else (PACK_PATH + '\\Fighter\\#Options\\' + fileSet.name)
+            for file in fileSet.files:
+                copyFile(file.FullName, fighterPath)
+            if len(self.pacFilesControl.fileSets) > 1:
+                writeString = ""
+                writeString += "name=" + fileSet.name
+                writeString += "\ndescription=" + fileSet.description
+                if writeString:
+                    File.WriteAllText(fighterPath + '\\OptionSettings.txt', writeString)
         for file in self.exConfigsControl.files:
             copyFile(file.FullName, PACK_PATH + '\\EXConfigs')
         if self.moduleControl.textBox.textBox.Text:
@@ -4965,7 +4973,24 @@ class PackageCharacterForm(Form):
                     self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
-                    self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                    self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                    if File.Exists(TEMP_PATH + '\\Fighter\\OptionSettings.txt'):
+                        optionSettings = File.ReadAllLines(TEMP_PATH + '\\Fighter\\OptionSettings.txt')
+                        optionName = readValueFromKey(optionSettings, "name")
+                        optionDescription = readValueFromKey(optionSettings, "description")
+                        self.pacFilesControl.fileSets[0].name = optionName
+                        self.pacFilesControl.fileSets[0].description = optionDescription
+                    if Directory.Exists(TEMP_PATH + '\\Fighter\\#Options'):
+                        i = 1
+                        for directory in Directory.GetDirectories(TEMP_PATH + '\\Fighter\\#Options'):
+                            if File.Exists(directory + '\\OptionSettings.txt'):
+                                optionSettings = File.ReadAllLines(directory + '\\OptionSettings.txt')
+                                optionName = readValueFromKey(optionSettings, "name")
+                                optionDescription = readValueFromKey(optionSettings, "description")
+                            else:
+                                optionName = DirectoryInfo(directory).Name
+                                optionDescription = ""
+                            self.pacFilesControl.fileSets.Add(FileSet(optionName, getFileInfos(Directory.GetFiles(directory, "*.pac")), optionDescription))
                 if Directory.Exists(TEMP_PATH + '\\EXConfigs'):
                     self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\EXConfigs', "*.dat"))
                 if Directory.Exists(TEMP_PATH + '\\Module'):
@@ -5491,7 +5516,113 @@ class MultiFileControl(UserControl):
                 self.files.DataSource = []
                 for file in files:
                     self.files.Add(getFileInfo(file))
-                #self.files.DataSource = files
+
+# A control for importing multiple filesets
+class MultiFileSetControl(UserControl):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.fileSets = BindingSource()
+            self.fileSets.DataSource = [FileSet("Standard", [])]
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(0, 0)
+            self.label.Height = 16
+
+            self.listBox = ListBox()
+            self.listBox.Size = size
+            self.listBox.Location = Point(self.label.Location.X, self.label.Location.Y + 16)
+            self.listBox.HorizontalScrollbar = True
+            self.listBox.DataSource = self.fileSets[0].files
+            self.listBox.DisplayMember = "Name"
+            self.listBox.ValueMember = "FullName"
+
+            self.dropDown = ComboBox()
+            self.dropDown.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
+            self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+            self.dropDown.DataSource = self.fileSets
+            self.dropDown.DisplayMember = "name"
+            self.dropDown.ValueMember = "files"
+            self.dropDown.SelectedValueChanged += self.dropDownChanged
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.dropDown.Location.X, self.dropDown.Location.Y + self.dropDown.Height + 4)
+            button.Click += self.buttonPressed
+
+            addButton = Button()
+            addButton.Text = "+"
+            addButton.Size = Size(16,16)
+            addButton.Location = Point(button.Location.X + button.Width + 4, button.Location.Y)
+            addButton.Click += self.addButtonPressed
+
+            removeButton = Button()
+            removeButton.Text = "-"
+            removeButton.Size = Size(16,16)
+            removeButton.Location = Point(addButton.Location.X + addButton.Width + 4, addButton.Location.Y)
+            removeButton.Click += self.removeButtonPressed
+
+            self.nameBox = LabeledTextBox("Name")
+            self.nameBox.textBox.Text = self.fileSets[0].name
+            self.nameBox.Location = Point(button.Location.X - 28, button.Location.Y + button.Height + 4)
+            self.nameBox.textBox.TextChanged += self.nameTextChanged
+
+            self.descriptionBox = LabeledTextBox("Desc")
+            self.descriptionBox.textBox.Text = self.fileSets[0].description
+            self.descriptionBox.Location = Point(self.nameBox.Location.X, self.nameBox.Location.Y + 24)
+            self.descriptionBox.textBox.TextChanged += self.descriptionTextChanged
+
+            self.Controls.Add(self.label)
+            self.Controls.Add(self.listBox)
+            self.Controls.Add(self.dropDown)
+            self.Controls.Add(button)
+            self.Controls.Add(addButton)
+            self.Controls.Add(removeButton)
+            self.Controls.Add(self.nameBox)
+            self.Controls.Add(self.descriptionBox)
+
+        def buttonPressed(self, sender, args):
+            files = BrawlAPI.OpenMultiFileDialog(self.title, self.filter)
+            if files and len(files) > 0:
+                self.fileSets[self.dropDown.SelectedIndex].files = []
+                for file in files:
+                    self.fileSets[self.dropDown.SelectedIndex].files.Add(getFileInfo(file))
+                self.listBox.DataSource = self.fileSets[self.dropDown.SelectedIndex].files
+                self.listBox.DisplayMember = "Name"
+                self.listBox.ValueMember = "FullName"
+
+        def dropDownChanged(self, sender, args):
+            self.listBox.DataSource = self.fileSets[self.dropDown.SelectedIndex].files
+            self.listBox.DisplayMember = "Name"
+            self.listBox.ValueMember = "FullName"
+            self.nameBox.textBox.Text = self.fileSets[self.dropDown.SelectedIndex].name
+            self.descriptionBox.textBox.Text = self.fileSets[self.dropDown.SelectedIndex].description
+
+        def addButtonPressed(self, sender, args):
+            self.fileSets.Add(FileSet("Option " + str(len(self.fileSets)), []))
+            self.dropDown.SelectedIndex = len(self.fileSets) - 1
+
+        def removeButtonPressed(self, sender, args):
+            if len(self.fileSets) > 0 and self.dropDown.SelectedIndex != 0:
+                self.fileSets.Remove(self.dropDown.SelectedItem)
+
+        def nameTextChanged(self, sender, args):
+            self.fileSets[self.dropDown.SelectedIndex].name = sender.Text
+
+        def descriptionTextChanged(self, sender, args):
+            self.fileSets[self.dropDown.SelectedIndex].description = sender.Text
+
+class FileSet:
+    def __init__(self, name, files, description=""):
+        self.name = name
+        source = BindingSource()
+        source.DataSource = files
+        self.files = source
+        self.description = description
 
 class TabImageControl(UserControl):
     def __init__(self, tabNames, imageObjects):
