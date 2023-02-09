@@ -1180,6 +1180,9 @@ class StageList(Form):
             fullId = str(self.listBox[self.tabControl.SelectedIndex].SelectedValue)
         form = StageEditor(fullId, new = True if self.listBox[self.tabControl.SelectedIndex].SelectedItem.name.startswith('UNKNOWN: ') else False)
         result = form.ShowDialog(MainForm.Instance)
+        if form.alts and len(form.alts) > 0:
+            if form.alts[0].aslEntry.Name != self.listBox[self.tabControl.SelectedIndex].SelectedItem.name:
+                self.listBox[self.tabControl.SelectedIndex].SelectedItem.name = form.alts[0].aslEntry.Name
         form.Dispose()
         if result == DialogResult.Abort:
             self.DialogResult = DialogResult.Abort
