@@ -1062,7 +1062,9 @@ class StageList(Form):
                             stageName = getStageName(stageIds[2:4])
                             if stageName:
                                 stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], stageName)
-                                self.stageSlots[i].Add(stageSlot)
+                            else:
+                                stageSlot = StageSlot(slotId, stageIds[2:4], stageIds[4:6], stageIds[2:6], "UNKNOWN: " + stageIds)
+                            self.stageSlots[i].Add(stageSlot)
 
             self.unusedSlots[i] = BindingSource()
             self.unusedSlots[i].DataSource = getUnusedStageSlots(self.stageSlots[i], self.stageLists[i])
@@ -1225,9 +1227,13 @@ class StageList(Form):
             return
         else:
             fullId = str(self.listBox[self.tabControl.SelectedIndex].SelectedValue)
-        form = StageEditor(fullId)
+        form = StageEditor(fullId, new = True if self.listBox[self.tabControl.SelectedIndex].SelectedItem.name.startswith('UNKNOWN: ') else False)
         result = form.ShowDialog(MainForm.Instance)
-        form.Dispose()
+        if result == DialogResult.OK:
+            if form.alts and len(form.alts) > 0:
+                if form.alts[0].aslEntry.Name != self.listBox[self.tabControl.SelectedIndex].SelectedItem.name:
+                    self.listBox[self.tabControl.SelectedIndex].SelectedItem.name = form.alts[0].aslEntry.Name
+            form.Dispose()
         if result == DialogResult.Abort:
             self.DialogResult = DialogResult.Abort
             self.Close()
@@ -1866,9 +1872,10 @@ class StageEditor(Form):
                 i += 1
             i = 0
             while i < len(self.tracklistFiles):
-                if self.tracklistFiles[i] == self.stageAltListbox.SelectedItem.tracklist:
-                    self.tracklistTextBox.SelectedIndex = i
-                    break
+                if len(self.stageAltListbox.Items) > 0 and self.stageAltListbox.SelectedItem:
+                    if self.tracklistFiles[i] == self.stageAltListbox.SelectedItem.tracklist:
+                        self.tracklistTextBox.SelectedIndex = i
+                        break
                 i += 1
         else:
             self.franchiseIconDropDown.SelectedIndex = 0
