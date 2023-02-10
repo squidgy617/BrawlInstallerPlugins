@@ -27,6 +27,45 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 				unzipFile(zipfile)
 				folder = AppPath + '/temp'
 				if folder:
+					# Get options
+					for directory in Directory.GetDirectories(folder, "*", SearchOption.AllDirectories):
+						if directory and Directory.Exists(directory):
+							optionDirectory = Directory.GetDirectories(directory, '#Options')
+							if optionDirectory and len(optionDirectory) > 0:
+								optionDirectories = Directory.GetDirectories(optionDirectory[0])
+								if optionDirectories and len(optionDirectories) > 0:
+									description = ""
+									if File.Exists(directory + '\\OptionSettings.txt'):
+										optionSettings = File.ReadAllLines(directory + '\\OptionSettings.txt')
+										name = readValueFromKey(optionSettings, "name")
+										description = readValueFromKey(optionSettings, "description")
+									installOptions = [InstallOption(directory, name, description)]
+									for option in optionDirectories:
+										description = ""
+										if File.Exists(option + '\\OptionSettings.txt'):
+											optionSettings = File.ReadAllLines(option + '\\OptionSettings.txt')
+											name = readValueFromKey(optionSettings, "name")
+											description = readValueFromKey(optionSettings, "description")
+										else:
+											name = DirectoryInfo(option).Name
+											description = ""
+										installOptions.append(InstallOption(option, name, description))
+									form = InstallOptionForm(installOptions, DirectoryInfo(directory).Name)
+									result = form.ShowDialog(MainForm.Instance)
+									if result != DialogResult.OK:
+										return
+									# If we did not choose the standard option, remove files from main folder, copy chosen file contents back into it, and
+									#then delete options
+									if form.chosenFolder != directory:
+										filesToDelete = Directory.GetFiles(directory)
+										i = 0
+										while i < len(filesToDelete):
+											File.Delete(filesToDelete[i])
+											i += 1
+										for file in Directory.GetFiles(form.chosenFolder):
+											copyFile(file, directory)
+									Directory.Delete(directory + '\\#Options', True)
+
 					# Get all subdirectories in the folder
 					fighterDir = Directory.CreateDirectory(folder).GetDirectories()
 					# Set up directories

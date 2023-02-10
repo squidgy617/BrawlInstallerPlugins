@@ -4981,6 +4981,12 @@ class TrophySettings:
 		gameName2 = ""
 		seriesIndex = 0
 
+class InstallOption:
+		def __init__(self, folder, name="", description=""):
+			self.folder = folder
+			self.name = name
+			self.description = description
+
 class FighterInfo:
 		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId):
 			self.fighterId = fighterId

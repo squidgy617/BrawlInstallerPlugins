@@ -156,6 +156,66 @@ class IdPicker(Form):
 
 #endregion ID PICKER
 
+#region INSTALL OPTION FORM
+
+class InstallOptionForm(Form):
+    def __init__(self, options=[], folderName="Files"):
+        # Form parameters
+        self.Text = 'Option Select'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.options = options
+
+        self.chosenFolder = self.options[0].folder
+
+        # Tooltips
+        toolTip = ToolTip()
+
+        label = Label()
+        label.Text = "Select option for: " + folderName
+        label.Location = Point(16, 4)
+        label.Width = 160
+
+        self.Controls.Add(label)
+
+        i = 0
+        radioButton = [None] * len(self.options)
+        while i < len(self.options):
+            radioButton[i] = RadioButton()
+            radioButton[i].Text = self.options[i].name
+            radioButton[i].Location = Point(16, ((label.Location.Y + label.Height + 4) if i == 0 else radioButton[i - 1].Location.Y + radioButton[i - 1].Height))
+            radioButton[i].Tag = i
+            radioButton[i].CheckedChanged += self.rbChecked
+
+            toolTip.SetToolTip(radioButton[i], self.options[i].description)
+            
+            self.Controls.Add(radioButton[i])
+            i += 1
+        if len(radioButton) >= 1:
+            radioButton[0].Checked = True
+
+        okButton = Button()
+        okButton.Text = "Select"
+        okButton.Location = Point(radioButton[len(radioButton) - 1].Location.X, radioButton[len(radioButton) - 1].Location.Y + radioButton[len(radioButton) - 1].Height)
+        okButton.Click += self.okButtonPressed
+
+        self.Controls.Add(okButton)
+
+    def rbChecked(self, sender, args):
+        self.chosenFolder = self.options[sender.Tag].folder
+
+    def okButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+#endregion INSTALL OPTION FORM
+
 #region IMAGE ID PICKER
 
 def getCosmeticNodes():
@@ -2477,10 +2537,16 @@ class SettingsForm(Form):
         self.PMNameRadioButton = RadioButton()
         self.PMNameRadioButton.Text = "PM"
         self.PMNameRadioButton.Location = Point(80, 16)
-        self.PMNameRadioButton.Width = 64
+        self.PMNameRadioButton.Width = 48
+
+        self.remixNameRadioButton = RadioButton()
+        self.remixNameRadioButton.Text = "REMIX"
+        self.remixNameRadioButton.Location = Point(130, 16)
+        self.remixNameRadioButton.Width = 64
 
         nameGroup.Controls.Add(self.vBrawlNameRadioButton)
         nameGroup.Controls.Add(self.PMNameRadioButton)
+        nameGroup.Controls.Add(self.remixNameRadioButton)
 
         # Replay Icon Style
         replayGroup = GroupBox()
@@ -2903,6 +2969,7 @@ class SettingsForm(Form):
         toolTip.SetToolTip(nameGroup, "The style of names used on portraits displayed on the character select screen. If your build doesn't use these, this setting will have no effect.") 
         toolTip.SetToolTip(self.vBrawlNameRadioButton, "Select this if your build uses vanilla Brawl style portrait names.") 
         toolTip.SetToolTip(self.PMNameRadioButton, "Select this if your build uses Project M style portrait names.") 
+        toolTip.SetToolTip(self.remixNameRadioButton, "Select this if your build uses REMIX style portrait names.")
         toolTip.SetToolTip(replayGroup, "The style of icons displayed on the replay screen.")
         toolTip.SetToolTip(self.vBrawlReplayRadioButton, "Select this if your build uses vanilla Brawl style replay icons.")
         toolTip.SetToolTip(self.pPlusReplayRadioButton, "Select this if your build uses Project+ style replay icons.")
@@ -2949,6 +3016,7 @@ class SettingsForm(Form):
         self.remixBPRadioButton.Checked = self.settings.bpStyle == "REMIX"
         self.vBrawlNameRadioButton.Checked = self.settings.portraitNameStyle == "vBrawl"
         self.PMNameRadioButton.Checked = self.settings.portraitNameStyle == "PM"
+        self.remixNameRadioButton.Checked = self.settings.portraitNameStyle == "REMIX"
         if self.settings.replayIconStyle:
             self.vBrawlReplayRadioButton.Checked = self.settings.replayIconStyle == "vBrawl"
             self.pPlusReplayRadioButton.Checked = self.settings.replayIconStyle == "P+"
@@ -3010,7 +3078,7 @@ class SettingsForm(Form):
         settings.cssIconStyle = "REMIX"
         settings.bpStyle = "REMIX"
         settings.installPortraitNames = "true"
-        settings.portraitNameStyle = "PM"
+        settings.portraitNameStyle = "REMIX"
         settings.replayIconStyle = "P+"
         settings.franchiseIconSizeCSS = str(64)
         settings.installStocksToCSS = "false"
@@ -3113,6 +3181,8 @@ class SettingsForm(Form):
             settings.portraitNameStyle = "vBrawl"
         elif self.PMNameRadioButton.Checked:
             settings.portraitNameStyle = "PM"
+        elif self.remixNameRadioButton.Checked:
+            settings.portraitNameStyle = "REMIX"
         if self.vBrawlReplayRadioButton.Checked:
             settings.replayIconStyle = "vBrawl"
         elif self.pPlusReplayRadioButton.Checked:
@@ -4148,7 +4218,7 @@ class PackageCharacterForm(Form):
         self.portraitNameGroupBox.Text = "Portrait Name"
         self.portraitNameGroupBox.Click += self.toggleGroupBox
 
-        portraitTabNames = ["vBrawl", "PM"]
+        portraitTabNames = ["vBrawl", "PM", "REMIX"]
         portraitNameImageObjects = [ImageObject("Name", Size(144,32)), ImageObject("HD Name", Size(144,32))]
 
         self.portraitNameTabControl = TabImageControl(portraitTabNames, portraitNameImageObjects)
@@ -4214,14 +4284,14 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Text = "Main Fighter Files"
         self.mainFighterGroupBox.Click += self.toggleGroupBox
 
-        self.pacFilesControl = MultiFileControl("Select your fighter pac files", labelText="PAC Files")
+        self.pacFilesControl = MultiFileSetControl("Select your fighter pac files", labelText="PAC Files")
         self.pacFilesControl.Location = Point(16, 16)
 
         self.exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
         self.exConfigsControl.Location = Point(self.pacFilesControl.Location.X + self.pacFilesControl.Width, self.pacFilesControl.Location.Y)
 
         self.moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
-        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 32)
+        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 96)
         
         self.mainFighterGroupBox.Controls.Add(self.pacFilesControl)
         self.mainFighterGroupBox.Controls.Add(self.exConfigsControl)
@@ -4234,11 +4304,11 @@ class PackageCharacterForm(Form):
         self.kirbyHatGroupBox.Text = "Kirby Hat"
         self.kirbyHatGroupBox.Click += self.toggleGroupBox
 
-        self.kirbyHatFilesControl = MultiFileControl("Select your Kirby hat PAC files", "PAC files|*.pac", "Kirby Hat Files")
+        self.kirbyHatFilesControl = MultiFileControl("Select your Kirby hat PAC files", "PAC files|*.pac", "Kirby Hat Files", size=Size(100, 60))
         self.kirbyHatFilesControl.Location = Point(16,16)
 
         self.kirbyHatTextBox = LabeledTextBox("Kirby Hat ID", "fighter")
-        self.kirbyHatTextBox.Location = Point(self.kirbyHatFilesControl.Location.X, self.kirbyHatFilesControl.Location.Y + self.kirbyHatFilesControl.Height + 32)
+        self.kirbyHatTextBox.Location = Point(self.kirbyHatFilesControl.Location.X, self.kirbyHatFilesControl.Location.Y + self.kirbyHatFilesControl.Height - 32)
 
         self.kirbyHatGroupBox.Controls.Add(self.kirbyHatFilesControl)
         self.kirbyHatGroupBox.Controls.Add(self.kirbyHatTextBox)
@@ -4250,11 +4320,11 @@ class PackageCharacterForm(Form):
         self.soundGroupBox.Text = "Sound"
         self.soundGroupBox.Click += self.toggleGroupBox
 
-        self.soundBankControl = FileControl("Select your soundbank file", "SAWND files|*.sawnd", "Soundbank")
+        self.soundBankControl = FileOptionControl("Select your soundbank file", "SAWND files|*.sawnd", "Soundbank")
         self.soundBankControl.Location = Point(16, 16)
 
         self.victoryThemeControl = FileControl("Select your victory theme file", "BRSTM files|*.brstm", "Victory\nTheme")
-        self.victoryThemeControl.Location = Point(self.soundBankControl.Location.X, self.soundBankControl.Location.Y + 32)
+        self.victoryThemeControl.Location = Point(self.soundBankControl.Location.X, self.soundBankControl.Location.Y + 112)
 
         self.creditsThemeControl = FileControl("Select your credits theme file", "BRSTM files|*.brstm", "Credits\nTheme")
         self.creditsThemeControl.Location = Point(self.victoryThemeControl.Location.X, self.victoryThemeControl.Location.Y + 32)
@@ -4520,11 +4590,17 @@ class PackageCharacterForm(Form):
         toolTip.SetToolTip(self.franchiseModelControl.textBox.label, "Franchise icon model for results screen.")
         toolTip.SetToolTip(self.readmeGroupBox, "Text of README file if you wish to include one in your character package.")
         toolTip.SetToolTip(self.pacFilesControl.label, "Fighter PAC files.")
+        toolTip.SetToolTip(self.pacFilesControl.dropDown, "For packages with multiple PAC file options, select which PAC file set to edit.")
+        toolTip.SetToolTip(self.pacFilesControl.nameBox.label, "The name for the selected PAC file set.")
+        toolTip.SetToolTip(self.pacFilesControl.descriptionBox.label, "The description for the selected PAC file set.")
         toolTip.SetToolTip(self.exConfigsControl.label, "Fighter Ex config files.")
         toolTip.SetToolTip(self.moduleControl.textBox.label, "Fighter module file.")
         toolTip.SetToolTip(self.kirbyHatFilesControl.label, "Fighter Kirby hat files, if included.")
         toolTip.SetToolTip(self.kirbyHatTextBox.label, "The ID of the fighter (in hex or decimal format) whose Kirby hat the new hat is based on.")
         toolTip.SetToolTip(self.soundBankControl.textBox.label, "The soundbank file for the fighter.")
+        toolTip.SetToolTip(self.soundBankControl.dropDown, "For packages with multiple soundbank file options, select which soundbank option to edit.")
+        toolTip.SetToolTip(self.soundBankControl.nameBox.label, "The name for the selected soundbank file option.")
+        toolTip.SetToolTip(self.soundBankControl.descriptionBox.label, "The description for the selected soundbank file option.")
         toolTip.SetToolTip(self.victoryThemeControl.textBox.label, "The victory theme to use for the fighter.")
         toolTip.SetToolTip(self.creditsThemeControl.textBox.label, "The classic mode credits theme to use for the fighter.")
         toolTip.SetToolTip(self.introControl.textBox.label, "The .brres file for the character's classic mode intro.")
@@ -4625,8 +4701,16 @@ class PackageCharacterForm(Form):
             copyRenameFile(self.franchiseIconImageControl.Images[1], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Transparent')
         if self.franchiseModelControl.textBox.textBox.Text:
             copyRenameFile(self.franchiseModelControl.textBox.textBox.Text, 'Model.mdl0', PACK_PATH + '\\FranchiseIcons\\Model')
-        for file in self.pacFilesControl.files:
-            copyFile(file.FullName, PACK_PATH + '\\Fighter')
+        for fileSet in self.pacFilesControl.fileSets:
+            fighterPath = (PACK_PATH + '\\Fighter') if fileSet == self.pacFilesControl.dropDown.Items[0] else (PACK_PATH + '\\Fighter\\#Options\\' + fileSet.name)
+            for file in fileSet.files:
+                copyFile(file.FullName, fighterPath)
+            if len(self.pacFilesControl.fileSets) > 1:
+                writeString = ""
+                writeString += "name=" + fileSet.name
+                writeString += "\ndescription=" + fileSet.description
+                if writeString:
+                    File.WriteAllText(fighterPath + '\\OptionSettings.txt', writeString)
         for file in self.exConfigsControl.files:
             copyFile(file.FullName, PACK_PATH + '\\EXConfigs')
         if self.moduleControl.textBox.textBox.Text:
@@ -4636,8 +4720,16 @@ class PackageCharacterForm(Form):
         if self.kirbyHatTextBox.textBox.Text:
             Directory.CreateDirectory(PACK_PATH + '\\KirbyHats')
             File.WriteAllText(PACK_PATH + '\\KirbyHats\\FighterID.txt', self.kirbyHatTextBox.textBox.Text)
-        if self.soundBankControl.textBox.textBox.Text:
-            copyFile(self.soundBankControl.textBox.textBox.Text, PACK_PATH + '\\Soundbank')
+        for installOption in self.soundBankControl.installOptions:
+            soundbankPath = (PACK_PATH + '\\Soundbank') if installOption == self.soundBankControl.dropDown.Items[0] else (PACK_PATH + '\\Soundbank\\#Options\\' + installOption.name)
+            if installOption.folder:
+                copyFile(installOption.folder, soundbankPath)
+            if len(self.soundBankControl.installOptions) > 1:
+                writeString = ""
+                writeString += "name=" + installOption.name
+                writeString += "\ndescription=" + installOption.description
+                if writeString:
+                    File.WriteAllText(soundbankPath + '\\OptionSettings.txt', writeString)
         if self.victoryThemeControl.textBox.textBox.Text:
             copyFile(self.victoryThemeControl.textBox.textBox.Text, PACK_PATH + '\\VictoryTheme')
         if self.creditsThemeControl.textBox.textBox.Text:
@@ -4916,7 +5008,24 @@ class PackageCharacterForm(Form):
                     self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
-                    self.pacFilesControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                    self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                    if File.Exists(TEMP_PATH + '\\Fighter\\OptionSettings.txt'):
+                        optionSettings = File.ReadAllLines(TEMP_PATH + '\\Fighter\\OptionSettings.txt')
+                        optionName = readValueFromKey(optionSettings, "name")
+                        optionDescription = readValueFromKey(optionSettings, "description")
+                        self.pacFilesControl.fileSets[0].name = optionName
+                        self.pacFilesControl.fileSets[0].description = optionDescription
+                    if Directory.Exists(TEMP_PATH + '\\Fighter\\#Options'):
+                        i = 1
+                        for directory in Directory.GetDirectories(TEMP_PATH + '\\Fighter\\#Options'):
+                            if File.Exists(directory + '\\OptionSettings.txt'):
+                                optionSettings = File.ReadAllLines(directory + '\\OptionSettings.txt')
+                                optionName = readValueFromKey(optionSettings, "name")
+                                optionDescription = readValueFromKey(optionSettings, "description")
+                            else:
+                                optionName = DirectoryInfo(directory).Name
+                                optionDescription = ""
+                            self.pacFilesControl.fileSets.Add(FileSet(optionName, getFileInfos(Directory.GetFiles(directory, "*.pac")), optionDescription))
                 if Directory.Exists(TEMP_PATH + '\\EXConfigs'):
                     self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\EXConfigs', "*.dat"))
                 if Directory.Exists(TEMP_PATH + '\\Module'):
@@ -4928,13 +5037,32 @@ class PackageCharacterForm(Form):
                     if File.Exists(TEMP_PATH + '\\KirbyHats\\FighterID.txt'):
                         self.kirbyHatTextBox.textBox.Text = File.ReadAllText(TEMP_PATH + '\\KirbyHats\\FighterID.txt')
                 if Directory.Exists(TEMP_PATH + '\\Soundbank'):
-                    file = Directory.GetFiles(TEMP_PATH + '\\Soundbank')
-                    if file and len(file) > 0:
-                        self.soundBankControl.textBox.textBox.Text = file[0]
-                if Directory.Exists(TEMP_PATH + '\\Soundbank'):
                     file = Directory.GetFiles(TEMP_PATH + '\\Soundbank', "*.sawnd")
                     if file and len(file) > 0:
                         self.soundBankControl.textBox.textBox.Text = file[0]
+                        self.soundBankControl.installOptions[0].folder = file[0]
+                    if File.Exists(TEMP_PATH + '\\Soundbank\\OptionSettings.txt'):
+                        optionSettings = File.ReadAllLines(TEMP_PATH + '\\Soundbank\\OptionSettings.txt')
+                        optionName = readValueFromKey(optionSettings, "name")
+                        optionDescription = readValueFromKey(optionSettings, "description")
+                        self.soundBankControl.installOptions[0].name = optionName
+                        self.soundBankControl.installOptions[0].description = optionDescription
+                    if Directory.Exists(TEMP_PATH + '\\Soundbank\\#Options'):
+                        i = 1
+                        for directory in Directory.GetDirectories(TEMP_PATH + '\\Soundbank\\#Options'):
+                            if File.Exists(directory + '\\OptionSettings.txt'):
+                                optionSettings = File.ReadAllLines(directory + '\\OptionSettings.txt')
+                                optionName = readValueFromKey(optionSettings, "name")
+                                optionDescription = readValueFromKey(optionSettings, "description")
+                            else:
+                                optionName = DirectoryInfo(directory).Name
+                                optionDescription = ""
+                            files = Directory.GetFiles(directory, "*.sawnd")
+                            if len(files) > 0:
+                                file = files[0]
+                            else:
+                                file = ""
+                            self.soundBankControl.installOptions.Add(InstallOption(file, optionName, optionDescription))
                 if Directory.Exists(TEMP_PATH + '\\VictoryTheme'):
                     file = Directory.GetFiles(TEMP_PATH + '\\VictoryTheme', "*.brstm")
                     if file and len(file) > 0:
@@ -5442,7 +5570,194 @@ class MultiFileControl(UserControl):
                 self.files.DataSource = []
                 for file in files:
                     self.files.Add(getFileInfo(file))
-                #self.files.DataSource = files
+
+# A control for importing multiple filesets
+class MultiFileSetControl(UserControl):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.fileSets = BindingSource()
+            self.fileSets.DataSource = [FileSet("Standard", [])]
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(0, 0)
+            self.label.Height = 16
+
+            self.listBox = ListBox()
+            self.listBox.Size = size
+            self.listBox.Location = Point(self.label.Location.X, self.label.Location.Y + 16)
+            self.listBox.HorizontalScrollbar = True
+            self.listBox.DataSource = self.fileSets[0].files
+            self.listBox.DisplayMember = "Name"
+            self.listBox.ValueMember = "FullName"
+
+            self.dropDown = ComboBox()
+            self.dropDown.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
+            self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+            self.dropDown.DataSource = self.fileSets
+            self.dropDown.DisplayMember = "name"
+            self.dropDown.ValueMember = "files"
+            self.dropDown.SelectedValueChanged += self.dropDownChanged
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.dropDown.Location.X, self.dropDown.Location.Y + self.dropDown.Height + 4)
+            button.Click += self.buttonPressed
+
+            addButton = Button()
+            addButton.Text = "+"
+            addButton.Size = Size(16,16)
+            addButton.Location = Point(button.Location.X + button.Width + 4, button.Location.Y)
+            addButton.Click += self.addButtonPressed
+
+            removeButton = Button()
+            removeButton.Text = "-"
+            removeButton.Size = Size(16,16)
+            removeButton.Location = Point(addButton.Location.X + addButton.Width + 4, addButton.Location.Y)
+            removeButton.Click += self.removeButtonPressed
+
+            self.nameBox = LabeledTextBox("Name")
+            self.nameBox.textBox.Text = self.fileSets[0].name
+            self.nameBox.Location = Point(button.Location.X - 28, button.Location.Y + button.Height + 4)
+            self.nameBox.textBox.TextChanged += self.nameTextChanged
+
+            self.descriptionBox = LabeledTextBox("Desc")
+            self.descriptionBox.textBox.Text = self.fileSets[0].description
+            self.descriptionBox.Location = Point(self.nameBox.Location.X, self.nameBox.Location.Y + 24)
+            self.descriptionBox.textBox.TextChanged += self.descriptionTextChanged
+
+            self.Controls.Add(self.label)
+            self.Controls.Add(self.listBox)
+            self.Controls.Add(self.dropDown)
+            self.Controls.Add(button)
+            self.Controls.Add(addButton)
+            self.Controls.Add(removeButton)
+            self.Controls.Add(self.nameBox)
+            self.Controls.Add(self.descriptionBox)
+
+        def buttonPressed(self, sender, args):
+            files = BrawlAPI.OpenMultiFileDialog(self.title, self.filter)
+            if files and len(files) > 0:
+                self.fileSets[self.dropDown.SelectedIndex].files = []
+                for file in files:
+                    self.fileSets[self.dropDown.SelectedIndex].files.Add(getFileInfo(file))
+                self.listBox.DataSource = self.fileSets[self.dropDown.SelectedIndex].files
+                self.listBox.DisplayMember = "Name"
+                self.listBox.ValueMember = "FullName"
+
+        def dropDownChanged(self, sender, args):
+            self.listBox.DataSource = self.fileSets[self.dropDown.SelectedIndex].files
+            self.listBox.DisplayMember = "Name"
+            self.listBox.ValueMember = "FullName"
+            self.nameBox.textBox.Text = self.fileSets[self.dropDown.SelectedIndex].name
+            self.descriptionBox.textBox.Text = self.fileSets[self.dropDown.SelectedIndex].description
+
+        def addButtonPressed(self, sender, args):
+            self.fileSets.Add(FileSet("Option " + str(len(self.fileSets)), []))
+            self.dropDown.SelectedIndex = len(self.fileSets) - 1
+
+        def removeButtonPressed(self, sender, args):
+            if len(self.fileSets) > 0 and self.dropDown.SelectedIndex != 0:
+                self.fileSets.Remove(self.dropDown.SelectedItem)
+
+        def nameTextChanged(self, sender, args):
+            self.fileSets[self.dropDown.SelectedIndex].name = sender.Text
+
+        def descriptionTextChanged(self, sender, args):
+            self.fileSets[self.dropDown.SelectedIndex].description = sender.Text
+
+# A control for importing a single file with a list of options
+class FileOptionControl(UserControl):
+        def __init__(self, title="Select your file", filter="PAC files|*.pac", labelText="File"):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.installOptions = BindingSource()
+            self.installOptions.DataSource = [InstallOption("", "Standard", "")]
+
+            self.textBox = LabeledTextBox(labelText)
+            self.textBox.textBox.ReadOnly = True
+
+            self.dropDown = ComboBox()
+            self.dropDown.Location = Point(self.textBox.textBox.Location.X, self.textBox.textBox.Location.Y + 32)
+            self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+            self.dropDown.DataSource = self.installOptions
+            self.dropDown.DisplayMember = "name"
+            self.dropDown.ValueMember = "folder"
+            self.dropDown.SelectedValueChanged += self.dropDownChanged
+
+            addButton = Button()
+            addButton.Text = "+"
+            addButton.Size = Size(16,16)
+            addButton.Location = Point(self.dropDown.Location.X + self.dropDown.Width + 4, self.dropDown.Location.Y)
+            addButton.Click += self.addButtonPressed
+
+            removeButton = Button()
+            removeButton.Text = "-"
+            removeButton.Size = Size(16,16)
+            removeButton.Location = Point(addButton.Location.X + addButton.Width + 4, addButton.Location.Y)
+            removeButton.Click += self.removeButtonPressed
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
+            button.Click += self.buttonPressed
+
+            self.nameBox = LabeledTextBox("Name")
+            self.nameBox.textBox.Text = self.installOptions[0].name
+            self.nameBox.Location = Point(self.dropDown.Location.X - 28, self.dropDown.Location.Y + self.dropDown.Height + 4)
+            self.nameBox.textBox.TextChanged += self.nameTextChanged
+
+            self.descriptionBox = LabeledTextBox("Desc")
+            self.descriptionBox.textBox.Text = self.installOptions[0].description
+            self.descriptionBox.Location = Point(self.nameBox.Location.X, self.nameBox.Location.Y + 24)
+            self.descriptionBox.textBox.TextChanged += self.descriptionTextChanged
+
+            self.Controls.Add(self.textBox)
+            self.Controls.Add(self.dropDown)
+            self.Controls.Add(addButton)
+            self.Controls.Add(removeButton)
+            self.Controls.Add(button)
+            self.Controls.Add(self.nameBox)
+            self.Controls.Add(self.descriptionBox)
+
+        def buttonPressed(self, sender, args):
+            file = BrawlAPI.OpenFileDialog(self.title, self.filter)
+            if file:
+                self.textBox.textBox.Text = file
+
+        def dropDownChanged(self, sender, args):
+            self.textBox.textBox.Text = self.installOptions[self.dropDown.SelectedIndex].folder
+            self.nameBox.textBox.Text = self.installOptions[self.dropDown.SelectedIndex].name
+            self.descriptionBox.textBox.Text = self.installOptions[self.dropDown.SelectedIndex].description
+
+        def nameTextChanged(self, sender, args):
+            self.installOptions[self.dropDown.SelectedIndex].name = sender.Text
+
+        def descriptionTextChanged(self, sender, args):
+            self.installOptions[self.dropDown.SelectedIndex].description = sender.Text
+
+        def addButtonPressed(self, sender, args):
+            self.installOptions.Add(InstallOption("", "Option " + str(len(self.installOptions)), ""))
+            self.dropDown.SelectedIndex = len(self.installOptions) - 1
+
+        def removeButtonPressed(self, sender, args):
+            if len(self.installOptions) > 0 and self.dropDown.SelectedIndex != 0:
+                self.installOptions.Remove(self.dropDown.SelectedItem)
+
+class FileSet:
+    def __init__(self, name, files, description=""):
+        self.name = name
+        source = BindingSource()
+        source.DataSource = files
+        self.files = source
+        self.description = description
 
 class TabImageControl(UserControl):
     def __init__(self, tabNames, imageObjects):
