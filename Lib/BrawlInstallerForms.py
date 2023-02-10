@@ -2537,10 +2537,16 @@ class SettingsForm(Form):
         self.PMNameRadioButton = RadioButton()
         self.PMNameRadioButton.Text = "PM"
         self.PMNameRadioButton.Location = Point(80, 16)
-        self.PMNameRadioButton.Width = 64
+        self.PMNameRadioButton.Width = 48
+
+        self.remixNameRadioButton = RadioButton()
+        self.remixNameRadioButton.Text = "REMIX"
+        self.remixNameRadioButton.Location = Point(130, 16)
+        self.remixNameRadioButton.Width = 64
 
         nameGroup.Controls.Add(self.vBrawlNameRadioButton)
         nameGroup.Controls.Add(self.PMNameRadioButton)
+        nameGroup.Controls.Add(self.remixNameRadioButton)
 
         # Replay Icon Style
         replayGroup = GroupBox()
@@ -3009,6 +3015,7 @@ class SettingsForm(Form):
         self.remixBPRadioButton.Checked = self.settings.bpStyle == "REMIX"
         self.vBrawlNameRadioButton.Checked = self.settings.portraitNameStyle == "vBrawl"
         self.PMNameRadioButton.Checked = self.settings.portraitNameStyle == "PM"
+        self.remixNameRadioButton.Checked = self.settings.portraitNameStyle == "REMIX"
         if self.settings.replayIconStyle:
             self.vBrawlReplayRadioButton.Checked = self.settings.replayIconStyle == "vBrawl"
             self.pPlusReplayRadioButton.Checked = self.settings.replayIconStyle == "P+"
@@ -3070,7 +3077,7 @@ class SettingsForm(Form):
         settings.cssIconStyle = "REMIX"
         settings.bpStyle = "REMIX"
         settings.installPortraitNames = "true"
-        settings.portraitNameStyle = "PM"
+        settings.portraitNameStyle = "REMIX"
         settings.replayIconStyle = "P+"
         settings.franchiseIconSizeCSS = str(64)
         settings.installStocksToCSS = "false"
@@ -3173,6 +3180,8 @@ class SettingsForm(Form):
             settings.portraitNameStyle = "vBrawl"
         elif self.PMNameRadioButton.Checked:
             settings.portraitNameStyle = "PM"
+        elif self.remixNameRadioButton.Checked:
+            settings.portraitNameStyle = "REMIX"
         if self.vBrawlReplayRadioButton.Checked:
             settings.replayIconStyle = "vBrawl"
         elif self.pPlusReplayRadioButton.Checked:
@@ -4208,7 +4217,7 @@ class PackageCharacterForm(Form):
         self.portraitNameGroupBox.Text = "Portrait Name"
         self.portraitNameGroupBox.Click += self.toggleGroupBox
 
-        portraitTabNames = ["vBrawl", "PM"]
+        portraitTabNames = ["vBrawl", "PM", "REMIX"]
         portraitNameImageObjects = [ImageObject("Name", Size(144,32)), ImageObject("HD Name", Size(144,32))]
 
         self.portraitNameTabControl = TabImageControl(portraitTabNames, portraitNameImageObjects)
