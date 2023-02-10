@@ -1310,7 +1310,7 @@ class StageList(Form):
         while hexId(stageId).replace('0x','') in usedStageIds:
             stageId += 1
         # Compile cosmetic IDs
-        usedCosmeticIds = []
+        usedCosmeticIds = ['50', '51', '52', '53', '54', '55', '64', '65', '66']
         for stageList in self.stageSlots:
             for stageSlot in stageList:
                 usedCosmeticIds.append(stageSlot.cosmeticId)
@@ -1335,7 +1335,7 @@ class StageList(Form):
                     for pat0 in anmTexPat.Children:
                         if pat0.Name == 'MenSelmapPreview' or pat0.Name == 'MenSelmapIcon':
                             for pat0Entry in pat0.Children:
-                                pat0EntryNames = ['basebgM', 'pasted__stnameM', 'pasted__stnameshadowM', 'basebgMShadow', 'pasted__stnameM_start', 'pasted__stnameshadowM_start']
+                                pat0EntryNames = ['basebgM', 'pasted__stnameM', 'pasted__stnameshadowM', 'basebgMShadow', 'pasted__stnameM_start', 'pasted__stnameshadowM_start', 'iconM']
                                 if pat0Entry.Name in pat0EntryNames:
                                     if len(pat0Entry.Children) > 0:
                                         texEntry = pat0Entry.Children[0]
