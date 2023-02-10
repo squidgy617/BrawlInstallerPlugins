@@ -52,6 +52,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										installOptions.append(InstallOption(option, name, description))
 									form = InstallOptionForm(installOptions, DirectoryInfo(directory).Name)
 									result = form.ShowDialog(MainForm.Instance)
+									if result != DialogResult.OK:
+										return
 									# If we did not choose the standard option, remove files from main folder, copy chosen file contents back into it, and
 									#then delete options
 									if form.chosenFolder != directory:

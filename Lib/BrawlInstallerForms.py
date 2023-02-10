@@ -200,8 +200,19 @@ class InstallOptionForm(Form):
         if len(radioButton) >= 1:
             radioButton[0].Checked = True
 
+        okButton = Button()
+        okButton.Text = "Select"
+        okButton.Location = Point(radioButton[len(radioButton) - 1].Location.X, radioButton[len(radioButton) - 1].Location.Y + radioButton[len(radioButton) - 1].Height)
+        okButton.Click += self.okButtonPressed
+
+        self.Controls.Add(okButton)
+
     def rbChecked(self, sender, args):
         self.chosenFolder = self.options[sender.Tag].folder
+
+    def okButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.OK
+        self.Close()
 
 #endregion INSTALL OPTION FORM
 
