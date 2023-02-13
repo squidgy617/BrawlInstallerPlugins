@@ -5731,6 +5731,7 @@ class FileOptionControl(UserControl):
             file = BrawlAPI.OpenFileDialog(self.title, self.filter)
             if file:
                 self.textBox.textBox.Text = file
+                self.installOptions[self.dropDown.SelectedIndex].folder = file
 
         def dropDownChanged(self, sender, args):
             self.textBox.textBox.Text = self.installOptions[self.dropDown.SelectedIndex].folder

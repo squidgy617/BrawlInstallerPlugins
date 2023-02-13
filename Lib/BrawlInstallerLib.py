@@ -5308,7 +5308,7 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 		i = tableStart
 		while i < len(fileText):
 			line = fileText[i]
-			if len(line) <= 0 or line.startswith('TABLE'):
+			if len(line) <= 0 or line.startswith('TABLE') or line.startswith('SkipStageTables:'):
 				break
 			# Get a running list of IDs while we're at it (mostly for length check purposes later)
 			splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
@@ -5325,7 +5325,7 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 			splitLine = line.split('|')
 			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + (splitLine[1] if len(splitLine) > 1 else "")
 			newLine = '0x' + fullId + '\t| #' + stageName
-			fileText[i] = newLine
+			fileText[i] = newLine + '\n'
 		# Update counter
 		counterLine = tableStart - 1
 		fileText[counterLine] = "half[" + str(len(tableValues) + 1) + "] |\t# Stage Count + 2"
