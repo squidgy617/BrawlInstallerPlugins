@@ -65,6 +65,7 @@ The plugins create backups of your files during execution, however, I cannot gua
 - [Configuring Settings](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Configuring-Settings)
 - [Packaging Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Packaging-Characters)
 - [Managing Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Characters)
+- [Extracting Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Extracting-Characters)
 - [Managing Costumes](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Costumes)
 - [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Music)
 - [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Stages)
@@ -118,6 +119,20 @@ hasHat:
 This usually means one of two things - one, your build is not configured to use CSSRoster.dat, or two, you ran out of animated CSS slots in your build. If you're using P+Ex, the roster will only automatically expand up to a certain number of slots, and other builds may not even have the roster automatically expanding. In such a case, you'll have to expand it manually, which can be done in a similar manner to the steps outlined in [this guide](https://docs.google.com/document/d/1NN7X98xdoatzcnKabUq6TIhZrPTda84RmFp1La16GiQ/edit).
 
 For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file). This expanded CSS supports up to 72 slots.
+</details>
+
+<details>
+  <summary><b>My game crashes/freezes/hangs when loading the character select/stage select/a match.</b></summary>
+  
+  The most common reason for this is that files in your build have reached their capacity. Here are some known filesize limits:
+  - <b>sc_selcharacter.pac</b>: 3790 KB (3.79 MB)
+  - <b>sc_selcharacter2.pac</b>: 669 KB (0.669 MB - 684,785 B)
+  - <b>sc_selmap.pac</b>: 3234 KB (3.234 MB - 3,310,601 B)
+  - <b>info.pac</b>: 543 KB (0.543 MB)
+  - <b>mu_menumain.pac</b>: 5861 KB (5.72 MB - 6,000,728 B)
+  
+  If these files are <b>at or near</b> the listed limits, you will likely see crashes. You can try reducing the filesize by switching to RSP loading and/or switching to slot-based stock icons.
+  
 </details>
 
 <details>
