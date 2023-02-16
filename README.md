@@ -131,7 +131,7 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   - <b>info.pac</b>: 543 KB (0.543 MB)
   - <b>mu_menumain.pac</b>: 5861 KB (5.72 MB - 6,000,728 B)
   
-  If these files are <b>at or near</b> the listed limits, you will likely see crashes. You can try reducing the filesize by switching to RSP loading and/or switching to slot-based stock icons.
+  If these files are <b>at or near</b> the listed limits, you will likely see crashes. You can try reducing the filesize by switching to RSP loading and/or switching to slot-based stock icons. You can learn more about how to do that using [this guide](https://docs.google.com/document/d/1sgA3Lr5IC4IVLWmuJOFLWj_FyKG7tP7jJy49eWTR_Z4/edit?usp=sharing).
   
 </details>
 
