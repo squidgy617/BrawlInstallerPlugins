@@ -698,8 +698,12 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# If we have a char_bust_tex in BrawlEx, export there too
 			if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
-					createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
-					newNode.Export(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				newNode.Export(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+			# If we have a char_bcsp_tex, export there too
+			if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+				createBackup(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
 			# If user has RSP loading on, get rid of changes to this file
@@ -767,6 +771,10 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
 					createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 					copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex')
+				# If we have a char_bcsp_tex, export there too
+				if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+					createBackup(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+					copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex')
 		writeLog("Finished updating CSPs")
 		return costumeIndex
 
@@ -2740,6 +2748,14 @@ def removeCSPs(cosmeticId):
 				createBackup(rspFile.FullName)
 				writeLog("Deleting RSP file " + rspFile.FullName)
 				rspFile.Delete()
+		# Repeat if char_bcsp_tex exists
+		if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+			rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 2) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'))
+			if rspFile:
+				# Back up first
+				createBackup(rspFile.FullName)
+				writeLog("Deleting RSP file " + rspFile.FullName)
+				rspFile.Delete()
 
 # Remove CSPs at specified position
 def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
@@ -2805,6 +2821,11 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 					if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres'):
 						createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 						copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex')
+				# If we have a char_bcsp_tex, copy there too
+				if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+					if File.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres'):
+						createBackup(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+						copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex')
 		writeLog("Finished updating CSPs")
 		costumeRange = []
 		costumeRange.append(costumeStart)
