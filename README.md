@@ -6,7 +6,7 @@ A BrawlCrate plugin suite for easy installation of Brawl mods into BrawlEX build
 
 Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes, including Subspace Emissary, so long as your build supports Subspace Emissary Ex.
 
-If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
+If you find any bugs or issues with the plugins, **please check the FAQ below first**. If the FAQ does not help, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
 ## Features
 - Install or uninstall fully playable characters and costumes into a build of Super Smash Bros. Brawl in just a few clicks.
