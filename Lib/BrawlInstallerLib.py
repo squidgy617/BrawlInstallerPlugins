@@ -2366,34 +2366,35 @@ def addAltCharacter(cssSlotId, baseCssSlotId):
 					tableStart = i + 2
 					break
 				i += 1
-			# Search for position to replace
-			i = tableStart
-			tableEndReached = False
-			# Count starts at -1 because the numbers are zero-indexed
-			lineCounter = -1
-			notWritten = True
-			writeLog("Finding position to write")
-			while i < len(fileText):
-				line = fileText[i]
-				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
-				lineCounter = lineCounter + len(splitLine)
-				if notWritten and not tableEndReached and lineCounter >= int(baseCssSlotId, 16):
-					writeLog("Found write location on line " + str(i))
-					newLine = splitLine
-					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1]
-					newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1] = '0x' + addLeadingZeros(str(cssSlotId), 2)
-					newString = ""
-					for part in newLine:
-						newString = newString + part.strip() + (', ' if part.strip() != '0x7F' else '')
-					if len(fileText[i].split('|')) > 1:
-						newString = newString + '|' + fileText[i].split('|')[1]
-					fileText[i] = newString
-					notWritten = False
-				if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
-					tableEndReached = True
-				i += 1
-			File.WriteAllLines(path, fileText)
+			if tableStart > 0:
+				# Search for position to replace
+				i = tableStart
+				tableEndReached = False
+				# Count starts at -1 because the numbers are zero-indexed
+				lineCounter = -1
+				notWritten = True
+				writeLog("Finding position to write")
+				while i < len(fileText):
+					line = fileText[i]
+					splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+					lineCounter = lineCounter + len(splitLine)
+					if notWritten and not tableEndReached and lineCounter >= int(baseCssSlotId, 16):
+						writeLog("Found write location on line " + str(i))
+						newLine = splitLine
+						# Have to subtract 1 because of zero-indexing
+						foundId = newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1]
+						newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1] = '0x' + addLeadingZeros(str(cssSlotId), 2)
+						newString = ""
+						for part in newLine:
+							newString = newString + part.strip() + (', ' if part.strip() != '0x7F' else '')
+						if len(fileText[i].split('|')) > 1:
+							newString = newString + '|' + fileText[i].split('|')[1]
+						fileText[i] = newString
+						notWritten = False
+					if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
+						tableEndReached = True
+					i += 1
+				File.WriteAllLines(path, fileText)
 			writeLog("Finished updating L-load code")
 		return foundId
 
