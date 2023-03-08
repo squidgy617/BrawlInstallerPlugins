@@ -3664,7 +3664,9 @@ def removeAltCharacter(cssSlotId):
 						if newLine[j].strip() == '0x' + addLeadingZeros(cssSlotId, 2) and '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2) != '0x' + cssSlotId:
 							foundId = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
 							writeLog("Found ID " + str(foundId))
-						newValue = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+							newValue = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+						else:
+							newValue = newLine[j].strip()
 						newString = newString + newValue + (', ' if newValue != '0x7F' else '')
 						j += 1
 					if len(fileText[i].split('|')) > 1:
