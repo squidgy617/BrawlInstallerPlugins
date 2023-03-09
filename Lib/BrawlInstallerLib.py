@@ -748,6 +748,11 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				# Move CSPs after imported
 				for child in texFolder.Children[i:length]:
 					moveNodeToEnd(child)
+				# Name everything a placeholder name (prevents issues with palettes)
+				i = len(texFolder.Children) - 1
+				while i >= 0:
+					texFolder.Children[i].Name = "CSP" + addLeadingZeros(str((cosmeticId * 10) + (i + 1)), 3)
+					i -= 1
 				# Rename everything
 				i = len(texFolder.Children) - 1
 				while i >= 0:
@@ -2798,6 +2803,11 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 				while i < len(nodesToRemove):
 					nodesToRemove[i].Remove(True)
 					i += 1
+				# Rename everything to placeholder names (prevents palette issues)
+				i = 0
+				for child in texFolder.Children:
+					i += 1
+					child.Name = 'CSP' + addLeadingZeros(str((cosmeticId * 10) + i), 3)
 				# Rename everything
 				i = 0
 				for child in texFolder.Children:
