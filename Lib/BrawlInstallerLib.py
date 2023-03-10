@@ -745,19 +745,46 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 					ColorSmashImport(bresNode, images, 256)
 				else:
 					importTexture(bresNode, images[0], WiiPixelFormat.CI8, 128, 160)
-				# Move CSPs after imported
-				for child in texFolder.Children[i:length]:
+				# Get all newly added textures
+				newTextures = texFolder.Children[len((texFolder.Children)) - len(images):len(texFolder.Children)]
+				# Determine which CSPs need to be moved (ones that should be after new costumes)
+				j = i
+				moveNodes = []
+				while j < len(texFolder.Children) - len(images):
+					moveNodes.append(texFolder.Children[j])
+					j += 1
+				# Move CSPs
+				for child in moveNodes:
 					moveNodeToEnd(child)
-				# Name everything a placeholder name (prevents issues with palettes)
-				i = len(texFolder.Children) - 1
-				while i >= 0:
-					texFolder.Children[i].Name = "CSP" + addLeadingZeros(str((cosmeticId * 10) + (i + 1)), 3)
-					i -= 1
-				# Rename everything
-				i = len(texFolder.Children) - 1
-				while i >= 0:
-					texFolder.Children[i].Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + (i + 1)), 3)
-					i -= 1
+				j = len(moveNodes) - 1
+				while j >= 0:
+					# Set CSP placeholder names (to prevent palette issues)
+					oldId = int(moveNodes[j].Name.replace('MenSelchrFaceB.', ''))
+					moveNodes[j].Name = "CSP." + addLeadingZeros(str(oldId + len(images)), 3)
+					j -= 1
+				j = len(moveNodes) - 1
+				while j >= 0:
+					# Rename moved CSPs to final name
+					oldId = int(moveNodes[j].Name.replace('CSP.', ''))
+					moveNodes[j].Name = "MenSelchrFaceB." + addLeadingZeros(str(oldId), 3)
+					j -= 1
+				# Get unused portrait IDs
+				freeIds = []
+				for texture in newTextures:
+					id = (cosmeticId * 10) + 1
+					j = 0
+					while j < len(texFolder.Children):
+						if 'MenSelchrFaceB.' in texFolder.Children[j].Name:
+							if int(texFolder.Children[j].Name.replace('MenSelchrFaceB.', '')) == id or id in freeIds:
+								id += 1
+								j = 0
+						j += 1
+					freeIds.append(id)
+				# Rename new CSPs
+				j = 0
+				while j < len(newTextures):
+					newTextures[j].Name = "MenSelchrFaceB." + addLeadingZeros(str(freeIds[j]), 3)
+					j += 1
 			if rspLoading == "false" or not rspLoading:
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
