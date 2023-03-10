@@ -1876,15 +1876,15 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
 		# Copy necessary files from build if not present
-		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+		if not File.Exists(kirbyHatPath + '/ft_kirby.rel'):
 			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
 			if kirbyRel:
 				copyFile(kirbyRel, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+		if not File.Exists(kirbyHatPath + '/KirbyHat.kbx'):
 			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
 			if kirbyKbx:
 				copyFile(kirbyKbx, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+		if not File.Exists(kirbyHatPath + '/KirbyHatEX.asm'):
 			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
 			if kirbyAsm:
 				copyFile(kirbyAsm, kirbyHatPath)
