@@ -2825,21 +2825,49 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 							costumeEnd = i + 1
 						costumeCount += 1
 					i += 1
+				# Get index of first removed CSP
+				k = 0
+				while k < len(texFolder.Children):
+					if texFolder.Children[k] == nodesToRemove[0]:
+						break
+					k += 1
 				# Remove
 				i = 0
 				while i < len(nodesToRemove):
 					nodesToRemove[i].Remove(True)
 					i += 1
-				# Rename everything to placeholder names (prevents palette issues)
+				# Get used IDs
+				usedIds = []
 				i = 0
-				for child in texFolder.Children:
+				while i < k:
+					if 'MenSelchrFaceB.' in texFolder.Children[i].Name:
+						id = int(texFolder.Children[i].Name.replace('MenSelchrFaceB.', ''))
+						usedIds.append(id)
 					i += 1
-					child.Name = 'CSP' + addLeadingZeros(str((cosmeticId * 10) + i), 3)
-				# Rename everything
-				i = 0
-				for child in texFolder.Children:
-					i += 1
-					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str((cosmeticId * 10) + i), 3)
+				# Determine which CSPs need to be renamed (ones that are after removed costumes)
+				j = k
+				renameNodes = []
+				while j < len(texFolder.Children):
+					renameNodes.append(texFolder.Children[j])
+					j += 1
+				# Rename CSPs
+				j = len(renameNodes) - 1
+				while j >= 0:
+					# Set CSP placeholder names (to prevent palette issues)
+					oldId = int(renameNodes[j].Name.replace('MenSelchrFaceB.', ''))
+					# Get unused ID
+					newId = oldId - len(nodesToRemove)
+					while newId in usedIds:
+						newId += 1
+					usedIds.append(newId)
+					renameNodes[j].Name = "CSP." + addLeadingZeros(str(newId), 3)
+					j -= 1
+				j = len(renameNodes) - 1
+				while j >= 0:
+					# Rename CSPs to final name
+					oldId = int(renameNodes[j].Name.replace('CSP.', ''))
+					renameNodes[j].Name = "MenSelchrFaceB." + addLeadingZeros(str(oldId), 3)
+					j -= 1
 			if rspLoading == "false" or not rspLoading:
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
