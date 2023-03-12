@@ -3638,9 +3638,9 @@ def removeTrophy(trophyId):
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
 					for trophyNode in tyDataList.Children:
 						if nameIndex != -1 and trophyNode.NameIndex > nameIndex:
-							trophyNode.NameIndex -= 1
+							trophyNode.NameIndex -= 2
 						if gameIndex != -1 and trophyNode.GameIndex > gameIndex:
-							trophyNode.GameIndex -= 1
+							trophyNode.GameIndex -= 2
 						if descriptionIndex != -1 and trophyNode.DescriptionIndex > descriptionIndex:
 							trophyNode.DescriptionIndex -= 1
 					BrawlAPI.SaveFile()
