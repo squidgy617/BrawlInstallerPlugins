@@ -1870,6 +1870,7 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
 		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
 		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/Source/P+Ex/KirbyHatEX.asm')
 		createBackup(MainForm.BuildPath + '/BOOST.GCT')
 		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
@@ -3338,21 +3339,22 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
 		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
 		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/Source/P+Ex/KirbyHatEX.asm')
 		createBackup(MainForm.BuildPath + '/BOOST.GCT')
 		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
 		# Copy necessary files from build if not present
-		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+		if not File.Exists(kirbyHatPath + '/ft_kirby.rel'):
 			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
 			if kirbyRel:
 				copyFile(kirbyRel, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+		if not File.Exists(kirbyHatPath + '/KirbyHat.kbx'):
 			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
 			if kirbyKbx:
 				copyFile(kirbyKbx, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+		if not File.Exists(kirbyHatPath + '/KirbyHatEX.asm'):
 			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
 			if kirbyAsm:
 				copyFile(kirbyAsm, kirbyHatPath)
