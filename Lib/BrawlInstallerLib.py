@@ -1665,6 +1665,16 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[], startingI
 					relatedFileName = 'Fit' + fighterName + 'MotionEtc' + addLeadingZeros(str(id), 2) + '.pac'
 				if 'Etc' in relatedFile.Name and relatedFile.Name.replace('Etc','') == file.Name:
 					relatedFileName = 'Fit' + fighterName + 'Etc' + addLeadingZeros(str(id), 2) + '.pac'
+					# If Sonic, modify the Etc file
+					if fighterName.lower() == 'sonic':
+						fileOpened = openFile(relatedFile.FullName, False)
+						if fileOpened:
+							nodes = getChildrenByPrefix(BrawlAPI.RootNode, 'ef_sonicX')
+							if nodes and len(nodes) > 0:
+								node = nodes[0]
+								node.Name = 'ef_sonicX' + addLeadingZeros(str(id), 2)
+								BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
 				# Kirby hat checks
 				kirbyHats = ['Donkey', 'Falco', 'Mewtwo', 'Pikmin', 'Purin', 'Snake']
 				for hat in kirbyHats:
@@ -3056,7 +3066,9 @@ def removeCSSIconName(cosmeticId):
 				if anmTexPat:
 					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
 					for pat0Node in pat0Nodes:
-						removeFromPat0(node, pat0Node.Name, "Face06", nodeName, frameCountOffset=10)
+						pat0tex = getChildByName(pat0Node, "Face06")
+						if pat0tex:
+							removeFromPat0(node, pat0Node.Name, "Face06", nodeName, frameCountOffset=10)
 		writeLog("Remove CSS icon name finished")
 
 # Remove portrait name
