@@ -2623,8 +2623,13 @@ class SettingsForm(Form):
         self.singlePlayerCheckBox.Width = 200
         self.singlePlayerCheckBox.Location = Point(16, self.bpNameCheckbox.Location.Y + 24)
 
+        self.cssIconNameCheckBox = CheckBox()
+        self.cssIconNameCheckBox.Text = "Install CSS Icon Names"
+        self.cssIconNameCheckBox.Width = 200
+        self.cssIconNameCheckBox.Location = Point(16, self.singlePlayerCheckBox.Location.Y + 24)
+
         self.franchiseIconSizeLabel = Label()
-        self.franchiseIconSizeLabel.Location = Point(16, self.singlePlayerCheckBox.Location.Y + 24)
+        self.franchiseIconSizeLabel.Location = Point(16, self.cssIconNameCheckBox.Location.Y + 24)
         self.franchiseIconSizeLabel.Text = "Franchise Icon Size:"
         self.franchiseIconSizeLabel.Width = 112
 
@@ -2644,12 +2649,13 @@ class SettingsForm(Form):
         cosmeticGroupBox.Controls.Add(self.portraitNameCheckBox)
         cosmeticGroupBox.Controls.Add(self.bpNameCheckbox)
         cosmeticGroupBox.Controls.Add(self.singlePlayerCheckBox)
+        cosmeticGroupBox.Controls.Add(self.cssIconNameCheckBox)
         cosmeticGroupBox.Controls.Add(self.franchiseIconSizeLabel)
         cosmeticGroupBox.Controls.Add(self.franchiseIconSizeText)
 
         # Stage Settings group
         self.stageGroupBox = GroupBox()
-        self.stageGroupBox.Location = Point(0, 525)
+        self.stageGroupBox.Location = Point(0, 563)
         self.stageGroupBox.Text = "Custom Stage Lists"
         self.stageGroupBox.AutoSize = True
         self.stageGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -2679,13 +2685,13 @@ class SettingsForm(Form):
 
         pPlusDefaultsButton = Button()
         pPlusDefaultsButton.Text = "P+Ex Defaults"
-        pPlusDefaultsButton.Location = Point(4, 640)
+        pPlusDefaultsButton.Location = Point(4, 688)
         pPlusDefaultsButton.Width = 90
         pPlusDefaultsButton.Click += self.pPlusDefaultsButtonPressed
 
         remixDefaultsButton = Button()
         remixDefaultsButton.Text = "REMIX Defaults"
-        remixDefaultsButton.Location = Point(98, 640)
+        remixDefaultsButton.Location = Point(98, 688)
         remixDefaultsButton.Width = 95
         remixDefaultsButton.Click += self.remixDefaultsButtonPressed
 
@@ -2938,12 +2944,12 @@ class SettingsForm(Form):
 
         self.cancelButton = Button()
         self.cancelButton.Text = "Close"
-        self.cancelButton.Location = Point(525, 640)
+        self.cancelButton.Location = Point(525, 688)
         self.cancelButton.Click += self.cancelButtonPressed
 
         saveButton = Button()
         saveButton.Text = "Save"
-        saveButton.Location = Point(445, 640)
+        saveButton.Location = Point(445, 688)
         saveButton.Click += self.saveButtonPressed
 
         self.Controls.Add(cosmeticGroupBox)
@@ -2982,6 +2988,7 @@ class SettingsForm(Form):
         toolTip.SetToolTip(self.portraitNameCheckBox, "Check this if your build displays names on the portraits displayed on the character select screen.") 
         toolTip.SetToolTip(self.bpNameCheckbox, "Check this if your build displays names beneath the portraits used in a match.") 
         toolTip.SetToolTip(self.singlePlayerCheckBox, "Check this if you would like franchise icons and battle portrait names (if used) to be installed into single-player modes like Classic mode.") 
+        toolTip.SetToolTip(self.cssIconNameCheckBox, "Check this if you would like to install names for CSS icons when available (for vBrawl and PM style icons).")
         toolTip.SetToolTip(self.franchiseIconSizeLabel, "This determines both the height and width of franchise icons displayed behind character portraits on the character select screen. For vBrawl, this is 64. For P+, it is 128.") 
         toolTip.SetToolTip(self.stageGroupBox, "This is a list of .asm files containing custom stage lists used in your build. You can add new entries by clicking the '+'. Most builds do not use this.") 
         toolTip.SetToolTip(kirbyExeLabel, "The path to your preferred version of lavaKirbyHatManager .exe. Should be placed in your build. Required for Kirby hats to work on P+Ex builds.") 
@@ -3028,6 +3035,7 @@ class SettingsForm(Form):
         self.portraitNameCheckBox.Checked = textBool(self.settings.installPortraitNames)
         self.bpNameCheckbox.Checked = textBool(self.settings.installBPNames)
         self.singlePlayerCheckBox.Checked = textBool(self.settings.installSingleplayerCosmetics)
+        self.cssIconNameCheckBox.Checked = textBool(self.settings.installCSSIconNames)
         self.franchiseIconSizeText.Text = self.settings.franchiseIconSizeCSS
         self.kirbyExeFileBox.Text = self.settings.kirbyHatExe
         self.defaultKirbyHatText.Text = self.settings.defaultKirbyHat
@@ -3067,6 +3075,7 @@ class SettingsForm(Form):
         settings.installVictoryThemes = "true"
         settings.installBPNames = "false"
         settings.installSingleplayerCosmetics = "true"
+        settings.installCSSIconNames = "false"
         settings.installKirbyHats = "true"
 
         self.settings = settings
@@ -3092,6 +3101,7 @@ class SettingsForm(Form):
         settings.installVictoryThemes = "true"
         settings.installBPNames = "false"
         settings.installSingleplayerCosmetics = "false"
+        settings.installCSSIconNames = "false"
         settings.installKirbyHats = "true"
 
         self.settings = settings
@@ -3195,6 +3205,7 @@ class SettingsForm(Form):
         settings.installPortraitNames = boolText(self.portraitNameCheckBox.Checked)
         settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
+        settings.installCSSIconNames = boolText(self.cssIconNameCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
         settings.kirbyHatExe = self.kirbyExeFileBox.Text
         settings.installKirbyHats = boolText(self.installKirbyHatCheckbox.Checked)

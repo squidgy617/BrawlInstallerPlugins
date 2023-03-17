@@ -1232,7 +1232,9 @@ def importCSSIconName(cosmeticId, nameImagePath):
 				if anmTexPat:
 					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
 					for pat0Node in pat0Nodes:
-						addToPat0(node, pat0Node.Name, "Face06", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
+						pat0tex = getChildByName(pat0Node, "Face06")
+						if pat0tex:
+							addToPat0(node, pat0Node.Name, "Face06", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
 			writeLog("Finished importing CSS icon name")
 				
 # Import name for character select portrait
@@ -4866,6 +4868,7 @@ def getSettings():
 		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
 		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
 		settings.customStageLists = readValueFromKey(fileText, "customStageLists")
+		settings.installCSSIconNames = readValueFromKey(fileText, "installCSSIconNames")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -5065,6 +5068,7 @@ class Settings:
 		sseUnlockStage = "end"
 		installTrophies = "false"
 		customStageLists = ""
+		installCSSIconNames = "true"
 
 class FighterSettings:
 		lucarioBoneId = ""

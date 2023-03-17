@@ -402,7 +402,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								installCSSIcon(cosmeticId, Directory.GetFiles(iconFolders[0], "*.png")[0], format)
 								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
 								# If a name folder is found in the CSS icon directory, install CSS icon name
-								if nameFolders:
+								if nameFolders and settings.installCSSIconNames == "true":
 									if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
 										installCSSIconName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
