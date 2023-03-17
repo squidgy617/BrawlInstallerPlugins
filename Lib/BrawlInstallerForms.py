@@ -1352,7 +1352,7 @@ class StageList(Form):
 
     def getFirstAvailableId(self):
         # Compile stage IDs
-        usedStageIds = []
+        usedStageIds = ['3D']
         for stageList in self.stageSlots:
             for stageSlot in stageList:
                 usedStageIds.append(stageSlot.stageId)
