@@ -5499,7 +5499,7 @@ def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 				newLine = ""
 				j = 0
 				while j < len(splitLine):
-					newLine += splitLine[j].strip() + ("," if j != len(splitLine) - 1 else "") + "\t"
+					newLine += splitLine[j].strip() + ("," if len(splitLine) > 1 else "") + "\t"
 					j += 1
 				newLine += "| "
 				j = 0
