@@ -3091,6 +3091,10 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = "true"
         settings.installCSSIconNames = "false"
         settings.installKirbyHats = "true"
+        if len(settings.customStageLists.split(',')) > 0 and settings.customStageLists.split(',')[0] != "" :
+            self.customStageLists.DataSource = settings.customStageLists.split(',')
+        else:
+            self.customStageLists.DataSource = []
 
         self.settings = settings
         self.initializeControls()
@@ -3117,6 +3121,10 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = "false"
         settings.installCSSIconNames = "false"
         settings.installKirbyHats = "true"
+        if len(settings.customStageLists.split(',')) > 0 and settings.customStageLists.split(',')[0] != "" :
+            self.customStageLists.DataSource = settings.customStageLists.split(',')
+        else:
+            self.customStageLists.DataSource = []
 
         self.settings = settings
         self.initializeControls()
