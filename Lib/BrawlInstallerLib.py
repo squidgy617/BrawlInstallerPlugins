@@ -5055,6 +5055,8 @@ class Settings:
 		defaultKirbyHat = "0x21"
 		kirbyHatExe = getFileRecursive("lavaKirbyHatManager*.exe", "lavaKirbyHatManager - OFFLINE.exe")
 		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions (Dolphin).exe")
+		if assemblyFunctionsExe == "":
+			assemblyFunctionsExe = getFileRecursive("Build Code Menu - *.exe", "Build Code Menu - DOLPHIN.exe")
 		sawndReplaceExe = getFileRecursive("lavaSawndIDReplaceAssist*.exe", "lavaSawndIDReplaceAssist.exe")
 		sfxChangeExe = getFileRecursive("sfxchange*.exe", "sfxchange.exe")
 		soundbankStyle = "hex"
@@ -5068,6 +5070,15 @@ class Settings:
 		sseUnlockStage = "end"
 		installTrophies = "false"
 		customStageLists = ""
+		if Directory.Exists(MainForm.BuildPath + '/pf/stage/stagelist'):
+			stageLists = Directory.GetFiles(MainForm.BuildPath + '/pf/stage/stagelist', "*.asm")
+			i = 0
+			while i < len(stageLists):
+				if getFileInfo(stageLists[i]).Name != 'TABLE_STAGES.asm':
+					customStageLists += stageLists[i]
+					if i != len(stageLists) - 1:
+						customStageLists += ","
+				i += 1
 		installCSSIconNames = "true"
 
 class FighterSettings:
@@ -5281,7 +5292,7 @@ def getStageList(path="/Source/Project+/StageFiles.asm"):
 			tableValues = []
 			while i < len(fileText):
 				line = fileText[i]
-				if len(line) <= 0 or line.startswith('TABLE'):
+				if len(line) <= 0 or line.startswith('TABLE') or not line.startswith('0x'):
 					break
 				splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 				for item in splitLine:
@@ -5312,8 +5323,8 @@ def updateStageList(stageList, path="/Source/Project+/StageFiles.asm"):
 			tables[i].append(item)
 		fileText = File.ReadAllLines(file)
 		for line in fileText:
-			if line.startswith(".GOTO->SkipStageTables"):
-				newText.append(line + "\n\n")
+			if line.startswith("TABLE_1:"):
+				#newText.append(line + "\n\n")
 				stopWriting = True
 				i = 0
 				for table in tables:
@@ -5434,7 +5445,10 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 			splitLine = line.split('|')
 			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + (splitLine[1] if len(splitLine) > 1 else "")
 			newLine = '0x' + fullId + '\t| #' + stageName
-			fileText[i] = newLine + '\n'
+			if i < len(fileText):
+				fileText[i] = newLine + '\n'
+			else:
+				fileText[i - 1] = fileText[i - 1] + '\n' + newLine + '\n'
 		# Update counter
 		counterLine = tableStart - 1
 		fileText[counterLine] = "half[" + str(len(tableValues) + 1) + "] |\t# Stage Count + 2"
@@ -5529,7 +5543,7 @@ def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Finished removing stage ID")
 
 # Remove stage slot entirely
-def removeStageSlot(stageSlots, stageLists):
+def removeStageSlot(stageSlots, stageLists, stageTableFile=''):
 	writeLog("Removing stage slots")
 	for stageSlot in stageSlots:
 		writeLog("Removing stage slot " + stageSlot.name)
@@ -5548,7 +5562,9 @@ def removeStageSlot(stageSlots, stageLists):
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
 		for stageList in stageLists:
-			removeStageId(stageSlot.fullId, stageList)
+			if not stageTableFile:
+				stageTableFile = stageList
+			removeStageId(stageSlot.fullId, stageTableFile)
 		writeLog("Finished removing stage slot")
 
 # Get stage IDs for specific stage number
@@ -5561,7 +5577,7 @@ def getStageIdsByNumber(stageNumber, path="/Source/Project+/StageFiles.asm"):
 				writeLog("Found stage ID " + str(stageId))
 				return stageId.strip()
 			i += 1
-		writeLog("No stage ID found")
+		writeLog("No stage ID found for slot ID " + str(stageNumber))
 		return -1
 
 # Get stage name by stage ID

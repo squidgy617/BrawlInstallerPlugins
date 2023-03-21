@@ -1057,6 +1057,10 @@ class StageList(Form):
         while i < self.length:
             self.stageSlots[i] = BindingSource()
             self.stageSlots[i].DataSource = []
+            if File.Exists(MainForm.BuildPath + '/pf/stage/stagelist/TABLE_STAGES.asm'):
+                stageTableFile = '/pf/stage/stagelist/TABLE_STAGES.asm'
+            else:
+                stageTableFile = self.stageLists[i]
 
             pageNumber = 0
             if not fileOpened:
@@ -1068,7 +1072,7 @@ class StageList(Form):
                     pageSlot = StageSlot('0x00', '00', '00', '0000', '|| PAGE ' + str(pageNumber) + ' ||')
                     self.stageSlots[i].Add(pageSlot)
                     for slotId in page:
-                        stageIds = getStageIdsByNumber(slotId, self.stageLists[i])
+                        stageIds = getStageIdsByNumber(slotId, stageTableFile)
                         if stageIds and stageIds != -1:
                             stageName = getStageName(stageIds[2:4])
                             if stageName:
@@ -1078,7 +1082,7 @@ class StageList(Form):
                             self.stageSlots[i].Add(stageSlot)
 
             self.unusedSlots[i] = BindingSource()
-            self.unusedSlots[i].DataSource = getUnusedStageSlots(self.stageSlots[i], self.stageLists[i])
+            self.unusedSlots[i].DataSource = getUnusedStageSlots(self.stageSlots[i], stageTableFile)
             i += 1
         BrawlAPI.ForceCloseFile()
 
@@ -1326,7 +1330,11 @@ class StageList(Form):
     def saveButtonPressed(self, sender, args):
         try:
             if len(self.removeSlots) > 0:
-                removeStageSlot(self.removeSlots, self.stageLists)
+                if File.Exists(MainForm.BuildPath + '/pf/stage/stagelist/TABLE_STAGES.asm'):
+                    stageTableFile = '/pf/stage/stagelist/TABLE_STAGES.asm'
+                else:
+                    stageTableFile = ''
+                removeStageSlot(self.removeSlots, self.stageLists, stageTableFile)
             for slot in self.removeSlots:
                 if File.Exists(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl"):
                     File.Delete(MainForm.BuildPath + "/pf/stage/stageslot/" + addLeadingZeros(slot.stageId.strip().replace('0x',''), 2) + ".asl")
@@ -1961,9 +1969,15 @@ class StageEditor(Form):
             progressBar.Update(progressCounter)
             if self.addedTracks:
                 importFiles(self.addedTracks)
+            if File.Exists(MainForm.BuildPath + '/pf/stage/stagelist/TABLE_STAGES.asm'):
+                stageTableFile = '/pf/stage/stagelist/TABLE_STAGES.asm'
+            else:
+                stageTableFile = ''
             if self.new:
                 for stageList in self.stageLists:
-                    newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name, stageList)
+                    if not stageTableFile:
+                        stageTableFile = stageList
+                    newSlotNumber = addStageId(self.stageId + self.cosmeticId, self.alts[0].aslEntry.Name, stageTableFile)
                     self.newSlotNumber.append(newSlotNumber)
             buildGct()
             progressCounter += 1
