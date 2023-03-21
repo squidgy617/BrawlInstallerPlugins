@@ -224,8 +224,9 @@ def getCosmeticNodes():
         opened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/')
         if opened:
             for node in BrawlAPI.RootNode.Children:
-                imageNode = ImageNode(node.Name.replace('0.brres', ''), Bitmap(node.GetImage(0)))
-                imageNodes.append(imageNode)
+                if node.GetType() == BRRESNode or node.GetType() == TEX0Node:
+                    imageNode = ImageNode(node.Name.replace('0.brres', ''), Bitmap(node.GetImage(0)))
+                    imageNodes.append(imageNode)
             BrawlAPI.ForceCloseFile()
     return imageNodes
 
