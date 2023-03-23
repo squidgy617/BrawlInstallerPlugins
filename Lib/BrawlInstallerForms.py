@@ -2727,7 +2727,7 @@ class SettingsForm(Form):
         self.kirbyExeFileBox = TextBox()
         self.kirbyExeFileBox.Location = Point(76, 16)
         self.kirbyExeFileBox.Width = 160
-        self.kirbyExeFileBox.ReadOnly = True
+        self.kirbyExeFileBox.ReadOnly = False
 
         kirbyExeLabel = Label()
         kirbyExeLabel.Text = "lKHM .exe:"
@@ -2780,7 +2780,7 @@ class SettingsForm(Form):
         self.codeMenuFileBox = TextBox()
         self.codeMenuFileBox.Location = Point(76, 16)
         self.codeMenuFileBox.Width = 160
-        self.codeMenuFileBox.ReadOnly = True
+        self.codeMenuFileBox.ReadOnly = False
 
         codeMenuLabel = Label()
         codeMenuLabel.Text = "PowerPC\n.exe:"
@@ -2807,7 +2807,7 @@ class SettingsForm(Form):
         self.sawndReplaceExeText = TextBox()
         self.sawndReplaceExeText.Location = Point(76, 16)
         self.sawndReplaceExeText.Width = 160
-        self.sawndReplaceExeText.ReadOnly = True
+        self.sawndReplaceExeText.ReadOnly = False
 
         sawndReplaceExeLabel = Label()
         sawndReplaceExeLabel.Text = "lSIDRA\n.exe:"
@@ -2823,7 +2823,7 @@ class SettingsForm(Form):
         self.sfxChangeExeText = TextBox()
         self.sfxChangeExeText.Location = Point(76, 48)
         self.sfxChangeExeText.Width = 160
-        self.sfxChangeExeText.ReadOnly = True
+        self.sfxChangeExeText.ReadOnly = False
 
         sfxChangeExeLabel = Label()
         sfxChangeExeLabel.Text = "sfxchange\n.exe:"
@@ -2886,7 +2886,7 @@ class SettingsForm(Form):
         self.gfxChangeExeText = TextBox()
         self.gfxChangeExeText.Location = Point(76, 16)
         self.gfxChangeExeText.Width = 160
-        self.gfxChangeExeText.ReadOnly = True
+        self.gfxChangeExeText.ReadOnly = False
 
         gfxChangeExeLabel = Label()
         gfxChangeExeLabel.Text = "gfxchange\n.exe:"
@@ -3126,7 +3126,8 @@ class SettingsForm(Form):
             self.customStageLists.DataSource = settings.customStageLists.split(',')
         else:
             self.customStageLists.DataSource = []
-
+        # Don't get assembly functions because they are too full on REMIX
+        settings.assemblyFunctionsExe = ""
         self.settings = settings
         self.initializeControls()
 
