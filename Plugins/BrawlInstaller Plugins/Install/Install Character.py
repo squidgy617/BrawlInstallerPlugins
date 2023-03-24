@@ -47,6 +47,11 @@ def autoInstall(baseCssSlotId, zipfile):
 				if len(rspFiles) > 0:
 					i = 0
 					while i < len(rspFiles):
+						# Skip 127, because it seems to possibly cause issues with stocks
+						if cosmeticId == 127:
+							cosmeticId += 1
+							i = 0
+							continue
 						file = rspFiles[i]
 						foundId = int(getFileInfo(file).Name.replace('MenSelchrFaceB', '').replace('0.brres', ''))
 						if foundId == cosmeticId:
