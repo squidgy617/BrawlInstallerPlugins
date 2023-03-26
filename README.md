@@ -26,7 +26,7 @@ If you find any bugs or issues with the plugins, **please check the FAQ below fi
 2. Navigate to the [latest BrawlInstaller release](https://github.com/squidgy617/BrawlInstallerPlugins/releases/latest) and download the `BrawlInstaller.Tools.Setup.exe`. Run this installer and follow the on-screen instructions. **Only install components not already present in your build.**
 3. In BrawlCrate, navigate to `Tools > Settings > General` and modify the `Default Build Path` to match the path you chose for the tools in step 2.
 4. In BrawlCrate, navigate to `Tools > Settings > BrawlAPI` and ensure the `Installation Path` field under `Python` is set to the correct path.
-5. In BrawlCrate, navigate to `Tools > Settings > Updater`, click `Manage Subscriptions`, and paste this link: `https://github.com/squidgy617/BrawlInstallerPlugins`. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
+5. In BrawlCrate, navigate to `Tools > Settings > Updater`, click `Manage Subscriptions`, `Add`, and paste this link: `https://github.com/squidgy617/BrawlInstallerPlugins`, then hit `Okay`. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
 6. Restart BrawlCrate.
 
 Once you have completed these steps, you are ready to begin using the BrawlInstaller plugins.
