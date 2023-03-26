@@ -2056,6 +2056,22 @@ def buildGct():
 			p.Dispose()
 			Directory.SetCurrentDirectory(AppPath)
 			writeLog("Finished running GCTRealMate.exe")
+		# Handle stage list looter system
+		if Directory.Exists(MainForm.BuildPath + '/pf/stage/stagelist'):
+			if File.Exists(MainForm.BuildPath + '/pf/stage/stagelist/GCTRealMate.exe'):
+				writeLog("Compiling stage lists in /pf/stage/stagelist")
+				for gctFile in Directory.GetFiles(MainForm.BuildPath + '/pf/stage/stagelist', "*.GCT"):
+					createBackup(gctFile)
+				runCommand = '-g -l -q'
+				for asmFile in Directory.GetFiles(MainForm.BuildPath + '/pf/stage/stagelist', "*.asm"):
+					if getFileInfo(asmFile).Name != 'TABLE_STAGES.asm':
+						runCommand += ' "' + asmFile + '" '
+				Directory.SetCurrentDirectory(MainForm.BuildPath + '/pf/stage/stagelist')
+				p = Process.Start(MainForm.BuildPath + '\\pf\\stage\\stagelist\\GCTRealMate.exe', '-g -l -q' + runCommand)
+				p.WaitForExit()
+				p.Dispose()
+				Directory.SetCurrentDirectory(AppPath)
+				writeLog("Finished compiling stage lists")
 		writeLog("Finished building GCT files")
 
 # Check if codes from .asm file already exist in build
@@ -5355,7 +5371,7 @@ def updateStageList(stageList, path="/Source/Project+/StageFiles.asm"):
 				newText.append(newLine)
 			elif not stopWriting:
 				newText.append(line)
-			elif line.startswith("TABLE_STAGES:"):
+			elif line.startswith("TABLE_STAGES:") or line.startswith(".include"):
 				stopWriting = False
 				newText.append(line)
 		File.WriteAllLines(file, newText)
