@@ -1969,7 +1969,7 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 				# Check if song is already installed
 				writeLog("Checking if song already exists")
 				for song in BrawlAPI.RootNode.Children:
-					if song.SongFileName == songDirectory + '/' + file.Name.split('.brstm')[0]:
+					if song.SongFileName == songDirectory + '/' + file.Name.replace('.brstm', ''):
 						BrawlAPI.ForceCloseFile()
 						return song.SongID
 				# Calculate song ID
@@ -1981,8 +1981,8 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 				# Add to tracklist file
 				writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
 				newNode = TLSTEntryNode()
-				newNode.Name = file.Name.split('.')[0]
-				newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
+				newNode.Name = file.Name.replace('.brstm', '')
+				newNode.SongFileName = songDirectory + '/' + file.Name.replace('.brstm', '')
 				newNode.Volume = 80
 				newNode.Frequency = 40
 				newNode.SongID = currentSongId
