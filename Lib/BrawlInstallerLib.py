@@ -817,7 +817,8 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 		# Check this out: https://github.com/soopercool101/BrawlCrate/blob/b089bf32f0cfb2b5f1e6d729b95da4dd169903f2/BrawlCrate/NodeWrappers/Graphics/TEX0Wrapper.cs#L231
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		# Get pat0 and bres files if they exist
-		if File.Exists(AppPath + '/temp/pat0.pat0'):
+		# skip sc_selmap for bandaid fix
+		if File.Exists(AppPath + '/temp/pat0.pat0') and filePath != '/pf/menu2/sc_selmap.pac':
 			pat0 = AppPath + '/temp/pat0.pat0'
 		else:
 			pat0 = None
@@ -904,11 +905,17 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 							for pat0Node in pat0Nodes:
 								# For each texture we added, add a pat0 entry
 								for texNode in texNodes:
+									# bandaid fix for sc_selmap
+									pat0TexNode = pat0Node.Children[0]
+									if filePath == '/pf/menu2/sc_selmap.pac':
+										for childNode in pat0Node.Children:
+											if childNode.Name in ["playericon1M", "playericon2M", "playericon3M", "playericon4M"]:
+												pat0TexNode = childNode
 									# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
 									frameCount = 9201 if fiftyCC == "true" else 501
 									if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
 										frameCount += 100
-									addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+									addToPat0(pat0BresNode, pat0Node.Name, pat0TexNode.Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
 							# Export
 							if len(pat0Nodes) >= 1:
 								pat0Nodes[0].Export(AppPath + '/temp/pat0.pat0')
@@ -943,7 +950,8 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 		writeLog("Updating stock icons at cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		# Get pat0 and bres files if they exist
-		if File.Exists(AppPath + '/temp/pat0.pat0'):
+		# skip sc_selmap for bandaid fix
+		if File.Exists(AppPath + '/temp/pat0.pat0') and filePath != '/pf/menu2/sc_selmap.pac':
 			pat0 = AppPath + '/temp/pat0.pat0'
 		else:
 			pat0 = None
@@ -1035,14 +1043,20 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 					pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
 				if not pat0:
 					for pat0Node in pat0Nodes:
+						# bandaid fix for sc_selmap
+						pat0TexNode = pat0Node.Children[0]
+						if filePath == '/pf/menu2/sc_selmap.pac':
+							for childNode in pat0Node.Children:
+								if childNode.Name in ["playericon1M", "playericon2M", "playericon3M", "playericon4M"]:
+									pat0TexNode = childNode
 						# For each texture we added, add a pat0 entry
 						for texNode in texNodes:
 							# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
 							frameCount = 9201 if fiftyCC == "true" else 501
 							if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
 								frameCount += 100
-							removeFromPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
-							addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+							removeFromPat0(pat0BresNode, pat0Node.Name, pat0TexNode.Name, texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+							addToPat0(pat0BresNode, pat0Node.Name, pat0TexNode.Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
 					# Export
 					if len(pat0Nodes) >= 1:
 						pat0Nodes[0].Export(AppPath + '/temp/pat0.pat0')
