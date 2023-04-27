@@ -259,12 +259,15 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							else:
 								changeSoundbankId = True
 							if changeSoundbankId:
-								autoSoundbankId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
+								if not auto:
+									autoSoundbankId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
+								else:
+									autoSoundbankId = True
 								matchFound = True
 								# Keep prompting for alternate soundbank ID until one that is not used is entered
 								idMod = 0
 								while matchFound:
-									if not auto and not autoSoundbankId:
+									if not autoSoundbankId:
 										soundbanks = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', '*.sawnd')
 										soundbankIds = []
 										for soundbank in soundbanks:
@@ -293,6 +296,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 											return
 										continue
 									matchFound = False
+								newSoundbankId = hexId(newSoundbankId)
 							else:
 								newSoundbankId = ""
 						elif soundbankMatch:
