@@ -2393,6 +2393,8 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 				line = fileText[i]
 				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
 				lineCounter = lineCounter + len(splitLine)
+				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
+					tableEndReached = True
 				if notWritten and not tableEndReached and lineCounter >= int(slotId, 16):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
@@ -2406,8 +2408,6 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 						newString = newString + '|' + fileText[i].split('|')[1]
 						fileText[i] = newString
 					notWritten = False
-				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
-					tableEndReached = True
 				i += 1
 			if not read:
 				File.WriteAllLines(MainForm.BuildPath + '/Source/Project+/ResultsMusic.asm', fileText)

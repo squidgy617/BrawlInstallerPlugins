@@ -835,7 +835,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Make code changes for Lucario clones
 					if clonedModuleName == "ft_lucario":
 						# Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
-						addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))) ], 0)
+						if effectId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))) ], 0)
 						# Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
 						if fighterSettings.lucarioKirbyEffectId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), fighterSettings.lucarioKirbyEffectId ], 0, preFindText="bne notKirby")
@@ -849,7 +850,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if fighterSettings.jigglypuffBoneId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneBones", [ "0x" + str(fighterId), fighterSettings.jigglypuffBoneId, "copy" ], 0, True)
 						# Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
-						if fighterSettings.jigglypuffEFLSId:
+						if fighterSettings.jigglypuffEFLSId and effectId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneGFX", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))), fighterSettings.jigglypuffEFLSId, "copy" ], 0, True)
 						# Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
 						if len(fighterSettings.jigglypuffSfxIds) > 0:
