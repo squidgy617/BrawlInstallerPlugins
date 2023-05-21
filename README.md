@@ -117,6 +117,8 @@ hasHat:
 <summary><b>I added my character but don't see them on the character select screen/SSE character select, or their position on the screen is incorrect.</b></summary>
 
 This usually means one of two things - one, your build is not configured to use CSSRoster.dat, or two, you ran out of animated CSS slots in your build. If you're using P+Ex, the roster will only automatically expand up to a certain number of slots, and other builds may not even have the roster automatically expanding. In such a case, you'll have to expand it manually, which can be done in a similar manner to the steps outlined in [this guide](https://docs.google.com/document/d/1NN7X98xdoatzcnKabUq6TIhZrPTda84RmFp1La16GiQ/edit).
+    
+If you're using a PMEX REMIX build, you can download [this sc_selcharacter.pac](https://www.mediafire.com/file/ob7dxyfpnbubawf/sc_selcharacter.pac/file) created by <b>JVIasterJ</b> to your build's `pf/menu2` folder, overwriting the existing file within, before installing any characters. This adds 12 extra slots to the CSS. Once you've done this, any added characters will use the new slots.
 
 For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file). This expanded CSS supports up to 72 slots.
 </details>
@@ -186,6 +188,8 @@ This tool was made possible by:
 - KingJigglypuff for providing detailed information on currently supported non-Ex modules.
 - CaliKingz01, who provided the PSA for X to use as an example character package.
 - Shy, who created the cosmetics used for X.
+- JVIasterJ for creating the expanded REMIX sc_selcharacter.pac, as well as for bugtesting.
+- Chrisman for bugtesting.
 - Hatyaro, for helping with some coding challenges.
 - The Project+ team, for the advancements made to Brawl modding that made this all possible.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
