@@ -2157,9 +2157,9 @@ class StageEditor(Form):
 
 class CostumePrompt(Form):
 
-    def __init__(self, uninstall=False):
+    def __init__(self, uninstall=False, cosmeticsOnly=False):
         # Form parameters
-        self.Text = 'Install Costume' if not uninstall else 'Uninstall Costume'
+        self.Text = ('Install ' if not uninstall else 'Uninstall ') + ('Costume' if not cosmeticsOnly else 'Cosmetics')
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.MinimizeBox = False
@@ -2169,6 +2169,7 @@ class CostumePrompt(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
+        self.cosmeticsOnly = cosmeticsOnly
         self.uninstall = uninstall
 
         # Form vars
@@ -2279,7 +2280,8 @@ class CostumePrompt(Form):
         self.fileGroup.Controls.Add(cspPanel)
         self.fileGroup.Controls.Add(bpPanel)
         self.fileGroup.Controls.Add(stockPanel)
-        self.fileGroup.Controls.Add(costumePanel)
+        if self.cosmeticsOnly != True:
+            self.fileGroup.Controls.Add(costumePanel)
 
         # Fighter ID box
         self.fighterIdGroup = GroupBox()
@@ -2424,7 +2426,7 @@ class CostumePrompt(Form):
         if not valid:
             BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
             return
-        if (not self.cspFiles or not self.bpFiles or not self.stockFiles or not self.costumeFiles) and not self.uninstall:
+        if (not self.cspFiles or not self.bpFiles or not self.stockFiles or (not self.costumeFiles and not self.cosmeticsOnly)) and not self.uninstall:
             proceed = BrawlAPI.ShowYesNoPrompt("You have not added all possible files. Would you like to proceed anyway?", "Files Missing")
             if proceed:
                 self.DialogResult = DialogResult.OK
@@ -3672,7 +3674,7 @@ class IdEntryForm(Form):
 
 class CostumeForm(Form):
 
-    def __init__(self, images, skipPositions=[], remove=False, availableIds=[]):
+    def __init__(self, images, skipPositions=[], remove=False, availableIds=[], cosmeticsOnly=False):
         # Form parameters
         self.Text = 'Select Costume'
         self.index = 0 # Index of selected costume
@@ -3785,7 +3787,8 @@ class CostumeForm(Form):
         # Add controls
         self.Controls.Add(self.pictureBox)
         self.Controls.Add(self.label)
-        self.Controls.Add(dropDownGroup)
+        if not cosmeticsOnly:
+            self.Controls.Add(dropDownGroup)
         self.Controls.Add(rightButton)
         self.Controls.Add(leftButton)
         if not remove:
