@@ -909,7 +909,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 #region INSTALL COSTUME
 
-def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0):
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0, cosmeticsOnly=False):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -930,8 +930,9 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 				fighterInfo = getFighterInfo(fighterConfig, "", "")
 
 			# Set up progressbar
+			itemText = "Costume" if not cosmeticsOnly else "Cosmetics"
 			progressCounter = 0
-			progressBar = ProgressWindow(MainForm.Instance, "Installing Costume...", "Installing Costume", False)
+			progressBar = ProgressWindow(MainForm.Instance, "Installing " + itemText + "...", "Installing " + itemText, False)
 			progressBar.Begin(0, 5, progressCounter)
 
 			# sc_selcharacter
@@ -993,25 +994,26 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressBar.Update(progressCounter)
 
 
-			# Costume files
-			if fighterInfo:
-				fighterName = fighterInfo.fighterName
-			else:
-				if fighterId == "2D":
-					fighterName = "Knuckles"
+			if cosmeticsOnly != True:
+				# Costume files
+				if fighterInfo:
+					fighterName = fighterInfo.fighterName
 				else:
-					if not FighterNameGenerators.generated:
-						FighterNameGenerators.GenerateLists()
-					fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
-			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages, startingId=startingId)
+					if fighterId == "2D":
+						fighterName = "Knuckles"
+					else:
+						if not FighterNameGenerators.generated:
+							FighterNameGenerators.GenerateLists()
+						fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
+				costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages, startingId=startingId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			
-			
-			# Ex Config
-			enableAllCostumes(fighterId)
-			addCssSlots(costumes, index, cssSlotConfigId)
+			if cosmeticsOnly != True:
+				# Ex Config
+				enableAllCostumes(fighterId)
+				addCssSlots(costumes, index, cssSlotConfigId)
 
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
@@ -1019,7 +1021,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			progressBar.Finish()
-			BrawlAPI.ShowMessage("Costume installed successfully.", "Success")
+			BrawlAPI.ShowMessage(itemText + " installed successfully.", "Success")
 
 		except Exception as e:
 			if 'progressBar' in locals():
