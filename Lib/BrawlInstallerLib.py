@@ -6014,7 +6014,7 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 			if stageParam.soundBankFile:
 				if File.Exists(stageParam.soundBankFile):
 					if stageParam.soundBank and hexId(stageParam.soundBank) != "0xFFFF":
-						fileName = addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3) + '_' + stageParam.aslEntry.Name + ".sawnd"
+						fileName = addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3) + '_' + stageParam.pacName + ".sawnd"
 						if not File.Exists(MainForm.BuildPath + "/pf/sfx/" + fileName):
 							copyRenameFile(stageParam.soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
 					elif hexId(stageParam.soundBank != "0xFFFF"):
