@@ -3565,7 +3565,7 @@ def uninstallEndingFiles(fighterName, fighterId):
 # Function to do all the credits remove work
 def uninstallCreditsSong(slotId, removeTheme=True):
 		songId = updateCreditsCode(slotId, "0x0000", remove=True)
-		if removeTheme:
+		if removeTheme and songId != None:
 			removeSong(int(songId, 16), 'Credits', 'Credits')
 
 # Remove CSS icon for SSE
