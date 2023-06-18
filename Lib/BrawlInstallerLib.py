@@ -5359,7 +5359,7 @@ def updateStageList(stageList, path="/Source/Project+/StageFiles.asm"):
 				i = 0
 				for table in tables:
 					i += 1
-					newText.append("\nTABLE_" + str(i) + ":")
+					newText.append("TABLE_" + str(i) + ":")
 					if len(table) > 0:
 						newText.append("\tbyte[" + str(len(table)) + "] |")
 					j = 0
