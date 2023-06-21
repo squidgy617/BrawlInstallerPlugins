@@ -1013,7 +1013,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				i = 1
 				while imageCount > 0:
 					texNode = texFolder.Children[len(texFolder.Children) - imageCount]
-					while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName and int(texNode.PrevSibling().Name.replace('InfStc.', '')) >= startId:
+					while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName and (not texNode.PrevSibling().Name.replace('InfStc.', '').isnumeric() or int(texNode.PrevSibling().Name.replace('InfStc.', '')) >= startId):
 						texNode.MoveUp()
 					texNode.Name = "InfStc." + addLeadingZeros(str(startId + i), 4 if fiftyCC == "true" else 3)
 					i += 1
