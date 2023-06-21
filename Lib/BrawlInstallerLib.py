@@ -731,20 +731,23 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				texFolder = getChildByName(bresNode, "Textures(NW4R)")
 				costumeCount = 1
 				i = 0
-				length = len(texFolder.Children)
-				# Count costumes, find position for import
-				for child in texFolder.Children:
-					if costumeCount >= position and costumeCount - 1 not in skipPositions:
-						break
-					if not child.SharesData:
-						costumeCount += 1
-					i += 1
+				if texFolder:
+					length = len(texFolder.Children)
+					# Count costumes, find position for import
+					for child in texFolder.Children:
+						if costumeCount >= position and costumeCount - 1 not in skipPositions:
+							break
+						if not child.SharesData:
+							costumeCount += 1
+						i += 1
 				costumeIndex = i + 1
 				# Import images
 				if len(images) > 1:
 					ColorSmashImport(bresNode, images, 256)
 				else:
 					importTexture(bresNode, images[0], WiiPixelFormat.CI8, 128, 160)
+				if not texFolder:
+					texFolder = getChildByName(bresNode, "Textures(NW4R)")
 				# Get all newly added textures
 				newTextures = texFolder.Children[len((texFolder.Children)) - len(images):len(texFolder.Children)]
 				# Determine which CSPs need to be moved (ones that should be after new costumes)
@@ -961,6 +964,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 			bres = None
 		# Start stuff
 		startId = (cosmeticId * 50) + position - 1 if fiftyCC == "true" else int(str(cosmeticId) + str(position - 1))
+		endId = startId + 1
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
@@ -1009,7 +1013,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				i = 1
 				while imageCount > 0:
 					texNode = texFolder.Children[len(texFolder.Children) - imageCount]
-					while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName:
+					while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName and int(texNode.PrevSibling().Name.replace('InfStc.', '')) >= startId:
 						texNode.MoveUp()
 					texNode.Name = "InfStc." + addLeadingZeros(str(startId + i), 4 if fiftyCC == "true" else 3)
 					i += 1

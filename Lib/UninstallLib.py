@@ -34,7 +34,7 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			# sc_selcharacter
 			indexes = subtractCSPs(cosmeticId, settings.rspLoading, position, skipPositions=skipPositions)
 			if settings.installStocksToCSS == "true":
-				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [90]", "", endIndex=indexes[1], rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 		
 			# If we did any work in sc_selcharacter, save and close it
 			fileOpened = checkOpenFile("sc_selcharacter")
