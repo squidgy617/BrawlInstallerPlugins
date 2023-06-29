@@ -189,7 +189,7 @@ This tool was made possible by:
 - CaliKingz01, who provided the PSA for X to use as an example character package.
 - Shy, who created the cosmetics used for X.
 - JVIasterJ for creating the expanded REMIX sc_selcharacter.pac, as well as for bugtesting.
-- Chrisman for bugtesting.
+- Chrisman and ilikepizza107 for bugtesting.
 - Hatyaro, for helping with some coding challenges.
 - The Project+ team, for the advancements made to Brawl modding that made this all possible.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
