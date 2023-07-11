@@ -5191,7 +5191,7 @@ class StageSlot:
 			self.name = name
 
 class StageCosmetics:
-		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None, replayIcon=None):
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None, replayIcon=None, statsImage=None):
 			self.stageIcon = stageIcon
 			self.stagePreview = stagePreview
 			self.stageName = stageName
@@ -5202,6 +5202,7 @@ class StageCosmetics:
 			self.franchiseIconList = franchiseIconList
 			self.gameLogoList = gameLogoList
 			self.replayIcon = replayIcon
+			self.statsImage = statsImage
 
 class StageParams:
 		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile="", originalPacName="", originalModule="", originalTracklist="", originalSoundBank=""):
@@ -5642,6 +5643,7 @@ def getStageCosmetics(cosmeticId):
 		franchiseIcon = 0
 		gameLogo = 0
 		altName = 0
+		statsImage = 0
 		stageNameList = []
 		franchiseIconList = []
 		gameLogoList = []
@@ -5702,6 +5704,13 @@ def getStageCosmetics(cosmeticId):
 							franchiseIconList.append(ImageNode(child.Name, child.GetImage(0)))
 						if child.Name.startswith('MenSelmapMark.'):
 							gameLogoList.append(ImageNode(child.Name, child.GetImage(0)))
+					# Stats image
+					statsTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", int(cosmeticId, 16), getNearest=False)
+					texNode = getChildByName(texFolder, statsTextureName)
+					if texNode:
+						statsImage = Bitmap(texNode.GetImage(0))
+					else:
+						statsImage = ""
 			BrawlAPI.ForceCloseFile()
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
 		if fileOpened:
@@ -5716,7 +5725,7 @@ def getStageCosmetics(cosmeticId):
 					replayIcon = None
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished getting cosmetics")
-		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList, replayIcon=replayIcon)
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList, replayIcon=replayIcon, statsImage=statsImage)
 
 # Get the texture associated with a pat0 entry by input frame index
 def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex, getNearest=True):
@@ -5857,7 +5866,7 @@ def importStageReplayIcon(cosmeticId, replayIcon):
 		writeLog("Finished importing stage replay icon")
 
 # Import stage cosmetics
-def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac'):
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac', statsImage=""):
 		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
 		if File.Exists(MainForm.BuildPath + fileName):
 			fileOpened = openFile(MainForm.BuildPath + fileName)
@@ -5910,6 +5919,8 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameshadowM_start", altStageName, altStageName, int(cosmeticId, 16))
 							else:
 								pat0Entry.Texture = altStageName
+						if statsImage:
+							addStageCosmetic(cosmeticId, statsImage, anmTexPatFolder, texFolder, bresNode, "MenSelmapStats.", "MenSelmapPreview", "pasted__stnamelogoM_stats", WiiPixelFormat.I4)
 						texFolder.SortChildren()
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
@@ -5973,6 +5984,10 @@ def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeF
 							pat0Entry.Remove()
 						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgMShadow", cosmeticId)
 						if pat0Entry:
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", cosmeticId)
+						if pat0Entry:
+							removeTexNodes.append(pat0Entry.Texture)
 							pat0Entry.Remove()
 						if removeFranchiseIcon:
 							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", cosmeticId)
