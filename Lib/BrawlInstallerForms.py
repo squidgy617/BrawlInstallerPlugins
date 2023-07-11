@@ -1591,6 +1591,13 @@ class StageEditor(Form):
         gameLogoButton.Location = Point(160, 490)
         gameLogoButton.Click += self.gameLogoButtonPressed
 
+        replayIconObject = ImageObject("Replay Icon:", Size(112, 88))
+        self.replayIcon = ImageControl([replayIconObject])
+        self.replayIcon.Location = Point(self.franchiseIconPictureBox.Location.X, franchiseIconButton.Location.Y + franchiseIconButton.Height + 16)
+        if self.cosmetics.replayIcon and not self.new:
+            #self.replayIcon.Images[0] = self.cosmetics.replayIcon
+            self.replayIcon.pictureBox[0].Image = self.cosmetics.replayIcon #createBitmap(image[0])
+
         # Stage Preview
         self.previewPictureBox = PictureBox()
         self.previewPictureBox.Location = Point(32, 32)
@@ -1630,6 +1637,7 @@ class StageEditor(Form):
         cosmeticsGroupBox.Controls.Add(self.gameLogoPictureBox)
         cosmeticsGroupBox.Controls.Add(self.gameLogoDropDown)
         cosmeticsGroupBox.Controls.Add(gameLogoButton)
+        cosmeticsGroupBox.Controls.Add(self.replayIcon)
 
         # Parameters Groupbox
         parametersGroupBox = GroupBox()
@@ -1853,6 +1861,7 @@ class StageEditor(Form):
         toolTip.SetToolTip(altLabel, "The name for the alternate stage layout that displays on the stage select screen")
         toolTip.SetToolTip(franchiseIconLabel, "The franchise icon for the stage that displays on the stage select screen")
         toolTip.SetToolTip(gameLogoLabel, "The game icon for the stage that displays on the stage select screen")
+        toolTip.SetToolTip(self.replayIcon.label[0], "The icon for the stage that displays in the replay menu")
         toolTip.SetToolTip(nameLabel, "The internal name to use for this stage entry")
         toolTip.SetToolTip(pacNameLabel, "The name used in the .pac file for this stage entry, e.g. PeachCastle if your pac is STGPEACHCASTLE.pac")
         toolTip.SetToolTip(moduleLabel, "The name of the module file used by the stage entry, including the .rel extension")
@@ -1962,6 +1971,8 @@ class StageEditor(Form):
             if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
                 importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
                 importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
+            if self.replayIcon.Images[0]:
+                importStageReplayIcon(self.cosmeticId, self.replayIcon.Images[0])
             progressCounter += 1
             progressBar.Update(progressCounter)
             updateStageSlot(self.stageId, self.stageAltListbox.Items)
