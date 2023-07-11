@@ -4887,21 +4887,21 @@ def getSettings():
 		settings.fiftyCostumeCode = readValueFromKey(fileText, "fiftyCostumeCode")
 		settings.installKirbyHats = readValueFromKey(fileText, "installKirbyHats")
 		settings.defaultKirbyHat = readValueFromKey(fileText, "defaultKirbyHat")
-		settings.kirbyHatExe = readValueFromKey(fileText, "kirbyHatExe")
-		settings.assemblyFunctionsExe = readValueFromKey(fileText, "assemblyFunctionsExe")
-		settings.sawndReplaceExe = readValueFromKey(fileText, "sawndReplaceExe")
-		settings.sfxChangeExe = readValueFromKey(fileText, "sfxChangeExe")
+		settings.kirbyHatExe = readValueFromKey(fileText, "kirbyHatExe").replace('{buildPath}', MainForm.BuildPath)
+		settings.assemblyFunctionsExe = readValueFromKey(fileText, "assemblyFunctionsExe").replace('{buildPath}', MainForm.BuildPath)
+		settings.sawndReplaceExe = readValueFromKey(fileText, "sawndReplaceExe").replace('{buildPath}', MainForm.BuildPath)
+		settings.sfxChangeExe = readValueFromKey(fileText, "sfxChangeExe").replace('{buildPath}', MainForm.BuildPath)
 		settings.soundbankStyle = readValueFromKey(fileText, "soundbankStyle")
 		settings.addSevenToSoundbankIds = readValueFromKey(fileText, "addSevenToSoundbankIds")
 		settings.addSevenToSoundbankName = readValueFromKey(fileText, "addSevenToSoundbankName")
 		settings.installVictoryThemes = readValueFromKey(fileText, "installVictoryThemes")
-		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
+		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe").replace('{buildPath}', MainForm.BuildPath)
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
 		settings.installToSse = readValueFromKey(fileText, "installToSse")
 		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
 		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
-		settings.customStageLists = readValueFromKey(fileText, "customStageLists")
+		settings.customStageLists = readValueFromKey(fileText, "customStageLists").replace('{buildPath}', MainForm.BuildPath)
 		settings.installCSSIconNames = readValueFromKey(fileText, "installCSSIconNames")
 		writeLog("Reading settings complete")
 		return settings
@@ -5191,7 +5191,7 @@ class StageSlot:
 			self.name = name
 
 class StageCosmetics:
-		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None):
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None, replayIcon=None, statsImage=None):
 			self.stageIcon = stageIcon
 			self.stagePreview = stagePreview
 			self.stageName = stageName
@@ -5201,6 +5201,8 @@ class StageCosmetics:
 			self.stageNameList = stageNameList
 			self.franchiseIconList = franchiseIconList
 			self.gameLogoList = gameLogoList
+			self.replayIcon = replayIcon
+			self.statsImage = statsImage
 
 class StageParams:
 		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile="", originalPacName="", originalModule="", originalTracklist="", originalSoundBank=""):
@@ -5595,6 +5597,7 @@ def removeStageSlot(stageSlots, stageLists, stageTableFile=''):
 		if fileOpened:
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
+		removeStageReplayIcon(cosmeticId)
 		for stageList in stageLists:
 			if not stageTableFile:
 				stageTableFile = stageList
@@ -5640,6 +5643,7 @@ def getStageCosmetics(cosmeticId):
 		franchiseIcon = 0
 		gameLogo = 0
 		altName = 0
+		statsImage = 0
 		stageNameList = []
 		franchiseIconList = []
 		gameLogoList = []
@@ -5700,18 +5704,37 @@ def getStageCosmetics(cosmeticId):
 							franchiseIconList.append(ImageNode(child.Name, child.GetImage(0)))
 						if child.Name.startswith('MenSelmapMark.'):
 							gameLogoList.append(ImageNode(child.Name, child.GetImage(0)))
+					# Stats image
+					statsTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", int(cosmeticId, 16), getNearest=False)
+					texNode = getChildByName(texFolder, statsTextureName)
+					if texNode:
+						statsImage = Bitmap(texNode.GetImage(0))
+					else:
+						statsImage = ""
+			BrawlAPI.ForceCloseFile()
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
+		if fileOpened:
+			anmTexPatFolder = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			if anmTexPatFolder and texFolder:
+				replayIconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenReplayPhoto0_TopN__0", "snap_PhotoMat", int(cosmeticId, 16), False)
+				texNode = getChildByName(texFolder, replayIconTextureName)
+				if texNode:
+					replayIcon = Bitmap(texNode.GetImage(0))
+				else:
+					replayIcon = None
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished getting cosmetics")
-		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList)
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList, replayIcon=replayIcon, statsImage=statsImage)
 
 # Get the texture associated with a pat0 entry by input frame index
-def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
+def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex, getNearest=True):
 		writeLog("Getting textures for pat0 entry with frame index " + str(frameIndex))
 		pat0 = getChildByName(patFolder, pat0Name)
 		if pat0:
 			pat0Entry = getChildByName(pat0, entryName).Children[0]
 			if pat0Entry:
-				frame = getChildByFrameIndex(pat0Entry, frameIndex)
+				frame = getChildByFrameIndex(pat0Entry, frameIndex, getNearest=getNearest)
 				if frame != False:
 					textureName = frame.Texture
 					return textureName
@@ -5828,8 +5851,22 @@ def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, pr
 		newNode = importTexture(texNode if texNode else bresNode, image, format)
 		newNode.Name = textureName
 
+# Import stage replay icon
+def importStageReplayIcon(cosmeticId, replayIcon):
+	writeLog("Importing stage replay icon for cosmetic ID " + str(cosmeticId))
+	if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Replay.brres'):
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		if fileOpened:
+			anmTexPatFolder = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			if anmTexPatFolder and texFolder:
+				addStageCosmetic(cosmeticId, replayIcon, anmTexPatFolder, texFolder, BrawlAPI.RootNode, "MenCollReplaySt.", "MenReplayPhoto0_TopN__0", "snap_PhotoMat", WiiPixelFormat.CMPR)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished importing stage replay icon")
+
 # Import stage cosmetics
-def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac'):
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac', statsImage=""):
 		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
 		if File.Exists(MainForm.BuildPath + fileName):
 			fileOpened = openFile(MainForm.BuildPath + fileName)
@@ -5882,10 +5919,34 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameshadowM_start", altStageName, altStageName, int(cosmeticId, 16))
 							else:
 								pat0Entry.Texture = altStageName
+						if statsImage:
+							addStageCosmetic(cosmeticId, statsImage, anmTexPatFolder, texFolder, bresNode, "MenSelmapStats.", "MenSelmapPreview", "pasted__stnamelogoM_stats", WiiPixelFormat.I4)
 						texFolder.SortChildren()
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished importing stage cosmetics")
+
+# Remove stage replay icon
+def removeStageReplayIcon(cosmeticId):
+	writeLog("Removing replay icon for cosmetic ID " + str(cosmeticId))
+	if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Replay.brres'):
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		if fileOpened:
+			cosmeticId = int(cosmeticId, 16)
+			bresNode = BrawlAPI.RootNode
+			anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+			texFolder = getChildByName(bresNode, "Textures(NW4R)")
+			if anmTexPatFolder and texFolder:
+				pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenReplayPhoto0_TopN__0", "snap_PhotoMat", cosmeticId)
+				if pat0Entry:
+					texName = pat0Entry.Texture
+					pat0Entry.Remove()
+					texNode = getChildByName(texFolder, texName)
+					if texNode:
+						texNode.Remove(True)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+	writeLog("Finished removing stage replay icon")
 
 # Remove stage cosmetics
 def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeFranchiseIcon=False, removeGameLogo=False):
@@ -5923,6 +5984,10 @@ def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeF
 							pat0Entry.Remove()
 						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgMShadow", cosmeticId)
 						if pat0Entry:
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", cosmeticId)
+						if pat0Entry:
+							removeTexNodes.append(pat0Entry.Texture)
 							pat0Entry.Remove()
 						if removeFranchiseIcon:
 							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", cosmeticId)

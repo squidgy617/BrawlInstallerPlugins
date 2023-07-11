@@ -1412,6 +1412,25 @@ class StageList(Form):
                                             for texPat in texEntry.Children:
                                                 id = int(texPat.FrameIndex)
                                                 usedCosmeticIds.append(hexId(id).replace('0x',''))
+        if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Replay.brres'):
+            fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+            if fileOpened:
+                node = BrawlAPI.RootNode
+                texFolder = getChildByName(node, "Textures(NW4R)")
+                if texFolder and texFolder.Children:
+                    if texNode.Name.startswith('MenCollReplaySt.'):
+                        if len(texNode.Name.split('.')) > 1:
+                            id = texNode.Name.split('.')[1]
+                            usedCosmeticIds.append(hexId(id).replace('0x',''))
+                annmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+                if anmTexPat and anmTexPat.Children:
+                    pat0 = getChildByName(anmTexPat, "MenReplayPhoto0_TopN__0")
+                    if pat0:
+                        texEntry = pat0.Children[0].Children[0]
+                        if texEntry:
+                            for texPat in texEntry.Children:
+                                id = int(texPat.FrameIndex)
+                                usedCosmeticIds.append(hexId(id).replace('0x',''))
         # Get first available
         cosmeticId = 1
         while hexId(cosmeticId).replace('0x','') in usedCosmeticIds:
@@ -1591,6 +1610,18 @@ class StageEditor(Form):
         gameLogoButton.Location = Point(160, 490)
         gameLogoButton.Click += self.gameLogoButtonPressed
 
+        replayIconObject = ImageObject("Replay Icon", Size(112, 88))
+        self.replayIcon = ImageControl([replayIconObject])
+        self.replayIcon.Location = Point(self.franchiseIconPictureBox.Location.X, franchiseIconButton.Location.Y + franchiseIconButton.Height + 16)
+        if self.cosmetics.replayIcon and not self.new:
+            self.replayIcon.pictureBox[0].Image = self.cosmetics.replayIcon
+
+        statsImageObject = ImageObject("Stats Image", Size(112,88))
+        self.statsImage = ImageControl([statsImageObject])
+        self.statsImage.Location = Point(self.gameLogoPictureBox.Location.X, gameLogoButton.Location.Y + gameLogoButton.Height + 16)
+        if self.cosmetics.statsImage and not self.new:
+            self.statsImage.pictureBox[0].Image = self.cosmetics.statsImage
+
         # Stage Preview
         self.previewPictureBox = PictureBox()
         self.previewPictureBox.Location = Point(32, 32)
@@ -1630,6 +1661,8 @@ class StageEditor(Form):
         cosmeticsGroupBox.Controls.Add(self.gameLogoPictureBox)
         cosmeticsGroupBox.Controls.Add(self.gameLogoDropDown)
         cosmeticsGroupBox.Controls.Add(gameLogoButton)
+        cosmeticsGroupBox.Controls.Add(self.replayIcon)
+        cosmeticsGroupBox.Controls.Add(self.statsImage)
 
         # Parameters Groupbox
         parametersGroupBox = GroupBox()
@@ -1853,6 +1886,8 @@ class StageEditor(Form):
         toolTip.SetToolTip(altLabel, "The name for the alternate stage layout that displays on the stage select screen")
         toolTip.SetToolTip(franchiseIconLabel, "The franchise icon for the stage that displays on the stage select screen")
         toolTip.SetToolTip(gameLogoLabel, "The game icon for the stage that displays on the stage select screen")
+        toolTip.SetToolTip(self.replayIcon.label[0], "(OPTIONAL) The icon for the stage that displays in the replay menu")
+        toolTip.SetToolTip(self.statsImage.label[0], "(OPTIONAL) Stats displayed on the stage select screen, not used in most builds")
         toolTip.SetToolTip(nameLabel, "The internal name to use for this stage entry")
         toolTip.SetToolTip(pacNameLabel, "The name used in the .pac file for this stage entry, e.g. PeachCastle if your pac is STGPEACHCASTLE.pac")
         toolTip.SetToolTip(moduleLabel, "The name of the module file used by the stage entry, including the .rel extension")
@@ -1959,9 +1994,11 @@ class StageEditor(Form):
 
             progressCounter += 1
             progressBar.Update(progressCounter)
-            if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName:
-                importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos)
+            if self.newIcon or self.newName or self.newPreview or self.newFranchiseIcon or self.newGameLogo or self.newAltName or self.statsImage.Images[0]:
+                importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, statsImage=self.statsImage.Images[0])
                 importStageCosmetics(self.cosmeticId, stageIcon=self.newIcon, stageName=self.newName, stagePreview=self.newPreview, franchiseIconName=self.newFranchiseIcon, gameLogoName=self.newGameLogo, altStageName=self.newAltName, franchiseIcons=self.addedFranchiseIcons, gameLogos=self.addedGameLogos, fileName='/pf/menu2/mu_menumain.pac')
+            if self.replayIcon.Images[0]:
+                importStageReplayIcon(self.cosmeticId, self.replayIcon.Images[0])
             progressCounter += 1
             progressBar.Update(progressCounter)
             updateStageSlot(self.stageId, self.stageAltListbox.Items)
@@ -3233,19 +3270,19 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
         settings.installCSSIconNames = boolText(self.cssIconNameCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
-        settings.kirbyHatExe = self.kirbyExeFileBox.Text
+        settings.kirbyHatExe = self.kirbyExeFileBox.Text.replace(MainForm.BuildPath, '{buildPath}')
         settings.installKirbyHats = boolText(self.installKirbyHatCheckbox.Checked)
         settings.defaultKirbyHat = hexId(self.defaultKirbyHatText.Text) if self.defaultKirbyHatText.Text.strip() != "" else "none"
-        settings.assemblyFunctionsExe = self.codeMenuFileBox.Text
-        settings.sawndReplaceExe = self.sawndReplaceExeText.Text
-        settings.sfxChangeExe = self.sfxChangeExeText.Text
+        settings.assemblyFunctionsExe = self.codeMenuFileBox.Text.replace(MainForm.BuildPath, '{buildPath}')
+        settings.sawndReplaceExe = self.sawndReplaceExeText.Text.replace(MainForm.BuildPath, '{buildPath}')
+        settings.sfxChangeExe = self.sfxChangeExeText.Text.replace(MainForm.BuildPath, '{buildPath}')
         if self.hexRadioButton.Checked:
             settings.soundbankStyle = "hex"
         elif self.decimalRadioButton.Checked:
             settings.soundbankStyle = "dec"
         settings.addSevenToSoundbankIds = boolText(self.incrementSoundbankIdCheck.Checked)
         settings.addSevenToSoundbankName = boolText(self.incrementSoundbankNameCheck.Checked)
-        settings.gfxChangeExe = self.gfxChangeExeText.Text
+        settings.gfxChangeExe = self.gfxChangeExeText.Text.replace(MainForm.BuildPath, '{buildPath}')
         settings.installToSse = boolText(self.sseCheck.Checked)
         settings.installTrophies = boolText(self.trophyCheck.Checked)
         settings.installVictoryThemes = boolText(self.victoryThemeCheck.Checked)
@@ -3256,7 +3293,7 @@ class SettingsForm(Form):
         stageListSetting = ""
         i = 0
         while i < len(self.customStageLists):
-            stageListSetting += str(self.customStageLists[i])
+            stageListSetting += str(self.customStageLists[i].replace(MainForm.BuildPath, '{buildPath}'))
             if i != len(self.customStageLists) - 1:
                 stageListSetting += ","
             i += 1
