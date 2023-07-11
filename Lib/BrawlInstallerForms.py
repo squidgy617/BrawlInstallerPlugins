@@ -1412,6 +1412,25 @@ class StageList(Form):
                                             for texPat in texEntry.Children:
                                                 id = int(texPat.FrameIndex)
                                                 usedCosmeticIds.append(hexId(id).replace('0x',''))
+        if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Replay.brres'):
+            fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+            if fileOpened:
+                node = BrawlAPI.RootNode
+                texFolder = getChildByName(node, "Textures(NW4R)")
+                if texFolder and texFolder.Children:
+                    if texNode.Name.startswith('MenCollReplaySt.'):
+                        if len(texNode.Name.split('.')) > 1:
+                            id = texNode.Name.split('.')[1]
+                            usedCosmeticIds.append(hexId(id).replace('0x',''))
+                annmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+                if anmTexPat and anmTexPat.Children:
+                    pat0 = getChildByName(anmTexPat, "MenReplayPhoto0_TopN__0")
+                    if pat0:
+                        texEntry = pat0.Children[0].Children[0]
+                        if texEntry:
+                            for texPat in texEntry.Children:
+                                id = int(texPat.FrameIndex)
+                                usedCosmeticIds.append(hexId(id).replace('0x',''))
         # Get first available
         cosmeticId = 1
         while hexId(cosmeticId).replace('0x','') in usedCosmeticIds:
