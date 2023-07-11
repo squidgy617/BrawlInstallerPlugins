@@ -3270,19 +3270,19 @@ class SettingsForm(Form):
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
         settings.installCSSIconNames = boolText(self.cssIconNameCheckBox.Checked)
         settings.franchiseIconSizeCSS = self.franchiseIconSizeText.Text
-        settings.kirbyHatExe = self.kirbyExeFileBox.Text
+        settings.kirbyHatExe = self.kirbyExeFileBox.Text.replace(MainForm.BuildPath, '{buildPath}')
         settings.installKirbyHats = boolText(self.installKirbyHatCheckbox.Checked)
         settings.defaultKirbyHat = hexId(self.defaultKirbyHatText.Text) if self.defaultKirbyHatText.Text.strip() != "" else "none"
-        settings.assemblyFunctionsExe = self.codeMenuFileBox.Text
-        settings.sawndReplaceExe = self.sawndReplaceExeText.Text
-        settings.sfxChangeExe = self.sfxChangeExeText.Text
+        settings.assemblyFunctionsExe = self.codeMenuFileBox.Text.replace(MainForm.BuildPath, '{buildPath}')
+        settings.sawndReplaceExe = self.sawndReplaceExeText.Text.replace(MainForm.BuildPath, '{buildPath}')
+        settings.sfxChangeExe = self.sfxChangeExeText.Text.replace(MainForm.BuildPath, '{buildPath}')
         if self.hexRadioButton.Checked:
             settings.soundbankStyle = "hex"
         elif self.decimalRadioButton.Checked:
             settings.soundbankStyle = "dec"
         settings.addSevenToSoundbankIds = boolText(self.incrementSoundbankIdCheck.Checked)
         settings.addSevenToSoundbankName = boolText(self.incrementSoundbankNameCheck.Checked)
-        settings.gfxChangeExe = self.gfxChangeExeText.Text
+        settings.gfxChangeExe = self.gfxChangeExeText.Text.replace(MainForm.BuildPath, '{buildPath}')
         settings.installToSse = boolText(self.sseCheck.Checked)
         settings.installTrophies = boolText(self.trophyCheck.Checked)
         settings.installVictoryThemes = boolText(self.victoryThemeCheck.Checked)
@@ -3293,7 +3293,7 @@ class SettingsForm(Form):
         stageListSetting = ""
         i = 0
         while i < len(self.customStageLists):
-            stageListSetting += str(self.customStageLists[i])
+            stageListSetting += str(self.customStageLists[i].replace(MainForm.BuildPath, '{buildPath}'))
             if i != len(self.customStageLists) - 1:
                 stageListSetting += ","
             i += 1
