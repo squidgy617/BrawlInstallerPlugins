@@ -1720,6 +1720,7 @@ class StageEditor(Form):
         self.nameTextBox.Location = Point(208, 16)
         self.nameTextBox.Width = 160
         self.nameTextBox.TextChanged += self.nameTextChanged
+        self.nameTextBox.Leave += self.nameTextLeave
         self.nameTextBox.Enabled = True if len(self.alts) > 0 else False
 
         nameLabel = Label()
@@ -2111,6 +2112,14 @@ class StageEditor(Form):
 
     def nameTextChanged(self, sender, args):
         self.stageAltListbox.SelectedValue.Name = self.nameTextBox.Text
+
+    def nameTextLeave(self, sender, args):
+        valid = True
+        if self.nameTextBox.Text != self.stageAltListbox.SelectedItem.originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + self.stageAltListbox.SelectedValue.Name + '.param'):
+            valid = False
+        if not valid:
+            BrawlAPI.ShowMessage("A param file with this name already exists. Please enter a different name.", "Invalid Input")
+            self.nameTextBox.Text = self.stageAltListbox.SelectedItem.originalName
 
     def pacNameTextChanged(self, sender, args):
         self.stageAltListbox.SelectedItem.pacName = self.pacNameTextBox.Text
