@@ -5735,7 +5735,8 @@ def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex, getNeares
 			pat0Entry = getChildByName(pat0, entryName).Children[0]
 			if pat0Entry:
 				frame = getChildByFrameIndex(pat0Entry, frameIndex, getNearest=getNearest)
-				if frame != False:
+				# Don't get placeholder/default cosmetics
+				if frame != False and not frame.Texture.endswith('00'):
 					textureName = frame.Texture
 					return textureName
 		return 0
@@ -5817,9 +5818,10 @@ def getStageAltInfo(stageId):
 def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 		writeLog("Getting texture name for cosmetic ID " + str(cosmeticId))
 		foundName = getChildByName(texFolder, prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2))
-		if foundName and not new:
+		# Placeholder/default cosmetics should be ignored
+		if foundName and not new and not foundName.endswith('00'):
 			return foundName.Name
-		elif not foundName:
+		elif not foundName or foundName.endswith('00'):
 			return prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2)
 		else:
 			i = 0
@@ -5833,7 +5835,7 @@ def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 				break
 			return prefix + addLeadingZeros(str(newCosmeticId), 2)
 		
-# Generic functiont to add stage cosmetics
+# Generic function to add stage cosmetics
 def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, prefix, pat0Name, entryName, format):
 		pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, pat0Name, entryName, int(cosmeticId, 16))
 		if not pat0Entry:
@@ -5845,6 +5847,10 @@ def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, pr
 				addToPat0(bresNode, pat0Name, "pasted__stnameshadowM", textureName, textureName, int(cosmeticId, 16), textureName)
 			if prefix == "MenSelmapPrevbase.":
 				addToPat0(bresNode, pat0Name, "basebgMShadow", textureName, textureName, int(cosmeticId, 16), textureName)
+		# Placeholder/default cosmetics shouldn't get replaced
+		elif pat0Entry.Texture.endswith('00'):
+			textureName = getStageTextureName(prefix, cosmeticId, texFolder)
+			pat0Entry.Texture = textureName
 		else:
 			textureName = pat0Entry.Texture
 		texNode = getChildByName(texFolder, textureName)
