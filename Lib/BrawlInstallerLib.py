@@ -5819,9 +5819,9 @@ def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 		writeLog("Getting texture name for cosmetic ID " + str(cosmeticId))
 		foundName = getChildByName(texFolder, prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2))
 		# Placeholder/default cosmetics should be ignored
-		if foundName and not new and not foundName.endswith('00'):
+		if foundName and not new and not foundName.Name.endswith('00'):
 			return foundName.Name
-		elif not foundName or foundName.endswith('00'):
+		elif not foundName or foundName.Name.endswith('00'):
 			return prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2)
 		else:
 			i = 0
