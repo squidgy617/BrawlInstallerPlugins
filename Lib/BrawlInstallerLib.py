@@ -5,7 +5,7 @@ import binascii
 import clr
 clr.AddReference("System.Drawing")
 clr.AddReference("System.IO.Compression.FileSystem")
-clr.AddReference("System")
+clr.AddReference("System.Xml")
 from BrawlCrate.API import BrawlAPI
 from BrawlCrate.API.BrawlAPI import AppPath
 from BrawlCrate.UI import *
@@ -26,6 +26,8 @@ from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus.STEXNode import VariantType
 from System.IO.Compression import ZipFile
 from System.Windows.Forms import *
+from System.Xml import *
+from System.Xml.XPath import XPathException
 
 # TODO: Rename files when importing for most things
 
@@ -2016,6 +2018,7 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		assemblyFunctionsPath = getFileInfo(assemblyFunctionExe).DirectoryName
 		# Start back up
 		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
+		createBackup(assemblyFunctionsPath + '/EX_Config.xml')
 		createBackup(assemblyFunctionsPath + '/codeset.txt')
 		createBackup(MainForm.BuildPath + '/Source/Project+/CodeMenu.asm')
 		createBackup(MainForm.BuildPath + '/pf/menu3/data.cmnu')
@@ -2026,33 +2029,69 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		# End back up
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
-		writeLog("Reading EX_Characters.txt")
-		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
-		matchFound = False
-		i = 0
-		# Search for a matching fighter ID and if one is found, replace the line
-		while i < len(fileText):
-			line = fileText[i]
-			if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+		if File.Exists(assemblyFunctionsPath + '/EX_Characters.txt'):
+			writeLog("Reading EX_Characters.txt")
+			fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
+			matchFound = False
+			i = 0
+			# Search for a matching fighter ID and if one is found, replace the line
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+					i += 1
+					continue
+				# Get the figher ID out of the line
+				foundId = line.split(' = ')[1]
+				if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
+					matchFound = True
+					fileText[i] = '"' + fighterName + '" = 0x' + fighterId
 				i += 1
-				continue
-			# Get the figher ID out of the line
-			foundId = line.split(' = ')[1]
-			if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
-				matchFound = True
-				fileText[i] = '"' + fighterName + '" = 0x' + fighterId
-			i += 1
-		# Write updated file
-		writeLog("Writing updated EX_Characters.txt")
-		if matchFound:
-			File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', fileText)
-		else:
-			File.AppendAllText(assemblyFunctionsPath + '/EX_Characters.txt', '\n"' + fighterName + '" = 0x' + fighterId)
-		writeLog("Running " + assemblyFunctionExe)
-		p = Process.Start(assemblyFunctionExe, '1 1 0 1')
-		p.WaitForExit()
-		p.Dispose()
-		Directory.SetCurrentDirectory(AppPath)
+			# Write updated file
+			writeLog("Writing updated EX_Characters.txt")
+			if matchFound:
+				File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', fileText)
+			else:
+				File.AppendAllText(assemblyFunctionsPath + '/EX_Characters.txt', '\n"' + fighterName + '" = 0x' + fighterId)
+		if File.Exists(assemblyFunctionsPath + '/EX_Config.xml'):
+			writeLog("Reading EX_Config.xml")
+			reader = XmlTextReader(assemblyFunctionsPath + '/EX_Config.xml')
+			reader.Read()
+			doc = XmlDocument()
+			doc.Load(reader)
+			reader.Close()
+			root = doc.FirstChild
+			xPathString = '/codeMenuConfig/characterList'
+			try:
+				xmlNodes = doc.DocumentElement.SelectNodes(xPathString)
+			except XPathException as e:
+					xmlNodes = []
+			for node in xmlNodes:
+				for childNode in node.SelectNodes("character"):
+					slotId = childNode.Attributes["slotID"].Value
+					if slotId == '0x' + fighterId:
+						existingNode = childNode
+						break
+					else:
+						existingNode = None
+				if existingNode:
+					existingNode.SetAttribute("name", fighterName)
+				else:
+					characterNode = doc.CreateElement("character")
+					nameAttribute = doc.CreateAttribute("name")
+					nameAttribute.Value = fighterName
+					slotIdAttribute = doc.CreateAttribute("slotID")
+					slotIdAttribute.Value = '0x' + fighterId
+					characterNode.Attributes.Append(nameAttribute)
+					characterNode.Attributes.Append(slotIdAttribute)
+					node.AppendChild(characterNode)
+				writeLog("Writing updated EX_Config.xml")
+				doc.Save(assemblyFunctionsPath + '/EX_Config.xml')
+		if File.Exists(assemblyFunctionExe):
+			writeLog("Running " + assemblyFunctionExe)
+			p = Process.Start(assemblyFunctionExe, '1 1 0 1')
+			p.WaitForExit()
+			p.Dispose()
+			Directory.SetCurrentDirectory(AppPath)
 		writeLog("Add to code menu finished.")
 
 # Function to build GCTs using GCTRealMate
@@ -2239,18 +2278,19 @@ def updateThrowRelease(fighterId, fighterName, values):
 def importEndingFiles(files, endingId):
 		writeLog("Importing ending .pac files")
 		for file in files:
-			createBackup(MainForm.BuildPath + '/' + getFileInfo(file).Name)
 			fileOpened = BrawlAPI.OpenFile(file)
 			fileName = ""
 			texturePrefix = ""
 			if fileOpened:
 				if BrawlAPI.RootNode.Name.startswith('EndingSimple'):
 					fileName = 'EndingSimple' + addLeadingZeros(str(endingId), 2)
+					createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/' + fileName + '.pac')
 					writeLog("Renaming root node to " + fileName)
 					BrawlAPI.RootNode.Name = fileName
 					texturePrefix = "S"
 				elif BrawlAPI.RootNode.Name.startswith('EndingAll'):
 					fileName = 'EndingAll' + addLeadingZeros(str(endingId), 2)
+					createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/' + fileName + '.pac')
 					writeLog("Renaming root node to " + fileName)
 					BrawlAPI.RootNode.Name = fileName
 					texturePrefix = "A"
@@ -3456,39 +3496,66 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		# End back up
-		writeLog("Reading EX_Characters.txt")
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
-		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
-		matchFound = False
-		i = 0
-		# Search for a matching fighter ID and if one is found, replace the line
-		while i < len(fileText):
-			line = fileText[i]
-			if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+		if File.Exists(assemblyFunctionsPath + '/EX_Characters.txt'):
+			writeLog("Reading EX_Characters.txt")
+			fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
+			matchFound = False
+			i = 0
+			# Search for a matching fighter ID and if one is found, replace the line
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+					i += 1
+					continue
+				# Get the figher ID out of the line
+				foundId = line.split(' = ')[1]
+				if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
+					matchFound = True
+					break
 				i += 1
-				continue
-			# Get the figher ID out of the line
-			foundId = line.split(' = ')[1]
-			if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
-				matchFound = True
-				break
-			i += 1
-		# If there was a match, write the file while skipping that index
-		if matchFound:
-			newFileText = []
-			j = 0
-			while j < len(fileText):
-				if j != i:
-					newFileText.append(fileText[j])
-				j += 1
-			writeLog("Writing updated EX_Characters.txt")
-			File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', Array[str](newFileText))
-			# Run the exe
+			# If there was a match, write the file while skipping that index
+			if matchFound:
+				newFileText = []
+				j = 0
+				while j < len(fileText):
+					if j != i:
+						newFileText.append(fileText[j])
+					j += 1
+				writeLog("Writing updated EX_Characters.txt")
+				File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', Array[str](newFileText))
+		if File.Exists(assemblyFunctionsPath + '/EX_Config.xml'):
+			writeLog("Reading EX_Config.xml")
+			reader = XmlTextReader(assemblyFunctionsPath + '/EX_Config.xml')
+			reader.Read()
+			doc = XmlDocument()
+			doc.Load(reader)
+			reader.Close()
+			root = doc.FirstChild
+			xPathString = '/codeMenuConfig/characterList'
+			try:
+				xmlNodes = doc.DocumentElement.SelectNodes(xPathString)
+			except XPathException as e:
+					xmlNodes = []
+			for node in xmlNodes:
+				for childNode in node.SelectNodes("character"):
+					slotId = childNode.Attributes["slotID"].Value
+					if slotId == '0x' + fighterId:
+						existingNode = childNode
+						break
+					else:
+						existingNode = None
+				if existingNode:
+					node.RemoveChild(existingNode)
+			writeLog("Writing updated EX_Config.xml")
+			doc.Save(assemblyFunctionsPath + '/EX_Config.xml')
+		# Run the exe
+		if File.Exists(assemblyFunctionExe):
 			writeLog("Running " + assemblyFunctionExe)
 			p = Process.Start(assemblyFunctionExe, '1 1 0 1')
 			p.WaitForExit()
 			p.Dispose()
-		Directory.SetCurrentDirectory(AppPath)
+			Directory.SetCurrentDirectory(AppPath)
 
 # Function to remove a code macro from the appropriate code
 def removeCodeMacro(id, macroName, position=0, repeat=False, preFindText=""):
@@ -5088,7 +5155,7 @@ class Settings:
 		installKirbyHats = "true"
 		defaultKirbyHat = "0x21"
 		kirbyHatExe = getFileRecursive("lavaKirbyHatManager*.exe", "lavaKirbyHatManager - OFFLINE.exe")
-		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions (Dolphin).exe")
+		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions - Offline.exe")
 		if assemblyFunctionsExe == "":
 			assemblyFunctionsExe = getFileRecursive("Build Code Menu - *.exe", "Build Code Menu - DOLPHIN.exe")
 		sawndReplaceExe = getFileRecursive("lavaSawndIDReplaceAssist*.exe", "lavaSawndIDReplaceAssist.exe")
