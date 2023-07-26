@@ -5888,7 +5888,7 @@ def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 		# Placeholder/default cosmetics should be ignored
 		if foundName and not new and not foundName.Name.endswith('00'):
 			return foundName.Name
-		elif not foundName or foundName.Name.endswith('00'):
+		elif (not foundName or foundName.Name.endswith('00')) and cosmeticId != '00':
 			return prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2)
 		else:
 			i = 0
