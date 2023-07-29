@@ -1418,10 +1418,11 @@ class StageList(Form):
                 node = BrawlAPI.RootNode
                 texFolder = getChildByName(node, "Textures(NW4R)")
                 if texFolder and texFolder.Children:
-                    if texNode.Name.startswith('MenCollReplaySt.'):
-                        if len(texNode.Name.split('.')) > 1:
-                            id = texNode.Name.split('.')[1]
-                            usedCosmeticIds.append(hexId(id).replace('0x',''))
+                    for texNode in texFolder.Children:
+                        if texNode.Name.startswith('MenCollReplaySt.'):
+                            if len(texNode.Name.split('.')) > 1:
+                                id = texNode.Name.split('.')[1]
+                                usedCosmeticIds.append(hexId(id).replace('0x',''))
                 annmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
                 if anmTexPat and anmTexPat.Children:
                     pat0 = getChildByName(anmTexPat, "MenReplayPhoto0_TopN__0")
