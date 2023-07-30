@@ -24,9 +24,9 @@ def processPatchFiles(patchFolder, node):
 				tempNode.Remove()
 	for directory in Directory.GetDirectories(patchFolder):
 		patchNode = PatchNode(DirectoryInfo(directory).Name)
-		node = findNodeToPatch(node, patchNode)
-		if node:
-			processPatchFiles(directory, node)
+		newNode = findNodeToPatch(node, patchNode)
+		if newNode:
+			processPatchFiles(directory, newNode)
 
 def main():
 		createLogFile()

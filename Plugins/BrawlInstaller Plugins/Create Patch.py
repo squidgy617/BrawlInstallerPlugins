@@ -33,7 +33,7 @@ def main():
 			# For every altered file node, search the clean file nodes for a match
 			for cleanFileNode in cleanFileNodes:
 				# If the path matches, we've found a match
-				if alteredFileNode.patchNodePath == cleanFileNode.patchNodePath:
+				if alteredFileNode.node.TreePathAbsolute == cleanFileNode.node.TreePathAbsolute:
 					removeNode = cleanFileNode
 					matchFound = True
 					# If we've found a match, but MD5s do NOT match, this is an altered node and should be exported
