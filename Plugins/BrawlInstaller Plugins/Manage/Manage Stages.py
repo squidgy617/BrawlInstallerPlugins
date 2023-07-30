@@ -25,7 +25,7 @@ def main():
 			stageListEntries = getStageList('/Source/Project+/StageFiles.asm')
 			if len(stageListEntries) > 0:
 				stageLists.append('/Source/Project+/StageFiles.asm')
-			else: 
+			elif File.Exists(MainForm.BuildPath + '/Source/Project+/StageTable.asm'): 
 				stageListEntries = getStageList('/Source/Project+/StageTable.asm')
 				if len(stageListEntries) > 0:
 					stageLists.append('/Source/Project+/StageTable.asm')

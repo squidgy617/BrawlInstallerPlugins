@@ -39,18 +39,26 @@ def autoInstall(baseCssSlotId, zipfile):
 		id = hexId(id).replace('0x', '')
 
 		# Get the first available cosmetic ID
-		# Start at 52, first available ID after random
-		cosmeticId = 52
+		# Start at 110, first available ID after bosses
+		cosmeticId = 110
 		if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bust_tex'):
 			while True:
-				for file in Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "*.brres"):
-					# This ID causes stock icons to show incorrectly in SSE, so skip it
-					if cosmeticId == 62:
-						cosmeticId += 1
-					foundId = int(getFileInfo(file).Name.replace('MenSelchrFaceB', '').replace('0.brres', ''))
-					if foundId == cosmeticId:
-						cosmeticId += 1
-						continue
+				rspFiles = Directory.GetFiles(MainForm.BuildPath + '/pf/menu/common/char_bust_tex', "*.brres")
+				if len(rspFiles) > 0:
+					i = 0
+					while i < len(rspFiles):
+						# Skip 127, because it seems to possibly cause issues with stocks
+						if cosmeticId == 127:
+							cosmeticId += 1
+							i = 0
+							continue
+						file = rspFiles[i]
+						foundId = int(getFileInfo(file).Name.replace('MenSelchrFaceB', '').replace('0.brres', ''))
+						if foundId == cosmeticId:
+							cosmeticId += 1
+							i = 0
+							continue
+						i += 1
 				break
 
 		# Get first available franchise icon ID

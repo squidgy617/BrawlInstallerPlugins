@@ -13,6 +13,8 @@ def main():
 			if not Directory.Exists(MainForm.BuildPath + '/pf/'):
 				BrawlAPI.ShowMessage("Build path does not appear to be valid. Please change your build path by going to 'Tools > Settings' and modifying the 'Default Build Path' field.\n\nYour build path should contain a folder named 'pf' within it.", "Invalid Build Path")
 				return
+			createLogFile()
+			backupCheck()
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
 				settings = getSettings()
@@ -20,8 +22,6 @@ def main():
 				settings = initialSetup()
 			if not settings:
 				return
-			createLogFile()
-			backupCheck()
 
 			#region USER INPUT/PRELIMINARY CHECKS
 
@@ -31,14 +31,14 @@ def main():
 				return
 
 			uninstallFranchiseIcon = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's franchise icon?", "Uninstall franchise icon?")
-			if settings.installVictoryThemes:
+			if settings.installVictoryThemes == "true":
 				uninstallVictoryTheme = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's victory theme?", "Uninstall victory theme?")
 			else:
 				uninstallVictoryTheme = False
 
-			if settings.installVictoryThemes:
+			if settings.installVictoryThemes == "true":
 				creditsId = updateCreditsCode(fighterId, "", read=True)
-				if creditsId and creditsId != "0x0000":
+				if creditsId and creditsId != "0x0000" and creditsId != None:
 					uninstallCreditsTheme = BrawlAPI.ShowYesNoPrompt("Do you want to uninstall the fighter's credits theme?", "Uninstall credits theme?")
 				else:
 					uninstallCreditsTheme = False

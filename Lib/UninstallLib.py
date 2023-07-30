@@ -6,7 +6,7 @@ from BrawlLib.CustomLists import *
 
 #region UNINSTALL COSTUME
 
-def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPositions=[], skipMessage=False):
+def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPositions=[], skipMessage=False, cosmeticsOnly=False):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -26,14 +26,15 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 				fighterInfo = getFighterInfo(fighterConfig, "", "")
 
 			# Set up progressbar
+			itemText = "Costume" if not cosmeticsOnly else "Cosmetics"
 			progressCounter = 0
-			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling Costume...", "Uninstalling Costume", False)
+			progressBar = ProgressWindow(MainForm.Instance, "Uninstalling " + itemText + "...", "Uninstalling " + itemText, False)
 			progressBar.Begin(0, 5, progressCounter)
 
 			# sc_selcharacter
 			indexes = subtractCSPs(cosmeticId, settings.rspLoading, position, skipPositions=skipPositions)
 			if settings.installStocksToCSS == "true":
-				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [90]", "", endIndex=indexes[1], rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 		
 			# If we did any work in sc_selcharacter, save and close it
 			fileOpened = checkOpenFile("sc_selcharacter")
@@ -83,19 +84,21 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
-			# Ex Config
-			costumeIds = removeCssSlots(indexes[0], indexes[1], cssSlotConfigId)
+			if cosmeticsOnly != True:
+				# Ex Config
+				costumeIds = removeCssSlots(indexes[0], indexes[1], cssSlotConfigId)
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
-			# Costume files
-			if fighterInfo:
-				fighterName = fighterInfo.fighterName
-			else:
-				if not FighterNameGenerators.generated:
-					FighterNameGenerators.GenerateLists()
-				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
-			deleteCostumeFiles(costumeIds, fighterName)
+			if cosmeticsOnly != True:
+				# Costume files
+				if fighterInfo:
+					fighterName = fighterInfo.fighterName
+				else:
+					if not FighterNameGenerators.generated:
+						FighterNameGenerators.GenerateLists()
+					fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
+				deleteCostumeFiles(costumeIds, fighterName)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
@@ -105,7 +108,7 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 				Directory.Delete(AppPath + '/temp', 1)
 			
 			if not skipMessage:
-				BrawlAPI.ShowMessage("Costume uninstalled successfully.", "Success")
+				BrawlAPI.ShowMessage(itemText + " uninstalled successfully.", "Success")
 
 		except Exception as e:
 			if 'progressBar' in locals():

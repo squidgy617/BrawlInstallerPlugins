@@ -6,7 +6,7 @@ A BrawlCrate plugin suite for easy installation of Brawl mods into BrawlEX build
 
 Currently this plugin performs all the necessary installation to get an EX character fully playable in all modes, including Subspace Emissary, so long as your build supports Subspace Emissary Ex.
 
-If you find any bugs or issues with the plugins, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
+If you find any bugs or issues with the plugins, **please check the FAQ below first**. If the FAQ does not help, please submit them as an issue here on GitHub or message me about it directly on discord @ Squidgy#9561
 
 ## Features
 - Install or uninstall fully playable characters and costumes into a build of Super Smash Bros. Brawl in just a few clicks.
@@ -23,10 +23,10 @@ If you find any bugs or issues with the plugins, please submit them as an issue 
 # Installation
 ## Simple Installation
 1. If you do not already have BrawlCrate, download and install the [latest release](https://github.com/soopercool101/BrawlCrate/releases/latest).
-2. Navigate to the [latest BrawlInstaller release](https://github.com/squidgy617/BrawlInstallerPlugins/releases/latest) and download the `BrawlInstaller.Tools.Setup.exe`. Run this installer and follow the on-screen instructions.
+2. Navigate to the [latest BrawlInstaller release](https://github.com/squidgy617/BrawlInstallerPlugins/releases/latest) and download the `BrawlInstaller.Tools.Setup.exe`. Run this installer and follow the on-screen instructions. **Only install components not already present in your build.**
 3. In BrawlCrate, navigate to `Tools > Settings > General` and modify the `Default Build Path` to match the path you chose for the tools in step 2.
 4. In BrawlCrate, navigate to `Tools > Settings > BrawlAPI` and ensure the `Installation Path` field under `Python` is set to the correct path.
-5. In BrawlCrate, navigate to `Tools > Settings > Updater`, click `Manage Subscriptions`, and paste this link: `https://github.com/squidgy617/BrawlInstallerPlugins`. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
+5. In BrawlCrate, navigate to `Tools > Settings > Updater`, click `Manage Subscriptions`, `Add`, and paste this link: `https://github.com/squidgy617/BrawlInstallerPlugins`, then hit `Okay`. If you set this up in BrawlCrate, the plugins will update automatically when you launch BrawlCrate.
 6. Restart BrawlCrate.
 
 Once you have completed these steps, you are ready to begin using the BrawlInstaller plugins.
@@ -62,11 +62,14 @@ The plugins create backups of your files during execution, however, I cannot gua
 
 # Guides
 
-- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing)
 - [Configuring Settings](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Configuring-Settings)
+- [Packaging Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Packaging-Characters)
+- [Managing Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Characters)
+- [Extracting Characters](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Extracting-Characters)
 - [Managing Costumes](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Costumes)
 - [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Music)
 - [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Stages)
+- [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing) (OUTDATED)
 
 # Character Packages
 
@@ -89,14 +92,49 @@ Click the above link to see detailed documentation on all of the plugins include
 The first and most common cause of this issue is not setting up QuickLava's Kirby Hat Manager correctly. Ensure it is installed into your build folder and that you have moved the required files into the folder for the application.
 
 Assuming you have QuickLava's Kirby Hat Manager set up correctly, this is not something BrawlInstaller can account for, but is actually a known issue with the KirbyHatEx system. The system is still not entirely stable, and not everything is known about how the hats interact with different fighters and IDs. Most likely, the cause is either an incompatibility with your character, your chosen ID, the chosen base fighter ID for the Kirby hat, or a combination of the three. If you run into Kirby-related issues, try uninstalling your character and reinstalling them to a different fighter ID or installing them with a different base fighter ID for their Kirby hat.
+
+Alternatively to the above, you can simply disable installing Kirby hats in your build settings to avoid this issue. In P+Ex builds, this may cause instability if your build does not contain the following code, so add it to your build if you do not have it:
+```
+####################################################
+Temporary Hatless Clone Kirby Inhale Fix [DukeItOut]
+####################################################
+HOOK @ $80814664
+{
+    lis r12, 0x817C            # based on 8084DC7C, where r5 is r28 + 1088. r28 in P+EX is 817C7C00
+    ori r12, r12, 0x8040
+    lbzx r0, r12, r27
+    cmpwi r0, 0
+    bne hasHat
+    li r3, 0        # force to fail
+hasHat:    
+    lwz r0, 0x14(r1)
+}
+```
+
 </details>
 
 <details>
 <summary><b>I added my character but don't see them on the character select screen/SSE character select, or their position on the screen is incorrect.</b></summary>
 
 This usually means one of two things - one, your build is not configured to use CSSRoster.dat, or two, you ran out of animated CSS slots in your build. If you're using P+Ex, the roster will only automatically expand up to a certain number of slots, and other builds may not even have the roster automatically expanding. In such a case, you'll have to expand it manually, which can be done in a similar manner to the steps outlined in [this guide](https://docs.google.com/document/d/1NN7X98xdoatzcnKabUq6TIhZrPTda84RmFp1La16GiQ/edit).
+    
+If you're using a PMEX REMIX build, you can download [this sc_selcharacter.pac](https://www.mediafire.com/file/ob7dxyfpnbubawf/sc_selcharacter.pac/file) created by <b>JVIasterJ</b> to your build's `pf/menu2` folder, overwriting the existing file within, before installing any characters. This adds 12 extra slots to the CSS. Once you've done this, any added characters will use the new slots.
 
 For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file). This expanded CSS supports up to 72 slots.
+</details>
+
+<details>
+  <summary><b>My game crashes/freezes/hangs when loading the character select/stage select/a match.</b></summary>
+  
+  The most common reason for this is that files in your build have reached their capacity. Here are some known filesize limits:
+  - <b>sc_selcharacter.pac</b>: 3790 KB (3.79 MB)
+  - <b>sc_selcharacter2.pac</b>: 669 KB (0.669 MB - 684,785 B)
+  - <b>sc_selmap.pac</b>: 3234 KB (3.234 MB - 3,310,601 B)
+  - <b>info.pac</b>: 543 KB (0.543 MB)
+  - <b>mu_menumain.pac</b>: 5861 KB (5.72 MB - 6,000,728 B)
+  
+  If these files are <b>at or near</b> the listed limits, you will likely see crashes. You can try reducing the filesize by switching to RSP loading and/or switching to slot-based stock icons. You can learn more about how to do that using [this guide](https://docs.google.com/document/d/1sgA3Lr5IC4IVLWmuJOFLWj_FyKG7tP7jJy49eWTR_Z4/edit?usp=sharing).
+  
 </details>
 
 <details>
@@ -127,6 +165,20 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
   
 </details>
 
+<details>
+  <summary><b>I don't see a certain character's IDs when using the ID picker.</b></summary>
+  
+  For character IDs to show in the ID pickers, you need to [modify the ID list](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Using-ID-Pickers#modifying-id-lists) used by BrawlCrate. For Ex builds, you might want to consider doing this for your Ex characters.
+  
+</details>
+
+<details>
+  <summary><b>Opening my character package with the "Package Character" plugin doesn't work.</b></summary>
+  
+  Most likely, this is due to the structure of your character package being invalid. Try comparing the package to one of the template packages to get an idea of where everything needs to be, or start fresh using the form to create your package to ensure everything is structured right automatically.
+  
+</details>
+
 # Credits
 This tool was made possible by:
 - Soopercool101, Kryal, BlackJax96, and libertyernie for BrawlLib, BrawlBox, and BrawlCrate. Extra thanks to Soopercool101 for making additions to BrawlCrate to support features needed for the BrawlInstaller plugins.
@@ -136,6 +188,8 @@ This tool was made possible by:
 - KingJigglypuff for providing detailed information on currently supported non-Ex modules.
 - CaliKingz01, who provided the PSA for X to use as an example character package.
 - Shy, who created the cosmetics used for X.
+- JVIasterJ for creating the expanded REMIX sc_selcharacter.pac, as well as for bugtesting.
+- Chrisman and ilikepizza107 for bugtesting.
 - Hatyaro, for helping with some coding challenges.
 - The Project+ team, for the advancements made to Brawl modding that made this all possible.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
@@ -144,4 +198,3 @@ This tool was made possible by:
 # Planned Features
 These are some features that are planned for eventual implementation in the plugin suite, if they are feasible.
 - Automatic HD texture renaming and importing for Dolphin (hopefully)
-- Extract vanilla characters from builds

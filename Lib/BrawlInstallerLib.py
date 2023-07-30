@@ -5,7 +5,7 @@ import binascii
 import clr
 clr.AddReference("System.Drawing")
 clr.AddReference("System.IO.Compression.FileSystem")
-clr.AddReference("System")
+clr.AddReference("System.Xml")
 from BrawlCrate.API import BrawlAPI
 from BrawlCrate.API.BrawlAPI import AppPath
 from BrawlCrate.UI import *
@@ -26,6 +26,8 @@ from BrawlLib.SSBB.ResourceNodes.ProjectPlus import *
 from BrawlLib.SSBB.ResourceNodes.ProjectPlus.STEXNode import VariantType
 from System.IO.Compression import ZipFile
 from System.Windows.Forms import *
+from System.Xml import *
+from System.Xml.XPath import XPathException
 
 # TODO: Rename files when importing for most things
 
@@ -38,6 +40,10 @@ BASE_BACKUP_PATH = AppPath + '\\Backups'
 BACKUP_PATH = BASE_BACKUP_PATH + '\\backup'
 
 LOG_PATH = AppPath + '\\Logs'
+
+TEMP_PATH = AppPath + '\\temp'
+
+PACK_PATH = AppPath + '\\tempPack'
 
 FIGHTER_IDS = {
 	0 : "Mario",
@@ -180,6 +186,20 @@ TROPHY_SERIES = {
 	"Sonic the Hedgehog" : 21
 }
 
+TROPHY_GAME_ICONS = {
+	"None" : 0,
+	"Nintendo 64" : 1,
+	"Gamecube" : 2,
+	"NES" : 3,
+	"Famicom Disk System" : 4,
+	"Nintendo DS" : 5,
+	"Super Nintendo" : 6,
+	"Gameboy Advance" : 7,
+	"Gameboy" : 8,
+	"Wii" : 9,
+	"Game and Watch" : 10
+}
+
 COSTUME_COLOR = {
 	"Red" : 0,
 	"Blue" : 1,
@@ -208,16 +228,34 @@ def clearTextBoxes(groupBox):
 			elif control.GetType() == TextBox:
 				control.Text = ""
 
+# Select a drop down item by a value
+def selectItemByValue(dropDown, dictionary, value):
+		if value in dictionary.values():
+			index = list(dictionary.values()).index(value)
+			key = list(dictionary.keys())[index]
+			if key:
+				for item in dropDown.Items:
+					if item == key:
+						dropDown.SelectedItem = item
+
+# Create a copy of a bitmap from an image path, rather than calling on the actual image
+def createBitmap(imagePath):
+	with Bitmap(imagePath) as bmpTemp:
+		img = Bitmap(bmpTemp)
+	return img
+
 # Validate all text boxes in a Windows form group are valid hex IDs
-def validateTextBoxes(groupBox):
+def validateTextBoxes(groupBox, allowBlank=False, excludedControls=[]):
 		validationPassed = True
 		for control in groupBox.Controls:
-			if control.GetType() == Panel:
-				valid = validateTextBoxes(control)
+			if control in excludedControls:
+				return validationPassed
+			elif control.GetType() != TextBox:
+				valid = validateTextBoxes(control, allowBlank)
 				if not valid:
 					validationPassed = False
 			elif control.GetType() == TextBox:
-				valid = hexId(control.Text)
+				valid = hexId(control.Text) or (control.Text == "" and allowBlank) or control in excludedControls
 				control.BackColor = Color.White if valid else Color.LightPink
 				if not valid:
 					validationPassed = False
@@ -227,6 +265,15 @@ def validateTextBoxes(groupBox):
 def validateTextBox(textBox):
 		validationPassed = True
 		valid = hexId(textBox.Text)
+		textBox.BackColor = Color.White if valid else Color.LightPink
+		if not valid:
+			validationPassed = False
+		return validationPassed
+
+# Validate a single text box is a decimal value
+def validateDecimal(textBox, allowBlank=False):
+		validationPassed = True
+		valid = textBox.Text.replace('.', '').replace('-','').isdecimal() or (textBox.Text == "" and allowBlank)
 		textBox.BackColor = Color.White if valid else Color.LightPink
 		if not valid:
 			validationPassed = False
@@ -299,6 +346,13 @@ def getFileInfo(filePath):
 		except Exception as e:
 			BrawlAPI.ShowMessage("Error occurred trying to process filepath " + filePath + ", please check that the default build path and all paths in settings.ini are formatted correctly.", "Filepath Error")
 			raise e
+
+# Helper function to get FileInfo objects for a list of files
+def getFileInfos(filePaths):
+		files = []
+		for filePath in filePaths:
+			files.append(getFileInfo(filePath))
+		return files
 
 # Helper function that gets names of all files in the provided directory
 def getFileNames(directory):
@@ -646,8 +700,12 @@ def importCSPs(cosmeticId, directory, rspLoading="false"):
 			newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# If we have a char_bust_tex in BrawlEx, export there too
 			if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
-					createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
-					newNode.Export(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				newNode.Export(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+			# If we have a char_bcsp_tex, export there too
+			if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+				createBackup(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+				newNode.Export(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 			# Set compression back
 			newNode.Compression = "ExtendedLZ77"
 			# If user has RSP loading on, get rid of changes to this file
@@ -675,28 +733,63 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				texFolder = getChildByName(bresNode, "Textures(NW4R)")
 				costumeCount = 1
 				i = 0
-				length = len(texFolder.Children)
-				# Count costumes, find position for import
-				for child in texFolder.Children:
-					if costumeCount >= position and costumeCount - 1 not in skipPositions:
-						break
-					if not child.SharesData:
-						costumeCount += 1
-					i += 1
+				if texFolder:
+					length = len(texFolder.Children)
+					# Count costumes, find position for import
+					for child in texFolder.Children:
+						if costumeCount >= position and costumeCount - 1 not in skipPositions:
+							break
+						if not child.SharesData:
+							costumeCount += 1
+						i += 1
 				costumeIndex = i + 1
 				# Import images
 				if len(images) > 1:
 					ColorSmashImport(bresNode, images, 256)
 				else:
 					importTexture(bresNode, images[0], WiiPixelFormat.CI8, 128, 160)
-				# Move CSPs after imported
-				for child in texFolder.Children[i:length]:
+				if not texFolder:
+					texFolder = getChildByName(bresNode, "Textures(NW4R)")
+				# Get all newly added textures
+				newTextures = texFolder.Children[len((texFolder.Children)) - len(images):len(texFolder.Children)]
+				# Determine which CSPs need to be moved (ones that should be after new costumes)
+				j = i
+				moveNodes = []
+				while j < len(texFolder.Children) - len(images):
+					moveNodes.append(texFolder.Children[j])
+					j += 1
+				# Move CSPs
+				for child in moveNodes:
 					moveNodeToEnd(child)
-				# Rename everything
-				i = len(texFolder.Children) - 1
-				while i >= 0:
-					texFolder.Children[i].Name = "MenSelchrFaceB." + addLeadingZeros(str((cosmeticId * 10) + (i + 1)), 3)
-					i -= 1
+				j = len(moveNodes) - 1
+				while j >= 0:
+					# Set CSP placeholder names (to prevent palette issues)
+					oldId = int(moveNodes[j].Name.replace('MenSelchrFaceB.', ''))
+					moveNodes[j].Name = "CSP." + addLeadingZeros(str(oldId + len(images)), 3)
+					j -= 1
+				j = len(moveNodes) - 1
+				while j >= 0:
+					# Rename moved CSPs to final name
+					oldId = int(moveNodes[j].Name.replace('CSP.', ''))
+					moveNodes[j].Name = "MenSelchrFaceB." + addLeadingZeros(str(oldId), 3)
+					j -= 1
+				# Get unused portrait IDs
+				freeIds = []
+				for texture in newTextures:
+					id = (cosmeticId * 10) + 1
+					j = 0
+					while j < len(texFolder.Children):
+						if 'MenSelchrFaceB.' in texFolder.Children[j].Name:
+							if int(texFolder.Children[j].Name.replace('MenSelchrFaceB.', '')) == id or id in freeIds:
+								id += 1
+								j = 0
+						j += 1
+					freeIds.append(id)
+				# Rename new CSPs
+				j = 0
+				while j < len(newTextures):
+					newTextures[j].Name = "MenSelchrFaceB." + addLeadingZeros(str(freeIds[j]), 3)
+					j += 1
 			if rspLoading == "false" or not rspLoading:
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -715,6 +808,10 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex'):
 					createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 					copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex')
+				# If we have a char_bcsp_tex, export there too
+				if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+					createBackup(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+					copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex')
 		writeLog("Finished updating CSPs")
 		return costumeIndex
 
@@ -725,7 +822,8 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 		# Check this out: https://github.com/soopercool101/BrawlCrate/blob/b089bf32f0cfb2b5f1e6d729b95da4dd169903f2/BrawlCrate/NodeWrappers/Graphics/TEX0Wrapper.cs#L231
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		# Get pat0 and bres files if they exist
-		if File.Exists(AppPath + '/temp/pat0.pat0'):
+		# skip sc_selmap for bandaid fix
+		if File.Exists(AppPath + '/temp/pat0.pat0') and filePath != '/pf/menu2/sc_selmap.pac':
 			pat0 = AppPath + '/temp/pat0.pat0'
 		else:
 			pat0 = None
@@ -742,106 +840,114 @@ def importStockIcons(cosmeticId, directory, tex0BresName, pat0BresName, rootName
 				node = getChildByName(rootNode, tex0BresName)
 			else:
 				node = rootNode
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			# Import textures only if we don't already have a bres, or if we are just importing a single stock (for SSE)
-			if firstOnly or not bres:
-				# Import images and color smash them
-				totalImages = []
-				for folder in Directory.GetDirectories(directory.FullName):
-					writeLog("Importing stock icons from folder " + folder)
-					images = Directory.GetFiles(folder, "*.png")
-					# Color smash images in folders with multiple
-					if len(images) > 1 and not firstOnly:
-						writeLog("Color smashing stock icons")
-						ColorSmashImport(node, images, 32)
-						writeLog("Imported color smashed icons")
-					elif len(images) >= 1:
-						writeLog("Importing standalone icon")
-						importTexture(node, images[0], WiiPixelFormat.CI8, 32, 32)
-						writeLog("Imported standalone icon")
-					else:
-						return 0
-					if not firstOnly:
-						for image in images:
-							totalImages.append(image)
-					else:
-						totalImages.append(images[0])
-						break
-				# Rename the texture nodes
-				# Get the starting ID for imported stocks
-				newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
-				# Change the name of each newly added node and store it
-				texNodes = []
-				imageCount = len(totalImages)
-				while imageCount > 0:
-					texNode = texFolder.Children[len(texFolder.Children) - imageCount]
-					# If using 50CC, the ID should be 4 characters, otherwise it's 3
-					texNode.Name = "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3)
-					texNodes.append(texNode)
-					newId += 1
-					imageCount -= 1
-			else:
-				# Get old icons and new icons so we can compare, in case pat0 was not found but bres was
-				texNodes = []
-				oldTexNodes = []
-				for texNode in texFolder.Children:
-					oldTexNodes.append(texNode.Name)
-				# if the file is a .brres, replace it in the filesystem
-				if BrawlAPI.RootNode.Name.endswith(".brres"):
-					BrawlAPI.ForceCloseFile()
-					copyRenameFile(bres, "StockFaceTex.brres", MainForm.BuildPath + '/pf/menu/common')
-					BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
-				else:
-					node.Replace(bres)
+			if node:
 				texFolder = getChildByName(node, "Textures(NW4R)")
-				for texNode in texFolder.Children:
-					if texNode.Name not in oldTexNodes:
-						texNodes.append(texNode)
-			# Add to pat0
-			if pat0BresName != "":
-				pat0BresNode = getChildByName(rootNode, pat0BresName)
-				anmTexPat = getChildByName(pat0BresNode, "AnmTexPat(NW4R)")
-				if (BrawlAPI.RootNode.Name.StartsWith("sc_selmap")):
-					pat0Nodes = [ getChildByName(anmTexPat, "MenSelmapPlayer1_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer2_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer3_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer4_TopN") ]
-				else:
-					pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
-				# Only add pat0 entries if we don't already have a pat0 exported
-				if not pat0:
-					for pat0Node in pat0Nodes:
-						# For each texture we added, add a pat0 entry
-						for texNode in texNodes:
-							# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
-							frameCount = 9201 if fiftyCC == "true" else 501
-							if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
-								frameCount += 100
-							addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
-					# Export
-					if len(pat0Nodes) >= 1:
-						pat0Nodes[0].Export(AppPath + '/temp/pat0.pat0')
-				else:
-					# Replace pat0Nodes with existing export
-					for pat0Node in pat0Nodes:
-						pat0texNodeName = pat0Node.Children[0].Name
-						pat0Node.Replace(pat0)
-						pat0Node.Children[0].Name = pat0texNodeName
-			# Strip the bres of all but stocks and export it
-			if not bres:
-				BrawlAPI.SaveFile()
-				i = 0
-				while i < len(node.Children):
-					if node.Children[i].Name == 'Textures(NW4R)' or node.Children[i].Name == 'Palettes(NW4R)':
-						i += 1
-						continue
+				if texFolder:
+					# Import textures only if we don't already have a bres, or if we are just importing a single stock (for SSE)
+					if firstOnly or not bres:
+						# Import images and color smash them
+						totalImages = []
+						for folder in Directory.GetDirectories(directory.FullName):
+							writeLog("Importing stock icons from folder " + folder)
+							images = Directory.GetFiles(folder, "*.png")
+							# Color smash images in folders with multiple
+							if len(images) > 1 and not firstOnly:
+								writeLog("Color smashing stock icons")
+								ColorSmashImport(node, images, 32)
+								writeLog("Imported color smashed icons")
+							elif len(images) >= 1:
+								writeLog("Importing standalone icon")
+								importTexture(node, images[0], WiiPixelFormat.CI8, 32, 32)
+								writeLog("Imported standalone icon")
+							else:
+								return 0
+							if not firstOnly:
+								for image in images:
+									totalImages.append(image)
+							else:
+								totalImages.append(images[0])
+								break
+						# Rename the texture nodes
+						# Get the starting ID for imported stocks
+						newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+						# Change the name of each newly added node and store it
+						texNodes = []
+						imageCount = len(totalImages)
+						while imageCount > 0:
+							texNode = texFolder.Children[len(texFolder.Children) - imageCount]
+							# If using 50CC, the ID should be 4 characters, otherwise it's 3
+							texNode.Name = "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3)
+							texNodes.append(texNode)
+							newId += 1
+							imageCount -= 1
 					else:
-						node.Children[i].Remove()
-					i += 1
-				for child in node.GetChildrenRecursive():
-					if child.GetType() == BRESGroupNode:
-						continue
-					elif not (child.Name.startswith('InfStc.') and (child.GetType() == TEX0Node or child.GetType() == PLT0Node)):
-						child.Remove()
-				node.Export(AppPath + '/temp/bres.brres')
-				BrawlAPI.ForceCloseFile()
+						# Get old icons and new icons so we can compare, in case pat0 was not found but bres was
+						texNodes = []
+						oldTexNodes = []
+						for texNode in texFolder.Children:
+							oldTexNodes.append(texNode.Name)
+						# if the file is a .brres, replace it in the filesystem
+						if BrawlAPI.RootNode.Name.endswith(".brres"):
+							BrawlAPI.ForceCloseFile()
+							copyRenameFile(bres, "StockFaceTex.brres", MainForm.BuildPath + '/pf/menu/common')
+							BrawlAPI.OpenFile(MainForm.BuildPath + filePath)
+						else:
+							node.Replace(bres)
+						texFolder = getChildByName(node, "Textures(NW4R)")
+						for texNode in texFolder.Children:
+							if texNode.Name not in oldTexNodes:
+								texNodes.append(texNode)
+					# Add to pat0
+					if pat0BresName != "":
+						pat0BresNode = getChildByName(rootNode, pat0BresName)
+						anmTexPat = getChildByName(pat0BresNode, "AnmTexPat(NW4R)")
+						if (BrawlAPI.RootNode.Name.StartsWith("sc_selmap")):
+							pat0Nodes = [ getChildByName(anmTexPat, "MenSelmapPlayer1_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer2_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer3_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer4_TopN") ]
+						else:
+							pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
+						# Only add pat0 entries if we don't already have a pat0 exported
+						if not pat0:
+							for pat0Node in pat0Nodes:
+								# For each texture we added, add a pat0 entry
+								for texNode in texNodes:
+									# bandaid fix for sc_selmap
+									pat0TexNode = pat0Node.Children[0]
+									if filePath == '/pf/menu2/sc_selmap.pac':
+										for childNode in pat0Node.Children:
+											if childNode.Name in ["playericon1M", "playericon2M", "playericon3M", "playericon4M"]:
+												pat0TexNode = childNode
+									# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
+									frameCount = 9201 if fiftyCC == "true" else 501
+									if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
+										frameCount += 100
+									addToPat0(pat0BresNode, pat0Node.Name, pat0TexNode.Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+							# Export
+							if len(pat0Nodes) >= 1:
+								pat0Nodes[0].Export(AppPath + '/temp/pat0.pat0')
+						else:
+							# Replace pat0Nodes with existing export
+							for pat0Node in pat0Nodes:
+								pat0texNodeName = pat0Node.Children[0].Name
+								pat0Node.Replace(pat0)
+								pat0Node.Children[0].Name = pat0texNodeName
+					# Strip the bres of all but stocks and export it
+					if not bres:
+						BrawlAPI.SaveFile()
+						i = 0
+						while i < len(node.Children):
+							if node.Children[i].Name == 'Textures(NW4R)' or node.Children[i].Name == 'Palettes(NW4R)':
+								i += 1
+								continue
+							else:
+								node.Children[i].Remove()
+							i += 1
+						for child in node.GetChildrenRecursive():
+							if child.GetType() == BRESGroupNode:
+								continue
+							elif not (child.Name.startswith('InfStc.') and (child.GetType() == TEX0Node or child.GetType() == PLT0Node)):
+								child.Remove()
+						node.Export(AppPath + '/temp/bres.brres')
+						BrawlAPI.ForceCloseFile()
 		writeLog("Import stock icons completed")
 
 # Insert stock icons at specified position
@@ -849,7 +955,8 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 		writeLog("Updating stock icons at cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		# Get pat0 and bres files if they exist
-		if File.Exists(AppPath + '/temp/pat0.pat0'):
+		# skip sc_selmap for bandaid fix
+		if File.Exists(AppPath + '/temp/pat0.pat0') and filePath != '/pf/menu2/sc_selmap.pac':
 			pat0 = AppPath + '/temp/pat0.pat0'
 		else:
 			pat0 = None
@@ -859,6 +966,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 			bres = None
 		# Start stuff
 		startId = (cosmeticId * 50) + position - 1 if fiftyCC == "true" else int(str(cosmeticId) + str(position - 1))
+		endId = startId + 1
 		if fileOpened:
 			rootNode = BrawlAPI.RootNode
 			if rootName != "":
@@ -907,7 +1015,7 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 				i = 1
 				while imageCount > 0:
 					texNode = texFolder.Children[len(texFolder.Children) - imageCount]
-					while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName:
+					while texNode.PrevSibling() is not None and texNode.PrevSibling().Name != prevName and (not texNode.PrevSibling().Name.replace('InfStc.', '').isnumeric() or int(texNode.PrevSibling().Name.replace('InfStc.', '')) >= startId):
 						texNode.MoveUp()
 					texNode.Name = "InfStc." + addLeadingZeros(str(startId + i), 4 if fiftyCC == "true" else 3)
 					i += 1
@@ -941,14 +1049,20 @@ def addStockIcons(cosmeticId, images, position, tex0BresName, pat0BresName, root
 					pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
 				if not pat0:
 					for pat0Node in pat0Nodes:
+						# bandaid fix for sc_selmap
+						pat0TexNode = pat0Node.Children[0]
+						if filePath == '/pf/menu2/sc_selmap.pac':
+							for childNode in pat0Node.Children:
+								if childNode.Name in ["playericon1M", "playericon2M", "playericon3M", "playericon4M"]:
+									pat0TexNode = childNode
 						# For each texture we added, add a pat0 entry
 						for texNode in texNodes:
 							# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
 							frameCount = 9201 if fiftyCC == "true" else 501
 							if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
 								frameCount += 100
-							removeFromPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
-							addToPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+							removeFromPat0(pat0BresNode, pat0Node.Name, pat0TexNode.Name, texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
+							addToPat0(pat0BresNode, pat0Node.Name, pat0TexNode.Name, texNode.Name, texNode.Name, int(texNode.Name.split('.')[1]), palette=texNode.Name, frameCountOffset=1, overrideFrameCount=frameCount)
 					# Export
 					if len(pat0Nodes) >= 1:
 						pat0Nodes[0].Export(AppPath + '/temp/pat0.pat0')
@@ -1088,16 +1202,19 @@ def importCSSIcon(cosmeticId, iconImagePath, format):
 		if fileOpened:
 			# Import icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			newNode = importTexture(node, iconImagePath, format)
-			newNode.Name = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
-			# Sort textures
-			newNode.Parent.SortChildren()
+			if node:
+				newNode = importTexture(node, iconImagePath, format)
+				newNode.Name = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
+				# Sort textures
+				newNode.Parent.SortChildren()
 			# Add CSS icon to CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				addToPat0(node, pat0Node.Name, "Face02", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), palette=newNode.Name, frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						addToPat0(node, pat0Node.Name, "Face02", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), palette=newNode.Name, frameCountOffset=10)
 			writeLog("Finished importing CSS icon")
 
 # Import replay icon
@@ -1123,16 +1240,21 @@ def importCSSIconName(cosmeticId, nameImagePath):
 		if fileOpened:
 			# Import icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			newNode = importTexture(node, nameImagePath, WiiPixelFormat.I4)
-			newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
-			# Sort textures
-			newNode.Parent.SortChildren()
+			if node:
+				newNode = importTexture(node, nameImagePath, WiiPixelFormat.I4)
+				newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
+				# Sort textures
+				newNode.Parent.SortChildren()
 			# Add CSS icon name to CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				addToPat0(node, pat0Node.Name, "Face06", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						pat0tex = getChildByName(pat0Node, "Face06")
+						if pat0tex:
+							addToPat0(node, pat0Node.Name, "Face06", newNode.Name, newNode.Name, int(str(cosmeticId) + "1"), frameCountOffset=10)
 			writeLog("Finished importing CSS icon name")
 				
 # Import name for character select portrait
@@ -1174,18 +1296,19 @@ def importFranchiseIcon(franchiseIconId, image, filePath, size):
 			writeLog("Finished importing franchise icon")
 
 # Import BP name into info
-def importBPName(cosmeticId, image, filePath):
+def importBPName(cosmeticId, image, filePath, fiftyCC="true"):
 		writeLog("Importing BP name into " + filePath + " with cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + filePath)
 		if fileOpened:
 			# Import name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			format = WiiPixelFormat.I4
-			newNode = importTexture(node, image, format)
-			pat0texNodeName = "Character_Name_Mat"
-			pat0NodeName = "InfFace_TopN__0"
-			newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId) + '1', 3)
-			addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1'), frameCountOffset=10)
+			if node:
+				format = WiiPixelFormat.I4
+				newNode = importTexture(node, image, format)
+				pat0texNodeName = "Character_Name_Mat"
+				pat0NodeName = "InfFace_TopN__0"
+				newNode.Name = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId) + '1', 3)
+				addToPat0(node, pat0NodeName, pat0texNodeName, newNode.Name, newNode.Name, int(str(cosmeticId) + '1') if fiftyCC!="true" else int(str((cosmeticId * 50) + 1)), frameCountOffset=10, overrideFrameCount=0 if fiftyCC!="true" else 9011)
 		writeLog("Import BP name finished.")
 
 # Import classic intro file
@@ -1248,13 +1371,16 @@ def updateModule(file, directory, fighterId, fighterName):
 		writeLog("Updating module file " + file)
 		file = getFileInfo(file)
 		BrawlAPI.OpenFile(file.FullName)
+		sectionFile = ''
+		data = ''
 		# Get section 8 and export it
 		node = getChildByName(BrawlAPI.RootNode, "Section [8]")
-		node.Export(directory.FullName + "/Section [8]")
-		sectionFile = directory.FullName + "/Section [8]"
-		with open(sectionFile,  mode='r+b') as readFile:
-			data = str(binascii.hexlify(readFile.read(3)))
-			readFile.close()
+		if node:
+			node.Export(directory.FullName + "/Section [8]")
+			sectionFile = directory.FullName + "/Section [8]"
+			with open(sectionFile,  mode='r+b') as readFile:
+				data = str(binascii.hexlify(readFile.read(3)))
+				readFile.close()
 		# Ex modules only have 8 sections, so any with more is a different type of module
 		if node and data == '000000':
 			writeLog("Modifying Section [8] of module file")
@@ -1561,6 +1687,16 @@ def importCostumeFiles(files, fighterName, cssSlotConfigId, images=[], startingI
 					relatedFileName = 'Fit' + fighterName + 'MotionEtc' + addLeadingZeros(str(id), 2) + '.pac'
 				if 'Etc' in relatedFile.Name and relatedFile.Name.replace('Etc','') == file.Name:
 					relatedFileName = 'Fit' + fighterName + 'Etc' + addLeadingZeros(str(id), 2) + '.pac'
+					# If Sonic, modify the Etc file
+					if fighterName.lower() == 'sonic':
+						fileOpened = openFile(relatedFile.FullName, False)
+						if fileOpened:
+							nodes = getChildrenByPrefix(BrawlAPI.RootNode, 'ef_sonicX')
+							if nodes and len(nodes) > 0:
+								node = nodes[0]
+								node.Name = 'ef_sonicX' + addLeadingZeros(str(id), 2)
+								BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
 				# Kirby hat checks
 				kirbyHats = ['Donkey', 'Falco', 'Mewtwo', 'Pikmin', 'Purin', 'Snake']
 				for hat in kirbyHats:
@@ -1766,21 +1902,22 @@ def addKirbyHat(characterName, fighterId, kirbyHatFigherId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
 		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
 		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/Source/P+Ex/KirbyHatEX.asm')
 		createBackup(MainForm.BuildPath + '/BOOST.GCT')
 		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
 		# Copy necessary files from build if not present
-		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+		if not File.Exists(kirbyHatPath + '/ft_kirby.rel'):
 			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
 			if kirbyRel:
 				copyFile(kirbyRel, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+		if not File.Exists(kirbyHatPath + '/KirbyHat.kbx'):
 			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
 			if kirbyKbx:
 				copyFile(kirbyKbx, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+		if not File.Exists(kirbyHatPath + '/KirbyHatEX.asm'):
 			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
 			if kirbyAsm:
 				copyFile(kirbyAsm, kirbyHatPath)
@@ -1835,6 +1972,7 @@ def moveKirbyHatFiles(files, oldFighterName="", newFighterName=""):
 # Add song to tracklist
 def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		writeLog("Adding song file " + file)
+		currentSongId = 0
 		# Move to strm directory
 		file = getFileInfo(file)
 		path = MainForm.BuildPath + '/pf/sound/strm/' + songDirectory + '/' + file.Name
@@ -1843,32 +1981,34 @@ def addSong(file, songDirectory="Victory!", tracklist="Results"):
 		getFileInfo(path).Directory.Create()
 		File.Copy(file.FullName, path, 1)
 		writeLog("Opening tracklist " + tracklist)
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Back up tracklist
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Check if song is already installed
-		writeLog("Checking if song already exists")
-		for song in BrawlAPI.RootNode.Children:
-			if song.SongFileName == songDirectory + '/' + file.Name.split('.')[0]:
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+			if fileOpened:
+				# Back up tracklist
+				createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+				# Check if song is already installed
+				writeLog("Checking if song already exists")
+				for song in BrawlAPI.RootNode.Children:
+					if song.SongFileName == songDirectory + '/' + file.Name.replace('.brstm', ''):
+						BrawlAPI.ForceCloseFile()
+						return song.SongID
+				# Calculate song ID
+				writeLog("Calculating song ID")
+				usedSongIds = getUsedSongIds(BrawlAPI.RootNode)
+				currentSongId = 61440
+				while currentSongId in usedSongIds:
+					currentSongId += 1
+				# Add to tracklist file
+				writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
+				newNode = TLSTEntryNode()
+				newNode.Name = file.Name.replace('.brstm', '')
+				newNode.SongFileName = songDirectory + '/' + file.Name.replace('.brstm', '')
+				newNode.Volume = 80
+				newNode.Frequency = 40
+				newNode.SongID = currentSongId
+				BrawlAPI.RootNode.AddChild(newNode)
+				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
-				return song.SongID
-		# Calculate song ID
-		writeLog("Calculating song ID")
-		usedSongIds = getUsedSongIds(BrawlAPI.RootNode)
-		currentSongId = 61440
-		while currentSongId in usedSongIds:
-			currentSongId += 1
-		# Add to tracklist file
-		writeLog("Adding song ID " + str(currentSongId) + " to" + tracklist + ".tlst")
-		newNode = TLSTEntryNode()
-		newNode.Name = file.Name.split('.')[0]
-		newNode.SongFileName = songDirectory + '/' + file.Name.split('.')[0]
-		newNode.Volume = 80
-		newNode.Frequency = 40
-		newNode.SongID = currentSongId
-		BrawlAPI.RootNode.AddChild(newNode)
-		BrawlAPI.SaveFile()
-		BrawlAPI.ForceCloseFile()
 		writeLog("Finished adding song.")
 		return currentSongId
 
@@ -1878,6 +2018,7 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		assemblyFunctionsPath = getFileInfo(assemblyFunctionExe).DirectoryName
 		# Start back up
 		createBackup(assemblyFunctionsPath + '/EX_Characters.txt')
+		createBackup(assemblyFunctionsPath + '/EX_Config.xml')
 		createBackup(assemblyFunctionsPath + '/codeset.txt')
 		createBackup(MainForm.BuildPath + '/Source/Project+/CodeMenu.asm')
 		createBackup(MainForm.BuildPath + '/pf/menu3/data.cmnu')
@@ -1888,33 +2029,69 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		# End back up
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
-		writeLog("Reading EX_Characters.txt")
-		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
-		matchFound = False
-		i = 0
-		# Search for a matching fighter ID and if one is found, replace the line
-		while i < len(fileText):
-			line = fileText[i]
-			if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+		if File.Exists(assemblyFunctionsPath + '/EX_Characters.txt'):
+			writeLog("Reading EX_Characters.txt")
+			fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
+			matchFound = False
+			i = 0
+			# Search for a matching fighter ID and if one is found, replace the line
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+					i += 1
+					continue
+				# Get the figher ID out of the line
+				foundId = line.split(' = ')[1]
+				if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
+					matchFound = True
+					fileText[i] = '"' + fighterName + '" = 0x' + fighterId
 				i += 1
-				continue
-			# Get the figher ID out of the line
-			foundId = line.split(' = ')[1]
-			if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
-				matchFound = True
-				fileText[i] = '"' + fighterName + '" = 0x' + fighterId
-			i += 1
-		# Write updated file
-		writeLog("Writing updated EX_Characters.txt")
-		if matchFound:
-			File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', fileText)
-		else:
-			File.AppendAllText(assemblyFunctionsPath + '/EX_Characters.txt', '\n"' + fighterName + '" = 0x' + fighterId)
-		writeLog("Running " + assemblyFunctionExe)
-		p = Process.Start(assemblyFunctionExe, '1 1 0 1')
-		p.WaitForExit()
-		p.Dispose()
-		Directory.SetCurrentDirectory(AppPath)
+			# Write updated file
+			writeLog("Writing updated EX_Characters.txt")
+			if matchFound:
+				File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', fileText)
+			else:
+				File.AppendAllText(assemblyFunctionsPath + '/EX_Characters.txt', '\n"' + fighterName + '" = 0x' + fighterId)
+		if File.Exists(assemblyFunctionsPath + '/EX_Config.xml'):
+			writeLog("Reading EX_Config.xml")
+			reader = XmlTextReader(assemblyFunctionsPath + '/EX_Config.xml')
+			reader.Read()
+			doc = XmlDocument()
+			doc.Load(reader)
+			reader.Close()
+			root = doc.FirstChild
+			xPathString = '/codeMenuConfig/characterList'
+			try:
+				xmlNodes = doc.DocumentElement.SelectNodes(xPathString)
+			except XPathException as e:
+					xmlNodes = []
+			for node in xmlNodes:
+				for childNode in node.SelectNodes("character"):
+					slotId = childNode.Attributes["slotID"].Value
+					if slotId == '0x' + fighterId:
+						existingNode = childNode
+						break
+					else:
+						existingNode = None
+				if existingNode:
+					existingNode.SetAttribute("name", fighterName)
+				else:
+					characterNode = doc.CreateElement("character")
+					nameAttribute = doc.CreateAttribute("name")
+					nameAttribute.Value = fighterName
+					slotIdAttribute = doc.CreateAttribute("slotID")
+					slotIdAttribute.Value = '0x' + fighterId
+					characterNode.Attributes.Append(nameAttribute)
+					characterNode.Attributes.Append(slotIdAttribute)
+					node.AppendChild(characterNode)
+				writeLog("Writing updated EX_Config.xml")
+				doc.Save(assemblyFunctionsPath + '/EX_Config.xml')
+		if File.Exists(assemblyFunctionExe):
+			writeLog("Running " + assemblyFunctionExe)
+			p = Process.Start(assemblyFunctionExe, '1 1 0 1')
+			p.WaitForExit()
+			p.Dispose()
+			Directory.SetCurrentDirectory(AppPath)
 		writeLog("Add to code menu finished.")
 
 # Function to build GCTs using GCTRealMate
@@ -1936,6 +2113,22 @@ def buildGct():
 			p.Dispose()
 			Directory.SetCurrentDirectory(AppPath)
 			writeLog("Finished running GCTRealMate.exe")
+		# Handle stage list looter system
+		if Directory.Exists(MainForm.BuildPath + '/pf/stage/stagelist'):
+			if File.Exists(MainForm.BuildPath + '/pf/stage/stagelist/GCTRealMate.exe'):
+				writeLog("Compiling stage lists in /pf/stage/stagelist")
+				for gctFile in Directory.GetFiles(MainForm.BuildPath + '/pf/stage/stagelist', "*.GCT"):
+					createBackup(gctFile)
+				runCommand = '-g -l -q'
+				for asmFile in Directory.GetFiles(MainForm.BuildPath + '/pf/stage/stagelist', "*.asm"):
+					if getFileInfo(asmFile).Name != 'TABLE_STAGES.asm':
+						runCommand += ' "' + asmFile + '" '
+				Directory.SetCurrentDirectory(MainForm.BuildPath + '/pf/stage/stagelist')
+				p = Process.Start(MainForm.BuildPath + '\\pf\\stage\\stagelist\\GCTRealMate.exe', '-g -l -q' + runCommand)
+				p.WaitForExit()
+				p.Dispose()
+				Directory.SetCurrentDirectory(AppPath)
+				writeLog("Finished compiling stage lists")
 		writeLog("Finished building GCT files")
 
 # Check if codes from .asm file already exist in build
@@ -2085,18 +2278,19 @@ def updateThrowRelease(fighterId, fighterName, values):
 def importEndingFiles(files, endingId):
 		writeLog("Importing ending .pac files")
 		for file in files:
-			createBackup(MainForm.BuildPath + '/' + getFileInfo(file).Name)
 			fileOpened = BrawlAPI.OpenFile(file)
 			fileName = ""
 			texturePrefix = ""
 			if fileOpened:
 				if BrawlAPI.RootNode.Name.startswith('EndingSimple'):
 					fileName = 'EndingSimple' + addLeadingZeros(str(endingId), 2)
+					createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/' + fileName + '.pac')
 					writeLog("Renaming root node to " + fileName)
 					BrawlAPI.RootNode.Name = fileName
 					texturePrefix = "S"
 				elif BrawlAPI.RootNode.Name.startswith('EndingAll'):
 					fileName = 'EndingAll' + addLeadingZeros(str(endingId), 2)
+					createBackup(MainForm.BuildPath + '/pf/menu/intro/ending/' + fileName + '.pac')
 					writeLog("Renaming root node to " + fileName)
 					BrawlAPI.RootNode.Name = fileName
 					texturePrefix = "A"
@@ -2243,6 +2437,8 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 				line = fileText[i]
 				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
 				lineCounter = lineCounter + len(splitLine)
+				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
+					tableEndReached = True
 				if notWritten and not tableEndReached and lineCounter >= int(slotId, 16):
 					writeLog("Found write location on line " + str(i))
 					newLine = splitLine
@@ -2256,8 +2452,6 @@ def updateCreditsCode(slotId, songId, remove=False, read=False):
 						newString = newString + '|' + fileText[i].split('|')[1]
 						fileText[i] = newString
 					notWritten = False
-				if tableStart and i >= tableStart and (len(line) == 0 or line.startswith('#')):
-					tableEndReached = True
 				i += 1
 			if not read:
 				File.WriteAllLines(MainForm.BuildPath + '/Source/Project+/ResultsMusic.asm', fileText)
@@ -2291,34 +2485,35 @@ def addAltCharacter(cssSlotId, baseCssSlotId):
 					tableStart = i + 2
 					break
 				i += 1
-			# Search for position to replace
-			i = tableStart
-			tableEndReached = False
-			# Count starts at -1 because the numbers are zero-indexed
-			lineCounter = -1
-			notWritten = True
-			writeLog("Finding position to write")
-			while i < len(fileText):
-				line = fileText[i]
-				splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
-				lineCounter = lineCounter + len(splitLine)
-				if notWritten and not tableEndReached and lineCounter >= int(baseCssSlotId, 16):
-					writeLog("Found write location on line " + str(i))
-					newLine = splitLine
-					# Have to subtract 1 because of zero-indexing
-					foundId = newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1]
-					newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1] = '0x' + addLeadingZeros(str(cssSlotId), 2)
-					newString = ""
-					for part in newLine:
-						newString = newString + part.strip() + (', ' if part.strip() != '0x7F' else '')
-					if len(fileText[i].split('|')) > 1:
-						newString = newString + '|' + fileText[i].split('|')[1]
-					fileText[i] = newString
-					notWritten = False
-				if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
-					tableEndReached = True
-				i += 1
-			File.WriteAllLines(path, fileText)
+			if tableStart > 0:
+				# Search for position to replace
+				i = tableStart
+				tableEndReached = False
+				# Count starts at -1 because the numbers are zero-indexed
+				lineCounter = -1
+				notWritten = True
+				writeLog("Finding position to write")
+				while i < len(fileText):
+					line = fileText[i]
+					splitLine = list(filter(None, line.split('|')[0].strip().split(',')))
+					lineCounter = lineCounter + len(splitLine)
+					if notWritten and not tableEndReached and lineCounter >= int(baseCssSlotId, 16):
+						writeLog("Found write location on line " + str(i))
+						newLine = splitLine
+						# Have to subtract 1 because of zero-indexing
+						foundId = newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1]
+						newLine[(len(newLine) - (lineCounter - int(baseCssSlotId, 16))) - 1] = '0x' + addLeadingZeros(str(cssSlotId), 2)
+						newString = ""
+						for part in newLine:
+							newString = newString + part.strip() + (', ' if part.strip() != '0x7F' else '')
+						if len(fileText[i].split('|')) > 1:
+							newString = newString + '|' + fileText[i].split('|')[1]
+						fileText[i] = newString
+						notWritten = False
+					if tableStart and i >= tableStart and (len(line)) == 0 or line.startswith('Table_Skip:'):
+						tableEndReached = True
+					i += 1
+				File.WriteAllLines(path, fileText)
 			writeLog("Finished updating L-load code")
 		return foundId
 
@@ -2673,6 +2868,14 @@ def removeCSPs(cosmeticId):
 				createBackup(rspFile.FullName)
 				writeLog("Deleting RSP file " + rspFile.FullName)
 				rspFile.Delete()
+		# Repeat if char_bcsp_tex exists
+		if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+			rspFile = getFileByName("MenSelchrFaceB" + addLeadingZeros(str(cosmeticId), 2) + "0.brres", Directory.CreateDirectory(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'))
+			if rspFile:
+				# Back up first
+				createBackup(rspFile.FullName)
+				writeLog("Deleting RSP file " + rspFile.FullName)
+				rspFile.Delete()
 
 # Remove CSPs at specified position
 def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
@@ -2709,16 +2912,49 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 							costumeEnd = i + 1
 						costumeCount += 1
 					i += 1
+				# Get index of first removed CSP
+				k = 0
+				while k < len(texFolder.Children):
+					if texFolder.Children[k] == nodesToRemove[0]:
+						break
+					k += 1
 				# Remove
 				i = 0
 				while i < len(nodesToRemove):
 					nodesToRemove[i].Remove(True)
 					i += 1
-				# Rename everything
+				# Get used IDs
+				usedIds = []
 				i = 0
-				for child in texFolder.Children:
+				while i < k:
+					if 'MenSelchrFaceB.' in texFolder.Children[i].Name:
+						id = int(texFolder.Children[i].Name.replace('MenSelchrFaceB.', ''))
+						usedIds.append(id)
 					i += 1
-					child.Name = 'MenSelchrFaceB.' + addLeadingZeros(str((cosmeticId * 10) + i), 3)
+				# Determine which CSPs need to be renamed (ones that are after removed costumes)
+				j = k
+				renameNodes = []
+				while j < len(texFolder.Children):
+					renameNodes.append(texFolder.Children[j])
+					j += 1
+				# Rename CSPs
+				j = len(renameNodes) - 1
+				while j >= 0:
+					# Set CSP placeholder names (to prevent palette issues)
+					oldId = int(renameNodes[j].Name.replace('MenSelchrFaceB.', ''))
+					# Get unused ID
+					newId = oldId - len(nodesToRemove)
+					while newId in usedIds:
+						newId += 1
+					usedIds.append(newId)
+					renameNodes[j].Name = "CSP." + addLeadingZeros(str(newId), 3)
+					j -= 1
+				j = len(renameNodes) - 1
+				while j >= 0:
+					# Rename CSPs to final name
+					oldId = int(renameNodes[j].Name.replace('CSP.', ''))
+					renameNodes[j].Name = "MenSelchrFaceB." + addLeadingZeros(str(oldId), 3)
+					j -= 1
 			if rspLoading == "false" or not rspLoading:
 				# Export RSP while we're at it
 				bresNode.Compression = "None"
@@ -2738,6 +2974,11 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 					if File.Exists(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres'):
 						createBackup(MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
 						copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/BrawlEx/char_bust_tex')
+				# If we have a char_bcsp_tex, copy there too
+				if Directory.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex'):
+					if File.Exists(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres'):
+						createBackup(MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres')
+						copyFile(MainForm.BuildPath + '/pf/menu/common/char_bust_tex/MenSelchrFaceB' + addLeadingZeros(str(cosmeticId), 2) + '0.brres', MainForm.BuildPath + '/pf/menu/common/char_bcsp_tex')
 		writeLog("Finished updating CSPs")
 		costumeRange = []
 		costumeRange.append(costumeStart)
@@ -2843,18 +3084,22 @@ def removeCSSIcon(cosmeticId):
 		if fileOpened:
 			# Remove icon texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				# Pass in bool to force remove palette
-				textureNode.Remove(True)
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				if texFolder:
+					nodeName = "MenSelchrChrFace." + addLeadingZeros(str(cosmeticId), 3)
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						# Pass in bool to force remove palette
+						textureNode.Remove(True)
 			# Remove CSS icon from CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				removeFromPat0(node, pat0Node.Name, "Face02", nodeName, frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						removeFromPat0(node, pat0Node.Name, "Face02", nodeName, frameCountOffset=10)
 		writeLog("Remove CSS icon finished")
 
 # Remove replay icon
@@ -2882,18 +3127,24 @@ def removeCSSIconName(cosmeticId):
 		if fileOpened:
 			# Remove icon name texture
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [70]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				# Pass in bool to force remove palette
-				textureNode.Remove(True)
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				if texFolder:
+					nodeName = "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3)
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						# Pass in bool to force remove palette
+						textureNode.Remove(True)
 			# Remove CSS icon name from CSS
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
-			pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
-			for pat0Node in pat0Nodes:
-				removeFromPat0(node, pat0Node.Name, "Face06", nodeName, frameCountOffset=10)
+			if node:
+				anmTexPat = getChildByName(node, "AnmTexPat(NW4R)")
+				if anmTexPat:
+					pat0Nodes = getChildrenByPrefix(anmTexPat, "MenSelchrFace")
+					for pat0Node in pat0Nodes:
+						pat0tex = getChildByName(pat0Node, "Face06")
+						if pat0tex:
+							removeFromPat0(node, pat0Node.Name, "Face06", nodeName, frameCountOffset=10)
 		writeLog("Remove CSS icon name finished")
 
 # Remove portrait name
@@ -2943,14 +3194,16 @@ def removeBPName(cosmeticId, filePath):
 		if fileOpened:
 			# Remove BP name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNmS."+ addLeadingZeros(str(cosmeticId) + '1', 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				textureNode.Remove(True)
-			pat0texNodeName = "Character_Name_Mat"
-			pat0NodeName = "InfFace_TopN__0"
-			removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=10)
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				nodeName = "MenSelchrChrNmS."+ addLeadingZeros(str(cosmeticId) + '1', 3)
+				if texFolder:
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						textureNode.Remove(True)
+				pat0texNodeName = "Character_Name_Mat"
+				pat0NodeName = "InfFace_TopN__0"
+				removeFromPat0(node, pat0NodeName, pat0texNodeName, nodeName, frameCountOffset=10)
 		writeLog("Remove BP name finished")
 
 # Delete classic intro file
@@ -2998,36 +3251,38 @@ def removeStockIcons(cosmeticId, tex0BresName, pat0BresName, rootName="", filePa
 				node = getChildByName(rootNode, tex0BresName)
 			else:
 				node = rootNode
-			# Remove the texture nodes
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			# End of loop changes depending on if we use 50 CC or not
-			newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
-			texNodeNames = []
-			cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
-			while newId <= cap:
-				texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
-				if texNode:
-					texNodeNames.append(texNode.Name)
-					texNode.Remove(True)
+			if node and len(node.Children) > 0:
+				# Remove the texture nodes
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				# End of loop changes depending on if we use 50 CC or not
+				newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+				texNodeNames = []
+				cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
+				while newId <= cap:
+					if texFolder:
+						texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
+						if texNode:
+							texNodeNames.append(texNode.Name)
+							texNode.Remove(True)
+						else:
+							break
+						newId += 1
+				if pat0BresName == "":
+					return
+				pat0BresNode = getChildByName(rootNode, pat0BresName)
+				anmTexPat = getChildByName(pat0BresNode, "AnmTexPat(NW4R)")
+				if (BrawlAPI.RootNode.Name.StartsWith("sc_selmap")):
+					pat0Nodes = [ getChildByName(anmTexPat, "MenSelmapPlayer1_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer2_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer3_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer4_TopN") ]
 				else:
-					break
-				newId += 1
-			if pat0BresName == "":
-				return
-			pat0BresNode = getChildByName(rootNode, pat0BresName)
-			anmTexPat = getChildByName(pat0BresNode, "AnmTexPat(NW4R)")
-			if (BrawlAPI.RootNode.Name.StartsWith("sc_selmap")):
-				pat0Nodes = [ getChildByName(anmTexPat, "MenSelmapPlayer1_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer2_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer3_TopN"), getChildByName(anmTexPat, "MenSelmapPlayer4_TopN") ]
-			else:
-				pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
-			for pat0Node in pat0Nodes:
-				# For each texture we added, add a pat0 entry
-				for texNodeName in texNodeNames:
-					# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
-					frameCount = 9201 if fiftyCC == "true" else 501
-					if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
-						frameCount += 100
-					removeFromPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNodeName, frameCountOffset=1, overrideFrameCount=frameCount)
+					pat0Nodes = [ getChildByName(anmTexPat, "InfStockface_TopN__0") ]
+				for pat0Node in pat0Nodes:
+					# For each texture we added, add a pat0 entry
+					for texNodeName in texNodeNames:
+						# Frame count is 9201 with 50 CC, 501 without, and it's 9301 or 601 on sc_selmap
+						frameCount = 9201 if fiftyCC == "true" else 501
+						if BrawlAPI.RootNode.Name.StartsWith("sc_selmap"):
+							frameCount += 100
+						removeFromPat0(pat0BresNode, pat0Node.Name, pat0Node.Children[0].Name, texNodeName, frameCountOffset=1, overrideFrameCount=frameCount)
 		writeLog("Remove stock icons finished")
 
 # Delete module for specified fighter
@@ -3129,35 +3384,37 @@ def removeFromRoster(fighterId):
 # Remove character victory theme
 def removeSong(songID, songDirectory='Victory!', tracklist='Results'):
 		writeLog("Removing theme with song ID " + str(songID))
-		BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Back up tracklist file
-		createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
-		# Remove from tracklist file
-		node = BrawlAPI.RootNode
-		if node.Children:
-			for child in node.Children:
-				if child.SongID == songID:
-					childNode = child
-					break
-		if 'childNode' in locals():
-			# Get filename
-			path = MainForm.BuildPath + '/pf/sound/strm/'
-			#directory = Directory.CreateDirectory(path)
-			if '/' in childNode.SongFileName:
-				if File.Exists(path + childNode.SongFileName + '.brstm'):
-					brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
-					# Back up song file
-					createBackup(brstmFile.FullName)
-					# Remove from tracklist
-					if childNode:
-						writeLog("Removing from" + tracklist + ".tlst")
-						childNode.Remove()
-					# Delete from directory
-					if brstmFile:
-						writeLog("Deleting file " + brstmFile.FullName)
-						brstmFile.Delete()
-		BrawlAPI.SaveFile()
-		BrawlAPI.ForceCloseFile()
+		if File.Exists(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst'):
+			fileOpened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+			if fileOpened:
+				# Back up tracklist file
+				createBackup(MainForm.BuildPath + '/pf/sound/tracklist/' + tracklist + '.tlst')
+				# Remove from tracklist file
+				node = BrawlAPI.RootNode
+				if node and node.Children:
+					for child in node.Children:
+						if child.SongID == songID:
+							childNode = child
+							break
+				if 'childNode' in locals():
+					# Get filename
+					path = MainForm.BuildPath + '/pf/sound/strm/'
+					#directory = Directory.CreateDirectory(path)
+					if '/' in childNode.SongFileName:
+						if File.Exists(path + childNode.SongFileName + '.brstm'):
+							brstmFile = getFileInfo(path + childNode.SongFileName + '.brstm')
+							# Back up song file
+							createBackup(brstmFile.FullName)
+							# Remove from tracklist
+							if childNode:
+								writeLog("Removing from" + tracklist + ".tlst")
+								childNode.Remove()
+							# Delete from directory
+							if brstmFile:
+								writeLog("Deleting file " + brstmFile.FullName)
+								brstmFile.Delete()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing theme")
 
 # Remove kirby hat
@@ -3170,21 +3427,22 @@ def removeKirbyHat(fighterId, kirbyHatExe):
 		createBackup(MainForm.BuildPath + '/pf/BrawlEx/KirbyHat.kbx')
 		createBackup(MainForm.BuildPath + '/pf/module/ft_kirby.rel')
 		createBackup(MainForm.BuildPath + '/Source/Extras/KirbyHatEX.asm')
+		createBackup(MainForm.BuildPath + '/Source/P+Ex/KirbyHatEX.asm')
 		createBackup(MainForm.BuildPath + '/BOOST.GCT')
 		createBackup(MainForm.BuildPath + '/NETBOOST.GCT')
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		#End back up kirby files
 		# Copy necessary files from build if not present
-		if not File.Exists(kirbyHatPath + 'ft_kirby.rel'):
+		if not File.Exists(kirbyHatPath + '/ft_kirby.rel'):
 			kirbyRel = getFileRecursive("ft_kirby.rel", "ft_kirby.rel")
 			if kirbyRel:
 				copyFile(kirbyRel, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHat.kbx'):
+		if not File.Exists(kirbyHatPath + '/KirbyHat.kbx'):
 			kirbyKbx = getFileRecursive("KirbyHat.kbx", "KirbyHat.kbx")
 			if kirbyKbx:
 				copyFile(kirbyKbx, kirbyHatPath)
-		if not File.Exists(kirbyHatPath + 'KirbyHatEX.asm'):
+		if not File.Exists(kirbyHatPath + '/KirbyHatEX.asm'):
 			kirbyAsm = getFileRecursive("KirbyHatEX.asm", "KirbyHatEX.asm")
 			if kirbyAsm:
 				copyFile(kirbyAsm, kirbyHatPath)
@@ -3238,39 +3496,66 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 		createBackup(MainForm.BuildPath + '/RSBE01.GCT')
 		createBackup(MainForm.BuildPath + '/NETPLAY.GCT')
 		# End back up
-		writeLog("Reading EX_Characters.txt")
 		Directory.SetCurrentDirectory(assemblyFunctionsPath)
-		fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
-		matchFound = False
-		i = 0
-		# Search for a matching fighter ID and if one is found, replace the line
-		while i < len(fileText):
-			line = fileText[i]
-			if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+		if File.Exists(assemblyFunctionsPath + '/EX_Characters.txt'):
+			writeLog("Reading EX_Characters.txt")
+			fileText = File.ReadAllLines(assemblyFunctionsPath + '/EX_Characters.txt')
+			matchFound = False
+			i = 0
+			# Search for a matching fighter ID and if one is found, replace the line
+			while i < len(fileText):
+				line = fileText[i]
+				if line.StartsWith('/') or line.StartsWith('#') or len(line) == 0:
+					i += 1
+					continue
+				# Get the figher ID out of the line
+				foundId = line.split(' = ')[1]
+				if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
+					matchFound = True
+					break
 				i += 1
-				continue
-			# Get the figher ID out of the line
-			foundId = line.split(' = ')[1]
-			if foundId == '0x' + str(fighterId) or foundId == int(fighterId, 16):
-				matchFound = True
-				break
-			i += 1
-		# If there was a match, write the file while skipping that index
-		if matchFound:
-			newFileText = []
-			j = 0
-			while j < len(fileText):
-				if j != i:
-					newFileText.append(fileText[j])
-				j += 1
-			writeLog("Writing updated EX_Characters.txt")
-			File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', Array[str](newFileText))
-			# Run the exe
+			# If there was a match, write the file while skipping that index
+			if matchFound:
+				newFileText = []
+				j = 0
+				while j < len(fileText):
+					if j != i:
+						newFileText.append(fileText[j])
+					j += 1
+				writeLog("Writing updated EX_Characters.txt")
+				File.WriteAllLines(assemblyFunctionsPath + '/EX_Characters.txt', Array[str](newFileText))
+		if File.Exists(assemblyFunctionsPath + '/EX_Config.xml'):
+			writeLog("Reading EX_Config.xml")
+			reader = XmlTextReader(assemblyFunctionsPath + '/EX_Config.xml')
+			reader.Read()
+			doc = XmlDocument()
+			doc.Load(reader)
+			reader.Close()
+			root = doc.FirstChild
+			xPathString = '/codeMenuConfig/characterList'
+			try:
+				xmlNodes = doc.DocumentElement.SelectNodes(xPathString)
+			except XPathException as e:
+					xmlNodes = []
+			for node in xmlNodes:
+				for childNode in node.SelectNodes("character"):
+					slotId = childNode.Attributes["slotID"].Value
+					if slotId == '0x' + fighterId:
+						existingNode = childNode
+						break
+					else:
+						existingNode = None
+				if existingNode:
+					node.RemoveChild(existingNode)
+			writeLog("Writing updated EX_Config.xml")
+			doc.Save(assemblyFunctionsPath + '/EX_Config.xml')
+		# Run the exe
+		if File.Exists(assemblyFunctionExe):
 			writeLog("Running " + assemblyFunctionExe)
 			p = Process.Start(assemblyFunctionExe, '1 1 0 1')
 			p.WaitForExit()
 			p.Dispose()
-		Directory.SetCurrentDirectory(AppPath)
+			Directory.SetCurrentDirectory(AppPath)
 
 # Function to remove a code macro from the appropriate code
 def removeCodeMacro(id, macroName, position=0, repeat=False, preFindText=""):
@@ -3351,7 +3636,7 @@ def uninstallEndingFiles(fighterName, fighterId):
 # Function to do all the credits remove work
 def uninstallCreditsSong(slotId, removeTheme=True):
 		songId = updateCreditsCode(slotId, "0x0000", remove=True)
-		if removeTheme:
+		if removeTheme and songId != None:
 			removeSong(int(songId, 16), 'Credits', 'Credits')
 
 # Remove CSS icon for SSE
@@ -3470,9 +3755,9 @@ def removeTrophy(trophyId):
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
 					for trophyNode in tyDataList.Children:
 						if nameIndex != -1 and trophyNode.NameIndex > nameIndex:
-							trophyNode.NameIndex -= 1
+							trophyNode.NameIndex -= 2
 						if gameIndex != -1 and trophyNode.GameIndex > gameIndex:
-							trophyNode.GameIndex -= 1
+							trophyNode.GameIndex -= 2
 						if descriptionIndex != -1 and trophyNode.DescriptionIndex > descriptionIndex:
 							trophyNode.DescriptionIndex -= 1
 					BrawlAPI.SaveFile()
@@ -3561,7 +3846,9 @@ def removeAltCharacter(cssSlotId):
 						if newLine[j].strip() == '0x' + addLeadingZeros(cssSlotId, 2) and '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2) != '0x' + cssSlotId:
 							foundId = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
 							writeLog("Found ID " + str(foundId))
-						newValue = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+							newValue = '0x' + addLeadingZeros(str("%x" % ((lineCounter - len(newLine)) + j)).upper(), 2)
+						else:
+							newValue = newLine[j].strip()
 						newString = newString + newValue + (', ' if newValue != '0x7F' else '')
 						j += 1
 					if len(fileText[i].split('|')) > 1:
@@ -3694,25 +3981,27 @@ def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2
 				node = getChildByName(rootNode, tex0BresName)
 			else:
 				node = rootNode
-			# Extract the texture nodes
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			# End of loop changes depending on if we use 50 CC or not
-			newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
-			texNodeNames = []
-			cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
-			i = 1
-			while newId <= cap:
-				texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
-				if texNode:
-					texNodeNames.append(texNode.Name)
-					exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
-					texNode.Export(exportPath + '/' + texNode.Name + '.png')
-					# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
-					if not texNode.SharesData:
-						i += 1
-				else:
-					break
-				newId += 1
+			if node and len(node.Children) > 0:
+				# Extract the texture nodes
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				# End of loop changes depending on if we use 50 CC or not
+				newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
+				texNodeNames = []
+				cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
+				i = 1
+				while newId <= cap:
+					if texFolder:
+						texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
+						if texNode:
+							texNodeNames.append(texNode.Name)
+							exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
+							texNode.Export(exportPath + '/' + texNode.Name + '.png')
+							# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
+							if not texNode.SharesData:
+								i += 1
+						else:
+							break
+						newId += 1
 			writeLog("Finished extracting stock icons")
 
 # Extract franchise icon
@@ -3737,12 +4026,14 @@ def extractBPName(cosmeticId, filePath, folderName):
 		if fileOpened:
 			# Extract BP name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
-			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNmS." +addLeadingZeros(str(cosmeticId) + '1', 3)
-			textureNode = getChildByName(texFolder, nodeName)
-			if textureNode:
-				exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+			if node:
+				texFolder = getChildByName(node, "Textures(NW4R)")
+				nodeName = "MenSelchrChrNmS." +addLeadingZeros(str(cosmeticId) + '1', 3)
+				if texFolder:
+					textureNode = getChildByName(texFolder, nodeName)
+					if textureNode:
+						exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
+						textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting BP name")
 
 # Extract Classic intro
@@ -3803,7 +4094,7 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		writeLog("Finished extracting BPs")
 
 # Extract replay icon
-def extractReplayIcon(cosmeticId):
+def extractReplayIcon(cosmeticId, replayIconStyle=""):
 		writeLog("Extract replay icon for cosmetic ID " + str(cosmeticId))
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
 		if fileOpened:
@@ -3811,7 +4102,10 @@ def extractReplayIcon(cosmeticId):
 			nodeName = "MenReplayChr." + addLeadingZeros(str(cosmeticId) + "1", 3)
 			textureNode = getChildByName(texFolder, nodeName)
 			if textureNode:
-				exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
+				if replayIconStyle:
+					exportPath = createDirectory(AppPath + '/temp/ReplayIcon/' + replayIconStyle)
+				else:
+					exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
 				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
 		writeLog("Finished extracting replay icon")
 
@@ -4175,9 +4469,9 @@ def installFranchiseIcon(franchiseIconId, image, filePath, size=0):
 		importFranchiseIcon(franchiseIconId, image, filePath, size)
 
 # Install BP name into info
-def installBPName(cosmeticId, image, filePath):
+def installBPName(cosmeticId, image, filePath, fiftyCC="true"):
 		removeBPName(cosmeticId, filePath)
-		importBPName(cosmeticId, image, filePath)
+		importBPName(cosmeticId, image, filePath, fiftyCC="true")
 
 # Install franchise icon into STGRESULT
 def installFranchiseIconResult(franchiseIconId, image="", model=""):
@@ -4406,7 +4700,6 @@ def restoreBackup(selectedBackup=""):
 					file = MainForm.BuildPath + fileLine
 					if File.Exists(file):
 						File.Delete(file)
-					File.Delete(backupPath + '\\AddedFiles.txt')
 			BrawlAPI.ShowMessage("Backup restored.", "Success")
 		writeLog("Finished restoring backup")
 
@@ -4563,25 +4856,25 @@ def getAllFighterInfo():
 
 			# Get fighter config info
 			fighterConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "*.dat"):
 				fighterConfigInfo.append(getfighterConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get slot config info
 			slotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "*.dat"):
 				slotConfigInfo.append(getSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get cosmetic config info
 			cosmeticConfigInfo = []
-			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig'):
+			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "*.dat"):
 				cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get CSS slot config info
 			cssSlotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig'):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', "*.dat"):
 				cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
@@ -4651,6 +4944,7 @@ def getSettings():
 		settings.bpStyle = readValueFromKey(fileText, "bpStyle")
 		settings.portraitNameStyle = readValueFromKey(fileText, "portraitNameStyle")
 		settings.installPortraitNames = readValueFromKey(fileText, "installPortraitNames")
+		settings.replayIconStyle = readValueFromKey(fileText, "replayIconStyle")
 		settings.franchiseIconSizeCSS = readValueFromKey(fileText, "franchiseIconSizeCSS")
 		settings.installStocksToCSS = readValueFromKey(fileText, "installStocksToCSS")
 		settings.installStocksToInfo = readValueFromKey(fileText, "installStocksToInfo")
@@ -4660,21 +4954,22 @@ def getSettings():
 		settings.fiftyCostumeCode = readValueFromKey(fileText, "fiftyCostumeCode")
 		settings.installKirbyHats = readValueFromKey(fileText, "installKirbyHats")
 		settings.defaultKirbyHat = readValueFromKey(fileText, "defaultKirbyHat")
-		settings.kirbyHatExe = readValueFromKey(fileText, "kirbyHatExe")
-		settings.assemblyFunctionsExe = readValueFromKey(fileText, "assemblyFunctionsExe")
-		settings.sawndReplaceExe = readValueFromKey(fileText, "sawndReplaceExe")
-		settings.sfxChangeExe = readValueFromKey(fileText, "sfxChangeExe")
+		settings.kirbyHatExe = readValueFromKey(fileText, "kirbyHatExe").replace('{buildPath}', MainForm.BuildPath)
+		settings.assemblyFunctionsExe = readValueFromKey(fileText, "assemblyFunctionsExe").replace('{buildPath}', MainForm.BuildPath)
+		settings.sawndReplaceExe = readValueFromKey(fileText, "sawndReplaceExe").replace('{buildPath}', MainForm.BuildPath)
+		settings.sfxChangeExe = readValueFromKey(fileText, "sfxChangeExe").replace('{buildPath}', MainForm.BuildPath)
 		settings.soundbankStyle = readValueFromKey(fileText, "soundbankStyle")
 		settings.addSevenToSoundbankIds = readValueFromKey(fileText, "addSevenToSoundbankIds")
 		settings.addSevenToSoundbankName = readValueFromKey(fileText, "addSevenToSoundbankName")
 		settings.installVictoryThemes = readValueFromKey(fileText, "installVictoryThemes")
-		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe")
+		settings.gfxChangeExe = readValueFromKey(fileText, "gfxChangeExe").replace('{buildPath}', MainForm.BuildPath)
 		settings.installBPNames = readValueFromKey(fileText, "installBPNames")
 		settings.installSingleplayerCosmetics = readValueFromKey(fileText, "installSingleplayerCosmetics")
 		settings.installToSse = readValueFromKey(fileText, "installToSse")
 		settings.sseUnlockStage = readValueFromKey(fileText, "sseUnlockStage")
 		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
-		settings.customStageLists = readValueFromKey(fileText, "customStageLists")
+		settings.customStageLists = readValueFromKey(fileText, "customStageLists").replace('{buildPath}', MainForm.BuildPath)
+		settings.installCSSIconNames = readValueFromKey(fileText, "installCSSIconNames")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -4849,6 +5144,7 @@ class Settings:
 		bpStyle = "vBrawl"
 		portraitNameStyle = "PM"
 		installPortraitNames = "false"
+		replayIconStyle = "P+"
 		franchiseIconSizeCSS = "128"
 		installStocksToCSS = "true"
 		installStocksToInfo = "true"
@@ -4859,7 +5155,9 @@ class Settings:
 		installKirbyHats = "true"
 		defaultKirbyHat = "0x21"
 		kirbyHatExe = getFileRecursive("lavaKirbyHatManager*.exe", "lavaKirbyHatManager - OFFLINE.exe")
-		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions (Dolphin).exe")
+		assemblyFunctionsExe = getFileRecursive("PowerPC Assembly Functions*.exe", "PowerPC Assembly Functions - Offline.exe")
+		if assemblyFunctionsExe == "":
+			assemblyFunctionsExe = getFileRecursive("Build Code Menu - *.exe", "Build Code Menu - DOLPHIN.exe")
 		sawndReplaceExe = getFileRecursive("lavaSawndIDReplaceAssist*.exe", "lavaSawndIDReplaceAssist.exe")
 		sfxChangeExe = getFileRecursive("sfxchange*.exe", "sfxchange.exe")
 		soundbankStyle = "hex"
@@ -4873,6 +5171,16 @@ class Settings:
 		sseUnlockStage = "end"
 		installTrophies = "false"
 		customStageLists = ""
+		if Directory.Exists(MainForm.BuildPath + '/pf/stage/stagelist'):
+			stageLists = Directory.GetFiles(MainForm.BuildPath + '/pf/stage/stagelist', "*.asm")
+			i = 0
+			while i < len(stageLists):
+				if getFileInfo(stageLists[i]).Name != 'TABLE_STAGES.asm':
+					customStageLists += stageLists[i]
+					if i != len(stageLists) - 1:
+						customStageLists += ","
+				i += 1
+		installCSSIconNames = "true"
 
 class FighterSettings:
 		lucarioBoneId = ""
@@ -4893,6 +5201,12 @@ class TrophySettings:
 		gameName1 = ""
 		gameName2 = ""
 		seriesIndex = 0
+
+class InstallOption:
+		def __init__(self, folder, name="", description=""):
+			self.folder = folder
+			self.name = name
+			self.description = description
 
 class FighterInfo:
 		def __init__(self, fighterId, fighterName, cosmeticId, franchiseIconId, soundbankId, songId, characterName, slotConfigId, cosmeticConfigId, cssSlotConfigId):
@@ -4944,7 +5258,7 @@ class StageSlot:
 			self.name = name
 
 class StageCosmetics:
-		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None):
+		def __init__(self, stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList=None, franchiseIconList=None, gameLogoList=None, replayIcon=None, statsImage=None):
 			self.stageIcon = stageIcon
 			self.stagePreview = stagePreview
 			self.stageName = stageName
@@ -4954,6 +5268,8 @@ class StageCosmetics:
 			self.stageNameList = stageNameList
 			self.franchiseIconList = franchiseIconList
 			self.gameLogoList = gameLogoList
+			self.replayIcon = replayIcon
+			self.statsImage = statsImage
 
 class StageParams:
 		def __init__(self, aslEntry, pacName, tracklist, module, soundBank, effectBank, originalName, pacFile="", moduleFile="", tracklistFile="", soundBankFile="", paramFile="", originalPacName="", originalModule="", originalTracklist="", originalSoundBank=""):
@@ -5079,7 +5395,7 @@ def getStageList(path="/Source/Project+/StageFiles.asm"):
 			tableValues = []
 			while i < len(fileText):
 				line = fileText[i]
-				if len(line) <= 0 or line.startswith('TABLE'):
+				if len(line) <= 0 or line.startswith('TABLE') or not line.startswith('0x'):
 					break
 				splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 				for item in splitLine:
@@ -5110,13 +5426,13 @@ def updateStageList(stageList, path="/Source/Project+/StageFiles.asm"):
 			tables[i].append(item)
 		fileText = File.ReadAllLines(file)
 		for line in fileText:
-			if line.startswith(".GOTO->SkipStageTables"):
-				newText.append(line + "\n\n")
+			if line.startswith("TABLE_1:"):
+				#newText.append(line + "\n\n")
 				stopWriting = True
 				i = 0
 				for table in tables:
 					i += 1
-					newText.append("\nTABLE_" + str(i) + ":")
+					newText.append("TABLE_" + str(i) + ":")
 					if len(table) > 0:
 						newText.append("\tbyte[" + str(len(table)) + "] |")
 					j = 0
@@ -5142,7 +5458,7 @@ def updateStageList(stageList, path="/Source/Project+/StageFiles.asm"):
 				newText.append(newLine)
 			elif not stopWriting:
 				newText.append(line)
-			elif line.startswith("TABLE_STAGES:"):
+			elif line.startswith("TABLE_STAGES:") or line.startswith(".include"):
 				stopWriting = False
 				newText.append(line)
 		File.WriteAllLines(file, newText)
@@ -5198,20 +5514,24 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 		fileText = File.ReadAllLines(file)
 		tableStart = 0
 		tableValues = []
+		foundTable = False
 		# Find the stages table
 		i = 0
 		while i < len(fileText):
 			line = fileText[i]
 			if line.startswith("TABLE_STAGES:"):
 				writeLog("Found stages table at line " + str(i))
+				foundTable = True
 				tableStart = i + 3
 				break
 			i += 1
+		if not foundTable:
+			return 0
 		# Get to end of table
 		i = tableStart
 		while i < len(fileText):
 			line = fileText[i]
-			if len(line) <= 0 or line.startswith('TABLE'):
+			if len(line) <= 0 or line.startswith('TABLE') or line.startswith('SkipStageTables:'):
 				break
 			# Get a running list of IDs while we're at it (mostly for length check purposes later)
 			splitLine = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
@@ -5222,13 +5542,16 @@ def addStageId(fullId, stageName, path="/Source/Project+/StageFiles.asm"):
 		ids = list(filter(None, line.replace('|','').split('#')[0].strip().split(',')))
 		if len(ids) < 4:
 			splitLine = line.split('|')
-			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ splitLine[1] + ", " + stageName
+			newLine = splitLine[0].strip() + ',\t0x' + fullId + "\t| "+ ((splitLine[1] + ", ") if len(splitLine) > 1 else "# ") + stageName
 			fileText[i - 1] = newLine
 		else:
 			splitLine = line.split('|')
-			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + splitLine[1]
+			fileText[i - 1] = splitLine[0].rstrip() + ",\t|" + (splitLine[1] if len(splitLine) > 1 else "")
 			newLine = '0x' + fullId + '\t| #' + stageName
-			fileText[i] = newLine
+			if i < len(fileText):
+				fileText[i] = newLine + '\n'
+			else:
+				fileText[i - 1] = fileText[i - 1] + '\n' + newLine + '\n'
 		# Update counter
 		counterLine = tableStart - 1
 		fileText[counterLine] = "half[" + str(len(tableValues) + 1) + "] |\t# Stage Count + 2"
@@ -5293,7 +5616,7 @@ def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 				newLine = ""
 				j = 0
 				while j < len(splitLine):
-					newLine += splitLine[j].strip() + ("," if j != len(splitLine) - 1 else "") + "\t"
+					newLine += splitLine[j].strip() + ("," if len(splitLine) > 1 else "") + "\t"
 					j += 1
 				newLine += "| "
 				j = 0
@@ -5308,7 +5631,7 @@ def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 		i = 0
 		while i < len(fileText):
 			if i == tableStart - 1:
-				writeText.append("half[" + str(len(tableValues) - 1) + "] |\t# Stage Count + 2")
+				writeText.append("half[" + str(len(tableValues)) + "] |\t# Stage Count + 2")
 				i += 1
 				continue
 			elif i == tableStart:
@@ -5323,7 +5646,7 @@ def removeStageId(fullId, path="/Source/Project+/StageFiles.asm"):
 		writeLog("Finished removing stage ID")
 
 # Remove stage slot entirely
-def removeStageSlot(stageSlots, stageLists):
+def removeStageSlot(stageSlots, stageLists, stageTableFile=''):
 	writeLog("Removing stage slots")
 	for stageSlot in stageSlots:
 		writeLog("Removing stage slot " + stageSlot.name)
@@ -5341,8 +5664,11 @@ def removeStageSlot(stageSlots, stageLists):
 		if fileOpened:
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
+		removeStageReplayIcon(cosmeticId)
 		for stageList in stageLists:
-			removeStageId(stageSlot.fullId, stageList)
+			if not stageTableFile:
+				stageTableFile = stageList
+			removeStageId(stageSlot.fullId, stageTableFile)
 		writeLog("Finished removing stage slot")
 
 # Get stage IDs for specific stage number
@@ -5355,7 +5681,7 @@ def getStageIdsByNumber(stageNumber, path="/Source/Project+/StageFiles.asm"):
 				writeLog("Found stage ID " + str(stageId))
 				return stageId.strip()
 			i += 1
-		writeLog("No stage ID found")
+		writeLog("No stage ID found for slot ID " + str(stageNumber))
 		return -1
 
 # Get stage name by stage ID
@@ -5372,6 +5698,7 @@ def getStageName(stageId):
 					writeLog("Found stage name " + str(node.Name))
 					return node.Name
 			BrawlAPI.ForceCloseFile()
+		return ""
 		writeLog("Finished getting stage name")
 
 # Get stage cosmetics by cosmetic ID
@@ -5383,6 +5710,7 @@ def getStageCosmetics(cosmeticId):
 		franchiseIcon = 0
 		gameLogo = 0
 		altName = 0
+		statsImage = 0
 		stageNameList = []
 		franchiseIconList = []
 		gameLogoList = []
@@ -5443,19 +5771,39 @@ def getStageCosmetics(cosmeticId):
 							franchiseIconList.append(ImageNode(child.Name, child.GetImage(0)))
 						if child.Name.startswith('MenSelmapMark.'):
 							gameLogoList.append(ImageNode(child.Name, child.GetImage(0)))
+					# Stats image
+					statsTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", int(cosmeticId, 16), getNearest=False)
+					texNode = getChildByName(texFolder, statsTextureName)
+					if texNode:
+						statsImage = Bitmap(texNode.GetImage(0))
+					else:
+						statsImage = ""
+			BrawlAPI.ForceCloseFile()
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres', False)
+		if fileOpened:
+			anmTexPatFolder = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			if anmTexPatFolder and texFolder:
+				replayIconTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenReplayPhoto0_TopN__0", "snap_PhotoMat", int(cosmeticId, 16), False)
+				texNode = getChildByName(texFolder, replayIconTextureName)
+				if texNode:
+					replayIcon = Bitmap(texNode.GetImage(0))
+				else:
+					replayIcon = None
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished getting cosmetics")
-		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList)
+		return StageCosmetics(stageIcon, stagePreview, stageName, franchiseIcon, gameLogo, altName, stageNameList, franchiseIconList, gameLogoList, replayIcon=replayIcon, statsImage=statsImage)
 
 # Get the texture associated with a pat0 entry by input frame index
-def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
+def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex, getNearest=True):
 		writeLog("Getting textures for pat0 entry with frame index " + str(frameIndex))
 		pat0 = getChildByName(patFolder, pat0Name)
 		if pat0:
 			pat0Entry = getChildByName(pat0, entryName).Children[0]
 			if pat0Entry:
-				frame = getChildByFrameIndex(pat0Entry, frameIndex)
-				if frame != False:
+				frame = getChildByFrameIndex(pat0Entry, frameIndex, getNearest=getNearest)
+				# Don't get placeholder/default cosmetics
+				if frame != False and not frame.Texture.endswith('00'):
 					textureName = frame.Texture
 					return textureName
 		return 0
@@ -5537,8 +5885,11 @@ def getStageAltInfo(stageId):
 def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 		writeLog("Getting texture name for cosmetic ID " + str(cosmeticId))
 		foundName = getChildByName(texFolder, prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2))
-		if foundName and not new:
+		# Placeholder/default cosmetics should be ignored
+		if foundName and not new and not foundName.Name.endswith('00'):
 			return foundName.Name
+		elif (not foundName or foundName.Name.endswith('00')) and cosmeticId != '00':
+			return prefix + addLeadingZeros(str(int(cosmeticId, 16)), 2)
 		else:
 			i = 0
 			newCosmeticId = 1
@@ -5551,7 +5902,7 @@ def getStageTextureName(prefix, cosmeticId, texFolder, new=False):
 				break
 			return prefix + addLeadingZeros(str(newCosmeticId), 2)
 		
-# Generic functiont to add stage cosmetics
+# Generic function to add stage cosmetics
 def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, prefix, pat0Name, entryName, format):
 		pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, pat0Name, entryName, int(cosmeticId, 16))
 		if not pat0Entry:
@@ -5563,14 +5914,32 @@ def addStageCosmetic(cosmeticId, image, anmTexPatFolder, texFolder, bresNode, pr
 				addToPat0(bresNode, pat0Name, "pasted__stnameshadowM", textureName, textureName, int(cosmeticId, 16), textureName)
 			if prefix == "MenSelmapPrevbase.":
 				addToPat0(bresNode, pat0Name, "basebgMShadow", textureName, textureName, int(cosmeticId, 16), textureName)
+		# Placeholder/default cosmetics shouldn't get replaced
+		elif pat0Entry.Texture.endswith('00'):
+			textureName = getStageTextureName(prefix, cosmeticId, texFolder)
+			pat0Entry.Texture = textureName
 		else:
 			textureName = pat0Entry.Texture
 		texNode = getChildByName(texFolder, textureName)
 		newNode = importTexture(texNode if texNode else bresNode, image, format)
 		newNode.Name = textureName
 
+# Import stage replay icon
+def importStageReplayIcon(cosmeticId, replayIcon):
+	writeLog("Importing stage replay icon for cosmetic ID " + str(cosmeticId))
+	if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Replay.brres'):
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		if fileOpened:
+			anmTexPatFolder = getChildByName(BrawlAPI.RootNode, "AnmTexPat(NW4R)")
+			texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+			if anmTexPatFolder and texFolder:
+				addStageCosmetic(cosmeticId, replayIcon, anmTexPatFolder, texFolder, BrawlAPI.RootNode, "MenCollReplaySt.", "MenReplayPhoto0_TopN__0", "snap_PhotoMat", WiiPixelFormat.CMPR)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+		writeLog("Finished importing stage replay icon")
+
 # Import stage cosmetics
-def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac'):
+def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview="", franchiseIconName="", gameLogoName="", altStageName="", franchiseIcons=[], gameLogos=[], fileName='/pf/menu2/sc_selmap.pac', statsImage=""):
 		writeLog("Importing stage cosmetics for cosmetic ID " + str(cosmeticId))
 		if File.Exists(MainForm.BuildPath + fileName):
 			fileOpened = openFile(MainForm.BuildPath + fileName)
@@ -5623,10 +5992,34 @@ def importStageCosmetics(cosmeticId, stageIcon="", stageName="", stagePreview=""
 								pat0Entry = addToPat0(bresNode, "MenSelmapPreview", "pasted__stnameshadowM_start", altStageName, altStageName, int(cosmeticId, 16))
 							else:
 								pat0Entry.Texture = altStageName
+						if statsImage:
+							addStageCosmetic(cosmeticId, statsImage, anmTexPatFolder, texFolder, bresNode, "MenSelmapStats.", "MenSelmapPreview", "pasted__stnamelogoM_stats", WiiPixelFormat.I4)
 						texFolder.SortChildren()
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished importing stage cosmetics")
+
+# Remove stage replay icon
+def removeStageReplayIcon(cosmeticId):
+	writeLog("Removing replay icon for cosmetic ID " + str(cosmeticId))
+	if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Replay.brres'):
+		fileOpened = openFile(MainForm.BuildPath + '/pf/menu/collection/Replay.brres')
+		if fileOpened:
+			cosmeticId = int(cosmeticId, 16)
+			bresNode = BrawlAPI.RootNode
+			anmTexPatFolder = getChildByName(bresNode, "AnmTexPat(NW4R)")
+			texFolder = getChildByName(bresNode, "Textures(NW4R)")
+			if anmTexPatFolder and texFolder:
+				pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenReplayPhoto0_TopN__0", "snap_PhotoMat", cosmeticId)
+				if pat0Entry:
+					texName = pat0Entry.Texture
+					pat0Entry.Remove()
+					texNode = getChildByName(texFolder, texName)
+					if texNode:
+						texNode.Remove(True)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+	writeLog("Finished removing stage replay icon")
 
 # Remove stage cosmetics
 def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeFranchiseIcon=False, removeGameLogo=False):
@@ -5664,6 +6057,10 @@ def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeF
 							pat0Entry.Remove()
 						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "basebgMShadow", cosmeticId)
 						if pat0Entry:
+							pat0Entry.Remove()
+						pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", cosmeticId)
+						if pat0Entry:
+							removeTexNodes.append(pat0Entry.Texture)
 							pat0Entry.Remove()
 						if removeFranchiseIcon:
 							pat0Entry = getPat0ByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "lambert113", cosmeticId)
@@ -5708,11 +6105,11 @@ def updateStageParams(stageId, stageParamList):
 		writeLog("Updating stage params for stage ID " + str(stageId))
 		new = False
 		for stageParam in stageParamList:
-			if stageParam.originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
+			if stageParam.paramFile and not File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param') and (not stageParam.originalName or stageParam.aslEntry.Name == stageParam.originalName):
+				copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
+			elif not stageParam.paramFile and stageParam.originalName and File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param'):
 				if stageParam.originalName != stageParam.aslEntry.Name:
 					renameFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + '.param', stageParam.aslEntry.Name + '.param')
-			if stageParam.paramFile:
-				copyRenameFile(stageParam.paramFile, stageParam.aslEntry.Name + '.param', MainForm.BuildPath + '/pf/stage/stageinfo')
 			if File.Exists(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param'):
 				fileOpened = openFile(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
 			else:
@@ -5744,7 +6141,7 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 							copyFile(stageParam.pacFile, MainForm.BuildPath + '/pf/stage/melee')
 			if stageParam.moduleFile:
 				if File.Exists(stageParam.moduleFile):
-					if not File.Exists(MainForm.BuildPath + "/pf/module/" + getFileInfo(stageParam.moduleFile).Name):
+					if not File.Exists(MainForm.BuildPath + "/pf/module/" + getFileInfo(stageParam.module).Name):
 						if stageParam.module:
 							copyRenameFile(stageParam.moduleFile, stageParam.module, MainForm.BuildPath + '/pf/module')
 						else:
@@ -5759,7 +6156,7 @@ def moveStageFiles(stageParamList, brstmFiles=[]):
 			if stageParam.soundBankFile:
 				if File.Exists(stageParam.soundBankFile):
 					if stageParam.soundBank and hexId(stageParam.soundBank) != "0xFFFF":
-						fileName = addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3) + '_' + stageParam.aslEntry.Name + ".sawnd"
+						fileName = addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3) + '_' + stageParam.pacName + ".sawnd"
 						if not File.Exists(MainForm.BuildPath + "/pf/sfx/" + fileName):
 							copyRenameFile(stageParam.soundBankFile, fileName.Replace(fileName.split('_')[0], addLeadingZeros(hexId(stageParam.soundBank).replace('0x', ''), 3)), MainForm.BuildPath + '/pf/sfx')
 					elif hexId(stageParam.soundBank != "0xFFFF"):
@@ -5786,21 +6183,21 @@ def removeStageEntry(stageParams, deleteParam=True, forceDelete=False):
 		reviewedFiles = []
 		for stageParam in stageParams:
 			messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
-			if (stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName) or forceDelete:
+			if (stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName) or forceDelete or stageParam.pacFile:
 				pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
 				if File.Exists(pacFile) and pacFile not in reviewedFiles:
 					removePac = BrawlAPI.ShowYesNoPrompt(messageText + "STG" + stageParam.originalPacName + ".pac", title)
 					reviewedFiles.append(pacFile)
 				elif pacFile in reviewedFiles:
 					removePac = False
-			if (stageParam.originalModule and stageParam.originalModule != stageParam.module) or forceDelete:
+			if (stageParam.originalModule and stageParam.originalModule != stageParam.module) or forceDelete or stageParam.moduleFile:
 				moduleFile = MainForm.BuildPath + '/pf/module/' + stageParam.originalModule
 				if File.Exists(moduleFile) and moduleFile not in reviewedFiles:
 					removeModule = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalModule, title)
 					reviewedFiles.append(moduleFile)
 				elif moduleFile in reviewedFiles:
 					removeModule = False
-			if (stageParam.originalSoundBank and stageParam.originalSoundBank != stageParam.soundBank) or forceDelete:
+			if (stageParam.originalSoundBank and stageParam.originalSoundBank != stageParam.soundBank) or forceDelete or stageParam.soundBankFile:
 				directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
 				files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
 				if len(files) > 0:

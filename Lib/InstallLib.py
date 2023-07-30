@@ -27,6 +27,45 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 				unzipFile(zipfile)
 				folder = AppPath + '/temp'
 				if folder:
+					# Get options
+					for directory in Directory.GetDirectories(folder, "*", SearchOption.AllDirectories):
+						if directory and Directory.Exists(directory):
+							optionDirectory = Directory.GetDirectories(directory, '#Options')
+							if optionDirectory and len(optionDirectory) > 0:
+								optionDirectories = Directory.GetDirectories(optionDirectory[0])
+								if optionDirectories and len(optionDirectories) > 0:
+									description = ""
+									if File.Exists(directory + '\\OptionSettings.txt'):
+										optionSettings = File.ReadAllLines(directory + '\\OptionSettings.txt')
+										name = readValueFromKey(optionSettings, "name")
+										description = readValueFromKey(optionSettings, "description")
+									installOptions = [InstallOption(directory, name, description)]
+									for option in optionDirectories:
+										description = ""
+										if File.Exists(option + '\\OptionSettings.txt'):
+											optionSettings = File.ReadAllLines(option + '\\OptionSettings.txt')
+											name = readValueFromKey(optionSettings, "name")
+											description = readValueFromKey(optionSettings, "description")
+										else:
+											name = DirectoryInfo(option).Name
+											description = ""
+										installOptions.append(InstallOption(option, name, description))
+									form = InstallOptionForm(installOptions, DirectoryInfo(directory).Name)
+									result = form.ShowDialog(MainForm.Instance)
+									if result != DialogResult.OK:
+										return
+									# If we did not choose the standard option, remove files from main folder, copy chosen file contents back into it, and
+									#then delete options
+									if form.chosenFolder != directory:
+										filesToDelete = Directory.GetFiles(directory)
+										i = 0
+										while i < len(filesToDelete):
+											File.Delete(filesToDelete[i])
+											i += 1
+										for file in Directory.GetFiles(form.chosenFolder):
+											copyFile(file, directory)
+									Directory.Delete(directory + '\\#Options', True)
+
 					# Get all subdirectories in the folder
 					fighterDir = Directory.CreateDirectory(folder).GetDirectories()
 					# Set up directories
@@ -220,12 +259,15 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							else:
 								changeSoundbankId = True
 							if changeSoundbankId:
-								autoSoundbankId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
+								if not auto:
+									autoSoundbankId = BrawlAPI.ShowYesNoPrompt("Do you want BrawlInstaller to choose the ID automatically?", "Resolve Automatically?")
+								else:
+									autoSoundbankId = True
 								matchFound = True
 								# Keep prompting for alternate soundbank ID until one that is not used is entered
 								idMod = 0
 								while matchFound:
-									if not auto and not autoSoundbankId:
+									if not autoSoundbankId:
 										soundbanks = Directory.GetFiles(MainForm.BuildPath + '/pf/sfx', '*.sawnd')
 										soundbankIds = []
 										for soundbank in soundbanks:
@@ -254,6 +296,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 											return
 										continue
 									matchFound = False
+								newSoundbankId = hexId(newSoundbankId)
 							else:
 								newSoundbankId = ""
 						elif soundbankMatch:
@@ -363,7 +406,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								installCSSIcon(cosmeticId, Directory.GetFiles(iconFolders[0], "*.png")[0], format)
 								nameFolders = Directory.GetDirectories(iconFolders[0], "Name")
 								# If a name folder is found in the CSS icon directory, install CSS icon name
-								if nameFolders:
+								if nameFolders and settings.installCSSIconNames == "true":
 									if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
 										installCSSIconName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
 						else:
@@ -412,7 +455,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 							if nameFolders:
 								if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
-									installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac')
+									installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/info.pac', settings.fiftyCostumeCode)
 					fileOpened = checkOpenFile("info")
 					if fileOpened:
 						BrawlAPI.SaveFile()
@@ -460,7 +503,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 										nameFolders = Directory.GetDirectories(bpFolders[0], "Name")
 										if nameFolders:
 											if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
-												installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName)
+												installBPName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], '/pf/info2/' + fileName, settings.fiftyCostumeCode)
 								fileOpened = checkOpenFile(fileName.split('.pac')[0])
 								if fileOpened:
 									BrawlAPI.SaveFile()
@@ -543,8 +586,20 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Replay Icon
 
 					if replayIconFolder:
+						# Legacy
 						if len(Directory.GetFiles(replayIconFolder.FullName, "*.png")) > 0:
 							installReplayIcon(cosmeticId, Directory.GetFiles(replayIconFolder.FullName, "*.png")[0])
+						# Modern way
+						elif settings.replayIconStyle:
+							replayFolders = Directory.GetDirectories(replayIconFolder.FullName, settings.replayIconStyle)
+							if replayFolders:
+								if len(Directory.GetFiles(replayFolders[0], "*.png")) > 0:
+									installReplayIcon(cosmeticId, Directory.GetFiles(replayFolders[0], "*.png")[0])
+						elif not settings.replayIconStyle:
+							replayFolders = Directory.GetDirectories(replayIconFolder.FullName)
+							if replayFolders:
+								if len(Directory.GetFiles(replayFolders[0], "*.png")) > 0:
+									installReplayIcon(cosmeticId, Directory.GetFiles(replayFolders[0], "*.png")[0])
 					progressCounter += 1
 					progressBar.Update(progressCounter)
 
@@ -598,7 +653,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Kirby Hats
 
 					kirbyHatFighterId = -1
-					if settings.kirbyHatExe != "":
+					if settings.kirbyHatExe != "" and settings.installKirbyHats == "true":
 						if kirbyHatFolder:
 							# Attempt to get the kirby hat fighter ID from text file
 							fighterIdFile = getFileByName("FighterID.txt", kirbyHatFolder)
@@ -611,7 +666,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									kirbyHatFighterId = int(fighterIdString)
 						# If we don't have a kirby hat fighter ID but settings say we should, generate kirby hat based on settings
 						# If we don't have kirby hat files but do have an ID, generate kirby hat based on that
-						if (kirbyHatFighterId == -1 or not Directory.GetFiles(AppPath + '/temp/KirbyHats', "*.pac")) and settings.defaultKirbyHat != "none":
+						if (kirbyHatFighterId == -1 or not Directory.GetFiles(AppPath + '/temp/KirbyHats', "*.pac")) and settings.defaultKirbyHat != "none" and settings.installKirbyHats == "true":
 							# Delete Kirby hat folder if it already exists
 							if kirbyHatFolder:
 								Directory.Delete(kirbyHatFolder.FullName, 1)
@@ -629,7 +684,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								createBackup(getFileInfo(kirbyHatFile).FullName.replace(kirbyHatFighterName, fighterInfo.fighterName))
 								File.Copy(kirbyHatFile, AppPath + '/temp/KirbyHats/' + getFileInfo(kirbyHatFile).Name.replace(kirbyHatFighterName, fighterInfo.fighterName), 1)
 						# Install Kirby hat
-						if settings.defaultKirbyHat != "none":
+						if settings.defaultKirbyHat != "none" and settings.installKirbyHats == "true":
 							if existingFighterName and overwriteFighterName:
 								# If we are overwriting an existing fighter name, clean up the old Kirby hats
 								deleteKirbyHatFiles(DirectoryInfo(existingFighterName[0]).Name)
@@ -672,7 +727,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Update and move EX configs
 					if exConfigsFolder:
-						useKirbyHat = False if settings.defaultKirbyHat == "none" or kirbyHatFighterId == -1 else True
+						useKirbyHat = False if settings.defaultKirbyHat == "none" or kirbyHatFighterId == -1 or settings.installKirbyHats != "true" else True
 						modifyExConfigs(Directory.GetFiles(exConfigsFolder.FullName, "*.dat"), cosmeticId, fighterId, fighterInfo.fighterName, franchiseIconId, useKirbyHat, newSoundbankId, victoryThemeId, kirbyHatFighterId, cosmeticConfigId, cssSlotConfigId, slotConfigId)
 
 					progressCounter += 1
@@ -689,7 +744,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if uninstallCreditsTheme:
 						uninstallCreditsSong(slotConfigId)
 
-					# Update credits codde if ID is provided
+					# Update credits code if ID is provided
 					if fighterSettings.creditsThemeId:
 						updateCreditsCode(slotConfigId, fighterSettings.creditsThemeId)
 
@@ -730,10 +785,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									nameFiles = Directory.GetFiles(nameFolders[0], "*.png")
 									if nameFiles:
 										cssIconNameSse = nameFiles[0]
+								imagePath = ""
 								if len(imageFiles) > 0:
 									imagePath = imageFiles[0]
-								installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
-								createNewcomerFile(cosmeticConfigId, imagePath)
+								if imagePath:
+									installCssIconSSE(cosmeticId, imagePath, cssIconNameSse)
+									createNewcomerFile(cosmeticConfigId, imagePath)
 						if stockIconFolder:
 							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [8]", "", filePath='/pf/menu2/if_adv_mngr.pac', fiftyCC="false", firstOnly=True)
 						if franchiseIconFolder and doInstallFranchiseIcon:
@@ -778,7 +835,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Make code changes for Lucario clones
 					if clonedModuleName == "ft_lucario":
 						# Lucario Clone Aura Sphere GFX Fix [Dantarion, ds22, DesiacX]
-						addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))) ], 0)
+						if effectId:
+							addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))) ], 0)
 						# Kirby Lucario Clone Aura Sphere GFX Fix [ds22, DesiacX, Eon]
 						if fighterSettings.lucarioKirbyEffectId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "GFXFix", [ "0x" + str(fighterId), fighterSettings.lucarioKirbyEffectId ], 0, preFindText="bne notKirby")
@@ -792,7 +850,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						if fighterSettings.jigglypuffBoneId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneBones", [ "0x" + str(fighterId), fighterSettings.jigglypuffBoneId, "copy" ], 0, True)
 						# Jigglypuff Clone Rollout Max Charge GFX Fix [Codes, DesiacX]
-						if fighterSettings.jigglypuffEFLSId:
+						if fighterSettings.jigglypuffEFLSId and effectId:
 							addCodeMacro(fighterInfo.characterName, fighterId, "CloneGFX", [ "0x" + str(fighterId), hexId(str(hex(int(effectId, 16) + 311))), fighterSettings.jigglypuffEFLSId, "copy" ], 0, True)
 						# Jigglypuff Clone Rollout SFX Fix [codes, DesiacX]
 						if len(fighterSettings.jigglypuffSfxIds) > 0:
@@ -851,7 +909,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 #region INSTALL COSTUME
 
-def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0):
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0, cosmeticsOnly=False):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -872,8 +930,9 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 				fighterInfo = getFighterInfo(fighterConfig, "", "")
 
 			# Set up progressbar
+			itemText = "Costume" if not cosmeticsOnly else "Cosmetics"
 			progressCounter = 0
-			progressBar = ProgressWindow(MainForm.Instance, "Installing Costume...", "Installing Costume", False)
+			progressBar = ProgressWindow(MainForm.Instance, "Installing " + itemText + "...", "Installing " + itemText, False)
 			progressBar.Begin(0, 5, progressCounter)
 
 			# sc_selcharacter
@@ -935,22 +994,26 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressBar.Update(progressCounter)
 
 
-			# Costume files
-			if fighterInfo:
-				fighterName = fighterInfo.fighterName
-			else:
-				if not FighterNameGenerators.generated:
-					FighterNameGenerators.GenerateLists()
-				fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
-			costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages, startingId=startingId)
+			if cosmeticsOnly != True:
+				# Costume files
+				if fighterInfo:
+					fighterName = fighterInfo.fighterName
+				else:
+					if fighterId == "2D":
+						fighterName = "Knuckles"
+					else:
+						if not FighterNameGenerators.generated:
+							FighterNameGenerators.GenerateLists()
+						fighterName = FighterNameGenerators.InternalNameFromID(int(fighterId, 16), 16, "X")
+				costumes = importCostumeFiles(costumeFiles, fighterName, cssSlotConfigId, cspImages, startingId=startingId)
 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			
-			
-			# Ex Config
-			enableAllCostumes(fighterId)
-			addCssSlots(costumes, index, cssSlotConfigId)
+			if cosmeticsOnly != True:
+				# Ex Config
+				enableAllCostumes(fighterId)
+				addCssSlots(costumes, index, cssSlotConfigId)
 
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
@@ -958,7 +1021,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			progressBar.Finish()
-			BrawlAPI.ShowMessage("Costume installed successfully.", "Success")
+			BrawlAPI.ShowMessage(itemText + " installed successfully.", "Success")
 
 		except Exception as e:
 			if 'progressBar' in locals():
