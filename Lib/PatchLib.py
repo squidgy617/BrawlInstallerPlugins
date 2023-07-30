@@ -7,12 +7,22 @@ from System import Activator
 
 TEMP_PATH = AppPath + '/temp'
 CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
+PARAM_WHITELIST = [ "Compression" ]
 
 class NodeObject:
 		def __init__(self, node, md5, patchNodePath):
 			self.node = node
 			self.md5 = md5
 			self.patchNodePath = patchNodePath
+
+class PatchNode:
+		def __init__(self, patchNodeName):
+			attributes = patchNodeName.split("$$")
+			self.index = attributes[0]
+			self.name = attributes[1]
+			self.typeString = attributes[2]
+			self.type = getNodeType(self.typeString)
+			self.action = attributes[3]
 
 # Get all nodes with a particular path
 def findChildren(node, path):
@@ -39,11 +49,24 @@ def findChildren(node, path):
 						nodes.append(child)
 		return nodes
 
+# Find the node to be patched based on a patch node's name
+def findNodeToPatch(node, patchNode):
+		index = 1
+		if node and node.Children:
+			for child in node.Children:
+				if child.Name == patchNode.name and child.GetType() == patchNode.type:
+					if addLeadingZeros(str(index), 4) == patchNode.index:
+						return child
+					else:
+						index += 1
+		return None
+
 # Get all settable, public node properties for the node
 def getNodeProperties(node):
 		properties = []
 		for property in node.GetType().GetProperties():
-			if property.CanWrite and property.DeclaringType == node.GetType() and property.GetSetMethod():
+			# if property.CanWrite and property.DeclaringType == node.GetType() and property.GetSetMethod() != None:
+			if property.CanWrite and property.GetSetMethod() != None and str(property.Name) in PARAM_WHITELIST:
 				properties.append(property)
 		return properties
 
