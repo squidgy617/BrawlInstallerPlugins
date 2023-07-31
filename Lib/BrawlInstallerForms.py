@@ -5520,6 +5520,8 @@ class PatcherForm(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
+        self.uncheckedNodes = []
+
         self.treeView = TreeView()
         self.treeView.CheckBoxes = True
         self.treeView.Width = 240
@@ -5569,11 +5571,9 @@ class PatcherForm(Form):
             self.actionLabel.Text = ""
     
     def buttonPressed(self, sender, args):
-        uncheckedNodes = getUncheckedNodes(self.treeView)
-        test = ""
-        for node in uncheckedNodes:
-            test += node.name + "\n"
-        BrawlAPI.ShowMessage(test, "")
+        self.uncheckedNodes = getUncheckedNodes(self.treeView)
+        self.DialogResult = DialogResult.OK
+        self.Close()
 
 def generateTreeView(directory, node):
         for folder in Directory.GetDirectories(directory):
@@ -5586,11 +5586,13 @@ def generateTreeView(directory, node):
             generateTreeView(folder, newNode)
         for file in Directory.GetFiles(directory):
             patchNode = PatchNode(FileInfo(file).Name, file)
-            actionChar = getActionChar(patchNode.action)
-            name = actionChar + " " + patchNode.name
-            newNode = node.Nodes.Add(name)
-            newNode.Tag = patchNode
-            newNode.Checked = True
+            # Skip params, as folders include them
+            if not patchNode.action == "PARAM":
+                actionChar = getActionChar(patchNode.action)
+                name = actionChar + " " + patchNode.name
+                newNode = node.Nodes.Add(name)
+                newNode.Tag = patchNode
+                newNode.Checked = True
 
 def getUncheckedNodes(node):
         uncheckedNodes = []

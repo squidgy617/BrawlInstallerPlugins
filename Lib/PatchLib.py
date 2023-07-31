@@ -24,6 +24,7 @@ class PatchNode:
 			self.type = getNodeType(self.typeString)
 			self.action = attributes[3]
 			self.path = path
+			self.originalString = patchNodeName
 
 # Get all nodes with a particular path
 def findChildren(node, path):

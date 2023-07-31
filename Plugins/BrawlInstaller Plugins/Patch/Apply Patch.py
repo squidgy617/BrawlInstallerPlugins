@@ -1,6 +1,7 @@
 __author__ = "Squidgy"
 
 from PatchLib import *
+from BrawlInstallerForms import *
 
 def processPatchFiles(patchFolder, node):
 	writeLog("Processing patch files")
@@ -51,45 +52,58 @@ def processPatchFiles(patchFolder, node):
 			newNode.Replace(patchFile)
 
 def main():
-		try:
-			createLogFile()
-			backupCheck()
+		createLogFile()
+		backupCheck()
 
-			# If temporary directory already exists, delete it to prevent duplicate files
-			if Directory.Exists(TEMP_PATH):
-				Directory.Delete(TEMP_PATH, 1)
-			createDirectory(TEMP_PATH)
+		# If temporary directory already exists, delete it to prevent duplicate files
+		if Directory.Exists(TEMP_PATH):
+			Directory.Delete(TEMP_PATH, 1)
+		createDirectory(TEMP_PATH)
 
-			# File prompts
-			patchFile = BrawlAPI.OpenFileDialog("Select the patch file to install", "ZIP File|*.zip")
-			if not patchFile:
-				return
-			file = BrawlAPI.OpenFileDialog("Select the file to patch", "All Files|*.*")
-			if not file:
-				return
-			
+		# File prompts
+		patchFile = BrawlAPI.OpenFileDialog("Select the patch file to install", "ZIP File|*.zip")
+		if not patchFile:
+			return
+		file = BrawlAPI.OpenFileDialog("Select the file to patch", "All Files|*.*")
+		if not file:
+			return
+		
+		unzipFile(patchFile)
+		
+		form = PatcherForm(TEMP_PATH)
+		result = form.ShowDialog(MainForm.Instance)
+		if result == DialogResult.OK:
+			for removedNode in form.uncheckedNodes:
+				if removedNode.action == "FOLDER":
+					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM"))):
+						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM")))
+				else:
+					if File.Exists(removedNode.path):
+						File.Delete(removedNode.path)
+		
 			fileOpened = openFile(file)
 			if fileOpened:
-				unzipFile(patchFile)
 				patchFolder = TEMP_PATH
 				node = BrawlAPI.RootNode
-				processPatchFiles(patchFolder, node)
+				try:
+					processPatchFiles(patchFolder, node)
+				except Exception as e:
+					writeLog("ERROR " + str(e))
+					if 'progressBar' in locals():
+						progressBar.Finish()
+					BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+					BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
+					restoreBackup()
+					archiveBackup()
+
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 				BrawlAPI.ShowMessage("File patched successfully", "Success")
-			
-			archiveBackup()
-			
-			# Delete temporary directory
-			if Directory.Exists(TEMP_PATH):
-				Directory.Delete(TEMP_PATH, 1)
-		except Exception as e:
-			writeLog("ERROR " + str(e))
-			if 'progressBar' in locals():
-				progressBar.Finish()
-			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
-			BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
-			restoreBackup()
-			archiveBackup()
+		
+		archiveBackup()
+		
+		# Delete temporary directory
+		if Directory.Exists(TEMP_PATH):
+			Directory.Delete(TEMP_PATH, 1)
 
 main()

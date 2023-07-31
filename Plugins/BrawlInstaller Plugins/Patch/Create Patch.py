@@ -2,6 +2,7 @@ __author__ = "Squidgy"
 
 from PatchLib import *
 from BrawlInstallerLib import *
+from BrawlInstallerForms import *
 
 def main():
 		createLogFile()
@@ -70,26 +71,39 @@ def main():
 						Directory.Delete(directories[i], True)
 			i += 1
 
-		# Package the patch
-		saveDialog = SaveFileDialog()
-		saveDialog.Filter = "ZIP File|*.zip"
-		saveDialog.Title = "Save patch file"
-		saveDialog.FileName = fileName + ".zip"
-		result = saveDialog.ShowDialog()
-		if result == DialogResult.OK and saveDialog.FileName:
-			filePath = saveDialog.FileName
-			saveDialog.Dispose()
-		else:
-			return
-		
-		if File.Exists(filePath):
-			File.Delete(filePath)
-		if Directory.Exists(TEMP_PATH):
-			ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
-			Directory.Delete(TEMP_PATH, 1)
-			BrawlAPI.ShowMessage("Patch file created at " + filePath, "Success")
-		else:
-			BrawlAPI.ShowMessage("Patch file is empty. No patch file created.", "Empty Patch File")
+		form = PatcherForm(TEMP_PATH)
+		result = form.ShowDialog(MainForm.Instance)
+		if result == DialogResult.OK:
+			for removedNode in form.uncheckedNodes:
+				if removedNode.action == "FOLDER":
+					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM"))):
+						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM")))
+				else:
+					if File.Exists(removedNode.path):
+						File.Delete(removedNode.path)
+
+			# Package the patch
+			saveDialog = SaveFileDialog()
+			saveDialog.Filter = "ZIP File|*.zip"
+			saveDialog.Title = "Save patch file"
+			saveDialog.FileName = fileName + ".zip"
+			result = saveDialog.ShowDialog()
+			if result == DialogResult.OK and saveDialog.FileName:
+				filePath = saveDialog.FileName
+				saveDialog.Dispose()
+			else:
+				return
+			
+			if File.Exists(filePath):
+				File.Delete(filePath)
+			if Directory.Exists(TEMP_PATH):
+				ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
+				Directory.Delete(TEMP_PATH, 1)
+				BrawlAPI.ShowMessage("Patch file created at " + filePath, "Success")
+			else:
+				BrawlAPI.ShowMessage("Patch file is empty. No patch file created.", "Empty Patch File")
+
+		form.Dispose()
 
 		# Delete temporary directory
 		if Directory.Exists(TEMP_PATH):
