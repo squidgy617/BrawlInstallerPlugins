@@ -53,13 +53,31 @@ def processPatchFiles(patchFolder, node):
 def main():
 		createLogFile()
 
+		# If temporary directory already exists, delete it to prevent duplicate files
+		if Directory.Exists(TEMP_PATH):
+			Directory.Delete(TEMP_PATH, 1)
+		createDirectory(TEMP_PATH)
+
 		# File prompts
-		patchFolder = BrawlAPI.OpenFolderDialog("Select the base folder of the patch")
+		patchFile = BrawlAPI.OpenFileDialog("Select the patch file to install", "ZIP File|*.zip")
+		if not patchFile:
+			return
 		file = BrawlAPI.OpenFileDialog("Select the file to patch", "All Files|*.*")
+		if not file:
+			return
 		
 		fileOpened = openFile(file)
 		if fileOpened:
+			unzipFile(patchFile)
+			patchFolder = TEMP_PATH
 			node = BrawlAPI.RootNode
 			processPatchFiles(patchFolder, node)
+			BrawlAPI.SaveFile()
+			BrawlAPI.ForceCloseFile()
+			BrawlAPI.ShowMessage("File patched successfully", "Success")
+		
+		# Delete temporary directory
+		if Directory.Exists(TEMP_PATH):
+			Directory.Delete(TEMP_PATH, 1)
 
 main()

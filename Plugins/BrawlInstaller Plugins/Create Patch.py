@@ -1,6 +1,7 @@
 __author__ = "Squidgy"
 
 from PatchLib import *
+from BrawlInstallerLib import *
 
 def main():
 		createLogFile()
@@ -12,7 +13,11 @@ def main():
 
 		# File prompts
 		cleanFile = BrawlAPI.OpenFileDialog("Select the base file for your patch", "All Files|*.*")
+		if not cleanFile:
+			return
 		alteredFile = BrawlAPI.OpenFileDialog("Select the altered file for your patch", "All Files|*.*")
+		if not alteredFile:
+			return
 		
 		# Get nodes for altered file and clean file for comparison
 		cleanFileNodes = getNodeObjects(cleanFile, closeFile=True)
@@ -48,6 +53,7 @@ def main():
 			if removeNode:
 				cleanFileNodes.remove(removeNode)
 		progressBar.Finish()
+		fileName = BrawlAPI.RootNode.FileName.replace(getFileInfo(BrawlAPI.RootNode.FileName).Extension, "")
 		BrawlAPI.ForceCloseFile()
 		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed when the patch is installed
 		for removeNode in cleanFileNodes:
@@ -63,5 +69,30 @@ def main():
 					if File.Exists(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE')):
 						Directory.Delete(directories[i], True)
 			i += 1
+
+		# Package the patch
+		saveDialog = SaveFileDialog()
+		saveDialog.Filter = "ZIP File|*.zip"
+		saveDialog.Title = "Save patch file"
+		saveDialog.FileName = fileName + ".zip"
+		result = saveDialog.ShowDialog()
+		if result == DialogResult.OK and saveDialog.FileName:
+			filePath = saveDialog.FileName
+			saveDialog.Dispose()
+		else:
+			return
+		
+		if File.Exists(filePath):
+			File.Delete(filePath)
+		if Directory.Exists(TEMP_PATH):
+			ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
+			Directory.Delete(TEMP_PATH, 1)
+			BrawlAPI.ShowMessage("Patch file created at " + filePath, "Success")
+		else:
+			BrawlAPI.ShowMessage("Patch file is empty. No patch file created.", "Empty Patch File")
+
+		# Delete temporary directory
+		if Directory.Exists(TEMP_PATH):
+			Directory.Delete(TEMP_PATH, 1)
 
 main()
