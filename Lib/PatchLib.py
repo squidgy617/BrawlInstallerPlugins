@@ -16,13 +16,14 @@ class NodeObject:
 			self.patchNodePath = patchNodePath
 
 class PatchNode:
-		def __init__(self, patchNodeName):
-			attributes = patchNodeName.split("$$")
+		def __init__(self, patchNodeName, path):
+			attributes = patchNodeName.replace(".tex0", "").split("$$")
 			self.index = attributes[0]
 			self.name = attributes[1]
 			self.typeString = attributes[2]
 			self.type = getNodeType(self.typeString)
 			self.action = attributes[3]
+			self.path = path
 
 # Get all nodes with a particular path
 def findChildren(node, path):

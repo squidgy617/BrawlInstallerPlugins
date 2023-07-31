@@ -2,6 +2,7 @@
 # Library for forms used by BrawlInstaller
 
 from BrawlInstallerLib import *
+from PatchLib import *
 from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
@@ -5504,6 +5505,115 @@ class PackageCharacterForm(Form):
         self.saveAsButton.Location = Point(self.saveButton.Location.X - self.saveButton.Width - 4, self.saveButton.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
+
+#region PATCHER FORM
+
+class PatcherForm(Form):
+    def __init__(self, directory):
+        # Form parameters
+        self.Text = 'Patch Options'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.treeView = TreeView()
+        self.treeView.CheckBoxes = True
+        self.treeView.Width = 240
+        self.treeView.Height = 240
+        self.treeView.AfterSelect += self.selectedItemChanged
+        self.treeView.BeginUpdate()
+        generateTreeView(directory, self.treeView)
+        self.treeView.EndUpdate()
+
+        self.nameLabel = Label()
+        self.nameLabel.Text = ""
+        self.nameLabel.Location = Point(self.treeView.Location.X + self.treeView.Width, self.treeView.Location.Y)
+
+        self.typeLabel = Label()
+        self.typeLabel.Text = ""
+        self.typeLabel.Location = Point(self.nameLabel.Location.X, self.nameLabel.Location.Y + self.nameLabel.Height + 16)
+
+        self.actionLabel = Label()
+        self.actionLabel.Text = ""
+        self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 16)
+
+        button = Button()
+        button.Text = "Button"
+        button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 16)
+        button.Click += self.buttonPressed
+
+        self.Controls.Add(self.treeView)
+        self.Controls.Add(self.nameLabel)
+        self.Controls.Add(self.typeLabel)
+        self.Controls.Add(self.actionLabel)
+        self.Controls.Add(button)
+
+    def selectedItemChanged(self, sender, args):
+        if self.treeView.SelectedNode:
+            self.nameLabel.Text = "Name: " + self.treeView.SelectedNode.Tag.name
+            self.typeLabel.Text = "Type: " + self.treeView.SelectedNode.Tag.typeString
+            self.actionLabel.Text = "Action: "
+            if self.treeView.SelectedNode.Tag.action in ["PARAM", "REPLACE", "FOLDER"]:
+                self.actionLabel.Text += "Modified"
+            elif self.treeView.SelectedNode.Tag.action == "REMOVE":
+                self.actionLabel.Text += "Removed"
+            elif self.treeView.SelectedNode.Tag.action == "ADD":
+                self.actionLabel.Text += "Added"
+        else:
+            self.nameLabel.Text = ""
+            self.typeLabel.Text = ""
+            self.actionLabel.Text = ""
+    
+    def buttonPressed(self, sender, args):
+        uncheckedNodes = getUncheckedNodes(self.treeView)
+        test = ""
+        for node in uncheckedNodes:
+            test += node.name + "\n"
+        BrawlAPI.ShowMessage(test, "")
+
+def generateTreeView(directory, node):
+        for folder in Directory.GetDirectories(directory):
+            patchNode = PatchNode(DirectoryInfo(folder).Name, folder)
+            actionChar = getActionChar(patchNode.action)
+            name = actionChar + " " + patchNode.name
+            newNode = node.Nodes.Add(name)
+            newNode.Tag = patchNode
+            newNode.Checked = True
+            generateTreeView(folder, newNode)
+        for file in Directory.GetFiles(directory):
+            patchNode = PatchNode(FileInfo(file).Name, file)
+            actionChar = getActionChar(patchNode.action)
+            name = actionChar + " " + patchNode.name
+            newNode = node.Nodes.Add(name)
+            newNode.Tag = patchNode
+            newNode.Checked = True
+
+def getUncheckedNodes(node):
+        uncheckedNodes = []
+        for node in node.Nodes:
+            if not node.Checked:
+                uncheckedNodes.append(node.Tag)
+            if node.Nodes.Count > 0:
+                uncheckedNodes.extend(getUncheckedNodes(node))
+        return uncheckedNodes
+
+def getActionChar(action):
+        if action in ["PARAM", "REPLACE", "FOLDER"]:
+            actionChar = "~"
+        elif action == "REMOVE":
+            actionChar = "-"
+        elif action == "ADD":
+            actionChar = "+"
+        else:
+            actionChar = " "
+        return actionChar
+
+
+#endregion PATCHER FORM
 
 #region CLASSES AND CONTROLS
 
