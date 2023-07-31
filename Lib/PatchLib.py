@@ -162,7 +162,7 @@ def exportPatchNode(nodeObject, add=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		if nodeObject.node.MD5Str():
-			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "ADD" if add else ""))
+			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "ADD" if add else "") + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
 		else:
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "REMOVE")).Close()
 		writeLog("Exported patch node")

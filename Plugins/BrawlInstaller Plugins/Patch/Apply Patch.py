@@ -6,7 +6,7 @@ def processPatchFiles(patchFolder, node):
 	writeLog("Processing patch files")
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
-		patchNode = PatchNode(DirectoryInfo(directory).Name)
+		patchNode = PatchNode(DirectoryInfo(directory).Name.replace(".tex0", ""))
 		newNode = findNodeToPatch(node, patchNode)
 		# If a matching container node doesn't exist, create it
 		if not newNode:
@@ -18,7 +18,7 @@ def processPatchFiles(patchFolder, node):
 	# Import any node files in the directory
 	for patchFile in Directory.GetFiles(patchFolder):
 		writeLog("Processing patch file " + patchFile)
-		patchNode = PatchNode(getFileInfo(patchFile).Name)
+		patchNode = PatchNode(getFileInfo(patchFile).Name.replace(".tex0", ""))
 		# Handle each node file based on the defined action
 		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM" ]:
 			foundNode = findNodeToPatch(node, patchNode)
