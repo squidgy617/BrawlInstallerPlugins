@@ -765,7 +765,15 @@ def addCSPs(cosmeticId, images, rspLoading="false", position=0, skipPositions=[]
 				while j >= 0:
 					# Set CSP placeholder names (to prevent palette issues)
 					oldId = int(moveNodes[j].Name.replace('MenSelchrFaceB.', ''))
-					moveNodes[j].Name = "CSP." + addLeadingZeros(str(oldId + len(images)), 3)
+					# Special handling for when CSP numbers are out of order
+					prevSibling = moveNodes[j].PrevSibling()
+					while prevSibling and 'MenSelchrFaceB.' not in prevSibling.Name:
+						prevSibling = prevSibling.PrevSibling()
+					if prevSibling and oldId < int(prevSibling.Name.replace('MenSelchrFaceB.', '')):
+						idIncrease = 0
+					else:
+						idIncrease = len(images)
+					moveNodes[j].Name = "CSP." + addLeadingZeros(str(oldId + idIncrease), 3)
 					j -= 1
 				j = len(moveNodes) - 1
 				while j >= 0:
