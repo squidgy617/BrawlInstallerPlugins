@@ -87,18 +87,18 @@ def main():
 				node = BrawlAPI.RootNode
 				try:
 					processPatchFiles(patchFolder, node)
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
+					BrawlAPI.ShowMessage("File patched successfully", "Success")
 				except Exception as e:
 					writeLog("ERROR " + str(e))
 					if 'progressBar' in locals():
 						progressBar.Finish()
+					BrawlAPI.ForceCloseFile()
 					BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 					BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
 					restoreBackup()
 					archiveBackup()
-
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
-				BrawlAPI.ShowMessage("File patched successfully", "Success")
 		
 		archiveBackup()
 		
