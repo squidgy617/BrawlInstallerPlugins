@@ -3,7 +3,7 @@ __author__ = "Squidgy"
 from PatchLib import *
 from BrawlInstallerForms import *
 
-def processPatchFiles(patchFolder, node):
+def processPatchFiles(patchFolder, node, progressBar):
 	writeLog("Processing patch files")
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
@@ -15,7 +15,9 @@ def processPatchFiles(patchFolder, node):
 			newNode.Name = patchNode.name
 			node.AddChild(newNode)
 		if newNode:
-			processPatchFiles(directory, newNode)
+			processPatchFiles(directory, newNode, progressBar)
+		progressBar.CurrentValue += 1
+		progressBar.Update()
 	# Import any node files in the directory
 	for patchFile in Directory.GetFiles(patchFolder):
 		writeLog("Processing patch file " + patchFile)
@@ -50,6 +52,8 @@ def processPatchFiles(patchFolder, node):
 			newNode.Name = patchNode.name
 			node.AddChild(newNode)
 			newNode.Replace(patchFile)
+		progressBar.CurrentValue += 1
+		progressBar.Update()
 
 def main():
 		createLogFile()
@@ -86,7 +90,12 @@ def main():
 				patchFolder = TEMP_PATH
 				node = BrawlAPI.RootNode
 				try:
-					processPatchFiles(patchFolder, node)
+					# Set up progressbar
+					totalNodes = len(Directory.GetFiles(patchFolder, "*", SearchOption.AllDirectories)) + len(Directory.GetDirectories(patchFolder, "*", SearchOption.AllDirectories))
+					progressBar = ProgressWindow(MainForm.Instance, "Applying patch...", "Patching", False)
+					progressBar.Begin(0, totalNodes, 0)
+					processPatchFiles(patchFolder, node, progressBar)
+					progressBar.Finish()
 					BrawlAPI.SaveFile()
 					BrawlAPI.ForceCloseFile()
 					BrawlAPI.ShowMessage("File patched successfully", "Success")
