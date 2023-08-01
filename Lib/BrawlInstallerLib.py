@@ -2950,8 +2950,13 @@ def subtractCSPs(cosmeticId, rspLoading="false", position=0, skipPositions=[]):
 				while j >= 0:
 					# Set CSP placeholder names (to prevent palette issues)
 					oldId = int(renameNodes[j].Name.replace('MenSelchrFaceB.', ''))
+					# Special handling for out-of-order CSPs
+					idDecrease = 0
+					for nodeToRemove in nodesToRemove:
+						if int(nodeToRemove.Name.replace('MenSelchrFaceB.', '')) < oldId:
+							idDecrease += 1
 					# Get unused ID
-					newId = oldId - len(nodesToRemove)
+					newId = oldId - idDecrease
 					while newId in usedIds:
 						newId += 1
 					usedIds.append(newId)
