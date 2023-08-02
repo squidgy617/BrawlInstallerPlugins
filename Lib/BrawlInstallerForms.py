@@ -5593,6 +5593,8 @@ class PatcherForm(Form):
         if args.Action != TreeViewAction.Unknown:
             if args.Node.Nodes.Count > 0:
                 self.checkAllChildNodes(args.Node, args.Node.Checked)
+            if args.Node.Parent and args.Node.Checked:
+                self.checkAllParentNodes(args.Node, args.Node.Checked)
     
     def buttonPressed(self, sender, args):
         self.uncheckedNodes = getUncheckedNodes(self.treeView)
@@ -5602,6 +5604,12 @@ class PatcherForm(Form):
     def cancelButtonPressed(self, sender, args):
         self.DialogResult = DialogResult.Cancel
         self.Close()
+
+    def checkAllParentNodes(self, treeNode, nodeChecked):
+            if treeNode.Parent:
+                treeNode.Parent.Checked = nodeChecked
+                if treeNode.Parent.Parent:
+                    self.checkAllParentNodes(treeNode.Parent, nodeChecked)
 
     def checkAllChildNodes(self, treeNode, nodeChecked):
             for node in treeNode.Nodes:
