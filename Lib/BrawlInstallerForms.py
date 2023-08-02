@@ -7,6 +7,8 @@ from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
 from BrawlLib.CustomLists import *
+from System.Windows.Forms.Control import PointToClient
+from System import IntPtr
 
 #region FUNCTIONS
 
@@ -5508,6 +5510,16 @@ class PackageCharacterForm(Form):
 
 #region PATCHER FORM
 
+class ExTreeView(TreeView):
+        # Need this override just to prevent a WinForms bug: https://github.com/dotnet/winforms/issues/7063
+        def WndProc(self, m):
+            if (m.Msg == 0x0203):
+                info = self.HitTest(PointToClient(self, Cursor.Position))
+                if info.Location == TreeViewHitTestLocations.StateImage:
+                    m.Result = IntPtr.Zero
+                    return
+            TreeView.WndProc(self, m)
+
 class PatcherForm(Form):
     def __init__(self, directory):
         # Form parameters
@@ -5522,11 +5534,12 @@ class PatcherForm(Form):
 
         self.uncheckedNodes = []
 
-        self.treeView = TreeView()
+        self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
         self.treeView.Width = 240
         self.treeView.Height = 240
         self.treeView.AfterSelect += self.selectedItemChanged
+        self.treeView.AfterCheck += self.checkChanged
         self.treeView.BeginUpdate()
         generateTreeView(directory, self.treeView)
         self.treeView.EndUpdate()
@@ -5547,12 +5560,18 @@ class PatcherForm(Form):
         button.Text = "Button"
         button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 16)
         button.Click += self.buttonPressed
+        
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(button.Location.X + button.Width, button.Location.Y)
+        cancelButton.Click += self.cancelButtonPressed
 
         self.Controls.Add(self.treeView)
         self.Controls.Add(self.nameLabel)
         self.Controls.Add(self.typeLabel)
         self.Controls.Add(self.actionLabel)
         self.Controls.Add(button)
+        self.Controls.Add(cancelButton)
 
     def selectedItemChanged(self, sender, args):
         if self.treeView.SelectedNode:
@@ -5569,11 +5588,26 @@ class PatcherForm(Form):
             self.nameLabel.Text = ""
             self.typeLabel.Text = ""
             self.actionLabel.Text = ""
+
+    def checkChanged(self, sender, args):
+        if args.Action != TreeViewAction.Unknown:
+            if args.Node.Nodes.Count > 0:
+                self.checkAllChildNodes(args.Node, args.Node.Checked)
     
     def buttonPressed(self, sender, args):
         self.uncheckedNodes = getUncheckedNodes(self.treeView)
         self.DialogResult = DialogResult.OK
         self.Close()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+    def checkAllChildNodes(self, treeNode, nodeChecked):
+            for node in treeNode.Nodes:
+                node.Checked = nodeChecked
+                if len(node.Nodes) > 0:
+                    self.checkAllChildNodes(node, nodeChecked)
 
 def generateTreeView(directory, node):
         for folder in Directory.GetDirectories(directory):
