@@ -90,18 +90,17 @@ def main():
 			result = saveDialog.ShowDialog()
 			if result == DialogResult.OK and saveDialog.FileName:
 				filePath = saveDialog.FileName
-				saveDialog.Dispose()
-			else:
-				return
 			
-			if File.Exists(filePath):
-				File.Delete(filePath)
-			if Directory.Exists(TEMP_PATH):
-				ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
-				Directory.Delete(TEMP_PATH, 1)
-				BrawlAPI.ShowMessage("Patch file created at " + filePath, "Success")
-			else:
-				BrawlAPI.ShowMessage("Patch file is empty. No patch file created.", "Empty Patch File")
+				if File.Exists(filePath):
+					File.Delete(filePath)
+				if Directory.Exists(TEMP_PATH):
+					ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
+					Directory.Delete(TEMP_PATH, 1)
+					BrawlAPI.ShowMessage("Patch file created at " + filePath, "Success")
+				else:
+					BrawlAPI.ShowMessage("Patch file is empty. No patch file created.", "Empty Patch File")
+					
+			saveDialog.Dispose()
 
 		form.Dispose()
 
