@@ -9,6 +9,7 @@ from System.Drawing import *
 from BrawlLib.CustomLists import *
 from System.Windows.Forms.Control import PointToClient
 from System import IntPtr
+from BrawlCrate.UI import *
 
 #region FUNCTIONS
 
@@ -5538,6 +5539,7 @@ class PatcherForm(Form):
         self.treeView.CheckBoxes = True
         self.treeView.Width = 240
         self.treeView.Height = 240
+        self.treeView.ImageList = Icons.ImageList
         self.treeView.AfterSelect += self.selectedItemChanged
         self.treeView.AfterCheck += self.checkChanged
         self.treeView.BeginUpdate()
@@ -5623,6 +5625,10 @@ def generateTreeView(directory, node):
             actionChar = getActionChar(patchNode.action)
             name = actionChar + " " + patchNode.name
             newNode = node.Nodes.Add(name)
+            tempNode = createNodeFromString(patchNode.typeString)
+            newNode.ImageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+            newNode.SelectedImageIndex = newNode.ImageIndex
+            tempNode.Dispose()
             newNode.Tag = patchNode
             newNode.Checked = True
             generateTreeView(folder, newNode)
@@ -5633,6 +5639,10 @@ def generateTreeView(directory, node):
                 actionChar = getActionChar(patchNode.action)
                 name = actionChar + " " + patchNode.name
                 newNode = node.Nodes.Add(name)
+                tempNode = createNodeFromString(patchNode.typeString)
+                newNode.ImageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+                newNode.SelectedImageIndex = newNode.ImageIndex
+                tempNode.Dispose()
                 newNode.Tag = patchNode
                 newNode.Checked = True
 
