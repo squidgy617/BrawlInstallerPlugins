@@ -94,6 +94,8 @@ def main():
 						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM")))
 					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS"))):
 						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS")))
+					if Directory.Exists(removedNode.path):
+						Directory.Delete(removedNode.path, True)
 				else:
 					if File.Exists(removedNode.path):
 						File.Delete(removedNode.path)
