@@ -5637,7 +5637,7 @@ def generateTreeView(directory, node):
         for file in Directory.GetFiles(directory):
             patchNode = PatchNode(FileInfo(file).Name, file)
             # Skip params, as folders include them
-            if not patchNode.action == "PARAM":
+            if not patchNode.action in ["PARAM", "SETTINGS"]:
                 actionChar = getActionChar(patchNode.action)
                 name = actionChar + " " + patchNode.name
                 newNode = node.Nodes.Add(name)

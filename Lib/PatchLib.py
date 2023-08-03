@@ -7,6 +7,7 @@ from System import Activator
 
 TEMP_PATH = AppPath + '/temp'
 CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BLOCNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
+PARAM_WHITELIST = [ "Compression" ]
 
 class NodeObject:
 		def __init__(self, node, md5, patchNodePath):
@@ -24,6 +25,14 @@ class PatchNode:
 			self.action = attributes[3]
 			self.path = path
 			self.originalString = patchNodeName
+
+class ARCEntry:
+		def __init__(self, FileType, FileIndex, GroupID, RedirectIndex, RedirectTarget):
+			self.FileType = FileType
+			self.FileIndex = FileIndex
+			self.GroupID = GroupID
+			self.RedirectIndex = RedirectIndex
+			self.RedirectTarget = RedirectTarget
 
 # Get all nodes with a particular path
 def findChildren(node, path):
@@ -67,7 +76,7 @@ def getNodeProperties(node):
 		properties = []
 		for property in node.GetType().GetProperties():
 			# if property.CanWrite and property.DeclaringType == node.GetType() and property.GetSetMethod() != None:
-			if property.CanWrite and property.GetSetMethod() != None:
+			if property.CanWrite and property.GetSetMethod() != None and str(property.Name) in PARAM_WHITELIST:
 				properties.append(property)
 		return properties
 
@@ -164,6 +173,10 @@ def exportPatchNode(nodeObject, add=False):
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		if nodeObject.node.MD5Str():
 			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "ADD" if add else "") + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
+				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
+				attrs = vars(arcEntry)
+				File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "SETTINGS"), '\n'.join("%s = %s" % item for item in attrs.items()))
 		else:
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "REMOVE")).Close()
 		writeLog("Exported patch node")

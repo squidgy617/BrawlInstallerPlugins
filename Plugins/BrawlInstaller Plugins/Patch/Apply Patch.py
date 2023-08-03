@@ -16,6 +16,17 @@ def processPatchFiles(patchFolder, node, progressBar):
 			node.AddChild(newNode)
 		if newNode:
 			processPatchFiles(directory, newNode, progressBar)
+		if newNode.GetType().IsSubclassOf(ARCEntryNode):
+			filePath = patchNode.path.replace(patchNode.originalString, patchNode.originalString.replace("$$FOLDER", "$$SETTINGS"))
+			if File.Exists(filePath):
+				fileText = File.ReadAllLines(filePath)
+				fileType = readValueFromKey(fileText, "FileType")
+				if fileType:
+					newNode.FileType = ARCFileType[fileType]
+				newNode.FileIndex = int(readValueFromKey(fileText, "FileIndex"))
+				newNode.GroupID = int(readValueFromKey(fileText, "GroupID"))
+				newNode.RedirectIndex = int(readValueFromKey(fileText, "RedirectIndex"))
+				newNode.RedirectTarget = readValueFromKey(fileText, "RedirectTarget")
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 	# Import any node files in the directory
@@ -81,6 +92,8 @@ def main():
 				if removedNode.action == "FOLDER":
 					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM"))):
 						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM")))
+					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS"))):
+						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS")))
 				else:
 					if File.Exists(removedNode.path):
 						File.Delete(removedNode.path)
