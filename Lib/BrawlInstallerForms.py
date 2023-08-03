@@ -1455,10 +1455,11 @@ class StageEditor(Form):
         self.ShowIcon = False
         self.AutoSize = True
         self.MinimizeBox = False
-        self.MaximizeBox = False
+        #self.MaximizeBox = False
         self.MinimumSize = Size(250,128)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.AutoScroll = True
 
         self.cosmetics = getStageCosmetics(fullId[2:4])
         self.alts = BindingSource()
@@ -3924,10 +3925,11 @@ class PackageCharacterForm(Form):
         self.ShowIcon = False
         self.AutoSize = True
         self.MinimizeBox = False
-        self.MaximizeBox = False
+        #self.MaximizeBox = False
         #self.MinimumSize = Size(267,344)
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.AutoScroll = True
 
         self.costumeGroups = BindingSource()
         self.costumeGroups.DataSource = []
