@@ -1453,7 +1453,7 @@ class StageEditor(Form):
         self.MinimizeBox = False
         #self.MaximizeBox = False
         self.MinimumSize = Size(250,128)
-        self.FormBorderStyle = FormBorderStyle.Sizable
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
         self.AutoScroll = True
 
