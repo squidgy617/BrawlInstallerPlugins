@@ -7,7 +7,6 @@ from System import Activator
 
 TEMP_PATH = AppPath + '/temp'
 CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BLOCNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
-PARAM_WHITELIST = [ "Compression" ]
 
 class NodeObject:
 		def __init__(self, node, md5, patchNodePath):
@@ -68,7 +67,7 @@ def getNodeProperties(node):
 		properties = []
 		for property in node.GetType().GetProperties():
 			# if property.CanWrite and property.DeclaringType == node.GetType() and property.GetSetMethod() != None:
-			if property.CanWrite and property.GetSetMethod() != None and str(property.Name) in PARAM_WHITELIST:
+			if property.CanWrite and property.GetSetMethod() != None:
 				properties.append(property)
 		return properties
 
