@@ -91,8 +91,8 @@ def main():
 		if result == DialogResult.OK:
 			for removedNode in form.uncheckedNodes:
 				# Always delete info for unchecked nodes
-				if File.Exists(removedNode.path + "$$I"):
-					File.Delete(removedNode.path + "$$I")
+				if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
+					File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
 				# For containers, remove all associated nodes when they are unchecked
 				if removedNode.type.FullName in CONTAINERS:
 					if File.Exists(removedNode.path + "$$P"):

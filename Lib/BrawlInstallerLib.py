@@ -569,14 +569,15 @@ def copyFile(sourcePath, destinationPath):
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
 		writeLog("Creating backup of file " + sourcePath)
-		fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
-		path = fullPath.replace(getFileInfo(sourcePath).Name, '')
-		Directory.CreateDirectory(path)
-		if File.Exists(sourcePath) and not File.Exists(fullPath):
-			File.Copy(sourcePath, fullPath)
-		# If the file doesn't exist in the build, it's an added file
-		elif not File.Exists(sourcePath):
-			File.AppendAllLines(BACKUP_PATH + '\\#AddedFiles.txt', [sourcePath.replace(MainForm.BuildPath, '')])
+		if MainForm.BuildPath in sourcePath:
+			fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
+			path = fullPath.replace(getFileInfo(sourcePath).Name, '')
+			Directory.CreateDirectory(path)
+			if File.Exists(sourcePath) and not File.Exists(fullPath):
+				File.Copy(sourcePath, fullPath)
+			# If the file doesn't exist in the build, it's an added file
+			elif not File.Exists(sourcePath):
+				File.AppendAllLines(BACKUP_PATH + '\\#AddedFiles.txt', [sourcePath.replace(MainForm.BuildPath, '')])
 
 # Helper method to write a log
 def writeLog(message):
