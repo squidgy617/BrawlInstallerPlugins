@@ -17,7 +17,8 @@ def processPatchFiles(patchFolder, node, progressBar):
 		if newNode:
 			processPatchFiles(directory, newNode, progressBar)
 		if newNode.GetType().IsSubclassOf(ARCEntryNode):
-			filePath = patchNode.path.replace(patchNode.originalString, patchNode.originalString.replace("$$FOLDER", "$$SETTINGS"))
+			filePath = patchNode.path + "$$S"
+			# If there's a settings file, apply the special settings
 			if File.Exists(filePath):
 				fileText = File.ReadAllLines(filePath)
 				fileType = readValueFromKey(fileText, "FileType")
@@ -89,11 +90,15 @@ def main():
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.OK:
 			for removedNode in form.uncheckedNodes:
-				if removedNode.action == "FOLDER":
-					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM"))):
-						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM")))
-					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS"))):
-						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS")))
+				# Always delete info for unchecked nodes
+				if File.Exists(removedNode.path + "$$I"):
+					File.Delete(removedNode.path + "$$I")
+				# For containers, remove all associated nodes when they are unchecked
+				if removedNode.type.FullName in CONTAINERS:
+					if File.Exists(removedNode.path + "$$P"):
+						File.Delete(removedNode.path + "$$P")
+					if File.Exists(removedNode.path + "$$S"):
+						File.Delete(removedNode.path + "$$S")
 					if Directory.Exists(removedNode.path):
 						Directory.Delete(removedNode.path, True)
 				else:

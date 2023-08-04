@@ -65,21 +65,24 @@ def main():
 		while i < len(directories):
 			if Directory.Exists(directories[i]):
 				directoryInfo = DirectoryInfo(directories[i])
-				if '$$FOLDER' in directoryInfo.Name:
-					#BrawlAPI.ShowMessage(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE'), "")
-					if File.Exists(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE')):
-						Directory.Delete(directories[i], True)
+				#if '$$FOLDER' in directoryInfo.Name:
+				#BrawlAPI.ShowMessage(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE'), "")
+				if File.Exists(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name + "$$R"):
+					Directory.Delete(directories[i], True)
 			i += 1
-
 		form = PatcherForm(TEMP_PATH)
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.OK:
 			for removedNode in form.uncheckedNodes:
-				if removedNode.action == "FOLDER":
-					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM"))):
-						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$PARAM")))
-					if File.Exists(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS"))):
-						File.Delete(removedNode.path.replace(removedNode.originalString, removedNode.originalString.replace("$$FOLDER", "$$SETTINGS")))
+				# Always delete info for unchecked nodes
+				if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
+					File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
+				# For containers, remove all associated nodes when they are unchecked
+				if removedNode.type.FullName in CONTAINERS:
+					if File.Exists(removedNode.path + "$$P"):
+						File.Delete(removedNode.path + "$$P")
+					if File.Exists(removedNode.path + "$$S"):
+						File.Delete(removedNode.path + "$$S")
 					if Directory.Exists(removedNode.path):
 						Directory.Delete(removedNode.path, True)
 				else:

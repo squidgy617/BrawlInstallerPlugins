@@ -5635,18 +5635,20 @@ def generateTreeView(directory, node):
             newNode.Checked = True
             generateTreeView(folder, newNode)
         for file in Directory.GetFiles(directory):
-            patchNode = PatchNode(FileInfo(file).Name, file)
-            # Skip params, as folders include them
-            if not patchNode.action in ["PARAM", "SETTINGS"]:
-                actionChar = getActionChar(patchNode.action)
-                name = actionChar + " " + patchNode.name
-                newNode = node.Nodes.Add(name)
-                tempNode = createNodeFromString(patchNode.typeString)
-                newNode.ImageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
-                newNode.SelectedImageIndex = newNode.ImageIndex
-                tempNode.Dispose()
-                newNode.Tag = patchNode
-                newNode.Checked = True
+            fileName = FileInfo(file).Name
+            if not fileName.endswith("$$I") and not fileName.endswith("$$S") and not fileName.endswith("$$P"):
+                patchNode = PatchNode(FileInfo(file).Name, file)
+                # Skip params, as folders include them
+                if not patchNode.action in ["PARAM", "SETTINGS"]:
+                    actionChar = getActionChar(patchNode.action)
+                    name = actionChar + " " + patchNode.name
+                    newNode = node.Nodes.Add(name)
+                    tempNode = createNodeFromString(patchNode.typeString)
+                    newNode.ImageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+                    newNode.SelectedImageIndex = newNode.ImageIndex
+                    tempNode.Dispose()
+                    newNode.Tag = patchNode
+                    newNode.Checked = True
 
 def getUncheckedNodes(node):
         uncheckedNodes = []

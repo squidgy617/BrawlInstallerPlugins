@@ -15,14 +15,33 @@ class NodeObject:
 			self.md5 = md5
 			self.patchNodePath = patchNodePath
 
+class NodeInfo:
+		def __init__(self, nodeObject, action="", groupName=""):
+			self.nodeType = nodeObject.node.NodeType.split('.')[-1]
+			# {action} values:
+			#	- REPLACE - import and replace existing node; if it does not exist, add
+			#	- ADD - import and add as a new node
+			#	- PARAM - only get the parameters for this node, do not fully replace (for containers)
+			#	- REMOVE - remove this node
+			#	- FOLDER - no action, just a container
+			self.action = action if action else "PARAM" if nodeObject.node.NodeType in CONTAINERS else "REPLACE"
+			self.containerIndex = str(nodeObject.node.Index)
+			self.groupName = groupName
+
 class PatchNode:
 		def __init__(self, patchNodeName, path):
-			attributes = patchNodeName.replace(".tex0", "").split("$$")
-			self.index = attributes[0]
-			self.name = attributes[1]
-			self.typeString = attributes[2]
+			self.index = patchNodeName.split('$$')[0]
+			self.name = patchNodeName.split('$$')[1].replace(".tex0", "")
+			# Get info for node
+			if File.Exists(path.replace(".tex0", "").replace("$$R", "") + '$$I'):
+				attributes = File.ReadAllLines(path.replace(".tex0", "").replace("$$R", "") + '$$I')
+				self.typeString = readValueFromKey(attributes, "nodeType")
+				self.action = readValueFromKey(attributes, "action")
+			# If no info (should never happen), treat it as a folder
+			else:
+				self.typeString = "BRESGroupNode"
+				self.action = "FOLDER"
 			self.type = getNodeType(self.typeString)
-			self.action = attributes[3]
 			self.path = path
 			self.originalString = patchNodeName
 
@@ -142,7 +161,7 @@ def getNodeObjects(filePath, closeFile=True):
 				currentNode = fileNode
 				pathNodeNames = []
 				while currentNode.Parent:
-					pathNodeNames.insert(0, getPatchNodeName(currentNode, action="FOLDER"))
+					pathNodeNames.insert(0, getPatchNodeName(currentNode))
 					currentNode = currentNode.Parent
 				nodePath = ""
 				i = 0
@@ -169,29 +188,35 @@ def getPatchNodeIndex(node):
 # Get the patch node name for a node
 def getPatchNodeName(node, action=""):
 		index = getPatchNodeIndex(node)
-		# Patch node name format: {index}$${name}$${nodeType}$${action}
-		# {action} values:
-		#	- REPLACE - import and replace existing node; if it does not exist, add
-		#	- ADD - import and add as a new node
-		#	- PARAM - only get the parameters for this node, do not fully replace (for containers)
-		#	- REMOVE - remove this node
-		if not action:
-			action = "REPLACE"
-			if node.NodeType in CONTAINERS:
-				action = "PARAM"
-		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + '$$' + node.NodeType.split('.')[-1] + '$$' + action
+		# Patch node name format: {index}$${name}$${flag}
+		# {flag} values:
+		#	- R - (Remove)		- Node to be removed
+		#	- P - (Param)		- Update node properties without replacing
+		#	- S - (Settings)	- Configure additional settings for node
+		#	- I - (Info)		- Core information for the node
+		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + (('$$' + action) if action else "")
 		return nodeName
 
 # Export node for a patch and create directory if it can't be found
 def exportPatchNode(nodeObject, add=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
+		action = ""
+		# If it's a real node, export it
 		if nodeObject.node.MD5Str():
-			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "ADD" if add else "") + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+			action = "ADD" if add else ""
+			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if nodeObject.node.NodeType in CONTAINERS else "") + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+			# Export special settings for ARCEntry nodes
 			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
 				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
 				attrs = vars(arcEntry)
-				File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "SETTINGS"), '\n'.join("%s = %s" % item for item in attrs.items()))
+				File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "S"), '\n'.join("%s = %s" % item for item in attrs.items()))
+		# Otherwise, create a flagged to indicate removal
 		else:
-			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "REMOVE")).Close()
+			action = "REMOVE"
+			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "R")).Close()
+		# No matter what, create an info node so we can gather all necessary info about it
+		nodeInfo = NodeInfo(nodeObject, action)
+		attrs = vars(nodeInfo)
+		File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), '\n'.join("%s = %s" % item for item in attrs.items()))
 		writeLog("Exported patch node")
