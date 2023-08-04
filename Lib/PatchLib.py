@@ -37,10 +37,12 @@ class PatchNode:
 				attributes = File.ReadAllLines(path.replace(".tex0", "").replace("$$R", "") + '$$I')
 				self.typeString = readValueFromKey(attributes, "nodeType")
 				self.action = readValueFromKey(attributes, "action")
+				self.groupName = readValueFromKey(attributes, "groupName")
 			# If no info (should never happen), treat it as a folder
 			else:
 				self.typeString = "BRESGroupNode"
 				self.action = "FOLDER"
+				self.groupName = ""
 			self.type = getNodeType(self.typeString)
 			self.path = path
 			self.originalString = patchNodeName
@@ -139,13 +141,10 @@ def getNodeGroupName(node):
 		groupName = ""
 		if node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and (node.SharesData or (node.PrevSibling() and node.PrevSibling().SharesData)):
 			currentNode = node
-			if node.PrevSibling():
-				currentNode = node.PrevSibling()
-				while currentNode.SharesData:
-					if currentNode.PrevSibling():
-						currentNode = currentNode.PrevSibling()
-					else:
-						break
+			while currentNode.NextSibling():
+				currentNode = currentNode.NextSibling()
+				if not currentNode.SharesData:
+					break
 			groupName = currentNode.Name
 		return groupName
 
@@ -202,9 +201,11 @@ def exportPatchNode(nodeObject, add=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		action = ""
+		groupName = ""
 		# If it's a real node, export it
 		if nodeObject.node.MD5Str():
 			action = "ADD" if add else ""
+			groupName = getNodeGroupName(nodeObject.node)
 			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if nodeObject.node.NodeType in CONTAINERS else "") + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
 			# Export special settings for ARCEntry nodes
 			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
@@ -216,7 +217,7 @@ def exportPatchNode(nodeObject, add=False):
 			action = "REMOVE"
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "R")).Close()
 		# No matter what, create an info node so we can gather all necessary info about it
-		nodeInfo = NodeInfo(nodeObject, action)
+		nodeInfo = NodeInfo(nodeObject, action, groupName=groupName)
 		attrs = vars(nodeInfo)
 		File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), '\n'.join("%s = %s" % item for item in attrs.items()))
 		writeLog("Exported patch node")

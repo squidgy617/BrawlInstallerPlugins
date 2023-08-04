@@ -10,6 +10,7 @@ from BrawlLib.CustomLists import *
 from System.Windows.Forms.Control import PointToClient
 from System import IntPtr
 from BrawlCrate.UI import *
+from BrawlLib.SSBB.ResourceNodes import ResourceType
 
 #region FUNCTIONS
 
@@ -5560,6 +5561,10 @@ class PatcherForm(Form):
         self.actionLabel.Text = ""
         self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 16)
 
+        self.groupLabel = Label()
+        self.groupLabel.Text = ""
+        self.groupLabel.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 16)
+
         button = Button()
         button.Text = "Button"
         button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 16)
@@ -5574,6 +5579,7 @@ class PatcherForm(Form):
         self.Controls.Add(self.nameLabel)
         self.Controls.Add(self.typeLabel)
         self.Controls.Add(self.actionLabel)
+        self.Controls.Add(self.groupLabel)
         self.Controls.Add(button)
         self.Controls.Add(cancelButton)
 
@@ -5588,10 +5594,12 @@ class PatcherForm(Form):
                 self.actionLabel.Text += "Removed"
             elif self.treeView.SelectedNode.Tag.action == "ADD":
                 self.actionLabel.Text += "Added"
+            self.groupLabel.Text = "Color Smashed with " + self.treeView.SelectedNode.Tag.groupName if self.treeView.SelectedNode.Tag.groupName else ""
         else:
             self.nameLabel.Text = ""
             self.typeLabel.Text = ""
             self.actionLabel.Text = ""
+            self.groupLabel.Text = ""
 
     def checkChanged(self, sender, args):
         if args.Action != TreeViewAction.Unknown:
@@ -5627,10 +5635,8 @@ def generateTreeView(directory, node):
             actionChar = getActionChar(patchNode.action)
             name = actionChar + " " + patchNode.name
             newNode = node.Nodes.Add(name)
-            tempNode = createNodeFromString(patchNode.typeString)
-            newNode.ImageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+            newNode.ImageIndex = getImageIndex(patchNode)
             newNode.SelectedImageIndex = newNode.ImageIndex
-            tempNode.Dispose()
             newNode.Tag = patchNode
             newNode.Checked = True
             generateTreeView(folder, newNode)
@@ -5644,11 +5650,21 @@ def generateTreeView(directory, node):
                     name = actionChar + " " + patchNode.name
                     newNode = node.Nodes.Add(name)
                     tempNode = createNodeFromString(patchNode.typeString)
-                    newNode.ImageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+                    newNode.ImageIndex = getImageIndex(patchNode)
                     newNode.SelectedImageIndex = newNode.ImageIndex
                     tempNode.Dispose()
                     newNode.Tag = patchNode
                     newNode.Checked = True
+                
+def getImageIndex(patchNode):
+        imageIndex = 0
+        if patchNode.groupName and patchNode.groupName != patchNode.name:
+            imageIndex = Icons.getImageIndex(ResourceType.SharedTEX0)
+        else:
+            tempNode = createNodeFromString(patchNode.typeString)
+            imageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+            tempNode.Dispose()
+        return imageIndex
 
 def getUncheckedNodes(node):
         uncheckedNodes = []
