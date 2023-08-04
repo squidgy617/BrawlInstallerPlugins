@@ -115,6 +115,21 @@ def getPatchNodes(rootNode):
 		writeLog("Got valid patch nodes for export")
 		return allNodes
 
+# Get name for color smash group
+def getNodeGroupName(node):
+		groupName = ""
+		if node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and (node.SharesData or (node.PrevSibling() and node.PrevSibling().SharesData)):
+			currentNode = node
+			if node.PrevSibling():
+				currentNode = node.PrevSibling()
+				while currentNode.SharesData:
+					if currentNode.PrevSibling():
+						currentNode = currentNode.PrevSibling()
+					else:
+						break
+			groupName = currentNode.Name
+		return groupName
+
 # Get NodeObjects for all patch nodes in file
 def getNodeObjects(filePath, closeFile=True):
 		writeLog("Getting node objects for file " + filePath)
