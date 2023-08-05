@@ -46,7 +46,7 @@ class PatchNode:
 				self.typeString = "BRESGroupNode"
 				self.action = "FOLDER"
 				self.groupName = ""
-				self.index = -1
+				self.index = self.containerIndex
 			self.type = getNodeType(self.typeString)
 			self.path = path
 			self.originalString = patchNodeName
@@ -191,7 +191,7 @@ def getPatchNodeIndex(node):
 # Get the patch node name for a node
 def getPatchNodeName(node, action=""):
 		#index = getPatchNodeIndex(node)
-		index = node.Index
+		index = node.Index if node.NodeType != "BrawlLib.SSBB.ResourceNodes.BRESGroupNode" else getPatchNodeIndex(node)
 		# Patch node name format: {index}$${name}$${flag}
 		# {flag} values:
 		#	- R - (Remove)		- Node to be removed
