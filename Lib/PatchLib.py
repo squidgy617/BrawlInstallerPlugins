@@ -38,11 +38,15 @@ class PatchNode:
 				self.typeString = readValueFromKey(attributes, "nodeType")
 				self.action = readValueFromKey(attributes, "action")
 				self.groupName = readValueFromKey(attributes, "groupName")
+				containerIndex = readValueFromKey(attributes, "containerIndex")
+				if containerIndex:
+					self.containerIndex = int(containerIndex) if containerIndex else -1
 			# If no info (should never happen), treat it as a folder
 			else:
 				self.typeString = "BRESGroupNode"
 				self.action = "FOLDER"
 				self.groupName = ""
+				self.containerIndex = -1
 			self.type = getNodeType(self.typeString)
 			self.path = path
 			self.originalString = patchNodeName

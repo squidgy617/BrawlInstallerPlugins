@@ -13,7 +13,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		if not newNode:
 			newNode = createNodeFromString(patchNode.typeString)
 			newNode.Name = patchNode.name
-			node.AddChild(newNode)
+			node.InsertChild(newNode, patchNode.containerIndex)
 		if newNode:
 			processPatchFiles(directory, newNode, progressBar)
 		if newNode.GetType().IsSubclassOf(ARCEntryNode):
@@ -56,7 +56,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 				writeLog("Adding " + patchNode.name)
 				newNode = createNodeFromString(patchNode.typeString)
 				newNode.Name = patchNode.name
-				node.AddChild(newNode)
+				node.InsertChild(newNode, patchNode.containerIndex)
 				newNode.Replace(patchFile)
 		# elif patchNode.action == "ADD":
 		# 	writeLog("Adding " + patchNode.name)
