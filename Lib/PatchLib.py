@@ -190,7 +190,7 @@ def getPatchNodeIndex(node):
 
 # Get the patch node name for a node
 def getPatchNodeName(node, action=""):
-		#index = getPatchNodeIndex(node)
+		# Folders don't have info, so they use the dupe index instead of container index
 		index = node.Index if node.NodeType != "BrawlLib.SSBB.ResourceNodes.BRESGroupNode" else getPatchNodeIndex(node)
 		# Patch node name format: {index}$${name}$${flag}
 		# {flag} values:
