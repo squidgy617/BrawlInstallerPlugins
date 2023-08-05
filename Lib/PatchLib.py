@@ -25,12 +25,12 @@ class NodeInfo:
 			#	- REMOVE - remove this node
 			#	- FOLDER - no action, just a container
 			self.action = action if action else "PARAM" if nodeObject.node.NodeType in CONTAINERS else "REPLACE"
-			self.containerIndex = str(nodeObject.node.Index)
+			self.index = getPatchNodeIndex(nodeObject.node)
 			self.groupName = groupName
 
 class PatchNode:
 		def __init__(self, patchNodeName, path):
-			self.index = patchNodeName.split('$$')[0]
+			self.containerIndex = int(patchNodeName.split('$$')[0])
 			self.name = patchNodeName.split('$$')[1].replace(".tex0", "")
 			# Get info for node
 			if File.Exists(path.replace(".tex0", "").replace("$$R", "") + '$$I'):
@@ -38,15 +38,15 @@ class PatchNode:
 				self.typeString = readValueFromKey(attributes, "nodeType")
 				self.action = readValueFromKey(attributes, "action")
 				self.groupName = readValueFromKey(attributes, "groupName")
-				containerIndex = readValueFromKey(attributes, "containerIndex")
-				if containerIndex:
-					self.containerIndex = int(containerIndex) if containerIndex else -1
+				index = readValueFromKey(attributes, "index")
+				if index:
+					self.index = int(index) if index else -1
 			# If no info (should never happen), treat it as a folder
 			else:
 				self.typeString = "BRESGroupNode"
 				self.action = "FOLDER"
 				self.groupName = ""
-				self.containerIndex = -1
+				self.index = -1
 			self.type = getNodeType(self.typeString)
 			self.path = path
 			self.originalString = patchNodeName
@@ -90,7 +90,7 @@ def findNodeToPatch(node, patchNode):
 		if node and node.Children:
 			for child in node.Children:
 				if child.Name == patchNode.name and child.GetType() == patchNode.type:
-					if addLeadingZeros(str(index), 4) == patchNode.index:
+					if index == patchNode.index:
 						return child
 					else:
 						index += 1
@@ -190,7 +190,8 @@ def getPatchNodeIndex(node):
 
 # Get the patch node name for a node
 def getPatchNodeName(node, action=""):
-		index = getPatchNodeIndex(node)
+		#index = getPatchNodeIndex(node)
+		index = node.Index
 		# Patch node name format: {index}$${name}$${flag}
 		# {flag} values:
 		#	- R - (Remove)		- Node to be removed
