@@ -35,7 +35,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		writeLog("Processing patch file " + patchFile)
 		patchNode = PatchNode(getFileInfo(patchFile).Name, patchFile)
 		# Handle each node file based on the defined action
-		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM" ]:
+		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM", "ADD" ]:
 			foundNode = findNodeToPatch(node, patchNode)
 			if foundNode:
 				if patchNode.action == "REPLACE":
@@ -52,18 +52,18 @@ def processPatchFiles(patchFolder, node, progressBar):
 					copyNodeProperties(tempNode, foundNode)
 					tempNode.Remove()
 			# If a replace node can't be found, add it
-			elif patchNode.action == "REPLACE":
+			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
 				writeLog("Adding " + patchNode.name)
 				newNode = createNodeFromString(patchNode.typeString)
 				newNode.Name = patchNode.name
 				node.AddChild(newNode)
 				newNode.Replace(patchFile)
-		elif patchNode.action == "ADD":
-			writeLog("Adding " + patchNode.name)
-			newNode = createNodeFromString(patchNode.typeString)
-			newNode.Name = patchNode.name
-			node.AddChild(newNode)
-			newNode.Replace(patchFile)
+		# elif patchNode.action == "ADD":
+		# 	writeLog("Adding " + patchNode.name)
+		# 	newNode = createNodeFromString(patchNode.typeString)
+		# 	newNode.Name = patchNode.name
+		# 	node.AddChild(newNode)
+		# 	newNode.Replace(patchFile)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
