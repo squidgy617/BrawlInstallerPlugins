@@ -12,7 +12,7 @@ def main():
 		createDirectory(TEMP_PATH)
 
 		# File prompts
-		patchFile = BrawlAPI.OpenFileDialog("Select the patch file to install", "ZIP File|*.zip")
+		patchFile = BrawlAPI.OpenFileDialog("Select the patch file to install", "BPATCH File|*.bpatch")
 		if not patchFile:
 			return
 		file = BrawlAPI.OpenFileDialog("Select the file to patch", "All Files|*.*")
