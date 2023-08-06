@@ -73,21 +73,7 @@ def main():
 		form = PatcherForm(TEMP_PATH)
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.OK:
-			for removedNode in form.uncheckedNodes:
-				# Always delete info for unchecked nodes
-				if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
-					File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
-				# For containers, remove all associated nodes when they are unchecked
-				if removedNode.type.FullName in CONTAINERS:
-					if File.Exists(removedNode.path + "$$P"):
-						File.Delete(removedNode.path + "$$P")
-					if File.Exists(removedNode.path + "$$S"):
-						File.Delete(removedNode.path + "$$S")
-					if Directory.Exists(removedNode.path):
-						Directory.Delete(removedNode.path, True)
-				else:
-					if File.Exists(removedNode.path):
-						File.Delete(removedNode.path)
+			updatePatch(form)
 
 			# Package the patch
 			saveDialog = SaveFileDialog()

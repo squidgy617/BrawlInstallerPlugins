@@ -32,13 +32,17 @@ def processPatchFiles(patchFolder, node, progressBar):
 		progressBar.Update()
 	# Import any node files in the directory
 	for patchFile in Directory.GetFiles(patchFolder):
+		if patchFile.replace(".tex0", "").endswith("$$S") or patchFile.replace(".tex0", "").endswith("$$I"):
+			progressBar.CurrentValue += 1
+			progressBar.Update()
+			continue
 		writeLog("Processing patch file " + patchFile)
 		patchNode = PatchNode(getFileInfo(patchFile).Name, patchFile)
 		# Handle each node file based on the defined action
-		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM", "ADD" ]:
+		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM", "ADD" ] and not patchNode.forceAdd:
 			foundNode = findNodeToPatch(node, patchNode)
 			if foundNode:
-				if patchNode.action == "REPLACE":
+				if patchNode.action == "REPLACE" or patchNode.action == "ADD":
 					writeLog("Replacing " + foundNode.Name)
 					foundNode.Replace(patchFile)
 				if patchNode.action == "REMOVE":
@@ -58,12 +62,12 @@ def processPatchFiles(patchFolder, node, progressBar):
 				newNode.Name = patchNode.name
 				node.InsertChild(newNode, patchNode.containerIndex)
 				newNode.Replace(patchFile)
-		# elif patchNode.action == "ADD":
-		# 	writeLog("Adding " + patchNode.name)
-		# 	newNode = createNodeFromString(patchNode.typeString)
-		# 	newNode.Name = patchNode.name
-		# 	node.AddChild(newNode)
-		# 	newNode.Replace(patchFile)
+		elif patchNode.forceAdd:
+			writeLog("Adding " + patchNode.name)
+			newNode = createNodeFromString(patchNode.typeString)
+			newNode.Name = patchNode.name
+			node.InsertChild(newNode, patchNode.containerIndex)
+			newNode.Replace(patchFile)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
@@ -89,22 +93,8 @@ def main():
 		form = PatcherForm(TEMP_PATH)
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.OK:
-			for removedNode in form.uncheckedNodes:
-				# Always delete info for unchecked nodes
-				if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
-					File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
-				# For containers, remove all associated nodes when they are unchecked
-				if removedNode.type.FullName in CONTAINERS:
-					if File.Exists(removedNode.path + "$$P"):
-						File.Delete(removedNode.path + "$$P")
-					if File.Exists(removedNode.path + "$$S"):
-						File.Delete(removedNode.path + "$$S")
-					if Directory.Exists(removedNode.path):
-						Directory.Delete(removedNode.path, True)
-				else:
-					if File.Exists(removedNode.path):
-						File.Delete(removedNode.path)
-		
+			updatePatch(form)
+
 			fileOpened = openFile(file)
 			if fileOpened:
 				patchFolder = TEMP_PATH

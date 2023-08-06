@@ -625,7 +625,7 @@ def boolText(boolVal):
 
 # Return the bool version of a text value
 def textBool(boolVal):
-		if boolVal == "true":
+		if boolVal == "true" or boolVal == "True":
 			return True
 		else:
 			return False

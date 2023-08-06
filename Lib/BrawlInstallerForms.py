@@ -5537,6 +5537,7 @@ class PatcherForm(Form):
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
         self.uncheckedNodes = []
+        self.changedNodes = []
 
         self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
@@ -5561,9 +5562,14 @@ class PatcherForm(Form):
         self.actionLabel.Text = ""
         self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 16)
 
+        self.forceAddCheckbox = CheckBox()
+        self.forceAddCheckbox.Text = "Force Add"
+        self.forceAddCheckbox.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 16)
+        self.forceAddCheckbox.Click += self.forceAddClick
+
         self.groupLabel = Label()
         self.groupLabel.Text = ""
-        self.groupLabel.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 16)
+        self.groupLabel.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 16)
 
         button = Button()
         button.Text = "Button"
@@ -5579,6 +5585,7 @@ class PatcherForm(Form):
         self.Controls.Add(self.nameLabel)
         self.Controls.Add(self.typeLabel)
         self.Controls.Add(self.actionLabel)
+        self.Controls.Add(self.forceAddCheckbox)
         self.Controls.Add(self.groupLabel)
         self.Controls.Add(button)
         self.Controls.Add(cancelButton)
@@ -5595,11 +5602,17 @@ class PatcherForm(Form):
             elif self.treeView.SelectedNode.Tag.action == "ADD":
                 self.actionLabel.Text += "Added"
             self.groupLabel.Text = "Color Smashed with " + self.treeView.SelectedNode.Tag.groupName if self.treeView.SelectedNode.Tag.groupName else ""
+            self.forceAddCheckbox.Checked = self.treeView.SelectedNode.Tag.forceAdd
+            if self.treeView.SelectedNode.Tag.action in ["REPLACE", "ADD"]:
+                self.forceAddCheckbox.Visible = True
+            else:
+                self.forceAddCheckbox.Visible = False
         else:
             self.nameLabel.Text = ""
             self.typeLabel.Text = ""
             self.actionLabel.Text = ""
             self.groupLabel.Text = ""
+            self.forceAddCheckbox.Visible = False
 
     def checkChanged(self, sender, args):
         if args.Action != TreeViewAction.Unknown:
@@ -5607,9 +5620,14 @@ class PatcherForm(Form):
                 self.checkAllChildNodes(args.Node, args.Node.Checked)
             if args.Node.Parent and args.Node.Checked:
                 self.checkAllParentNodes(args.Node, args.Node.Checked)
+
+    def forceAddClick(self, sender, args):
+        if self.treeView.SelectedNode and self.forceAddCheckbox.Checked != self.treeView.SelectedNode.Tag.forceAdd:
+            self.treeView.SelectedNode.Tag.forceAdd = self.forceAddCheckbox.Checked
+            self.changedNodes.append(self.treeView.SelectedNode.Tag)
     
     def buttonPressed(self, sender, args):
-        self.uncheckedNodes = getUncheckedNodes(self.treeView)
+        self.getNodeUpdates(self.treeView)
         self.DialogResult = DialogResult.OK
         self.Close()
 
@@ -5628,6 +5646,13 @@ class PatcherForm(Form):
                 node.Checked = nodeChecked
                 if len(node.Nodes) > 0:
                     self.checkAllChildNodes(node, nodeChecked)
+
+    def getNodeUpdates(self, node):
+            for updateNode in node.Nodes:
+                if not updateNode.Checked:
+                    self.uncheckedNodes.append(updateNode.Tag)
+                if node.Nodes.Count > 0:
+                    self.getNodeUpdates(updateNode)
 
 def generateTreeView(directory, node):
         for folder in Directory.GetDirectories(directory):
@@ -5665,15 +5690,6 @@ def getImageIndex(patchNode):
             imageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
             tempNode.Dispose()
         return imageIndex
-
-def getUncheckedNodes(node):
-        uncheckedNodes = []
-        for node in node.Nodes:
-            if not node.Checked:
-                uncheckedNodes.append(node.Tag)
-            if node.Nodes.Count > 0:
-                uncheckedNodes.extend(getUncheckedNodes(node))
-        return uncheckedNodes
 
 def getActionChar(action):
         if action in ["PARAM", "REPLACE", "FOLDER"]:

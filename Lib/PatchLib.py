@@ -16,17 +16,18 @@ class NodeObject:
 			self.patchNodePath = patchNodePath
 
 class NodeInfo:
-		def __init__(self, nodeObject, action="", groupName=""):
-			self.nodeType = nodeObject.node.NodeType.split('.')[-1]
+		def __init__(self, nodeType, index, action="", groupName="", forceAdd=False):
+			self.nodeType = nodeType.split('.')[-1]
 			# {action} values:
 			#	- REPLACE - import and replace existing node; if it does not exist, add
-			#	- ADD - import and add as a new node
+			#	- ADD - functions the same as replace; just informational that this node was added to the original file
 			#	- PARAM - only get the parameters for this node, do not fully replace (for containers)
 			#	- REMOVE - remove this node
 			#	- FOLDER - no action, just a container
-			self.action = action if action else "PARAM" if nodeObject.node.NodeType in CONTAINERS else "REPLACE"
-			self.index = getPatchNodeIndex(nodeObject.node)
+			self.action = action if action else "PARAM" if nodeType in CONTAINERS else "REPLACE"
+			self.index = index
 			self.groupName = groupName
+			self.forceAdd = forceAdd
 
 class PatchNode:
 		def __init__(self, patchNodeName, path):
@@ -41,12 +42,15 @@ class PatchNode:
 				index = readValueFromKey(attributes, "index")
 				if index:
 					self.index = int(index) if index else -1
+				forceAdd = readValueFromKey(attributes, "forceAdd")
+				self.forceAdd = textBool(forceAdd) if forceAdd else False
 			# If no info (should never happen), treat it as a folder
 			else:
 				self.typeString = "BRESGroupNode"
 				self.action = "FOLDER"
 				self.groupName = ""
 				self.index = self.containerIndex
+				self.forceAdd = False
 			self.type = getNodeType(self.typeString)
 			self.path = path
 			self.originalString = patchNodeName
@@ -201,6 +205,34 @@ def getPatchNodeName(node, action=""):
 		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + (('$$' + action) if action else "")
 		return nodeName
 
+# Generate node info file
+def generateNodeInfo(nodeType, index, action, path, groupName="", forceAdd=False):
+		nodeInfo = NodeInfo(nodeType, index, action, groupName=groupName, forceAdd=forceAdd)
+		attrs = vars(nodeInfo)
+		File.WriteAllText(path, '\n'.join("%s = %s" % item for item in attrs.items()))
+
+# Update patch data based on selected form options
+def updatePatch(form):
+		for removedNode in form.uncheckedNodes:
+			# Always delete info for unchecked nodes
+			if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
+				File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
+			if File.Exists(removedNode.path + "$$P"):
+				File.Delete(removedNode.path + "$$P")
+			if File.Exists(removedNode.path + "$$S"):
+				File.Delete(removedNode.path + "$$S")
+			# For containers, remove all associated folders
+			if removedNode.type.FullName in CONTAINERS:
+				if Directory.Exists(removedNode.path):
+					Directory.Delete(removedNode.path, True)
+			else:
+				if File.Exists(removedNode.path):
+					File.Delete(removedNode.path)
+		# Generate new info for updated nodes
+		for changedNode in form.changedNodes:
+			if changedNode not in form.uncheckedNodes:
+				generateNodeInfo(changedNode.typeString, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
+
 # Export node for a patch and create directory if it can't be found
 def exportPatchNode(nodeObject, add=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
@@ -222,7 +254,5 @@ def exportPatchNode(nodeObject, add=False):
 			action = "REMOVE"
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "R")).Close()
 		# No matter what, create an info node so we can gather all necessary info about it
-		nodeInfo = NodeInfo(nodeObject, action, groupName=groupName)
-		attrs = vars(nodeInfo)
-		File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), '\n'.join("%s = %s" % item for item in attrs.items()))
+		generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
 		writeLog("Exported patch node")
