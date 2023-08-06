@@ -30,7 +30,7 @@ def main():
 		
 		form = PatcherForm(TEMP_PATH)
 		result = form.ShowDialog(MainForm.Instance)
-		if result == DialogResult.OK:
+		if result == DialogResult.OK and form.action == "save":
 			updatePatch(form)
 
 			# Package the patch
@@ -52,8 +52,13 @@ def main():
 					BrawlAPI.ShowMessage("Patch file is empty. No patch file created.", "Empty Patch File")
 					
 			saveDialog.Dispose()
-
-		form.Dispose()
+			form.Dispose()
+		elif result == DialogResult.OK and form.action == "apply":
+			updatePatch(form)
+			applyPatch(cleanFile)
+			form.Dispose()
+		else:
+			form.Dispose()
 
 		# Delete temporary directory
 		if Directory.Exists(TEMP_PATH):

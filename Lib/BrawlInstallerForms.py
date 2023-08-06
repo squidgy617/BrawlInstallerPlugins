@@ -5525,9 +5525,9 @@ class ExTreeView(TreeView):
             TreeView.WndProc(self, m)
 
 class PatcherForm(Form):
-    def __init__(self, directory):
+    def __init__(self, directory, mode="compare"):
         # Form parameters
-        self.Text = 'Patch Options'
+        self.Text = 'File Differences' if mode == "compare" else "Patch Contents"
         self.StartPosition = FormStartPosition.CenterParent
         self.ShowIcon = False
         self.AutoSize = True
@@ -5538,6 +5538,7 @@ class PatcherForm(Form):
 
         self.uncheckedNodes = []
         self.changedNodes = []
+        self.action = ""
 
         self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
@@ -5590,13 +5591,16 @@ class PatcherForm(Form):
         infoBox.Controls.Add(self.groupLabel)
 
         button = Button()
-        button.Text = "Apply"
-        button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 16)
+        button.Text = "Apply to Base File" if mode == "compare" else "Apply Changes"
+        button.Width = 110
+        button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 4)
         button.Click += self.buttonPressed
 
         saveButton = Button()
         saveButton.Text = "Save as..."
         saveButton.Location = Point(button.Location.X + button.Width + 4, button.Location.Y)
+        saveButton.Visible = mode == "compare"
+        saveButton.Click += self.saveButtonPressed
         
         cancelButton = Button()
         cancelButton.Text = "Cancel"
@@ -5613,7 +5617,7 @@ class PatcherForm(Form):
         if self.treeView.SelectedNode:
             self.nameLabel.Text = "Name: " + self.treeView.SelectedNode.Tag.name
             self.typeLabel.Text = "Type: " + self.treeView.SelectedNode.Tag.typeString
-            self.actionLabel.Text = "Action: "
+            self.actionLabel.Text = "Status: "
             if self.treeView.SelectedNode.Tag.action in ["PARAM", "REPLACE", "FOLDER"]:
                 self.actionLabel.Text += "Modified"
             elif self.treeView.SelectedNode.Tag.action == "REMOVE":
@@ -5648,6 +5652,12 @@ class PatcherForm(Form):
     def buttonPressed(self, sender, args):
         self.getNodeUpdates(self.treeView)
         self.DialogResult = DialogResult.OK
+        self.action = "apply"
+        self.Close()
+
+    def saveButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.OK
+        self.action = "save"
         self.Close()
 
     def cancelButtonPressed(self, sender, args):

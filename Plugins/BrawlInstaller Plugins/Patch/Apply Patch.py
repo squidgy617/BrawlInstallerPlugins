@@ -21,7 +21,7 @@ def main():
 		
 		unzipFile(patchFile)
 		
-		form = PatcherForm(TEMP_PATH)
+		form = PatcherForm(TEMP_PATH, "apply")
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.OK:
 			updatePatch(form)
