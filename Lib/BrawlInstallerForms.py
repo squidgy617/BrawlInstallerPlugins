@@ -5541,7 +5541,7 @@ class PatcherForm(Form):
 
         self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
-        self.treeView.Width = 240
+        self.treeView.Width = 300
         self.treeView.Height = 240
         self.treeView.ImageList = Icons.ImageList
         self.treeView.AfterSelect += self.selectedItemChanged
@@ -5552,14 +5552,17 @@ class PatcherForm(Form):
 
         self.nameLabel = Label()
         self.nameLabel.Text = ""
-        self.nameLabel.Location = Point(self.treeView.Location.X + self.treeView.Width, self.treeView.Location.Y)
+        self.nameLabel.Width = 180
+        self.nameLabel.Location = Point(8, 16)
 
         self.typeLabel = Label()
         self.typeLabel.Text = ""
+        self.typeLabel.Width = 180
         self.typeLabel.Location = Point(self.nameLabel.Location.X, self.nameLabel.Location.Y + self.nameLabel.Height + 16)
 
         self.actionLabel = Label()
         self.actionLabel.Text = ""
+        self.actionLabel.Width = 180
         self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 16)
 
         self.forceAddCheckbox = CheckBox()
@@ -5569,7 +5572,20 @@ class PatcherForm(Form):
 
         self.groupLabel = Label()
         self.groupLabel.Text = ""
+        self.groupLabel.Width = 180
         self.groupLabel.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 16)
+
+        infoBox = GroupBox()
+        infoBox.Text = "Node Info"
+        infoBox.Location = Point(self.treeView.Location.X + self.treeView.Width, self.treeView.Location.Y)
+        infoBox.AutoSize = True
+        infoBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        infoBox.Controls.Add(self.nameLabel)
+        infoBox.Controls.Add(self.typeLabel)
+        infoBox.Controls.Add(self.actionLabel)
+        infoBox.Controls.Add(self.forceAddCheckbox)
+        infoBox.Controls.Add(self.groupLabel)
 
         button = Button()
         button.Text = "Button"
@@ -5582,11 +5598,7 @@ class PatcherForm(Form):
         cancelButton.Click += self.cancelButtonPressed
 
         self.Controls.Add(self.treeView)
-        self.Controls.Add(self.nameLabel)
-        self.Controls.Add(self.typeLabel)
-        self.Controls.Add(self.actionLabel)
-        self.Controls.Add(self.forceAddCheckbox)
-        self.Controls.Add(self.groupLabel)
+        self.Controls.Add(infoBox)
         self.Controls.Add(button)
         self.Controls.Add(cancelButton)
 

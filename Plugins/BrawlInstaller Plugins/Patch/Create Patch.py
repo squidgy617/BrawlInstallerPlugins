@@ -3,6 +3,7 @@ __author__ = "Squidgy"
 from PatchLib import *
 from BrawlInstallerLib import *
 from BrawlInstallerForms import *
+from BrawlLib.SSBB import SupportedFilesHandler
 
 def main():
 		createLogFile()
@@ -13,7 +14,7 @@ def main():
 		createDirectory(TEMP_PATH)
 
 		# File prompts
-		cleanFile = BrawlAPI.OpenFileDialog("Select the base file for your patch", "All Files|*.*")
+		cleanFile = BrawlAPI.OpenFileDialog("Select the base file for your patch", SupportedFilesHandler.CompleteFilterEditableOnly)
 		if not cleanFile:
 			return
 		alteredFile = BrawlAPI.OpenFileDialog("Select the altered file for your patch", "All Files|*.*")

@@ -147,13 +147,15 @@ def getPatchNodes(rootNode):
 # Get name for color smash group
 def getNodeGroupName(node):
 		groupName = ""
-		if node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and (node.SharesData or (node.PrevSibling() and node.PrevSibling().SharesData)):
+		if node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and node.SharesData:
 			currentNode = node
 			while currentNode.NextSibling():
 				currentNode = currentNode.NextSibling()
 				if not currentNode.SharesData:
 					break
 			groupName = currentNode.Name
+		elif node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and node.PrevSibling() and node.PrevSibling().SharesData:
+			groupName = node.Name
 		return groupName
 
 # Get NodeObjects for all patch nodes in file
