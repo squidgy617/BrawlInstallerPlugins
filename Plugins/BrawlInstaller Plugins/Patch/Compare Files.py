@@ -17,7 +17,7 @@ def main():
 		cleanFile = BrawlAPI.OpenFileDialog("Select the base file for your patch", SupportedFilesHandler.CompleteFilterEditableOnly)
 		if not cleanFile:
 			return
-		alteredFile = BrawlAPI.OpenFileDialog("Select the altered file for your patch", "All Files|*.*")
+		alteredFile = BrawlAPI.OpenFileDialog("Select the altered file for your patch", SupportedFilesHandler.CompleteFilterEditableOnly)
 		if not alteredFile:
 			return
 		

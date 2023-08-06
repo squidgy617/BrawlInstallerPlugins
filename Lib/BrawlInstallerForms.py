@@ -5613,6 +5613,17 @@ class PatcherForm(Form):
         self.Controls.Add(saveButton)
         self.Controls.Add(cancelButton)
 
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(self.nameLabel, "Name of the current node.")
+        toolTip.SetToolTip(self.typeLabel, "Type of the current node.")
+        toolTip.SetToolTip(self.actionLabel, "The change that was made to the current node between the two files." if mode == "compare" else "The change that was made to the current node when the patch was created.")
+        toolTip.SetToolTip(self.groupLabel, "This node was color smashed with other nodes, including the node listed.")
+        toolTip.SetToolTip(self.forceAddCheckbox, "Check this to force the node to be added instead of replacing when applied to a file even if a matching node is found for replacement.")
+        toolTip.SetToolTip(button, "Apply all changes to the chosen base file." if mode == "compare" else "Apply all changes to the chosen file.")
+        toolTip.SetToolTip(saveButton, "Save changes into an external patch file.")
+        toolTip.SetToolTip(cancelButton, "Close the form.")
+
     def selectedItemChanged(self, sender, args):
         if self.treeView.SelectedNode:
             self.nameLabel.Text = "Name: " + self.treeView.SelectedNode.Tag.name
