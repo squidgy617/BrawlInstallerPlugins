@@ -25,7 +25,12 @@ def main():
 		result = form.ShowDialog(MainForm.Instance)
 		if result == DialogResult.OK:
 			updatePatch(form)
-			applyPatch(file)
+			try:
+				applyPatch(file)
+			except Exception as e:
+				BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+				BrawlAPI.ShowMessage("Error occured. File patch did not complete.", "An Error Has Occurred")
+				return
 		
 		# Delete temporary directory
 		if Directory.Exists(TEMP_PATH):

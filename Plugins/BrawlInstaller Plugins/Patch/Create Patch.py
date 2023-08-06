@@ -21,7 +21,12 @@ def main():
 		if not alteredFile:
 			return
 		
-		fileName = createPatch(cleanFile, alteredFile)
+		try:
+			fileName = createPatch(cleanFile, alteredFile)
+		except Exception as e:
+			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+			BrawlAPI.ShowMessage("Error occured. File comparison did not complete.", "An Error Has Occurred")
+			return
 		
 		form = PatcherForm(TEMP_PATH)
 		result = form.ShowDialog(MainForm.Instance)
