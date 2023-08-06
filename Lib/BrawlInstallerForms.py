@@ -5544,6 +5544,7 @@ class PatcherForm(Form):
         self.treeView.Width = 300
         self.treeView.Height = 240
         self.treeView.ImageList = Icons.ImageList
+        self.treeView.Location = Point(8, 8)
         self.treeView.AfterSelect += self.selectedItemChanged
         self.treeView.AfterCheck += self.checkChanged
         self.treeView.BeginUpdate()
@@ -5578,6 +5579,7 @@ class PatcherForm(Form):
         infoBox = GroupBox()
         infoBox.Text = "Node Info"
         infoBox.Location = Point(self.treeView.Location.X + self.treeView.Width, self.treeView.Location.Y)
+        infoBox.MinimumSize = Size(180, self.treeView.Height)
         infoBox.AutoSize = True
         infoBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
@@ -5588,18 +5590,23 @@ class PatcherForm(Form):
         infoBox.Controls.Add(self.groupLabel)
 
         button = Button()
-        button.Text = "Button"
+        button.Text = "Apply"
         button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 16)
         button.Click += self.buttonPressed
+
+        saveButton = Button()
+        saveButton.Text = "Save as..."
+        saveButton.Location = Point(button.Location.X + button.Width + 4, button.Location.Y)
         
         cancelButton = Button()
         cancelButton.Text = "Cancel"
-        cancelButton.Location = Point(button.Location.X + button.Width, button.Location.Y)
+        cancelButton.Location = Point(infoBox.Location.X + infoBox.Width - cancelButton.Width, button.Location.Y)
         cancelButton.Click += self.cancelButtonPressed
 
         self.Controls.Add(self.treeView)
         self.Controls.Add(infoBox)
         self.Controls.Add(button)
+        self.Controls.Add(saveButton)
         self.Controls.Add(cancelButton)
 
     def selectedItemChanged(self, sender, args):
