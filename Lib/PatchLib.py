@@ -256,3 +256,151 @@ def exportPatchNode(nodeObject, add=False):
 		# No matter what, create an info node so we can gather all necessary info about it
 		generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
 		writeLog("Exported patch node")
+
+def createPatch(cleanFile, alteredFile):
+		# Get nodes for altered file and clean file for comparison
+		cleanFileNodes = getNodeObjects(cleanFile, closeFile=True)
+		alteredFileNodes = getNodeObjects(alteredFile, closeFile=False)
+
+		# Set up progressbar
+		progressCounter = 0
+		totalNodes = len(alteredFileNodes)
+		progressBar = ProgressWindow(MainForm.Instance, "Comparing files...", "Comparing", False)
+		progressBar.Begin(0, totalNodes, progressCounter)
+
+		# Iterate through nodes from our altered file
+		for alteredFileNode in alteredFileNodes:
+			progressCounter += 1
+			progressBar.Update(progressCounter)
+			removeNode = False
+			matchFound = False
+			# For every altered file node, search the clean file nodes for a match
+			for cleanFileNode in cleanFileNodes:
+				# If the path matches, we've found a match
+				if alteredFileNode.node.TreePathAbsolute == cleanFileNode.node.TreePathAbsolute:
+					removeNode = cleanFileNode
+					matchFound = True
+					# If we've found a match, but MD5s do NOT match, this is an altered node and should be exported
+					if alteredFileNode.md5 != cleanFileNode.md5:
+						exportPatchNode(alteredFileNode)
+					break
+			# If we never found a match for a node in the altered file, it's a brand new node, and should be exported
+			if not matchFound:
+				exportPatchNode(alteredFileNode, add=True)
+			# If we found a match at all, the clean file node should be removed from the list for comparison, to speed up searches and
+			#to prevent false positives when nodes share paths.
+			if removeNode:
+				cleanFileNodes.remove(removeNode)
+		progressBar.Finish()
+		fileName = BrawlAPI.RootNode.FileName.replace(getFileInfo(BrawlAPI.RootNode.FileName).Extension, "")
+		BrawlAPI.ForceCloseFile()
+		# Any nodes remaining in the clean file node list are nodes with no matches in the altered file, meaning they should be removed when the patch is installed
+		for removeNode in cleanFileNodes:
+			exportPatchNode(removeNode)
+		# Clean up folders for deleted stuff
+		directories = Directory.GetDirectories(TEMP_PATH, "*", SearchOption.AllDirectories)
+		i = 0
+		while i < len(directories):
+			if Directory.Exists(directories[i]):
+				directoryInfo = DirectoryInfo(directories[i])
+				#if '$$FOLDER' in directoryInfo.Name:
+				#BrawlAPI.ShowMessage(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name.replace('$$FOLDER', '$$REMOVE'), "")
+				if File.Exists(directoryInfo.Parent.FullName + '\\' + directoryInfo.Name + "$$R"):
+					Directory.Delete(directories[i], True)
+			i += 1
+		return fileName
+
+def processPatchFiles(patchFolder, node, progressBar):
+	writeLog("Processing patch files")
+	# Drill down into any directories in the patch
+	for directory in Directory.GetDirectories(patchFolder):
+		patchNode = PatchNode(DirectoryInfo(directory).Name, directory)
+		newNode = findNodeToPatch(node, patchNode)
+		# If a matching container node doesn't exist, create it
+		if not newNode:
+			newNode = createNodeFromString(patchNode.typeString)
+			newNode.Name = patchNode.name
+			node.InsertChild(newNode, patchNode.containerIndex)
+		if newNode:
+			processPatchFiles(directory, newNode, progressBar)
+		if newNode.GetType().IsSubclassOf(ARCEntryNode):
+			filePath = patchNode.path + "$$S"
+			# If there's a settings file, apply the special settings
+			if File.Exists(filePath):
+				fileText = File.ReadAllLines(filePath)
+				fileType = readValueFromKey(fileText, "FileType")
+				if fileType:
+					newNode.FileType = ARCFileType[fileType]
+				newNode.FileIndex = int(readValueFromKey(fileText, "FileIndex"))
+				newNode.GroupID = int(readValueFromKey(fileText, "GroupID"))
+				newNode.RedirectIndex = int(readValueFromKey(fileText, "RedirectIndex"))
+				newNode.RedirectTarget = readValueFromKey(fileText, "RedirectTarget")
+		progressBar.CurrentValue += 1
+		progressBar.Update()
+	# Import any node files in the directory
+	for patchFile in Directory.GetFiles(patchFolder):
+		if patchFile.replace(".tex0", "").endswith("$$S") or patchFile.replace(".tex0", "").endswith("$$I"):
+			progressBar.CurrentValue += 1
+			progressBar.Update()
+			continue
+		writeLog("Processing patch file " + patchFile)
+		patchNode = PatchNode(getFileInfo(patchFile).Name, patchFile)
+		# Handle each node file based on the defined action
+		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM", "ADD" ] and not patchNode.forceAdd:
+			foundNode = findNodeToPatch(node, patchNode)
+			if foundNode:
+				if patchNode.action == "REPLACE" or patchNode.action == "ADD":
+					writeLog("Replacing " + foundNode.Name)
+					foundNode.Replace(patchFile)
+				if patchNode.action == "REMOVE":
+					writeLog("Removing " + foundNode.Name)
+					foundNode.Remove()
+				if patchNode.action == "PARAM":
+					writeLog("Updating params for " + foundNode.Name)
+					tempNode = createNodeFromString(patchNode.typeString)
+					node.AddChild(tempNode)
+					tempNode.Replace(patchFile)
+					copyNodeProperties(tempNode, foundNode)
+					tempNode.Remove()
+			# If a replace node can't be found, add it
+			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
+				writeLog("Adding " + patchNode.name)
+				newNode = createNodeFromString(patchNode.typeString)
+				newNode.Name = patchNode.name
+				node.InsertChild(newNode, patchNode.containerIndex)
+				newNode.Replace(patchFile)
+		elif patchNode.forceAdd:
+			writeLog("Adding " + patchNode.name)
+			newNode = createNodeFromString(patchNode.typeString)
+			newNode.Name = patchNode.name
+			node.InsertChild(newNode, patchNode.containerIndex)
+			newNode.Replace(patchFile)
+		progressBar.CurrentValue += 1
+		progressBar.Update()
+
+def applyPatch(file):
+		backupCheck()
+		fileOpened = openFile(file)
+		if fileOpened:
+			patchFolder = TEMP_PATH
+			node = BrawlAPI.RootNode
+			try:
+				# Set up progressbar
+				totalNodes = len(Directory.GetFiles(patchFolder, "*", SearchOption.AllDirectories)) + len(Directory.GetDirectories(patchFolder, "*", SearchOption.AllDirectories))
+				progressBar = ProgressWindow(MainForm.Instance, "Applying patch...", "Patching", False)
+				progressBar.Begin(0, totalNodes, 0)
+				processPatchFiles(patchFolder, node, progressBar)
+				progressBar.Finish()
+				BrawlAPI.SaveFile()
+				BrawlAPI.ForceCloseFile()
+				BrawlAPI.ShowMessage("File patched successfully", "Success")
+			except Exception as e:
+				writeLog("ERROR " + str(e))
+				if 'progressBar' in locals():
+					progressBar.Finish()
+				BrawlAPI.ForceCloseFile()
+				BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+				BrawlAPI.ShowMessage("Error occured. Backups will be restored automatically. Any added files may still be present.", "An Error Has Occurred")
+				restoreBackup()
+				archiveBackup()
+		archiveBackup()
