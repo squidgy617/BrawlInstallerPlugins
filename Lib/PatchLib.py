@@ -10,7 +10,14 @@ from System import Text
 from System.Text import Encoding
 
 TEMP_PATH = AppPath + '/temp'
-CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BLOCNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
+CONTAINERS = [ 
+	"BrawlLib.SSBB.ResourceNodes.ARCNode", 
+	"BrawlLib.SSBB.ResourceNodes.BRRESNode", 
+	"BrawlLib.SSBB.ResourceNodes.BLOCNode", 
+	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
+	"BrawlLib.SSBB.ResourceNodes.TyDataNode",
+	"BrawlLib.SSBB.ResourceNodes.TyDataListNode"
+]
 PARAM_WHITELIST = [ "Compression" ]
 
 class NodeObject:
@@ -336,8 +343,8 @@ def processPatchFiles(patchFolder, node, progressBar):
 		# If a matching container node doesn't exist, create it
 		if not newNode:
 			newNode = createNodeFromString(patchNode.type)
-			newNode.Name = patchNode.name
 			node.InsertChild(newNode, patchNode.containerIndex)
+			newNode.Name = patchNode.name
 		if newNode:
 			processPatchFiles(directory, newNode, progressBar)
 		if newNode.GetType().IsSubclassOf(ARCEntryNode):
@@ -383,15 +390,15 @@ def processPatchFiles(patchFolder, node, progressBar):
 			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
 				writeLog("Adding " + patchNode.name)
 				newNode = createNodeFromString(patchNode.type)
-				newNode.Name = patchNode.name
 				node.InsertChild(newNode, patchNode.containerIndex)
 				newNode.Replace(patchFile)
+				newNode.Name = patchNode.name
 		elif patchNode.forceAdd:
 			writeLog("Adding " + patchNode.name)
 			newNode = createNodeFromString(patchNode.type)
-			newNode.Name = patchNode.name
 			node.InsertChild(newNode, patchNode.containerIndex)
 			newNode.Replace(patchFile)
+			newNode.Name = patchNode.name
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
