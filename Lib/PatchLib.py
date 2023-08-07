@@ -4,6 +4,10 @@
 from BrawlInstallerLib import *
 from System import Type
 from System import Activator
+clr.AddReference("System.Web")
+from System.Web import HttpUtility
+from System import Text
+from System.Text import Encoding
 
 TEMP_PATH = AppPath + '/temp'
 CONTAINERS = [ "BrawlLib.SSBB.ResourceNodes.ARCNode", "BrawlLib.SSBB.ResourceNodes.BRRESNode", "BrawlLib.SSBB.ResourceNodes.BLOCNode", "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"]
@@ -32,7 +36,7 @@ class NodeInfo:
 class PatchNode:
 		def __init__(self, patchNodeName, path):
 			self.containerIndex = int(patchNodeName.split('$$')[0])
-			self.name = patchNodeName.split('$$')[1].replace(".tex0", "")
+			self.name = str(HttpUtility.UrlDecode(patchNodeName.split('$$')[1].replace(".tex0", ""), Encoding.ASCII))
 			# Get info for node
 			if File.Exists(path.replace(".tex0", "").replace("$$R", "") + '$$I'):
 				attributes = File.ReadAllLines(path.replace(".tex0", "").replace("$$R", "") + '$$I')
@@ -204,7 +208,7 @@ def getPatchNodeName(node, action=""):
 		#	- P - (Param)		- Update node properties without replacing
 		#	- S - (Settings)	- Configure additional settings for node
 		#	- I - (Info)		- Core information for the node
-		nodeName = addLeadingZeros(str(index), 4) + '$$' + node.Name + (('$$' + action) if action else "")
+		nodeName = addLeadingZeros(str(index), 4) + '$$' + HttpUtility.UrlEncode(node.Name, Encoding.ASCII) + (('$$' + action) if action else "")
 		return nodeName
 
 # Generate node info file
