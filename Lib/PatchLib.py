@@ -287,7 +287,8 @@ def createPatch(cleanFile, alteredFile):
 				# For every altered file node, search the clean file nodes for a match
 				for cleanFileNode in cleanFileNodes:
 					# If the path matches, we've found a match
-					if alteredFileNode.node.TreePathAbsolute == cleanFileNode.node.TreePathAbsolute:
+					# Use TreePath instead of TreePathAbsolute, because TreePath excludes the root node, which is sometimes the file name
+					if alteredFileNode.node.TreePath == cleanFileNode.node.TreePath:
 						removeNode = cleanFileNode
 						matchFound = True
 						# If we've found a match, but MD5s do NOT match, this is an altered node and should be exported
