@@ -5714,7 +5714,7 @@ def generateTreeView(directory, node):
                     actionChar = getActionChar(patchNode.action)
                     name = actionChar + " " + patchNode.name
                     newNode = node.Nodes.Add(name)
-                    tempNode = createNodeFromString(patchNode.typeString)
+                    tempNode = createNodeFromString(patchNode.type)
                     newNode.ImageIndex = getImageIndex(patchNode)
                     newNode.SelectedImageIndex = newNode.ImageIndex
                     tempNode.Dispose()
@@ -5726,7 +5726,7 @@ def getImageIndex(patchNode):
         if patchNode.groupName and patchNode.groupName != patchNode.name:
             imageIndex = Icons.getImageIndex(ResourceType.SharedTEX0)
         else:
-            tempNode = createNodeFromString(patchNode.typeString)
+            tempNode = createNodeFromString(patchNode.type)
             imageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
             tempNode.Dispose()
         return imageIndex

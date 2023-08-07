@@ -32,6 +32,7 @@ class NodeInfo:
 			self.index = index
 			self.groupName = groupName
 			self.forceAdd = forceAdd
+			self.fullType = nodeType
 
 class PatchNode:
 		def __init__(self, patchNodeName, path):
@@ -48,6 +49,7 @@ class PatchNode:
 					self.index = int(index) if index else -1
 				forceAdd = readValueFromKey(attributes, "forceAdd")
 				self.forceAdd = textBool(forceAdd) if forceAdd else False
+				self.fullType = readValueFromKey(attributes, "fullType")
 			# If no info (should never happen), treat it as a folder
 			else:
 				self.typeString = "BRESGroupNode"
@@ -55,7 +57,8 @@ class PatchNode:
 				self.groupName = ""
 				self.index = self.containerIndex
 				self.forceAdd = False
-			self.type = getNodeType(self.typeString)
+				self.fullType = "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"
+			self.type = getNodeType(self.fullType)
 			self.path = path
 			self.originalString = patchNodeName
 
@@ -121,14 +124,14 @@ def copyNodeProperties(sourceNode, targetNode):
 				property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
 
 # Get actual node type from string
-def getNodeType(typeString):
-		fullString = "BrawlLib.SSBB.ResourceNodes." + typeString + ", BrawlLib"
+def getNodeType(fullTypeString):
+		fullString = str(fullTypeString) + ", BrawlLib"
 		nodeType = Type.GetType(fullString)
 		return nodeType
 
 # Instantiate node based on type string
-def createNodeFromString(typeString):
-		type = getNodeType(typeString)
+def createNodeFromString(fullTypeString):
+		type = getNodeType(fullTypeString)
 		instance = Activator.CreateInstance(type)
 		return instance
 
@@ -237,7 +240,7 @@ def updatePatch(form):
 		# Generate new info for updated nodes
 		for changedNode in form.changedNodes:
 			if changedNode not in form.uncheckedNodes:
-				generateNodeInfo(changedNode.typeString, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
+				generateNodeInfo(changedNode.type, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
 
 # Export node for a patch and create directory if it can't be found
 def exportPatchNode(nodeObject, add=False):
@@ -331,7 +334,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		newNode = findNodeToPatch(node, patchNode)
 		# If a matching container node doesn't exist, create it
 		if not newNode:
-			newNode = createNodeFromString(patchNode.typeString)
+			newNode = createNodeFromString(patchNode.type)
 			newNode.Name = patchNode.name
 			node.InsertChild(newNode, patchNode.containerIndex)
 		if newNode:
@@ -370,7 +373,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 					foundNode.Remove()
 				if patchNode.action == "PARAM":
 					writeLog("Updating params for " + foundNode.Name)
-					tempNode = createNodeFromString(patchNode.typeString)
+					tempNode = createNodeFromString(patchNode.type)
 					node.AddChild(tempNode)
 					tempNode.Replace(patchFile)
 					copyNodeProperties(tempNode, foundNode)
@@ -378,13 +381,13 @@ def processPatchFiles(patchFolder, node, progressBar):
 			# If a replace node can't be found, add it
 			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
 				writeLog("Adding " + patchNode.name)
-				newNode = createNodeFromString(patchNode.typeString)
+				newNode = createNodeFromString(patchNode.type)
 				newNode.Name = patchNode.name
 				node.InsertChild(newNode, patchNode.containerIndex)
 				newNode.Replace(patchFile)
 		elif patchNode.forceAdd:
 			writeLog("Adding " + patchNode.name)
-			newNode = createNodeFromString(patchNode.typeString)
+			newNode = createNodeFromString(patchNode.type)
 			newNode.Name = patchNode.name
 			node.InsertChild(newNode, patchNode.containerIndex)
 			newNode.Replace(patchFile)
