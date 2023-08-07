@@ -259,7 +259,10 @@ def exportPatchNode(nodeObject, add=False):
 		if nodeObject.node.MD5Str():
 			action = "ADD" if add else ""
 			groupName = getNodeGroupName(nodeObject.node)
-			nodeObject.node.Export(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if nodeObject.node.NodeType in CONTAINERS else "") + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if nodeObject.node.NodeType in CONTAINERS else "")
+			nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+			if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
+				nodeObject.node.Export(patchNodePath + ".png")
 			# Export special settings for ARCEntry nodes
 			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
 				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
@@ -363,7 +366,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		progressBar.Update()
 	# Import any node files in the directory
 	for patchFile in Directory.GetFiles(patchFolder):
-		if patchFile.replace(".tex0", "").endswith("$$S") or patchFile.replace(".tex0", "").endswith("$$I"):
+		if patchFile.replace(".tex0", "").endswith("$$S") or patchFile.replace(".tex0", "").endswith("$$I") or patchFile.endswith(".png"):
 			progressBar.CurrentValue += 1
 			progressBar.Update()
 			continue

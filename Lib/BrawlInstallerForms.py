@@ -5543,7 +5543,7 @@ class PatcherForm(Form):
         self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
         self.treeView.Width = 300
-        self.treeView.Height = 240
+        self.treeView.Height = 260
         self.treeView.ImageList = Icons.ImageList
         self.treeView.Location = Point(8, 8)
         self.treeView.AfterSelect += self.selectedItemChanged
@@ -5560,22 +5560,28 @@ class PatcherForm(Form):
         self.typeLabel = Label()
         self.typeLabel.Text = ""
         self.typeLabel.Width = 180
-        self.typeLabel.Location = Point(self.nameLabel.Location.X, self.nameLabel.Location.Y + self.nameLabel.Height + 16)
+        self.typeLabel.Location = Point(self.nameLabel.Location.X, self.nameLabel.Location.Y + self.nameLabel.Height + 4)
 
         self.actionLabel = Label()
         self.actionLabel.Text = ""
         self.actionLabel.Width = 180
-        self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 16)
+        self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 4)
 
         self.forceAddCheckbox = CheckBox()
         self.forceAddCheckbox.Text = "Force Add"
-        self.forceAddCheckbox.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 16)
+        self.forceAddCheckbox.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 4)
         self.forceAddCheckbox.Click += self.forceAddClick
 
         self.groupLabel = Label()
         self.groupLabel.Text = ""
         self.groupLabel.Width = 180
-        self.groupLabel.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 16)
+        self.groupLabel.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 4)
+
+        self.preview = PictureBox()
+        self.preview.Image = None
+        self.preview.Size = Size(90, 90)
+        self.preview.SizeMode = PictureBoxSizeMode.Zoom
+        self.preview.Location = Point(self.groupLabel.Location.X, self.groupLabel.Location.Y + self.groupLabel.Height + 4)
 
         infoBox = GroupBox()
         infoBox.Text = "Node Info"
@@ -5589,6 +5595,7 @@ class PatcherForm(Form):
         infoBox.Controls.Add(self.actionLabel)
         infoBox.Controls.Add(self.forceAddCheckbox)
         infoBox.Controls.Add(self.groupLabel)
+        infoBox.Controls.Add(self.preview)
 
         button = Button()
         button.Text = "Apply to Base File" if mode == "compare" else "Apply Changes"
@@ -5641,12 +5648,18 @@ class PatcherForm(Form):
                 self.forceAddCheckbox.Visible = True
             else:
                 self.forceAddCheckbox.Visible = False
+            previewImage = self.treeView.SelectedNode.Tag.path.replace(".tex0", "") + ".png"
+            if File.Exists(previewImage):
+                self.preview.Image = createBitmap(previewImage)
+            else:
+                self.preview.Image = None
         else:
             self.nameLabel.Text = ""
             self.typeLabel.Text = ""
             self.actionLabel.Text = ""
             self.groupLabel.Text = ""
             self.forceAddCheckbox.Visible = False
+            self.preview.Image = None
 
     def checkChanged(self, sender, args):
         if args.Action != TreeViewAction.Unknown:
@@ -5707,7 +5720,7 @@ def generateTreeView(directory, node):
             generateTreeView(folder, newNode)
         for file in Directory.GetFiles(directory):
             fileName = FileInfo(file).Name
-            if not fileName.endswith("$$I") and not fileName.endswith("$$S") and not fileName.endswith("$$P"):
+            if not fileName.endswith("$$I") and not fileName.endswith("$$S") and not fileName.endswith("$$P") and not fileName.endswith(".png"):
                 patchNode = PatchNode(FileInfo(file).Name, file)
                 # Skip params, as folders include them
                 if not patchNode.action in ["PARAM", "SETTINGS"]:
