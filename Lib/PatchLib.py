@@ -240,7 +240,7 @@ def updatePatch(form):
 		# Generate new info for updated nodes
 		for changedNode in form.changedNodes:
 			if changedNode not in form.uncheckedNodes:
-				generateNodeInfo(changedNode.type, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
+				generateNodeInfo(changedNode.fullType, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
 
 # Export node for a patch and create directory if it can't be found
 def exportPatchNode(nodeObject, add=False):
