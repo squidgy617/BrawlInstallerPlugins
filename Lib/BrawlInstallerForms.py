@@ -5579,7 +5579,7 @@ class PatcherForm(Form):
 
         self.preview = PictureBox()
         self.preview.Image = None
-        self.preview.Size = Size(90, 90)
+        self.preview.Size = Size(180, 90)
         self.preview.SizeMode = PictureBoxSizeMode.Zoom
         self.preview.Location = Point(self.groupLabel.Location.X, self.groupLabel.Location.Y + self.groupLabel.Height + 4)
 
