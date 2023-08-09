@@ -35,9 +35,9 @@ def main():
 
 			# Package the patch
 			saveDialog = SaveFileDialog()
-			saveDialog.Filter = "BPATCH File|*.bpatch"
+			saveDialog.Filter = "FILEPATCH File|*.filepatch"
 			saveDialog.Title = "Save patch file"
-			saveDialog.FileName = fileName + ".bpatch"
+			saveDialog.FileName = fileName + ".filepatch"
 			result = saveDialog.ShowDialog()
 			if result == DialogResult.OK and saveDialog.FileName:
 				filePath = saveDialog.FileName
