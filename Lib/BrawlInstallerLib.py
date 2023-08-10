@@ -559,10 +559,10 @@ def getVictoryThemeIDByFighterId(slotId):
 		return 0
 
 # Helper method to more easily copy files
-def copyFile(sourcePath, destinationPath):
+def copyFile(sourcePath, destinationPath, createBackup=True):
 		writeLog("Copying file " + sourcePath + " to " + destinationPath)
 		Directory.CreateDirectory(destinationPath)
-		if File.Exists(destinationPath + '/' + getFileInfo(sourcePath).Name):
+		if File.Exists(destinationPath + '/' + getFileInfo(sourcePath).Name) and createBackup:
 			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 

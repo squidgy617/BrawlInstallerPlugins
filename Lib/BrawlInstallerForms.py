@@ -11,6 +11,7 @@ from System.Windows.Forms.Control import PointToClient
 from System import IntPtr
 from BrawlCrate.UI import *
 from BrawlLib.SSBB.ResourceNodes import ResourceType
+from BrawlLib.SSBB import SupportedFilesHandler
 
 #region FUNCTIONS
 
@@ -5758,6 +5759,222 @@ def getActionChar(action):
 
 #endregion PATCHER FORM
 
+#region BUILDPATCH FORM
+
+class BuildPatchFile():
+    def __init__(self, name="New File"):
+            self.name = name
+            self.path = ""
+            self.file = ""
+            self.fileName = ""
+            self.patchFile = ""
+            self.patchFileName = ""
+
+class BuildPatchForm(Form):
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Create Build Patch'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.entries = BindingSource()
+        self.entries.DataSource = []
+
+        label = Label()
+        label.Text = "File Entries:"
+        label.Location = Point(4, 4)
+
+        self.listBox = ListBox()
+        self.listBox.Width = 120
+        self.listBox.Height = 240
+        self.listBox.Location = Point(label.Location.X, label.Location.Y + label.Height)
+        self.listBox.DataSource = self.entries
+        self.listBox.DisplayMember = "name"
+        self.listBox.ValueMember = "path"
+        self.listBox.SelectedValueChanged += self.selectedEntryChanged
+        
+        addButton = Button()
+        addButton.Text = "+"
+        addButton.Size = Size(16, 16)
+        addButton.Location = Point(self.listBox.Location.X + self.listBox.Width + 1, self.listBox.Location.Y)
+        addButton.Click += self.addButtonPressed
+
+        removeButton = Button()
+        removeButton.Text = "-"
+        removeButton.Size = Size(16, 16)
+        removeButton.Location = Point(addButton.Location.X, addButton.Location.Y + addButton.Height + 1)
+        removeButton.Click += self.removeButtonPressed
+
+        pathLabel = Label()
+        pathLabel.Width = 200
+        pathLabel.Height = 32
+        pathLabel.Text = "Search for the file at this location...\n(ex. '\\pf\\menu\\sc_selcharacter.pac')"
+        pathLabel.Location = Point(addButton.Location.X + addButton.Width + 16, addButton.Location.Y)
+
+        self.pathBox = LabeledTextBox("Path")
+        self.pathBox.Location = Point(pathLabel.Location.X, pathLabel.Location.Y + pathLabel.Height)
+        self.pathBox.textBox.TextChanged += self.pathChanged
+        self.pathBox.Enabled = False
+
+        patchFileLabel = Label()
+        patchFileLabel.Width =200
+        patchFileLabel.Text = "If the file is found, apply this patch..."
+        patchFileLabel.Location = Point(self.pathBox.Location.X, self.pathBox.Location.Y + 32)
+
+        self.patchFileBox = FileControl("Select patch file", "FILEPATCH File|*.filepatch", "Patch File")
+        self.patchFileBox.Location = Point(patchFileLabel.Location.X, patchFileLabel.Location.Y + 32)
+        self.patchFileBox.button.Click += self.patchFileChanged
+        self.patchFileBox.Enabled = False
+
+        fileLabel = Label()
+        fileLabel.Width = 200
+        fileLabel.Text = "If the file is not found, install this file..."
+        fileLabel.Location = Point(self.patchFileBox.Location.X, self.patchFileBox.Location.Y + 32)
+
+        self.fileBox = FileControl("Select associated file", SupportedFilesHandler.CompleteFilterEditableOnly, "File")
+        self.fileBox.Location = Point(fileLabel.Location.X, fileLabel.Location.Y + 32)
+        self.fileBox.button.Click += self.fileChanged
+        self.fileBox.Enabled = False
+
+        openButton = Button()
+        openButton.Text = "Open"
+        openButton.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height + 4)
+        openButton.Click += self.openButtonPressed
+        
+        saveAsButton = Button()
+        saveAsButton.Text = "Save as..."
+        saveAsButton.Location = Point(openButton.Location.X + openButton.Width + 4, openButton.Location.Y)
+        saveAsButton.Click += self.saveAsButtonPressed
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(self.fileBox.Location.X + self.fileBox.textBox.Width + self.fileBox.button.Width - cancelButton.Width, saveAsButton.Location.Y)
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(label)
+        self.Controls.Add(self.listBox)
+        self.Controls.Add(addButton)
+        self.Controls.Add(removeButton)
+        self.Controls.Add(pathLabel)
+        self.Controls.Add(self.pathBox)
+        self.Controls.Add(patchFileLabel)
+        self.Controls.Add(self.patchFileBox)
+        self.Controls.Add(fileLabel)
+        self.Controls.Add(self.fileBox)
+        self.Controls.Add(openButton)
+        self.Controls.Add(saveAsButton)
+        self.Controls.Add(cancelButton)
+
+    def addButtonPressed(self, sender, args):
+        newEntry = BuildPatchFile()
+        self.entries.Add(newEntry)
+        self.enableControls()
+        self.listBox.SelectedIndex = len(self.entries) - 1
+
+    def removeButtonPressed(self, sender, args):
+        if len(self.entries) <= 1:
+            return
+        self.entries.Remove(self.listBox.SelectedItem)
+
+    def openButtonPressed(self, sender, args):
+        file = BrawlAPI.OpenFileDialog("Select the build patch to edit", "BUILDPATCH File|*.buildpatch")
+        if file and File.Exists(file):
+            if Directory.Exists(TEMP_PATH):
+                Directory.Delete(TEMP_PATH, True)
+            unzipFile(file)
+            if Directory.Exists(TEMP_PATH):
+                entries = []
+                self.entries.Clear()
+                for file in Directory.GetFiles(TEMP_PATH, "*.patchinfo"):
+                    fileText = File.ReadAllLines(file)
+                    newEntry = BuildPatchFile()
+                    newEntry.name = readValueFromKey(fileText, "name")
+                    newEntry.fileName = readValueFromKey(fileText, "fileName")
+                    newEntry.patchFileName = readValueFromKey(fileText, "patchFileName")
+                    newEntry.path = readValueFromKey(fileText, "path")
+                    file = TEMP_PATH + '\\' + newEntry.fileName
+                    if File.Exists(file):
+                        newEntry.file = file
+                    file = TEMP_PATH + '\\' + newEntry.patchFileName
+                    if File.Exists(file):
+                        newEntry.patchFile = file
+                    self.entries.Add(newEntry)
+                    self.enableControls()
+
+    def saveAsButtonPressed(self, sender, args):
+        saveDialog = SaveFileDialog()
+        saveDialog.Filter = "BUILDPATCH File|*.buildpatch"
+        saveDialog.Title = "Save build patch file"
+        result = saveDialog.ShowDialog()
+        if result == DialogResult.OK and saveDialog.FileName:
+            filePath = saveDialog.FileName
+            saveDialog.Dispose()
+            if not Directory.Exists(TEMP_PATH):
+                Directory.CreateDirectory(TEMP_PATH)
+            i = 0
+            for entry in self.entries:
+                if entry.file or entry.patchFile:
+                    # Write file info
+                    i += 1
+                    attrs = vars(entry)
+                    cleanattrs = {key: attrs[key] for key in attrs if key != "file" and key != "patchFile"}
+                    File.WriteAllText(TEMP_PATH + '\\' + addLeadingZeros(str(i), 4) + entry.name + ".patchinfo", '\n'.join("%s = %s" % item for item in cleanattrs.items()))
+                    if entry.file and File.Exists(entry.file) and TEMP_PATH not in entry.file:
+                        copyFile(entry.file, TEMP_PATH, createBackup=False)
+                    if entry.patchFile and File.Exists(entry.patchFile) and TEMP_PATH not in entry.patchFile:
+                        copyFile(entry.patchFile, TEMP_PATH, createBackup=False)
+            if Directory.Exists(TEMP_PATH):
+                ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
+                Directory.Delete(TEMP_PATH, 1)
+                BrawlAPI.ShowMessage("Build patch file created at " + filePath, "Success")
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+    def enableControls(self):
+        self.pathBox.Enabled = True
+        self.patchFileBox.Enabled = True
+        self.fileBox.Enabled = True
+    
+    def selectedEntryChanged(self, sender, args):
+        if len(self.entries) > 0:
+            self.pathBox.textBox.Text = self.listBox.SelectedItem.path
+            self.patchFileBox.textBox.textBox.Text = self.listBox.SelectedItem.patchFile
+            self.fileBox.textBox.textBox.Text = self.listBox.SelectedItem.file
+
+    def pathChanged(self, sender, args):
+        self.listBox.SelectedItem.path = self.pathBox.textBox.Text
+
+    def patchFileChanged(self, sender, args):
+        file = self.patchFileBox.textBox.textBox.Text
+        self.listBox.SelectedItem.patchFile = file
+        if File.Exists(file):
+            fileInfo = getFileInfo(file)
+            fileName = fileInfo.Name.replace(fileInfo.Extension, "")
+            self.listBox.SelectedItem.patchFileName = fileInfo.Name
+            if self.listBox.SelectedItem.name == "New File":
+                self.listBox.SelectedItem.name = fileName
+
+    def fileChanged(self, sender, args):
+        file = self.fileBox.textBox.textBox.Text
+        self.listBox.SelectedItem.file = file
+        if File.Exists(file):
+            fileInfo = getFileInfo(file)
+            fileName = fileInfo.Name.replace(fileInfo.Extension, "")
+            self.listBox.SelectedItem.fileName = fileInfo.Name
+            if self.listBox.SelectedItem.name == "New File" or self.listBox.SelectedItem.name.endswith(".filepatch"):
+                self.listBox.SelectedItem.name = fileName
+            if MainForm.BuildPath in file and not self.listBox.SelectedItem.path:
+                self.pathBox.textBox.Text = file.replace(MainForm.BuildPath, "")
+
+#endregion BUILDPATCH FORM
+
 #region CLASSES AND CONTROLS
 
 class CostumeGroup:
@@ -5856,13 +6073,13 @@ class FileControl(UserControl):
             self.textBox = LabeledTextBox(labelText)
             self.textBox.textBox.ReadOnly = True
 
-            button = Button()
-            button.Text = "Browse..."
-            button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
-            button.Click += self.buttonPressed
+            self.button = Button()
+            self.button.Text = "Browse..."
+            self.button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
+            self.button.Click += self.buttonPressed
 
             self.Controls.Add(self.textBox)
-            self.Controls.Add(button)
+            self.Controls.Add(self.button)
 
         def buttonPressed(self, sender, args):
             file = BrawlAPI.OpenFileDialog(self.title, self.filter)
