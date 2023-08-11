@@ -5761,17 +5761,6 @@ def getActionChar(action):
 
 #region BUILDPATCH FORM
 
-class BuildPatchFile():
-    def __init__(self, name="New File"):
-            self.name = name
-            self.path = ""
-            self.file = ""
-            self.fileName = ""
-            self.patchFile = ""
-            self.patchFileName = ""
-            self.overwriteFile = True
-            self.updateFighterIds = False
-
 class BuildPatchForm(Form):
     def __init__(self):
         # Form parameters
@@ -5917,12 +5906,7 @@ class BuildPatchForm(Form):
                 entries = []
                 self.entries.Clear()
                 for file in Directory.GetFiles(TEMP_PATH, "*.patchinfo"):
-                    fileText = File.ReadAllLines(file)
-                    newEntry = BuildPatchFile()
-                    newEntry.name = readValueFromKey(fileText, "name")
-                    newEntry.fileName = readValueFromKey(fileText, "fileName")
-                    newEntry.patchFileName = readValueFromKey(fileText, "patchFileName")
-                    newEntry.path = readValueFromKey(fileText, "path")
+                    newEntry = getPatchInfo(file)
                     file = TEMP_PATH + '\\' + newEntry.fileName
                     if File.Exists(file):
                         newEntry.file = file
@@ -5931,6 +5915,7 @@ class BuildPatchForm(Form):
                         newEntry.patchFile = file
                     self.entries.Add(newEntry)
                     self.enableControls()
+                Directory.Delete(TEMP_PATH, True)
 
     def saveAsButtonPressed(self, sender, args):
         saveDialog = SaveFileDialog()
@@ -5944,7 +5929,7 @@ class BuildPatchForm(Form):
                 Directory.CreateDirectory(TEMP_PATH)
             i = 0
             for entry in self.entries:
-                if entry.file or entry.patchFile:
+                if (entry.file or entry.patchFile) and entry.path:
                     # Write file info
                     i += 1
                     attrs = vars(entry)

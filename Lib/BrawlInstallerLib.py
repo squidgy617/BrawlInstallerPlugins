@@ -4563,9 +4563,9 @@ def assignTrophy(slotId, trophyId, fighterName, installToSse):
 # General utility functions for the BrawlInstaller plugin suite
 
 # Unzip fighter zip file and store contents in temporary directory
-def unzipFile(filePath):
+def unzipFile(filePath, tempFolderName="temp"):
 		writeLog("Unzipping file " + filePath)
-		ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, "temp"))
+		ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, tempFolderName))
 
 # Get info from supplied fighter and cosmetic IDs
 def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):

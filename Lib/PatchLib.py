@@ -77,6 +77,17 @@ class ARCEntry:
 			self.RedirectIndex = RedirectIndex
 			self.RedirectTarget = RedirectTarget
 
+class BuildPatchFile():
+		def __init__(self, name="New File"):
+				self.name = name
+				self.path = ""
+				self.file = ""
+				self.fileName = ""
+				self.patchFile = ""
+				self.patchFileName = ""
+				self.overwriteFile = True
+				self.updateFighterIds = False
+
 # Get all nodes with a particular path
 def findChildren(node, path):
 		# path = TreePath of a node, not TreePathAbsolute
@@ -421,5 +432,70 @@ def applyPatch(file):
 				writeLog("ERROR " + str(e))
 				if 'progressBar' in locals():
 					progressBar.Finish()
-				archiveBackup()
 				raise e
+			
+def getPatchInfo(file):
+		patchInfo = BuildPatchFile()
+		if File.Exists(file):
+			fileText = File.ReadAllLines(file)
+			patchInfo.name = readValueFromKey(fileText, "name")
+			patchInfo.fileName = readValueFromKey(fileText, "fileName")
+			patchInfo.patchFileName = readValueFromKey(fileText, "patchFileName")
+			patchInfo.path = readValueFromKey(fileText, "path")
+			patchInfo.overwriteFile = textBool(readValueFromKey(fileText, "overwriteFile"))
+			patchInfo.updateFighterIds = textBool(readValueFromKey(fileText, "updateFighterIds"))
+		return patchInfo
+			
+def applyBuildPatch(buildPatch):
+		tempPath = Path.Combine(AppPath, "tempPatch")
+		if Directory.Exists(tempPath):
+			Directory.Delete(tempPath, True)
+		unzipFile(buildPatch, "tempPatch")
+		files = Directory.GetFiles(tempPath, "*.patchinfo")
+		newFile = ""
+		try:
+			# Set up progressbar
+			totalFiles = len(files)
+			progressBar = ProgressWindow(MainForm.Instance, "Patching Build", "Applying build patch...", False)
+			progressBar.Begin(0, totalFiles, 0)
+			# Iterate through patchinfo files
+			for file in files:
+				patchInfo = getPatchInfo(file)
+				path = patchInfo.path.lstrip("\\").lstrip("/")
+				if patchInfo.path:
+					fullPath = Path.Combine(MainForm.BuildPath, path)
+					# If we find the file...
+					if File.Exists(fullPath):
+						# First attempt to patch
+						patchFile = Path.Combine(tempPath, patchInfo.patchFileName) if patchInfo.patchFileName else ""
+						if patchFile and File.Exists(patchFile):
+							if Directory.Exists(TEMP_PATH):
+								Directory.Delete(TEMP_PATH, 1)
+							unzipFile(patchFile)
+							applyPatch(fullPath)
+							# TODO: update IDs while patching?
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
+						# If there's no patch, try overwriting
+						elif patchInfo.overwriteFile and patchInfo.fileName:
+							newFile = Path.Combine(tempPath, patchInfo.fileName) if patchInfo.fileName else ""
+							if newFile:
+								copyRenameFile(newFile, getFileInfo(fullPath).Name, getFileInfo(fullPath).DirectoryName)
+					# If we don't find the file, check if we have a file to place and place it
+					elif patchInfo.fileName:
+						newFile = Path.Combine(tempPath, patchInfo.fileName) if patchInfo.fileName else ""
+						if newFile:
+							copyRenameFile(newFile, getFileInfo(fullPath).Name, getFileInfo(fullPath).DirectoryName)
+				# TODO: if updateFighterIds, check if newFile. If so, open file and update IDs
+				progressBar.CurrentValue += 1
+				progressBar.Update()
+			progressBar.Finish()
+			if Directory.Exists(TEMP_PATH):
+				Directory.Delete(TEMP_PATH, True)
+			if Directory.Exists(tempPath):
+				Directory.Delete(tempPath, True)
+		except Exception as e:
+			writeLog("ERROR " + str(e))
+			if 'progressBar' in locals():
+				progressBar.Finish()
+			raise e

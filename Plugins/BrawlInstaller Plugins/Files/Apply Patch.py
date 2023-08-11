@@ -33,6 +33,7 @@ def main():
 			except Exception as e:
 				BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 				BrawlAPI.ShowMessage("Error occured. File patch did not complete.", "An Error Has Occurred")
+				archiveBackup()
 				return
 		
 		# Delete temporary directory
