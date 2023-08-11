@@ -423,4 +423,3 @@ def applyPatch(file):
 					progressBar.Finish()
 				archiveBackup()
 				raise e
-		archiveBackup()

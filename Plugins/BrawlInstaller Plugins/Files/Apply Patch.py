@@ -28,6 +28,7 @@ def main():
 			try:
 				backupCheck()
 				applyPatch(file)
+				archiveBackup()
 				BrawlAPI.ShowMessage("File patch completed. You may now review and/or save the file.", "Complete")
 			except Exception as e:
 				BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
