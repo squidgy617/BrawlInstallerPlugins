@@ -26,7 +26,9 @@ def main():
 		if result == DialogResult.OK:
 			updatePatch(form)
 			try:
+				backupCheck()
 				applyPatch(file)
+				BrawlAPI.ShowMessage("File patch completed. You may now review and/or save the file.", "Complete")
 			except Exception as e:
 				BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 				BrawlAPI.ShowMessage("Error occured. File patch did not complete.", "An Error Has Occurred")

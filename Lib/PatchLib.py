@@ -406,7 +406,6 @@ def processPatchFiles(patchFolder, node, progressBar):
 		progressBar.Update()
 
 def applyPatch(file):
-		backupCheck()
 		fileOpened = openFile(file)
 		if fileOpened:
 			patchFolder = TEMP_PATH
@@ -418,7 +417,6 @@ def applyPatch(file):
 				progressBar.Begin(0, totalNodes, 0)
 				processPatchFiles(patchFolder, node, progressBar)
 				progressBar.Finish()
-				BrawlAPI.ShowMessage("File patch completed. You may now review and/or save the file.", "Complete")
 			except Exception as e:
 				writeLog("ERROR " + str(e))
 				if 'progressBar' in locals():
