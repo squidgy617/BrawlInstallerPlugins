@@ -5769,6 +5769,8 @@ class BuildPatchFile():
             self.fileName = ""
             self.patchFile = ""
             self.patchFileName = ""
+            self.overwriteFile = True
+            self.updateFighterIds = False
 
 class BuildPatchForm(Form):
     def __init__(self):
@@ -5833,13 +5835,27 @@ class BuildPatchForm(Form):
 
         fileLabel = Label()
         fileLabel.Width = 200
-        fileLabel.Text = "If the file is not found, install this file..."
+        fileLabel.Text = "If file is not found or there's no patch, install this file..."
         fileLabel.Location = Point(self.patchFileBox.Location.X, self.patchFileBox.Location.Y + 32)
 
         self.fileBox = FileControl("Select associated file", SupportedFilesHandler.CompleteFilterEditableOnly, "File")
         self.fileBox.Location = Point(fileLabel.Location.X, fileLabel.Location.Y + 32)
         self.fileBox.button.Click += self.fileChanged
         self.fileBox.Enabled = False
+
+        self.overwriteBox = CheckBox()
+        self.overwriteBox.Location = Point(self.fileBox.Location.X + 8, self.fileBox.Location.Y + 32)
+        self.overwriteBox.Width = 200
+        self.overwriteBox.Text = "Overwrite file if it exists"
+        self.overwriteBox.Enabled = False
+        self.overwriteBox.CheckedChanged += self.overwriteCheckChanged
+
+        self.fighterIdBox = CheckBox()
+        self.fighterIdBox.Location = Point(self.overwriteBox.Location.X, self.overwriteBox.Location.Y + self.overwriteBox.Height)
+        self.fighterIdBox.Width = 200
+        self.fighterIdBox.Text = "Update fighter IDs"
+        self.fighterIdBox.Enabled = False
+        self.fighterIdBox.CheckedChanged += self.fighterIdCheckChanged
 
         openButton = Button()
         openButton.Text = "Open"
@@ -5866,6 +5882,8 @@ class BuildPatchForm(Form):
         self.Controls.Add(self.patchFileBox)
         self.Controls.Add(fileLabel)
         self.Controls.Add(self.fileBox)
+        self.Controls.Add(self.overwriteBox)
+        self.Controls.Add(self.fighterIdBox)
         self.Controls.Add(openButton)
         self.Controls.Add(saveAsButton)
         self.Controls.Add(cancelButton)
@@ -5880,6 +5898,14 @@ class BuildPatchForm(Form):
         if len(self.entries) <= 1:
             return
         self.entries.Remove(self.listBox.SelectedItem)
+
+    def overwriteCheckChanged(self, sender, args):
+        if self.listBox.SelectedItem:
+            self.listBox.SelectedItem.overwriteFile = sender.Checked
+
+    def fighterIdCheckChanged(self, sender, args):
+        if self.listBox.SelectedItem:
+            self.listBox.SelectedItem.updateFighterIds = sender.Checked
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select the build patch to edit", "BUILDPATCH File|*.buildpatch")
@@ -5941,12 +5967,16 @@ class BuildPatchForm(Form):
         self.pathBox.Enabled = True
         self.patchFileBox.Enabled = True
         self.fileBox.Enabled = True
+        self.overwriteBox.Enabled = True
+        self.fighterIdBox.Enabled = True
     
     def selectedEntryChanged(self, sender, args):
         if len(self.entries) > 0:
             self.pathBox.textBox.Text = self.listBox.SelectedItem.path
             self.patchFileBox.textBox.textBox.Text = self.listBox.SelectedItem.patchFile
             self.fileBox.textBox.textBox.Text = self.listBox.SelectedItem.file
+            self.overwriteBox.Checked = self.listBox.SelectedItem.overwriteFile
+            self.fighterIdBox.Checked = self.listBox.SelectedItem.updateFighterIds
 
     def pathChanged(self, sender, args):
         self.listBox.SelectedItem.path = self.pathBox.textBox.Text
