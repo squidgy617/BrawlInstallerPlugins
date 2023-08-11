@@ -130,7 +130,7 @@ def getNodeProperties(node):
 		properties = []
 		for property in node.GetType().GetProperties():
 			# if property.CanWrite and property.DeclaringType == node.GetType() and property.GetSetMethod() != None:
-			if property.CanWrite and property.GetSetMethod() != None and str(property.Name) in PARAM_WHITELIST:
+			if property.CanWrite and property.GetSetMethod() != None:
 				properties.append(property)
 		return properties
 
@@ -138,7 +138,7 @@ def getNodeProperties(node):
 def copyNodeProperties(sourceNode, targetNode):
 		properties = getNodeProperties(targetNode)
 		for property in properties:
-			if property.GetValue(targetNode, None) != property.GetValue(sourceNode, None):
+			if property.GetValue(targetNode, None) != property.GetValue(sourceNode, None) and str(property.Name) in PARAM_WHITELIST:
 				property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
 
 # Get actual node type from string
