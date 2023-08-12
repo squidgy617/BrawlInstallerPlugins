@@ -5653,7 +5653,7 @@ class PatcherForm(Form):
     def selectedItemChanged(self, sender, args):
         if self.treeView.SelectedNode:
             self.nameLabel.Text = "Name: " + self.treeView.SelectedNode.Tag.name
-            self.typeLabel.Text = "Type: " + self.treeView.SelectedNode.Tag.typeString
+            self.typeLabel.Text = "Type: " + (self.treeView.SelectedNode.Tag.typeString if self.treeView.SelectedNode.Tag.fullType not in FOLDERS else "Folder")
             self.actionLabel.Text = "Status: "
             if self.treeView.SelectedNode.Tag.action in ["PARAM", "REPLACE", "FOLDER"]:
                 self.actionLabel.Text += "Modified"

@@ -17,7 +17,12 @@ CONTAINERS = [
 	"BrawlLib.SSBB.ResourceNodes.BLOCNode", 
 	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
 	"BrawlLib.SSBB.ResourceNodes.TyDataNode",
-	"BrawlLib.SSBB.ResourceNodes.TyDataListNode"
+	"BrawlLib.SSBB.ResourceNodes.TyDataListNode",
+	"BrawlLib.SSBB.ResourceNodes.GDORNode"
+]
+FOLDERS = [
+	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
+	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
 PARAM_WHITELIST = [ "Compression" ]
 
@@ -43,7 +48,7 @@ class NodeInfo:
 			self.fullType = nodeType
 
 class PatchNode:
-		def __init__(self, patchNodeName, path):
+		def __init__(self, patchNodeName, path, parentNode=None):
 			self.containerIndex = int(patchNodeName.split('$$')[0])
 			self.name = str(HttpUtility.UrlDecode(patchNodeName.split('$$')[1].replace(".tex0", ""), Encoding.ASCII))
 			# Get info for node
@@ -60,12 +65,12 @@ class PatchNode:
 				self.fullType = readValueFromKey(attributes, "fullType")
 			# If no info (should never happen), treat it as a folder
 			else:
-				self.typeString = "BRESGroupNode"
+				self.fullType = getGroupNodeTypeFromParent(parentNode)
+				self.typeString = self.fullType.split('.')[-1]
 				self.action = "FOLDER"
 				self.groupName = ""
 				self.index = self.containerIndex
 				self.forceAdd = False
-				self.fullType = "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"
 			self.type = getNodeType(self.fullType)
 			self.path = path
 			self.originalString = patchNodeName
@@ -160,6 +165,14 @@ def getNodeType(fullTypeString):
 		nodeType = Type.GetType(fullString)
 		return nodeType
 
+# Get the type for a group node based on passed in parent node
+def getGroupNodeTypeFromParent(parentNode):
+		type = "BrawlLib.SSBB.ResourceNodes.BRESGroupNode"
+		if parentNode != None:
+			if parentNode.NodeType == "BrawlLib.SSBB.ResourceNodes.MDL0Node":
+				type = "BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
+		return type
+
 # Instantiate node based on type string
 def createNodeFromString(fullTypeString):
 		type = getNodeType(fullTypeString)
@@ -173,7 +186,7 @@ def getPatchNodes(rootNode):
 		if len(rootNode.Children) > 0:
 			for child in rootNode.Children:
 				if child.NodeType in CONTAINERS:
-					if child.NodeType != "BrawlLib.SSBB.ResourceNodes.BRESGroupNode":
+					if child.NodeType not in FOLDERS:
 						allNodes.append(child)
 					if len(child.Children) > 0:
 						allNodes.extend(getPatchNodes(child))
@@ -235,7 +248,7 @@ def getPatchNodeIndex(node):
 # Get the patch node name for a node
 def getPatchNodeName(node, action=""):
 		# Folders don't have info, so they use the dupe index instead of container index
-		index = node.Index if node.NodeType != "BrawlLib.SSBB.ResourceNodes.BRESGroupNode" else getPatchNodeIndex(node)
+		index = node.Index if node.NodeType not in FOLDERS else getPatchNodeIndex(node)
 		# Patch node name format: {index}$${name}$${flag}
 		# {flag} values:
 		#	- R - (Remove)		- Node to be removed
@@ -362,10 +375,10 @@ def createPatch(cleanFile, alteredFile):
 		return fileName
 
 def processPatchFiles(patchFolder, node, progressBar):
-	writeLog("Processing patch files")
+	writeLog("Processing patch files for " + node.Name)
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
-		patchNode = PatchNode(DirectoryInfo(directory).Name, directory)
+		patchNode = PatchNode(DirectoryInfo(directory).Name, directory, node)
 		newNode = findNodeToPatch(node, patchNode)
 		# If a matching container node doesn't exist, create it
 		if not newNode:
