@@ -25,7 +25,7 @@ FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
-PARAM_WHITELIST = [ "Compression" ]
+PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
 
 class NodeObject:
 		def __init__(self, node, md5, patchNodePath):
@@ -157,7 +157,7 @@ def updateNodeIds(node, oldFighterIds, newFighterIds):
 def copyNodeProperties(sourceNode, targetNode):
 		properties = getNodeProperties(targetNode)
 		for property in properties:
-			if property.GetValue(targetNode, None) != property.GetValue(sourceNode, None) and str(property.Name) in PARAM_WHITELIST:
+			if property.GetValue(targetNode, None) != property.GetValue(sourceNode, None) and str(property.Name) not in PARAM_BLACKLIST:
 				property.SetValue(targetNode, property.GetValue(sourceNode, None), None)
 
 # Get actual node type from string
