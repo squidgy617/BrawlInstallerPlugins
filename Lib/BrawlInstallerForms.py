@@ -5558,11 +5558,12 @@ class PatcherForm(Form):
         self.uncheckedNodes = []
         self.changedNodes = []
         self.action = ""
+        self.mode = mode
 
         self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
         self.treeView.Width = 300
-        self.treeView.Height = 260
+        self.treeView.Height = 300
         self.treeView.ImageList = Icons.ImageList
         self.treeView.Location = Point(8, 8)
         self.treeView.AfterSelect += self.selectedItemChanged
@@ -5591,10 +5592,16 @@ class PatcherForm(Form):
         self.forceAddCheckbox.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 4)
         self.forceAddCheckbox.Click += self.forceAddClick
 
+        self.replaceCheckbox = CheckBox()
+        self.replaceCheckbox.Text = "Replace All Contents"
+        self.replaceCheckbox.Width = 150
+        self.replaceCheckbox.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 4)
+        self.replaceCheckbox.Click += self.replaceClick
+
         self.groupLabel = Label()
         self.groupLabel.Text = ""
         self.groupLabel.Width = 180
-        self.groupLabel.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 4)
+        self.groupLabel.Location = Point(self.replaceCheckbox.Location.X, self.replaceCheckbox.Location.Y + self.replaceCheckbox.Height + 4)
 
         self.preview = PictureBox()
         self.preview.Image = None
@@ -5613,6 +5620,7 @@ class PatcherForm(Form):
         infoBox.Controls.Add(self.typeLabel)
         infoBox.Controls.Add(self.actionLabel)
         infoBox.Controls.Add(self.forceAddCheckbox)
+        infoBox.Controls.Add(self.replaceCheckbox)
         infoBox.Controls.Add(self.groupLabel)
         infoBox.Controls.Add(self.preview)
 
@@ -5646,6 +5654,7 @@ class PatcherForm(Form):
         toolTip.SetToolTip(self.actionLabel, "The change that was made to the current node between the two files." if mode == "compare" else "The change that was made to the current node when the patch was created.")
         toolTip.SetToolTip(self.groupLabel, "This node was color smashed with other nodes, including the node listed.")
         toolTip.SetToolTip(self.forceAddCheckbox, "Force the node to be added instead of replacing when applied to a file even if a matching node is found for replacement.")
+        toolTip.SetToolTip(self.replaceCheckbox, "If a match is found, the existing container, including all contents, will be replaced entirely with this one. Only do this if you want to completely override the existing container.")
         toolTip.SetToolTip(button, "Apply all changes to the chosen base file." if mode == "compare" else "Apply all changes to the chosen file.")
         toolTip.SetToolTip(saveButton, "Save changes into an external patch file.")
         toolTip.SetToolTip(cancelButton, "Close the form.")
@@ -5662,11 +5671,18 @@ class PatcherForm(Form):
             elif self.treeView.SelectedNode.Tag.action == "ADD":
                 self.actionLabel.Text += "Added"
             self.groupLabel.Text = "Color Smashed with " + self.treeView.SelectedNode.Tag.groupName if self.treeView.SelectedNode.Tag.groupName else ""
+            # Only show force add box for replace or add nodes
             self.forceAddCheckbox.Checked = self.treeView.SelectedNode.Tag.forceAdd
             if self.treeView.SelectedNode.Tag.action in ["REPLACE", "ADD"]:
                 self.forceAddCheckbox.Visible = True
             else:
                 self.forceAddCheckbox.Visible = False
+            # Only show replace box for containers
+            self.replaceCheckbox.Checked = self.treeView.SelectedNode.Tag.disableContainer
+            if self.mode == "compare" and self.treeView.SelectedNode.Tag.action in ["PARAM"] and len(self.treeView.SelectedNode.Nodes) > 0:
+                self.replaceCheckbox.Visible = True
+            else:
+                self.replaceCheckbox.Visible = False
             previewImage = self.treeView.SelectedNode.Tag.path.replace(".tex0", "") + ".png"
             if File.Exists(previewImage):
                 self.preview.Image = createBitmap(previewImage)
@@ -5690,6 +5706,11 @@ class PatcherForm(Form):
     def forceAddClick(self, sender, args):
         if self.treeView.SelectedNode and self.forceAddCheckbox.Checked != self.treeView.SelectedNode.Tag.forceAdd:
             self.treeView.SelectedNode.Tag.forceAdd = self.forceAddCheckbox.Checked
+            self.changedNodes.append(self.treeView.SelectedNode.Tag)
+
+    def replaceClick(self, sender, args):
+        if self.treeView.SelectedNode and self.replaceCheckbox.Checked != self.treeView.SelectedNode.Tag.disableContainer:
+            self.treeView.SelectedNode.Tag.disableContainer = self.replaceCheckbox.Checked
             self.changedNodes.append(self.treeView.SelectedNode.Tag)
     
     def buttonPressed(self, sender, args):

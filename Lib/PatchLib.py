@@ -35,7 +35,7 @@ class NodeObject:
 			self.patchNodePath = patchNodePath
 
 class NodeInfo:
-		def __init__(self, nodeType, index, action="", groupName="", forceAdd=False):
+		def __init__(self, nodeType, index, action="", groupName="", forceAdd=False, disableContainer=False):
 			self.nodeType = nodeType.split('.')[-1]
 			# {action} values:
 			#	- REPLACE - import and replace existing node; if it does not exist, add
@@ -76,6 +76,7 @@ class PatchNode:
 			self.type = getNodeType(self.fullType)
 			self.path = path
 			self.originalString = patchNodeName
+			self.disableContainer = False
 
 class ARCEntry:
 		def __init__(self, FileType, FileIndex, GroupID, RedirectIndex, RedirectTarget):
@@ -335,6 +336,13 @@ def updatePatch(form):
 		# Generate new info for updated nodes
 		for changedNode in form.changedNodes:
 			if changedNode not in form.uncheckedNodes:
+				# If the container was disabled, clean up so it is set to a regular node
+				if changedNode.disableContainer == True:
+					changedNode.action = "REPLACE"
+					if Directory.Exists(changedNode.path):
+						Directory.Delete(changedNode.path, True)
+					if File.Exists(changedNode.path.replace(".tex0", "") + "$$P"):
+						File.Move(changedNode.path.replace(".tex0", "") + "$$P", changedNode.path.replace(".tex0", ""))
 				generateNodeInfo(changedNode.fullType, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
 
 # Export node for a patch and create directory if it can't be found
@@ -345,7 +353,7 @@ def exportPatchNode(nodeObject, add=False):
 		groupName = ""
 		# If it's a real node, export it
 		if nodeObject.node.MD5Str():
-			action = "ADD" if add else ""
+			action = "ADD" if add else "PARAM" if isContainer(nodeObject.node) else ""
 			groupName = getNodeGroupName(nodeObject.node)
 			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
 			nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
