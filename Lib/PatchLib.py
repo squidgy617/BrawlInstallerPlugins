@@ -18,7 +18,8 @@ CONTAINERS = [
 	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
 	"BrawlLib.SSBB.ResourceNodes.TyDataNode",
 	"BrawlLib.SSBB.ResourceNodes.TyDataListNode",
-	"BrawlLib.SSBB.ResourceNodes.GDORNode"
+	"BrawlLib.SSBB.ResourceNodes.GDORNode",
+	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
 FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
@@ -173,6 +174,23 @@ def getGroupNodeTypeFromParent(parentNode):
 				type = "BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 		return type
 
+# Check if node is a container
+def isContainer(node):
+		# Whitelisted containers are always true
+		if node.NodeType in CONTAINERS:
+			return True
+		# MDL0Nodes are only containers if they don't have anything other than Bones and Definitions
+		if node.NodeType == "BrawlLib.SSBB.ResourceNodes.MDL0Node" and len(node.Children) > 0:
+			for child in node.Children:
+				if child.Name != "Bones" and child.Name != "Definitions":
+					return False
+			return True
+		# MDL0BoneNodes are only containers if they have children
+		if node.NodeType == "BrawlLib.SSBB.ResourceNodes.MDL0BoneNode" and len(node.Children) > 0:
+			return True
+		# If no checks passed, it's not a container
+		return False
+
 # Instantiate node based on type string
 def createNodeFromString(fullTypeString):
 		type = getNodeType(fullTypeString)
@@ -185,12 +203,12 @@ def getPatchNodes(rootNode):
 		allNodes = []
 		if len(rootNode.Children) > 0:
 			for child in rootNode.Children:
-				if child.NodeType in CONTAINERS:
+				if isContainer(child):
 					if child.NodeType not in FOLDERS:
 						allNodes.append(child)
 					if len(child.Children) > 0:
 						allNodes.extend(getPatchNodes(child))
-				elif child.NodeType not in CONTAINERS:
+				elif not isContainer(child):
 					allNodes.append(child)
 		writeLog("Got valid patch nodes for export")
 		return allNodes
@@ -296,7 +314,7 @@ def exportPatchNode(nodeObject, add=False):
 		if nodeObject.node.MD5Str():
 			action = "ADD" if add else ""
 			groupName = getNodeGroupName(nodeObject.node)
-			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if nodeObject.node.NodeType in CONTAINERS else "")
+			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
 			nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
 			if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
 				nodeObject.node.Export(patchNodePath + ".png")
