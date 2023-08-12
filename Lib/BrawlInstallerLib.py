@@ -559,10 +559,10 @@ def getVictoryThemeIDByFighterId(slotId):
 		return 0
 
 # Helper method to more easily copy files
-def copyFile(sourcePath, destinationPath, createBackup=True):
+def copyFile(sourcePath, destinationPath, backup=True):
 		writeLog("Copying file " + sourcePath + " to " + destinationPath)
 		Directory.CreateDirectory(destinationPath)
-		if File.Exists(destinationPath + '/' + getFileInfo(sourcePath).Name) and createBackup:
+		if backup:
 			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
@@ -605,8 +605,7 @@ def openFile(filePath, backup=True):
 def copyRenameFile(sourcePath, newName, destinationPath):
 		writeLog("Attempting to copy file " + sourcePath + " to " + destinationPath + '/' + newName)
 		Directory.CreateDirectory(destinationPath)
-		if File.Exists(destinationPath + '/' + newName):
-			createBackup(destinationPath + '/' + newName)
+		createBackup(destinationPath + '/' + newName)
 		File.Copy(sourcePath, destinationPath + '/' + newName, True)
 
 # Helper method to more easily rename files
@@ -5234,6 +5233,13 @@ class FighterInfo:
 			self.slotConfigId = slotConfigId
 			self.cosmeticConfigId = cosmeticConfigId
 			self.cssSlotConfigId = cssSlotConfigId
+
+class FighterIds:
+		def __init__(self, fighterId="", cosmeticId="", slotId="", cssSlotId=""):
+			self.fighterId = fighterId
+			self.cosmeticId = cosmeticId
+			self.slotId = slotId
+			self.cssSlotid = cssSlotId
 
 class FighterConfigInfo:
 		def __init__(self, fighterName, fighterId, soundbankId):

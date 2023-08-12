@@ -8,6 +8,7 @@ clr.AddReference("System.Web")
 from System.Web import HttpUtility
 from System import Text
 from System.Text import Encoding
+from System import Convert
 
 TEMP_PATH = AppPath + '/temp'
 CONTAINERS = [ 
@@ -133,6 +134,18 @@ def getNodeProperties(node):
 			if property.CanWrite and property.GetSetMethod() != None:
 				properties.append(property)
 		return properties
+
+def updateNodeIds(node, oldFighterIds, newFighterIds):
+		properties = getNodeProperties(node)
+		for property in properties:
+			if str(property.Name).lower() == "fighterid" and oldFighterIds.fighterId and newFighterIds.fighterId and property.GetValue(node, None) == int(oldFighterIds.fighterId, 16):
+				property.SetValue(node, Convert.ToByte(newFighterIds.fighterId), None)
+			if str(property.Name).lower() == "slotid" and oldFighterIds.slotId and newFighterIds.slotId and property.GetValue(node, None) == int(oldFighterIds.slotId, 16):
+				property.SetValue(node, Convert.ToByte(newFighterIds.slotId), None)
+			if str(property.Name).lower() == "cosmeticid" and oldFighterIds.cosmeticId and newFighterIds.cosmeticId and property.GetValue(node, None) == int(oldFighterIds.cosmeticId, 16):
+				property.SetValue(node, Convert.ToByte(newFighterIds.cosmeticId), None)
+			if str(property.Name).lower() == "cssslotid" and oldFighterIds.cssSlotId and newFighterIds.cssSlotId and property.GetValue(node, None) == int(oldFighterIds.cssSlotId, 16):
+				property.SetValue(node, Convert.ToByte(newFighterIds.cssSlotId), None)
 
 # Copy node property values from one node to another
 def copyNodeProperties(sourceNode, targetNode):
@@ -446,7 +459,7 @@ def getPatchInfo(file):
 			patchInfo.updateFighterIds = textBool(readValueFromKey(fileText, "updateFighterIds"))
 		return patchInfo
 			
-def applyBuildPatch(buildPatch):
+def applyBuildPatch(buildPatch, oldFighterIds=None, newFighterIds=None):
 		tempPath = Path.Combine(AppPath, "tempPatch")
 		if Directory.Exists(tempPath):
 			Directory.Delete(tempPath, True)
@@ -474,8 +487,6 @@ def applyBuildPatch(buildPatch):
 							unzipFile(patchFile)
 							applyPatch(fullPath)
 							# TODO: update IDs while patching?
-							BrawlAPI.SaveFile()
-							BrawlAPI.ForceCloseFile()
 						# If there's no patch, try overwriting
 						elif patchInfo.overwriteFile and patchInfo.fileName:
 							newFile = Path.Combine(tempPath, patchInfo.fileName) if patchInfo.fileName else ""
@@ -487,6 +498,15 @@ def applyBuildPatch(buildPatch):
 						if newFile:
 							copyRenameFile(newFile, getFileInfo(fullPath).Name, getFileInfo(fullPath).DirectoryName)
 				# TODO: if updateFighterIds, check if newFile. If so, open file and update IDs
+				if patchInfo.updateFighterIds and oldFighterIds and newFighterIds:
+					if newFile:
+						openFile(fullPath, False)
+					allNodes = BrawlAPI.RootNode.GetChildrenRecursive()
+					for node in allNodes:
+						updateNodeIds(node, oldFighterIds, newFighterIds)
+				if BrawlAPI.RootNode:
+					BrawlAPI.SaveFile()
+					BrawlAPI.ForceCloseFile()
 				progressBar.CurrentValue += 1
 				progressBar.Update()
 			progressBar.Finish()

@@ -5915,7 +5915,6 @@ class BuildPatchForm(Form):
                         newEntry.patchFile = file
                     self.entries.Add(newEntry)
                     self.enableControls()
-                Directory.Delete(TEMP_PATH, True)
 
     def saveAsButtonPressed(self, sender, args):
         saveDialog = SaveFileDialog()
@@ -5936,9 +5935,9 @@ class BuildPatchForm(Form):
                     cleanattrs = {key: attrs[key] for key in attrs if key != "file" and key != "patchFile"}
                     File.WriteAllText(TEMP_PATH + '\\' + addLeadingZeros(str(i), 4) + entry.name + ".patchinfo", '\n'.join("%s = %s" % item for item in cleanattrs.items()))
                     if entry.file and File.Exists(entry.file) and TEMP_PATH not in entry.file:
-                        copyFile(entry.file, TEMP_PATH, createBackup=False)
+                        copyFile(entry.file, TEMP_PATH, backup=False)
                     if entry.patchFile and File.Exists(entry.patchFile) and TEMP_PATH not in entry.patchFile:
-                        copyFile(entry.patchFile, TEMP_PATH, createBackup=False)
+                        copyFile(entry.patchFile, TEMP_PATH, backup=False)
             if Directory.Exists(TEMP_PATH):
                 ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
                 Directory.Delete(TEMP_PATH, 1)
@@ -5946,6 +5945,8 @@ class BuildPatchForm(Form):
 
     def cancelButtonPressed(self, sender, args):
         self.DialogResult = DialogResult.Cancel
+        if Directory.Exists(TEMP_PATH):
+            Directory.Delete(TEMP_PATH, True)
         self.Close()
 
     def enableControls(self):

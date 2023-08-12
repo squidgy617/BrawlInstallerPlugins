@@ -20,6 +20,7 @@ def main():
 			backupCheck()
 			applyBuildPatch(buildPatchFile)
 			archiveBackup()
+			BrawlAPI.ShowMessage("Build patch applied.", "Success")
 		except Exception as e:
 			BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
 			BrawlAPI.ShowMessage("Error occured. Build patch did not complete. Backups restored.", "An Error Has Occurred")
