@@ -5699,6 +5699,7 @@ class PatcherForm(Form):
         self.Close()
 
     def saveButtonPressed(self, sender, args):
+        self.getNodeUpdates(self.treeView)
         self.DialogResult = DialogResult.OK
         self.action = "save"
         self.Close()

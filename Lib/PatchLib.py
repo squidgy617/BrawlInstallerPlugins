@@ -292,13 +292,11 @@ def updatePatch(form):
 				File.Delete(removedNode.path + "$$P")
 			if File.Exists(removedNode.path + "$$S"):
 				File.Delete(removedNode.path + "$$S")
-			# For containers, remove all associated folders
-			if removedNode.type.FullName in CONTAINERS:
-				if Directory.Exists(removedNode.path):
-					Directory.Delete(removedNode.path, True)
-			else:
-				if File.Exists(removedNode.path):
-					File.Delete(removedNode.path)
+			# Remove any files or folders for the node
+			if Directory.Exists(removedNode.path):
+				Directory.Delete(removedNode.path, True)
+			if File.Exists(removedNode.path):
+				File.Delete(removedNode.path)
 		# Generate new info for updated nodes
 		for changedNode in form.changedNodes:
 			if changedNode not in form.uncheckedNodes:
