@@ -55,7 +55,16 @@ def main():
 			form.Dispose()
 		elif result == DialogResult.OK and form.action == "apply":
 			updatePatch(form)
-			applyPatch(cleanFile)
+			try:
+				backupCheck()
+				applyPatch(cleanFile)
+				archiveBackup()
+				BrawlAPI.ShowMessage("File patch completed. You may now review and/or save the file.", "Complete")
+			except Exception as e:
+				BrawlAPI.ShowMessage(str(e), "An Error Has Occurred")
+				BrawlAPI.ShowMessage("Error occured. File patch did not complete.", "An Error Has Occurred")
+				archiveBackup()
+				return
 			form.Dispose()
 		else:
 			form.Dispose()

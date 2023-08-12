@@ -141,6 +141,7 @@ def getNodeProperties(node):
 				properties.append(property)
 		return properties
 
+# Update fighter IDs for a node, for use in build patches included in a character package
 def updateNodeIds(node, oldFighterIds, newFighterIds):
 		properties = getNodeProperties(node)
 		for property in properties:
@@ -329,6 +330,7 @@ def exportPatchNode(nodeObject, add=False):
 		generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
 		writeLog("Exported patch node")
 
+# Create a patch file
 def createPatch(cleanFile, alteredFile):
 		# Get nodes for altered file and clean file for comparison
 		cleanFileNodes = getNodeObjects(cleanFile, closeFile=True)
@@ -390,6 +392,7 @@ def createPatch(cleanFile, alteredFile):
 			i += 1
 		return fileName
 
+# Process an individual patch file
 def processPatchFiles(patchFolder, node, progressBar):
 	writeLog("Processing patch files for " + node.Name)
 	# Drill down into any directories in the patch
@@ -458,6 +461,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
+# Apply a patch to a file
 def applyPatch(file, patchFolder=TEMP_PATH):
 		fileOpened = openFile(file)
 		if fileOpened:
@@ -474,7 +478,8 @@ def applyPatch(file, patchFolder=TEMP_PATH):
 				if 'progressBar' in locals():
 					progressBar.Finish()
 				raise e
-			
+
+# Get info for build patch file	
 def getPatchInfo(file):
 		patchInfo = BuildPatchFile()
 		if File.Exists(file):
@@ -486,7 +491,8 @@ def getPatchInfo(file):
 			patchInfo.overwriteFile = textBool(readValueFromKey(fileText, "overwriteFile"))
 			patchInfo.updateFighterIds = textBool(readValueFromKey(fileText, "updateFighterIds"))
 		return patchInfo
-			
+
+# Apply a build patch
 def applyBuildPatch(buildPatch, oldFighterIds=None, newFighterIds=None):
 		tempPath = Path.Combine(AppPath, "tempBuildPatch")
 		if Directory.Exists(tempPath):
