@@ -26,6 +26,7 @@ FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
 PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
+UNIQUE_PROPERTIES = [ "BoneIndex" ]
 
 class NodeObject:
 		def __init__(self, node, md5, patchNodePath):
@@ -140,6 +141,39 @@ def getNodeProperties(node):
 			if property.CanWrite and property.GetSetMethod() != None:
 				properties.append(property)
 		return properties
+
+# Get any properties of a node with a name in a list of property names
+def getSpecificNodeProperties(node, propertyNames):
+		returnProperties = []
+		properties = getNodeProperties(node)
+		for property in properties:
+			if property.Name in propertyNames:
+				returnProperties.append(property)
+		return returnProperties
+
+# Get a property of a node with a specified name
+def getSpecificNodeProperty(node, propertyName):
+		properties = getNodeProperties(node)
+		for property in properties:
+			if property.Name == propertyName:
+				return property
+		return None
+
+# Increment properties that must be unique on a given node
+def uniquePropertyUpdate(node):
+		uniqueProperties = getSpecificNodeProperties(node, UNIQUE_PROPERTIES)
+		for property in uniqueProperties:
+			usedValues = []
+			for sibling in node.Parent.Children:
+				if sibling != node:
+					siblingProperty = getSpecificNodeProperty(sibling, property.Name)
+					if siblingProperty != None:
+						usedValues.append(siblingProperty.GetValue(sibling, None))
+			value = property.GetValue(node, None)
+			if value in usedValues:
+				while value in usedValues:
+					value += 1
+				property.SetValue(node, value, None)
 
 # Update fighter IDs for a node, for use in build patches included in a character package
 def updateNodeIds(node, oldFighterIds, newFighterIds):
@@ -435,6 +469,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 				if patchNode.action == "REPLACE" or patchNode.action == "ADD":
 					writeLog("Replacing " + foundNode.Name)
 					foundNode.Replace(patchFile)
+					uniquePropertyUpdate(foundNode)
 				if patchNode.action == "REMOVE":
 					writeLog("Removing " + foundNode.Name)
 					foundNode.Remove()
@@ -445,6 +480,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 					tempNode.Replace(patchFile)
 					copyNodeProperties(tempNode, foundNode)
 					tempNode.Remove()
+					uniquePropertyUpdate(foundNode)
 			# If a replace node can't be found, add it
 			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
 				writeLog("Adding " + patchNode.name)
@@ -452,12 +488,14 @@ def processPatchFiles(patchFolder, node, progressBar):
 				node.InsertChild(newNode, patchNode.containerIndex)
 				newNode.Replace(patchFile)
 				newNode.Name = patchNode.name
+				uniquePropertyUpdate(newNode)
 		elif patchNode.forceAdd:
 			writeLog("Adding " + patchNode.name)
 			newNode = createNodeFromString(patchNode.type)
 			node.InsertChild(newNode, patchNode.containerIndex)
 			newNode.Replace(patchFile)
 			newNode.Name = patchNode.name
+			uniquePropertyUpdate(newNode)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
