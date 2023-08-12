@@ -139,13 +139,13 @@ def updateNodeIds(node, oldFighterIds, newFighterIds):
 		properties = getNodeProperties(node)
 		for property in properties:
 			if str(property.Name).lower() == "fighterid" and oldFighterIds.fighterId and newFighterIds.fighterId and property.GetValue(node, None) == int(oldFighterIds.fighterId, 16):
-				property.SetValue(node, Convert.ToByte(newFighterIds.fighterId), None)
+				property.SetValue(node, Convert.ToByte(int(newFighterIds.fighterId, 16)), None)
 			if str(property.Name).lower() == "slotid" and oldFighterIds.slotId and newFighterIds.slotId and property.GetValue(node, None) == int(oldFighterIds.slotId, 16):
-				property.SetValue(node, Convert.ToByte(newFighterIds.slotId), None)
+				property.SetValue(node, Convert.ToByte(int(newFighterIds.slotId, 16)), None)
 			if str(property.Name).lower() == "cosmeticid" and oldFighterIds.cosmeticId and newFighterIds.cosmeticId and property.GetValue(node, None) == int(oldFighterIds.cosmeticId, 16):
-				property.SetValue(node, Convert.ToByte(newFighterIds.cosmeticId), None)
+				property.SetValue(node, Convert.ToByte(int(newFighterIds.cosmeticId, 16)), None)
 			if str(property.Name).lower() == "cssslotid" and oldFighterIds.cssSlotId and newFighterIds.cssSlotId and property.GetValue(node, None) == int(oldFighterIds.cssSlotId, 16):
-				property.SetValue(node, Convert.ToByte(newFighterIds.cssSlotId), None)
+				property.SetValue(node, Convert.ToByte(int(newFighterIds.cssSlotId, 16)), None)
 
 # Copy node property values from one node to another
 def copyNodeProperties(sourceNode, targetNode):
@@ -429,10 +429,9 @@ def processPatchFiles(patchFolder, node, progressBar):
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
-def applyPatch(file):
+def applyPatch(file, patchFolder=TEMP_PATH):
 		fileOpened = openFile(file)
 		if fileOpened:
-			patchFolder = TEMP_PATH
 			node = BrawlAPI.RootNode
 			try:
 				# Set up progressbar
@@ -460,10 +459,11 @@ def getPatchInfo(file):
 		return patchInfo
 			
 def applyBuildPatch(buildPatch, oldFighterIds=None, newFighterIds=None):
-		tempPath = Path.Combine(AppPath, "tempPatch")
+		tempPath = Path.Combine(AppPath, "tempBuildPatch")
 		if Directory.Exists(tempPath):
 			Directory.Delete(tempPath, True)
-		unzipFile(buildPatch, "tempPatch")
+		tempPatchPath = Path.Combine(AppPath, "tempPatch")
+		unzipFile(buildPatch, "tempBuildPatch")
 		files = Directory.GetFiles(tempPath, "*.patchinfo")
 		newFile = ""
 		try:
@@ -482,11 +482,10 @@ def applyBuildPatch(buildPatch, oldFighterIds=None, newFighterIds=None):
 						# First attempt to patch
 						patchFile = Path.Combine(tempPath, patchInfo.patchFileName) if patchInfo.patchFileName else ""
 						if patchFile and File.Exists(patchFile):
-							if Directory.Exists(TEMP_PATH):
-								Directory.Delete(TEMP_PATH, 1)
-							unzipFile(patchFile)
-							applyPatch(fullPath)
-							# TODO: update IDs while patching?
+							if Directory.Exists(tempPatchPath):
+								Directory.Delete(tempPatchPath, 1)
+							unzipFile(patchFile, tempPatchPath)
+							applyPatch(fullPath, tempPatchPath)
 						# If there's no patch, try overwriting
 						elif patchInfo.overwriteFile and patchInfo.fileName:
 							newFile = Path.Combine(tempPath, patchInfo.fileName) if patchInfo.fileName else ""
@@ -497,7 +496,7 @@ def applyBuildPatch(buildPatch, oldFighterIds=None, newFighterIds=None):
 						newFile = Path.Combine(tempPath, patchInfo.fileName) if patchInfo.fileName else ""
 						if newFile:
 							copyRenameFile(newFile, getFileInfo(fullPath).Name, getFileInfo(fullPath).DirectoryName)
-				# TODO: if updateFighterIds, check if newFile. If so, open file and update IDs
+				# Update fighter IDs
 				if patchInfo.updateFighterIds and oldFighterIds and newFighterIds:
 					if newFile:
 						openFile(fullPath, False)
@@ -510,8 +509,8 @@ def applyBuildPatch(buildPatch, oldFighterIds=None, newFighterIds=None):
 				progressBar.CurrentValue += 1
 				progressBar.Update()
 			progressBar.Finish()
-			if Directory.Exists(TEMP_PATH):
-				Directory.Delete(TEMP_PATH, True)
+			if Directory.Exists(tempPatchPath):
+				Directory.Delete(tempPatchPath, True)
 			if Directory.Exists(tempPath):
 				Directory.Delete(tempPath, True)
 		except Exception as e:

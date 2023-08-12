@@ -1117,6 +1117,22 @@ def createBPs(cosmeticId, images, fiftyCC="true", startIndex=1):
 		writeLog("Finished creating BPs")
 		BrawlAPI.ForceCloseFile()
 
+# Get original IDs for fighter being installed
+def getOldConfigIds(directory):
+		fighterIds = FighterIds()
+		files = Directory.GetFiles(directory, "*.dat")
+		for file in files:
+			fileInfo = getFileInfo(file)
+			if fileInfo.Name.startswith("Fighter"):
+				fighterIds.fighterId = fileInfo.Name.replace("Fighter", "").replace(".dat", "")
+			elif fileInfo.Name.startswith("Slot"):
+				fighterIds.slotId = fileInfo.Name.replace("Slot", "").replace(".dat", "")
+			elif fileInfo.Name.startswith("CSSSlot"):
+				fighterIds.cssSlotid = fileInfo.Name.replace("CSSSlot", "").replace(".dat", "")
+			elif fileInfo.Name.startswith("Cosmetic"):
+				fighterIds.cosmeticId = fileInfo.Name.replace("Cosmetic", "").replace(".dat", "")
+		return fighterIds
+
 # Update and move EX config files
 def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-1, useKirbyHat=False, newSoundBankId="", victoryThemeId=0, kirbyHatFighterId=-1, cosmeticConfigId="", cssSlotConfigId="", slotConfigId=""):
 		writeLog("Modifying Ex Configs for fighter ID " + str(fighterId))

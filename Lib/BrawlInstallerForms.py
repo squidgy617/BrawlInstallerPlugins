@@ -5922,10 +5922,11 @@ class BuildPatchForm(Form):
         saveDialog.Title = "Save build patch file"
         result = saveDialog.ShowDialog()
         if result == DialogResult.OK and saveDialog.FileName:
+            savepath = TEMP_PATH.replace("temp", "tempSave")
             filePath = saveDialog.FileName
             saveDialog.Dispose()
-            if not Directory.Exists(TEMP_PATH):
-                Directory.CreateDirectory(TEMP_PATH)
+            if not Directory.Exists(savepath):
+                Directory.CreateDirectory(savepath)
             i = 0
             for entry in self.entries:
                 if (entry.file or entry.patchFile) and entry.path:
@@ -5933,14 +5934,14 @@ class BuildPatchForm(Form):
                     i += 1
                     attrs = vars(entry)
                     cleanattrs = {key: attrs[key] for key in attrs if key != "file" and key != "patchFile"}
-                    File.WriteAllText(TEMP_PATH + '\\' + addLeadingZeros(str(i), 4) + entry.name + ".patchinfo", '\n'.join("%s = %s" % item for item in cleanattrs.items()))
-                    if entry.file and File.Exists(entry.file) and TEMP_PATH not in entry.file:
-                        copyFile(entry.file, TEMP_PATH, backup=False)
+                    File.WriteAllText(savepath + '\\' + addLeadingZeros(str(i), 4) + entry.name + ".patchinfo", '\n'.join("%s = %s" % item for item in cleanattrs.items()))
+                    if entry.file and File.Exists(entry.file) and savepath not in entry.file:
+                        copyFile(entry.file, savepath, backup=False)
                     if entry.patchFile and File.Exists(entry.patchFile) and TEMP_PATH not in entry.patchFile:
-                        copyFile(entry.patchFile, TEMP_PATH, backup=False)
-            if Directory.Exists(TEMP_PATH):
-                ZipFile.CreateFromDirectory(TEMP_PATH, filePath)
-                Directory.Delete(TEMP_PATH, 1)
+                        copyFile(entry.patchFile, savepath, backup=False)
+            if Directory.Exists(savepath):
+                ZipFile.CreateFromDirectory(savepath, filePath)
+                Directory.Delete(savepath, 1)
                 BrawlAPI.ShowMessage("Build patch file created at " + filePath, "Success")
 
     def cancelButtonPressed(self, sender, args):

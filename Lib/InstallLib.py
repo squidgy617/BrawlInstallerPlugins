@@ -87,6 +87,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					classicIntro = getDirectoryByName("ClassicIntro", fighterDir)
 					trophyFolder = getDirectoryByName("Trophy", fighterDir)
 					codeFolder = getDirectoryByName("Codes", fighterDir)
+					patchFolder = getDirectoryByName("Patch", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -94,6 +95,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
 					effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
 					fighterSettings = getFighterSettings()
+					oldFighterIds = getOldConfigIds(folder + '/EXConfigs')
 					# Get the fighter this one is cloned from
 					if moduleFolder:
 						clonedModuleName = getClonedModuleName(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0])
@@ -380,12 +382,17 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									return
 							if not newFranchiseIconId:
 								franchiseIconId = -1
+
+					# Patch Prompt
+					if patchFolder:
+						installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch. Would you like to install it?", "Install patch?")
+
 					#endregion USER INPUT/PRELIMINARY CHECKS
 
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 19, progressCounter)
+					progressBar.Begin(0, 20, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -881,6 +888,15 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					progressBar.Update(progressCounter)
 
 					#endregion Code Edits
+
+					#region Patch
+
+					if patchFolder and installPatch:
+						newFighterIds = FighterIds(fighterId, cosmeticConfigId, slotConfigId, cssSlotConfigId)
+						for patch in Directory.GetFiles(patchFolder.FullName, "*.buildpatch"):
+							applyBuildPatch(patch, oldFighterIds, newFighterIds)
+
+					#endregion Patch
 
 					#region CSSRoster
 
