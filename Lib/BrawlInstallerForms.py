@@ -4348,7 +4348,7 @@ class PackageCharacterForm(Form):
         self.readmeGroupBox.Text = "README"
         self.readmeGroupBox.Click += self.toggleGroupBox
 
-        self.readmeControl = LabeledTextBox("Body", multiline=True, size=Size(500,80))
+        self.readmeControl = LabeledTextBox("Body", multiline=True, size=Size(300,80))
         self.readmeControl.Location = Point(4,16)
 
         self.readmeGroupBox.Controls.Add(self.readmeControl)
@@ -4363,6 +4363,17 @@ class PackageCharacterForm(Form):
         self.bonusControl.Location = Point(4, 16)
 
         self.bonusGroupBox.Controls.Add(self.bonusControl)
+
+        self.patchGroupBox = GroupBox()
+        self.patchGroupBox.AutoSize = True
+        self.patchGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.patchGroupBox.Text = "Build Patch"
+        self.patchGroupBox.Click += self.toggleGroupBox
+
+        self.patchControl = FileControl("Select a build patch to include", "BUILDPATCH files|*.buildpatch", "Patch")
+        self.patchControl.Location = Point(4, 16)
+
+        self.patchGroupBox.Controls.Add(self.patchControl)
 
         # Fighter Files Groupbox
         self.fighterGroupBox = GroupBox()
@@ -4634,6 +4645,7 @@ class PackageCharacterForm(Form):
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.readmeGroupBox)
         self.Controls.Add(self.bonusGroupBox)
+        self.Controls.Add(self.patchGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
@@ -4840,6 +4852,8 @@ class PackageCharacterForm(Form):
             File.WriteAllText(PACK_PATH + '\\README.txt', self.readmeControl.textBox.Text)
         for file in self.bonusControl.files:
             copyFile(file.FullName, PACK_PATH + '\\Bonus')
+        if self.patchControl.textBox.textBox.Text:
+            copyFile(self.patchControl.textBox.textBox.Text, PACK_PATH + '\\Patch')
         # Fighter settings
         fighterSettings = FighterSettings()
         if self.creditsIdControl.textBox.Text:
@@ -5099,6 +5113,9 @@ class PackageCharacterForm(Form):
                     self.readmeControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\README.txt')
                 if Directory.Exists(TEMP_PATH + '\\Bonus'):
                     self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
+                if Directory.Exists(TEMP_PATH + '\\Patch'):
+                    file = Directory.GetFiles(TEMP_PATH + '\\Patch', "*.buildpatch")
+                    self.patchControl.textBox.textBox.Text = file[0]
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
@@ -5494,7 +5511,8 @@ class PackageCharacterForm(Form):
         self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 4)
         self.readmeGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X, self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height + 4)
         self.bonusGroupBox.Location = Point(self.readmeGroupBox.Location.X + self.readmeGroupBox.Width + 16, self.readmeGroupBox.Location.Y)
-        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width, self.bonusGroupBox.Location.X + self.bonusGroupBox.Width)
+        self.patchGroupBox.Location = Point(self.bonusGroupBox.Location.X + self.bonusGroupBox.Width + 16, self.bonusGroupBox.Location.Y)
+        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width, self.bonusGroupBox.Location.X + self.bonusGroupBox.Width, self.patchGroupBox.Location.X + self.patchGroupBox.Width)
         self.fighterGroupBox.Location = Point(x + 16, self.cosmeticsGroupBox.Location.Y)
         self.mainFighterGroupBox.Location = Point(4, 16)
         self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 4)
