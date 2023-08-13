@@ -1480,7 +1480,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		writeLog("Replaced module contents")
 
 # Update the SSE module
-def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""):
+def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId="", doorId=""):
 		writeLog("Updating sora_adv_stage.rel for CSSSlot ID " + str(cssSlotId))
 		filePath = MainForm.BuildPath + '/pf/module/sora_adv_stage.rel'
 		if File.Exists(filePath):
@@ -1559,12 +1559,12 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 						# multiply by 4 because there are 4 bytes for each of these
 						position = 376 + (4 * (int(cssSlotId, 16) - int('2A', 16)))
 						editFile.seek(position)
-						if remove:
-							editFile.write(binascii.unhexlify('00000000'))
-						elif unlockStage == "start":
-							editFile.write(binascii.unhexlify('00000001'))
-						elif unlockStage == "end":
-							editFile.write(binascii.unhexlify('00000002'))
+						unlockHex = addLeadingZeros(hexId(doorId).replace('0x', ''), 8) if doorId\
+						else addLeadingZeros('0', 8) if remove\
+						else addLeadingZeros('1', 8) if unlockStage == "start"\
+						else addLeadingZeros('2', 8) if unlockStage == "end"\
+						else addLeadingZeros('0', 8)
+						editFile.write(binascii.unhexlify(unlockHex))
 						# Save the modified section bytes to a variable
 						editFile.seek(0)
 						sectionModified = editFile.read()
