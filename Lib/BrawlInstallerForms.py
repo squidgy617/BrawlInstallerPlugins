@@ -6009,6 +6009,8 @@ class BuildPatchForm(Form):
                     if entry.patchFile and File.Exists(entry.patchFile) and TEMP_PATH not in entry.patchFile:
                         copyFile(entry.patchFile, savepath, backup=False)
             if Directory.Exists(savepath):
+                if File.Exists(filePath):
+                    File.Delete(filePath)
                 ZipFile.CreateFromDirectory(savepath, filePath)
                 Directory.Delete(savepath, 1)
                 BrawlAPI.ShowMessage("Build patch file created at " + filePath, "Success")
