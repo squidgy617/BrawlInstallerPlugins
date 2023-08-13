@@ -4373,7 +4373,11 @@ class PackageCharacterForm(Form):
         self.patchControl = FileControl("Select a build patch to include", "BUILDPATCH files|*.buildpatch", "Patch")
         self.patchControl.Location = Point(4, 16)
 
+        self.patchDescriptionControl = LabeledTextBox("Description", multiline=True, size=Size(100, 60))
+        self.patchDescriptionControl.Location = Point(self.patchControl.Location.X, self.patchControl.Location.Y + 32)
+
         self.patchGroupBox.Controls.Add(self.patchControl)
+        self.patchGroupBox.Controls.Add(self.patchDescriptionControl)
 
         # Fighter Files Groupbox
         self.fighterGroupBox = GroupBox()
@@ -4694,6 +4698,9 @@ class PackageCharacterForm(Form):
         toolTip.SetToolTip(self.franchiseIconImageControl.label[1], "Franchise icon with a transparent background.")
         toolTip.SetToolTip(self.franchiseModelControl.textBox.label, "Franchise icon model for results screen.")
         toolTip.SetToolTip(self.readmeGroupBox, "Text of README file if you wish to include one in your character package.")
+        toolTip.SetToolTip(self.bonusGroupBox, "Extra files for the user to install manually.")
+        toolTip.SetToolTip(self.patchGroupBox, "Add build patches to be installed with the fighter.")
+        toolTip.SetToolTip(self.patchDescriptionControl.label, "A description of what your patch does, which will be displayed to the user during installation.")
         toolTip.SetToolTip(self.pacFilesControl.label, "Fighter PAC files.")
         toolTip.SetToolTip(self.pacFilesControl.dropDown, "For packages with multiple PAC file options, select which PAC file set to edit.")
         toolTip.SetToolTip(self.pacFilesControl.nameBox.label, "The name for the selected PAC file set.")
@@ -4854,6 +4861,9 @@ class PackageCharacterForm(Form):
             copyFile(file.FullName, PACK_PATH + '\\Bonus')
         if self.patchControl.textBox.textBox.Text:
             copyFile(self.patchControl.textBox.textBox.Text, PACK_PATH + '\\Patch')
+            if self.patchDescriptionControl.textBox.Text:
+                Directory.CreateDirectory(PACK_PATH + '\\Patch')
+                File.WriteAllText(PACK_PATH + '\\Patch\\PatchDescription.txt', self.patchDescriptionControl.textBox.Text)
         # Fighter settings
         fighterSettings = FighterSettings()
         if self.creditsIdControl.textBox.Text:
@@ -5116,6 +5126,8 @@ class PackageCharacterForm(Form):
                 if Directory.Exists(TEMP_PATH + '\\Patch'):
                     file = Directory.GetFiles(TEMP_PATH + '\\Patch', "*.buildpatch")
                     self.patchControl.textBox.textBox.Text = file[0]
+                    if File.Exists(TEMP_PATH + '\\Patch\\PatchDescription.txt'):
+                        self.patchDescriptionControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\Patch\\PatchDescription.txt')
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))

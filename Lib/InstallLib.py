@@ -385,7 +385,10 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Patch Prompt
 					if patchFolder:
-						installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch. Would you like to install it?", "Install patch?")
+						patchDesc = ""
+						if File.Exists(patchFolder.FullName + '\\PatchDescription.txt'):
+							patchDesc = File.ReadAllText(patchFolder.FullName + '\\PatchDescription.txt')
+						installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch." + (("\n\nDescription: " + patchDesc + "\n\n") if patchDesc else "") + "Would you like to install it?", "Install patch?")
 
 					#endregion USER INPUT/PRELIMINARY CHECKS
 
