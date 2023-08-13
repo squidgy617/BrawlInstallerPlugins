@@ -5025,6 +5025,7 @@ def getFighterSettings():
 					fighterSettings.throwReleasePoint.append(id)
 			fighterSettings.creditsThemeId = hexId(readValueFromKey(fileText, "creditsThemeId"))
 			fighterSettings.trophyId = hexId(readValueFromKey(fileText, "trophyId"))
+			fighterSettings.doorId = hexId(readValueFromKey(fileText, "doorId"))
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
@@ -5221,6 +5222,7 @@ class FighterSettings:
 		throwReleasePoint = []
 		creditsThemeId = ""
 		trophyId = ""
+		doorId = ""
 
 class TrophySettings:
 		trophyName = ""

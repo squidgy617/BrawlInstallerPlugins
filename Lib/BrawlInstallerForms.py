@@ -4491,7 +4491,7 @@ class PackageCharacterForm(Form):
         self.throwRelease2Control = LabeledTextBox("Throw\nRelease 2")
         self.throwRelease2Control.Location = Point(self.throwRelease1Control.Location.X, self.throwRelease1Control.Location.Y + 32)
 
-        self.asmControl = MultiFileControl("Select your Gecko code ASM files", "ASM files|*.asm", "ASM Files")
+        self.asmControl = MultiFileControl("Select your Gecko code ASM files", "ASM files|*.asm", "ASM Files", Size(100, 60))
         self.asmControl.Location = Point(self.throwRelease2Control.Location.X + 16, self.throwRelease2Control.Location.Y + 32)
 
         # Fighter specific codes
@@ -4502,7 +4502,7 @@ class PackageCharacterForm(Form):
         self.lucarioGroupBox.Size = Size(128, 16)
         self.lucarioGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
         self.lucarioGroupBox.Text = "Lucario"
-        self.lucarioGroupBox.Location = Point(self.asmControl.Location.X - 16, self.asmControl.Location.Y + self.asmControl.Height + 32)
+        self.lucarioGroupBox.Location = Point(self.asmControl.Location.X - 16, self.asmControl.Location.Y + self.asmControl.listBox.Height + 42)
         self.lucarioGroupBox.Click += self.toggleGroupBox
 
         self.lucarioBoneControl = LabeledTextBox("Bone ID")
@@ -4569,6 +4569,17 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Controls.Add(self.jigglypuffGroupBox)
         self.codeGroupBox.Controls.Add(self.bowserGroupBox)
 
+        self.sseGroupBox = GroupBox()
+        self.sseGroupBox.AutoSize = True
+        self.sseGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.sseGroupBox.Text = "Subspace"
+        self.sseGroupBox.Click += self.toggleGroupBox
+
+        self.doorIdBox = LabeledTextBox("Door ID")
+        self.doorIdBox.Location = Point(4, 16)
+
+        self.sseGroupBox.Controls.Add(self.doorIdBox)
+
         self.trophyGroupBox = GroupBox()
         self.trophyGroupBox.AutoSize = True
         self.trophyGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -4628,6 +4639,7 @@ class PackageCharacterForm(Form):
         self.trophyGroupBox.Controls.Add(self.trophyImageControl)
 
         self.miscGroupBox.Controls.Add(self.codeGroupBox)
+        self.miscGroupBox.Controls.Add(self.sseGroupBox)
         self.miscGroupBox.Controls.Add(self.trophyGroupBox)
 
         self.openButton = Button()
@@ -4896,6 +4908,9 @@ class PackageCharacterForm(Form):
         # Bowser
         if self.bowserBoneControl.textBox.Text:
             fighterSettings.bowserBoneId = self.bowserBoneControl.textBox.Text
+        # SSE
+        if self.doorIdBox.textBox.Text:
+            fighterSettings.doorId = self.doorIdBox.textBox.Text
         attrs = vars(fighterSettings)
         writeString = '\n'.join("%s = %s" % item for item in attrs.items())
         if writeString:
@@ -4944,11 +4959,12 @@ class PackageCharacterForm(Form):
     def validate(self):
         validKirby = validateTextBoxes(self.kirbyHatGroupBox, True)
         validCodes = validateTextBoxes(self.codeGroupBox, True, [self.throwRelease1Control, self.throwRelease2Control])
+        validSse = validateTextBoxes(self.sseGroupBox, True)
         validThrowRelease1 = validateDecimal(self.throwRelease1Control.textBox, True)
         validThrowRelease2 = validateDecimal(self.throwRelease2Control.textBox, True)
-        if not validKirby or not validCodes or not validThrowRelease1 or not validThrowRelease2:
+        if not validKirby or not validCodes or not validThrowRelease1 or not validThrowRelease2 or not validSse:
             BrawlAPI.ShowMessage("Some fields were invalid. Please ensure all IDs use values in either hex (e.g. 0x21) or decimal (e.g. 33) format.", "Validation Failed")
-        return validCodes and validKirby and validThrowRelease1 and validThrowRelease2
+        return validCodes and validKirby and validThrowRelease1 and validThrowRelease2 and validSse
 
     def saveButtonPressed(self, sender, args):
         valid = self.validate()
@@ -5222,6 +5238,7 @@ class PackageCharacterForm(Form):
                     self.bowserBoneControl.textBox.Text = fighterSettings.bowserBoneId
                     if Directory.Exists(TEMP_PATH + '\\Codes'):
                         self.asmControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Codes', "*.asm"))
+                    self.doorIdBox.textBox.Text = fighterSettings.doorId
                 # Trophy Settings
                 if Directory.Exists(TEMP_PATH + '\\Trophy'):
                     trophySettings = getTrophySettings()
@@ -5534,7 +5551,8 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Location = Point(4, 16)
         self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
         self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
-        self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
+        self.sseGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
+        self.trophyGroupBox.Location = Point(self.sseGroupBox.Location.X, self.sseGroupBox.Location.Y + self.sseGroupBox.Height + 4)
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height, self.readmeGroupBox.Location.Y + self.readmeGroupBox.Height, self.bonusGroupBox.Location.Y + self.bonusGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
         self.cancelButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
