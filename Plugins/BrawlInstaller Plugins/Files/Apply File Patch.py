@@ -4,6 +4,9 @@ from PatchLib import *
 from BrawlInstallerForms import *
 
 def main():
+		if str(BrawlAPI.RootNode) != "None":
+			BrawlAPI.CloseFile()
+			
 		createLogFile()
 
 		# If temporary directory already exists, delete it to prevent duplicate files

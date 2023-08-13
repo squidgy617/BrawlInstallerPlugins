@@ -6,6 +6,9 @@ from BrawlInstallerForms import *
 from BrawlLib.SSBB import SupportedFilesHandler
 
 def main():
+		if str(BrawlAPI.RootNode) != "None":
+			BrawlAPI.CloseFile()
+			
 		createLogFile()
 
 		# If temporary directory already exists, delete it to prevent duplicate files
