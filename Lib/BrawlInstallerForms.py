@@ -5873,7 +5873,7 @@ class BuildPatchForm(Form):
         pathLabel = Label()
         pathLabel.Width = 200
         pathLabel.Height = 32
-        pathLabel.Text = "Search for the file at this location...\n(ex. '\\pf\\menu\\sc_selcharacter.pac')"
+        pathLabel.Text = "Search for the file at this location...\n(ex. '\\pf\\menu2\\sc_selcharacter.pac')"
         pathLabel.Location = Point(addButton.Location.X + addButton.Width + 16, addButton.Location.Y)
 
         self.pathBox = LabeledTextBox("Path")
