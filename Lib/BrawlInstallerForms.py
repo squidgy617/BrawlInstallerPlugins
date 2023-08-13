@@ -5570,7 +5570,6 @@ class PatcherForm(Form):
         self.uncheckedNodes = []
         self.changedNodes = []
         self.action = ""
-        self.mode = mode
 
         self.treeView = ExTreeView()
         self.treeView.CheckBoxes = True
@@ -5691,7 +5690,7 @@ class PatcherForm(Form):
                 self.forceAddCheckbox.Visible = False
             # Only show replace box for containers
             self.replaceCheckbox.Checked = self.treeView.SelectedNode.Tag.disableContainer
-            if self.mode == "compare" and self.treeView.SelectedNode.Tag.action in ["PARAM"] and len(self.treeView.SelectedNode.Nodes) > 0:
+            if self.treeView.SelectedNode.Tag.action in ["PARAM"] and len(self.treeView.SelectedNode.Nodes) > 0:
                 self.replaceCheckbox.Visible = True
             else:
                 self.replaceCheckbox.Visible = False
