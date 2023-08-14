@@ -388,7 +388,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						patchDesc = ""
 						if File.Exists(patchFolder.FullName + '\\PatchDescription.txt'):
 							patchDesc = File.ReadAllText(patchFolder.FullName + '\\PatchDescription.txt')
-						installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch." + (("\n\nDescription: " + patchDesc + "\n\n") if patchDesc else "") + "Would you like to install it?", "Install patch?")
+						installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch." + (("\n\nDescription: " + patchDesc + "\n\n") if patchDesc else "") + "Would you like to install it?\n(NOTE: Installed patches are not uninstalled when the character is uninstalled.)", "Install patch?")
 
 					#endregion USER INPUT/PRELIMINARY CHECKS
 
