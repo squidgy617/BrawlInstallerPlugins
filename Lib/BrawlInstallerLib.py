@@ -4980,6 +4980,7 @@ def getSettings():
 		settings.installStockIconsToResult = readValueFromKey(fileText, "installStockIconsToResult")
 		settings.installStocksToStockFaceTex = readValueFromKey(fileText, "installStocksToStockFaceTex")
 		settings.installStocksToSSS = readValueFromKey(fileText, "installStocksToSSS")
+		settings.singleStocks = readValueFromKey(fileText, "singleStocks")
 		settings.fiftyCostumeCode = readValueFromKey(fileText, "fiftyCostumeCode")
 		settings.installKirbyHats = readValueFromKey(fileText, "installKirbyHats")
 		settings.defaultKirbyHat = readValueFromKey(fileText, "defaultKirbyHat")
@@ -5181,6 +5182,7 @@ class Settings:
 		installStockIconsToResult = "true"
 		installStocksToStockFaceTex = "true"
 		installStocksToSSS = "false"
+		singleStocks = "false"
 		fiftyCostumeCode = "true"
 		installKirbyHats = "true"
 		defaultKirbyHat = "0x21"

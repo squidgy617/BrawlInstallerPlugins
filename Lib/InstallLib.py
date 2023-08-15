@@ -450,7 +450,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Install stock icons to info.pac
 					if stockIconFolder and settings.installStocksToInfo == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 					# Install franchise icon to info.pac
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
@@ -481,7 +481,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Have to install stocks after info.pac work is done, because info.pac contains extra textures and can't use the replace method like other stock locations can
 					# Install stock icons to sc_selcharacter
 					if stockIconFolder and settings.installStocksToCSS == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 						fileOpened = checkOpenFile("sc_selcharacter")
 						if fileOpened:
 							BrawlAPI.SaveFile()
@@ -533,7 +533,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Install stock icons to STGRESULT
 					if stockIconFolder and settings.installStockIconsToResult == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						modelFranchise = ""
@@ -562,12 +562,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if stockIconFolder:
 						# StockFaceTex.brres - used for things like rotation mode
 						if settings.installStocksToStockFaceTex == "true":
-							installStockIcons(cosmeticId, stockIconFolder, "", "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
+							installStockIcons(cosmeticId, stockIconFolder, "", "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 							BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
 						# sc_selmap - used for SSS in vBrawl
 						if settings.installStocksToSSS == "true":
-							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [40]", "Misc Data [20]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
+							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [40]", "Misc Data [20]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 							BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
 

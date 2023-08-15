@@ -2671,12 +2671,18 @@ class SettingsForm(Form):
         self.stockBattleCheckbox.Text = "Battle UI"
         self.stockBattleCheckbox.Location = Point(16, 64)
         self.stockBattleCheckbox.Width = 112
+
+        self.singleStockCheckbox = CheckBox()
+        self.singleStockCheckbox.Text = "Single Stock Icon"
+        self.singleStockCheckbox.Location = Point(128, 64)
+        self.singleStockCheckbox.Width = 112
         
         stockGroupBox.Controls.Add(self.stockCssCheckbox)
         stockGroupBox.Controls.Add(self.stockSssCheckbox)
         stockGroupBox.Controls.Add(self.stockResultCheckbox)
         stockGroupBox.Controls.Add(self.stockRotationCheckbox)
         stockGroupBox.Controls.Add(self.stockBattleCheckbox)
+        stockGroupBox.Controls.Add(self.singleStockCheckbox)
 
         # Other cosmetic install options
         self.portraitNameCheckBox = CheckBox()
@@ -3056,6 +3062,7 @@ class SettingsForm(Form):
         toolTip.SetToolTip(self.stockResultCheckbox, "Check this if your build uses stock icons on the match result screen. When checked, stock icons will be installed to STGRESULT.pac.") 
         toolTip.SetToolTip(self.stockRotationCheckbox, "Check this if your build uses stock icons in modes like Rotation mode. When checked, stock icons will be installed to StockFaceTex.brres.") 
         toolTip.SetToolTip(self.stockBattleCheckbox, "Check this if your build uses stock icons during matches. When checked, stock icons will be installed to info.pac.") 
+        toolTip.SetToolTip(self.singleStockCheckbox, "Check this to only install a single stock icon when a character is installed instead of installing all stock icons included with the character.")
         toolTip.SetToolTip(self.portraitNameCheckBox, "Check this if your build displays names on the portraits displayed on the character select screen.") 
         toolTip.SetToolTip(self.bpNameCheckbox, "Check this if your build displays names beneath the portraits used in a match.") 
         toolTip.SetToolTip(self.singlePlayerCheckBox, "Check this if you would like franchise icons and battle portrait names (if used) to be installed into single-player modes like Classic mode.") 
@@ -3103,6 +3110,7 @@ class SettingsForm(Form):
         self.stockResultCheckbox.Checked = textBool(self.settings.installStockIconsToResult)
         self.stockRotationCheckbox.Checked = textBool(self.settings.installStocksToStockFaceTex)
         self.stockBattleCheckbox.Checked = textBool(self.settings.installStocksToInfo)
+        self.singleStockCheckbox.Checked = textBool(self.settings.singleStocks)
         self.portraitNameCheckBox.Checked = textBool(self.settings.installPortraitNames)
         self.bpNameCheckbox.Checked = textBool(self.settings.installBPNames)
         self.singlePlayerCheckBox.Checked = textBool(self.settings.installSingleplayerCosmetics)
@@ -3139,6 +3147,7 @@ class SettingsForm(Form):
         settings.installStocksToInfo = "true"
         settings.installStockIconsToResult = "true"
         settings.installStocksToStockFaceTex = "true"
+        settings.singleStocks = "false"
         settings.fiftyCostumeCode = "true"
         settings.soundbankStyle = "hex"
         settings.addSevenToSoundbankName = "false"
@@ -3169,6 +3178,7 @@ class SettingsForm(Form):
         settings.installStocksToInfo = "false"
         settings.installStockIconsToResult = "false"
         settings.installStocksToStockFaceTex = "false"
+        settings.singleStocks = "false"
         settings.fiftyCostumeCode = "true"
         settings.soundbankStyle = "hex"
         settings.addSevenToSoundbankName = "false"
@@ -3282,6 +3292,7 @@ class SettingsForm(Form):
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
         settings.installStocksToStockFaceTex = boolText(self.stockRotationCheckbox.Checked)
         settings.installStocksToInfo = boolText(self.stockBattleCheckbox.Checked)
+        settings.singleStocks = boolText(self.singleStockCheckbox.Checked)
         settings.installPortraitNames = boolText(self.portraitNameCheckBox.Checked)
         settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
