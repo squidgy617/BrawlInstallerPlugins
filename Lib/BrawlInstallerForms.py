@@ -6025,7 +6025,7 @@ class TrophyForm(Form):
         self.trophyIdBox = LabeledTextBox("Trophy ID")
         self.trophyIdBox.Location = Point(self.slotIdBox.Location.X, self.slotIdBox.Location.Y + 32)
 
-        self.trophyControl = TrophyControl(toggleable=False)
+        self.trophyControl = TrophyControl(toggleable=False, showCategory=True)
         self.trophyControl.Location = Point(self.trophyIdBox.Location.X, self.trophyIdBox.Location.Y + 32)
 
         installButton = Button()
@@ -6045,10 +6045,12 @@ class TrophyForm(Form):
         self.Controls.Add(cancelButton)
     
     def installButtonPressed(self, sender, args):
-        BrawlAPI.ShowMessage("Install", "")
+        self.DialogResult = DialogResult.OK
+        self.Close()
 
     def cancelButtonPressed(self, sender, args):
-        BrawlAPI.ShowMessage("Cancel", "")
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
 
 #endregion TROPHY FORM
 
@@ -6133,7 +6135,7 @@ class LabeledDropDown(UserControl):
 
             self.label = Label()
             self.label.Text = labelText + ":"
-            self.label.Location = Point(self.dropDown.Location.X - self.dropDown.Width, self.dropDown.Location.Y)
+            self.label.Location = Point(self.dropDown.Location.X - self.dropDown.Width + 10, self.dropDown.Location.Y)
             self.label.TextAlign = ContentAlignment.TopRight
 
             self.Controls.Add(self.dropDown)
@@ -6164,7 +6166,7 @@ class FileControl(UserControl):
                 self.textBox.textBox.Text = file
 
 class TrophyControl(UserControl):
-        def __init__(self, toggleable=True):
+        def __init__(self, toggleable=True, showCategory=False):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
@@ -6181,6 +6183,16 @@ class TrophyControl(UserControl):
             self.trophyDescriptionControl = LabeledTextBox("Description", multiline=True)
             self.trophyDescriptionControl.Location = Point(self.trophyNameControl.Location.X, self.trophyNameControl.Location.Y + 32)
             self.trophyDescriptionControl.textBox.Enabled = not toggleable
+
+            self.trophyCategoryControl = LabeledDropDown("Category", TROPHY_CATEGORIES)
+            self.trophyCategoryControl.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+            self.trophyCategoryControl.dropDown.Enabled = not toggleable
+            self.trophyCategoryControl.Visible = showCategory
+
+            if not showCategory:
+                gameIconPoint = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+            else:
+                gameIconPoint = Point(self.trophyCategoryControl.Location.X, self.trophyCategoryControl.Location.Y + 32)
 
             self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
             self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
@@ -6213,6 +6225,7 @@ class TrophyControl(UserControl):
             self.Controls.Add(self.trophyNameControl)
             self.Controls.Add(self.trophyCheckBox)
             self.Controls.Add(self.trophyDescriptionControl)
+            self.Controls.Add(self.trophyCategoryControl)
             self.Controls.Add(self.gameIcon1Control)
             self.Controls.Add(self.gameIcon2Control)
             self.Controls.Add(self.gameName1Control)
