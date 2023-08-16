@@ -6,6 +6,8 @@ from BrawlInstallerForms import *
 from BrawlLib.SSBB import SupportedFilesHandler
 
 def main():
+		if not versionCheck():
+			return
 		if str(BrawlAPI.RootNode) != "None":
 			BrawlAPI.CloseFile()
 			

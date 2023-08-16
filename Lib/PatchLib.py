@@ -28,6 +28,16 @@ FOLDERS = [
 PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
 UNIQUE_PROPERTIES = [ "BoneIndex" ]
 
+# Temporary check to make sure the user has the necessary version to run the plugin
+def versionCheck():
+	date = DateTime.Parse("2023-08-04T06:02:03.4382103+00:00")
+	if File.Exists(AppPath + '\\Canary\\New'):
+		fileText = File.ReadAllLines(AppPath + '\\Canary\\New')
+		if DateTime.Parse(fileText[0]) >= date:
+			return True
+	BrawlAPI.ShowMessage("This feature requires BrawlCrate Canary. To enable Canary, navigate to Tools > Settings > Updater and check the box that says 'Opt into BrawlCrate Canary (Experimental) updates'.", "Canary Required")
+	return False
+
 class NodeObject:
 		def __init__(self, node, md5, patchNodePath):
 			self.node = node

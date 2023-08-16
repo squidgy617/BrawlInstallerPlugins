@@ -4,6 +4,8 @@ from PatchLib import *
 from BrawlInstallerForms import *
 
 def main():
+		if not versionCheck():
+			return
 		if str(BrawlAPI.RootNode) != "None":
 			BrawlAPI.CloseFile()
 			
