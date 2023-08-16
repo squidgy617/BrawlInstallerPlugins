@@ -4597,57 +4597,10 @@ class PackageCharacterForm(Form):
         self.trophyGroupBox.Text = "Trophy Settings"
         self.trophyGroupBox.Click += self.toggleGroupBox
 
-        self.trophyNameControl = LabeledTextBox("Name")
-        self.trophyNameControl.Location = Point(4,16)
-        self.trophyNameControl.textBox.Enabled = False
+        self.trophyControl = TrophyControl()
+        self.trophyControl.Location = Point(4, 16)
 
-        self.trophyCheckBox = CheckBox()
-        self.trophyCheckBox.Text = "Include Trophy?"
-        self.trophyCheckBox.Location = Point(self.trophyNameControl.Location.X + self.trophyNameControl.Width + 32, self.trophyNameControl.Location.Y)
-        self.trophyCheckBox.CheckedChanged += self.trophyCheckChanged
-
-        self.trophyDescriptionControl = LabeledTextBox("Description", multiline=True)
-        self.trophyDescriptionControl.Location = Point(self.trophyNameControl.Location.X, self.trophyNameControl.Location.Y + 32)
-        self.trophyDescriptionControl.textBox.Enabled = False
-
-        self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
-        self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
-        self.gameIcon1Control.dropDown.Enabled = False
-
-        self.gameIcon2Control = LabeledDropDown("Game\nIcon 2", TROPHY_GAME_ICONS)
-        self.gameIcon2Control.Location = Point(self.gameIcon1Control.Location.X, self.gameIcon1Control.Location.Y + 32)
-        self.gameIcon2Control.dropDown.Enabled = False
-
-        self.gameName1Control = LabeledTextBox("Game\nName 1")
-        self.gameName1Control.Location = Point(self.gameIcon2Control.Location.X, self.gameIcon2Control.Location.Y + 32)
-        self.gameName1Control.textBox.Enabled = False
-
-        self.gameName2Control = LabeledTextBox("Game\nName 2")
-        self.gameName2Control.Location = Point(self.gameName1Control.Location.X, self.gameName1Control.Location.Y + 32)
-        self.gameName2Control.textBox.Enabled = False
-
-        self.trophySeriesControl = LabeledDropDown("Series", TROPHY_SERIES)
-        self.trophySeriesControl.Location = Point(self.gameName2Control.Location.X, self.gameName2Control.Location.Y + 32)
-        self.trophySeriesControl.dropDown.Enabled = False
-
-        self.trophyModelControl = FileControl("Select your trophy brres file", "BRRES files|*.brres", "Model")
-        self.trophyModelControl.Location = Point(self.trophySeriesControl.Location.X, self.trophySeriesControl.Location.Y + 32)
-        self.trophyModelControl.Enabled = False
-
-        self.trophyImageControl = ImageControl([ImageObject("Thumbnail",Size(56,48)), ImageObject("HD Thumbnail",Size(56,48))])
-        self.trophyImageControl.Location = Point(self.trophyModelControl.Location.X, self.trophyModelControl.Location.Y + 32)
-        self.trophyImageControl.Enabled = False
-
-        self.trophyGroupBox.Controls.Add(self.trophyNameControl)
-        self.trophyGroupBox.Controls.Add(self.trophyCheckBox)
-        self.trophyGroupBox.Controls.Add(self.trophyDescriptionControl)
-        self.trophyGroupBox.Controls.Add(self.gameIcon1Control)
-        self.trophyGroupBox.Controls.Add(self.gameIcon2Control)
-        self.trophyGroupBox.Controls.Add(self.gameName1Control)
-        self.trophyGroupBox.Controls.Add(self.gameName2Control)
-        self.trophyGroupBox.Controls.Add(self.trophySeriesControl)
-        self.trophyGroupBox.Controls.Add(self.trophyModelControl)
-        self.trophyGroupBox.Controls.Add(self.trophyImageControl)
+        self.trophyGroupBox.Controls.Add(self.trophyControl)
 
         self.miscGroupBox.Controls.Add(self.codeGroupBox)
         self.miscGroupBox.Controls.Add(self.sseGroupBox)
@@ -4755,17 +4708,6 @@ class PackageCharacterForm(Form):
         toolTip.SetToolTip(jigglypuffSfxLabel, "The SFX IDs to use for the code 'Jigglypuff Clone Rollout SFX Fix', in order as they would appear in the code.")
         toolTip.SetToolTip(self.bowserGroupBox, "Values for Bowser-specific Gecko codes used in some builds. Only set for Bowser clones.")
         toolTip.SetToolTip(self.bowserBoneControl.label, "The bone ID used for the code 'Bowser Clone Fire Breath Bone Fix'.")
-        toolTip.SetToolTip(self.trophyNameControl.label, "The name to display when viewing the trophy.")
-        toolTip.SetToolTip(self.trophyCheckBox, "Check if you would like to include a trophy with the character package. Leave unchecked otherwise.")
-        toolTip.SetToolTip(self.trophyDescriptionControl.label, "The description to display when viewing the trophy.")
-        toolTip.SetToolTip(self.gameIcon1Control.label, "The first console the character appeared on.")
-        toolTip.SetToolTip(self.gameIcon2Control.label, "The last console the character appeared on.")
-        toolTip.SetToolTip(self.gameName1Control.label, "The first game the character appeared in.")
-        toolTip.SetToolTip(self.gameName2Control.label, "The last game the character appeared in.")
-        toolTip.SetToolTip(self.trophySeriesControl.label, "The series the character comes from.")
-        toolTip.SetToolTip(self.trophyModelControl.textBox.label, "The .brres file containing the trophy's model.")
-        toolTip.SetToolTip(self.trophyImageControl.label[0], "The thumbnail for the trophy that appears in the gallery.")
-        toolTip.SetToolTip(self.trophyImageControl.label[1], "The HD trophy thumbnail.")
 
         #endregion TOOLTIPS
 
@@ -4927,36 +4869,36 @@ class PackageCharacterForm(Form):
         if writeString:
             File.WriteAllText(PACK_PATH + '\\FighterSettings.txt', writeString)
         # Trophy
-        if self.trophyCheckBox.Checked:
+        if self.trophyControl.trophyCheckBox.Checked:
             Directory.CreateDirectory(PACK_PATH + '\\Trophy')
             trophySettings = TrophySettings()
-            trophySettings.trophyName = self.trophyNameControl.textBox.Text
-            trophySettings.description = self.trophyDescriptionControl.textBox.Text.replace('\r\n', '<br/>')
-            if self.gameIcon1Control.dropDown.SelectedItem:
-                trophySettings.gameIcon1 = str(TROPHY_GAME_ICONS[self.gameIcon1Control.dropDown.SelectedItem])
+            trophySettings.trophyName = self.trophyControl.trophyNameControl.textBox.Text
+            trophySettings.description = self.trophyControl.trophyDescriptionControl.textBox.Text.replace('\r\n', '<br/>')
+            if self.trophyControl.gameIcon1Control.dropDown.SelectedItem:
+                trophySettings.gameIcon1 = str(TROPHY_GAME_ICONS[self.trophyControl.gameIcon1Control.dropDown.SelectedItem])
             else:
                 trophySettings.gameIcon1 = str(0)
-            if self.gameIcon2Control.dropDown.SelectedItem:
-                trophySettings.gameIcon2 = str(TROPHY_GAME_ICONS[self.gameIcon2Control.dropDown.SelectedItem])
+            if self.trophyControl.gameIcon2Control.dropDown.SelectedItem:
+                trophySettings.gameIcon2 = str(TROPHY_GAME_ICONS[self.trophyControl.gameIcon2Control.dropDown.SelectedItem])
             else:
                 trophySettings.gameIcon2 = str(0)
-            trophySettings.gameName1 = self.gameName1Control.textBox.Text
-            if self.gameName2Control.textBox.Text:
-                trophySettings.gameName2 = self.gameName2Control.textBox.Text
-            if self.trophySeriesControl.dropDown.SelectedItem:
-                trophySettings.seriesIndex = str(TROPHY_SERIES[self.trophySeriesControl.dropDown.SelectedItem])
+            trophySettings.gameName1 = self.trophyControl.gameName1Control.textBox.Text
+            if self.trophyControl.gameName2Control.textBox.Text:
+                trophySettings.gameName2 = self.trophyControl.gameName2Control.textBox.Text
+            if self.trophyControl.trophySeriesControl.dropDown.SelectedItem:
+                trophySettings.seriesIndex = str(TROPHY_SERIES[self.trophyControl.trophySeriesControl.dropDown.SelectedItem])
             else:
                 trophySettings.seriesIndex = str(19)
             attrs = vars(trophySettings)
             writeString = '\n'.join("%s = %s" % item for item in attrs.items())
             if writeString:
                 File.WriteAllText(PACK_PATH + '\\Trophy\\TrophySettings.txt', writeString)
-            if self.trophyModelControl.textBox.textBox.Text:
-                copyFile(self.trophyModelControl.textBox.textBox.Text, PACK_PATH + '\\Trophy')
-            if self.trophyImageControl.Images[0]:
-                copyRenameFile(self.trophyImageControl.Images[0], 'TrophyIcon.png', PACK_PATH + '\\Trophy')
-            if self.trophyImageControl.Images[1]:
-                copyRenameFile(self.trophyImageControl.Images[1], 'TrophyIcon.png', PACK_PATH + '\\Trophy\\HD')
+            if self.trophyControl.trophyModelControl.textBox.textBox.Text:
+                copyFile(self.trophyControl.trophyModelControl.textBox.textBox.Text, PACK_PATH + '\\Trophy')
+            if self.trophyControl.trophyImageControl.Images[0]:
+                copyRenameFile(self.trophyControl.trophyImageControl.Images[0], 'TrophyIcon.png', PACK_PATH + '\\Trophy')
+            if self.trophyControl.trophyImageControl.Images[1]:
+                copyRenameFile(self.trophyControl.trophyImageControl.Images[1], 'TrophyIcon.png', PACK_PATH + '\\Trophy\\HD')
         # Create zip
         if File.Exists(path):
             File.Delete(path)
@@ -5254,29 +5196,29 @@ class PackageCharacterForm(Form):
                 if Directory.Exists(TEMP_PATH + '\\Trophy'):
                     trophySettings = getTrophySettings()
                     if trophySettings:
-                        self.trophyCheckBox.Checked = True
-                        self.trophyNameControl.textBox.Text = trophySettings.trophyName
-                        self.trophyDescriptionControl.textBox.Text = trophySettings.description.replace('<br/>', '\r\n')
+                        self.trophyControl.trophyCheckBox.Checked = True
+                        self.trophyControl.trophyNameControl.textBox.Text = trophySettings.trophyName
+                        self.trophyControl.trophyDescriptionControl.textBox.Text = trophySettings.description.replace('<br/>', '\r\n')
                         if trophySettings.gameIcon1:
-                            selectItemByValue(self.gameIcon1Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon1))
+                            selectItemByValue(self.trophyControl.gameIcon1Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon1))
                         if trophySettings.gameIcon2:
-                            selectItemByValue(self.gameIcon2Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon2))
-                        self.gameName1Control.textBox.Text = trophySettings.gameName1
-                        self.gameName2Control.textBox.Text = trophySettings.gameName2
+                            selectItemByValue(self.trophyControl.gameIcon2Control.dropDown, TROPHY_GAME_ICONS, int(trophySettings.gameIcon2))
+                        self.trophyControl.gameName1Control.textBox.Text = trophySettings.gameName1
+                        self.trophyControl.gameName2Control.textBox.Text = trophySettings.gameName2
                         if trophySettings.seriesIndex:
-                            selectItemByValue(self.trophySeriesControl.dropDown, TROPHY_SERIES, int(trophySettings.seriesIndex))
+                            selectItemByValue(self.trophyControl.trophySeriesControl.dropDown, TROPHY_SERIES, int(trophySettings.seriesIndex))
                         file = Directory.GetFiles(TEMP_PATH + '\\Trophy', "*.brres")
                         if file and len(file) > 0:
-                            self.trophyModelControl.textBox.textBox.Text = file[0]
+                            self.trophyControl.trophyModelControl.textBox.textBox.Text = file[0]
                         image = Directory.GetFiles(TEMP_PATH + '\\Trophy', "*.png")
                         if image and len(image) > 0:
-                            self.trophyImageControl.Images[0] = image[0]
-                            self.trophyImageControl.pictureBox[0].Image = createBitmap(image[0])
+                            self.trophyControl.trophyImageControl.Images[0] = image[0]
+                            self.trophyControl.trophyImageControl.pictureBox[0].Image = createBitmap(image[0])
                         if Directory.Exists(TEMP_PATH + '\\Trophy\\HD'):
                             image = Directory.GetFiles(TEMP_PATH + '\\Trophy\\HD', "*.png")
                             if image and len(image) > 0:
-                                self.trophyImageControl.Images[1] = image[0]
-                                self.trophyImageControl.pictureBox[1].Image = createBitmap(image[0])
+                                self.trophyControl.trophyImageControl.Images[1] = image[0]
+                                self.trophyControl.trophyImageControl.pictureBox[1].Image = createBitmap(image[0])
 
     def openButtonPressed(self, sender, args):
         file = BrawlAPI.OpenFileDialog("Select a character package .zip file", "ZIP files|*.zip")
@@ -5284,17 +5226,6 @@ class PackageCharacterForm(Form):
             self.zipFile = file
             self.DialogResult = DialogResult.Retry
             self.Close()
-
-    def trophyCheckChanged(self, sender, args):
-        self.trophyNameControl.textBox.Enabled = sender.Checked
-        self.trophyDescriptionControl.textBox.Enabled = sender.Checked
-        self.gameIcon1Control.dropDown.Enabled = sender.Checked
-        self.gameIcon2Control.dropDown.Enabled = sender.Checked
-        self.gameName1Control.textBox.Enabled = sender.Checked
-        self.gameName2Control.textBox.Enabled = sender.Checked
-        self.trophySeriesControl.dropDown.Enabled = sender.Checked
-        self.trophyModelControl.Enabled = sender.Checked
-        self.trophyImageControl.Enabled = sender.Checked
 
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -6074,6 +6005,53 @@ class BuildPatchForm(Form):
 
 #endregion BUILDPATCH FORM
 
+#region TROPHY FORM
+
+class TrophyForm(Form):
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Install Trophy'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.slotIdBox = LabeledTextBox("Slot ID", "slot")
+        self.slotIdBox.Location = Point(4, 16)
+
+        self.trophyIdBox = LabeledTextBox("Trophy ID")
+        self.trophyIdBox.Location = Point(self.slotIdBox.Location.X, self.slotIdBox.Location.Y + 32)
+
+        self.trophyControl = TrophyControl(toggleable=False)
+        self.trophyControl.Location = Point(self.trophyIdBox.Location.X, self.trophyIdBox.Location.Y + 32)
+
+        installButton = Button()
+        installButton.Text = "Install"
+        installButton.Click += self.installButtonPressed
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(self.slotIdBox)
+        self.Controls.Add(self.trophyIdBox)
+        self.Controls.Add(self.trophyControl)
+        installButton.Location = Point(self.trophyControl.Location.X, self.trophyControl.Location.Y + self.trophyControl.Height + 32)
+        cancelButton.Location = Point(installButton.Location.X + self.trophyControl.Width - cancelButton.Width, installButton.Location.Y)
+        self.Controls.Add(installButton)
+        self.Controls.Add(cancelButton)
+    
+    def installButtonPressed(self, sender, args):
+        BrawlAPI.ShowMessage("Install", "")
+
+    def cancelButtonPressed(self, sender, args):
+        BrawlAPI.ShowMessage("Cancel", "")
+
+#endregion TROPHY FORM
+
 #region CLASSES AND CONTROLS
 
 class CostumeGroup:
@@ -6184,6 +6162,88 @@ class FileControl(UserControl):
             file = BrawlAPI.OpenFileDialog(self.title, self.filter)
             if file:
                 self.textBox.textBox.Text = file
+
+class TrophyControl(UserControl):
+        def __init__(self, toggleable=True):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+            self.trophyNameControl = LabeledTextBox("Name")
+            self.trophyNameControl.Location = Point(4,16)
+            self.trophyNameControl.textBox.Enabled = not toggleable
+
+            self.trophyCheckBox = CheckBox()
+            self.trophyCheckBox.Text = "Include Trophy?"
+            self.trophyCheckBox.Location = Point(self.trophyNameControl.Location.X + self.trophyNameControl.Width + 32, self.trophyNameControl.Location.Y)
+            self.trophyCheckBox.CheckedChanged += self.trophyCheckChanged
+            self.trophyCheckBox.Visible = toggleable
+
+            self.trophyDescriptionControl = LabeledTextBox("Description", multiline=True)
+            self.trophyDescriptionControl.Location = Point(self.trophyNameControl.Location.X, self.trophyNameControl.Location.Y + 32)
+            self.trophyDescriptionControl.textBox.Enabled = not toggleable
+
+            self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
+            self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+            self.gameIcon1Control.dropDown.Enabled = not toggleable
+
+            self.gameIcon2Control = LabeledDropDown("Game\nIcon 2", TROPHY_GAME_ICONS)
+            self.gameIcon2Control.Location = Point(self.gameIcon1Control.Location.X, self.gameIcon1Control.Location.Y + 32)
+            self.gameIcon2Control.dropDown.Enabled = not toggleable
+
+            self.gameName1Control = LabeledTextBox("Game\nName 1")
+            self.gameName1Control.Location = Point(self.gameIcon2Control.Location.X, self.gameIcon2Control.Location.Y + 32)
+            self.gameName1Control.textBox.Enabled = not toggleable
+
+            self.gameName2Control = LabeledTextBox("Game\nName 2")
+            self.gameName2Control.Location = Point(self.gameName1Control.Location.X, self.gameName1Control.Location.Y + 32)
+            self.gameName2Control.textBox.Enabled = not toggleable
+
+            self.trophySeriesControl = LabeledDropDown("Series", TROPHY_SERIES)
+            self.trophySeriesControl.Location = Point(self.gameName2Control.Location.X, self.gameName2Control.Location.Y + 32)
+            self.trophySeriesControl.dropDown.Enabled = not toggleable
+
+            self.trophyModelControl = FileControl("Select your trophy brres file", "BRRES files|*.brres", "Model")
+            self.trophyModelControl.Location = Point(self.trophySeriesControl.Location.X, self.trophySeriesControl.Location.Y + 32)
+            self.trophyModelControl.Enabled = not toggleable
+
+            self.trophyImageControl = ImageControl([ImageObject("Thumbnail",Size(56,48)), ImageObject("HD Thumbnail",Size(56,48))])
+            self.trophyImageControl.Location = Point(self.trophyModelControl.Location.X, self.trophyModelControl.Location.Y + 32)
+            self.trophyImageControl.Enabled = not toggleable
+
+            self.Controls.Add(self.trophyNameControl)
+            self.Controls.Add(self.trophyCheckBox)
+            self.Controls.Add(self.trophyDescriptionControl)
+            self.Controls.Add(self.gameIcon1Control)
+            self.Controls.Add(self.gameIcon2Control)
+            self.Controls.Add(self.gameName1Control)
+            self.Controls.Add(self.gameName2Control)
+            self.Controls.Add(self.trophySeriesControl)
+            self.Controls.Add(self.trophyModelControl)
+            self.Controls.Add(self.trophyImageControl)
+
+            toolTip = ToolTip()
+            toolTip.SetToolTip(self.trophyNameControl.label, "The name to display when viewing the trophy.")
+            toolTip.SetToolTip(self.trophyCheckBox, "Check if you would like to include a trophy with the character package. Leave unchecked otherwise.")
+            toolTip.SetToolTip(self.trophyDescriptionControl.label, "The description to display when viewing the trophy.")
+            toolTip.SetToolTip(self.gameIcon1Control.label, "The first console the character appeared on.")
+            toolTip.SetToolTip(self.gameIcon2Control.label, "The last console the character appeared on.")
+            toolTip.SetToolTip(self.gameName1Control.label, "The first game the character appeared in.")
+            toolTip.SetToolTip(self.gameName2Control.label, "The last game the character appeared in.")
+            toolTip.SetToolTip(self.trophySeriesControl.label, "The series the character comes from.")
+            toolTip.SetToolTip(self.trophyModelControl.textBox.label, "The .brres file containing the trophy's model.")
+            toolTip.SetToolTip(self.trophyImageControl.label[0], "The thumbnail for the trophy that appears in the gallery.")
+            toolTip.SetToolTip(self.trophyImageControl.label[1], "The HD trophy thumbnail.")
+        
+        def trophyCheckChanged(self, sender, args):
+            self.trophyNameControl.textBox.Enabled = sender.Checked
+            self.trophyDescriptionControl.textBox.Enabled = sender.Checked
+            self.gameIcon1Control.dropDown.Enabled = sender.Checked
+            self.gameIcon2Control.dropDown.Enabled = sender.Checked
+            self.gameName1Control.textBox.Enabled = sender.Checked
+            self.gameName2Control.textBox.Enabled = sender.Checked
+            self.trophySeriesControl.dropDown.Enabled = sender.Checked
+            self.trophyModelControl.Enabled = sender.Checked
+            self.trophyImageControl.Enabled = sender.Checked
 
 # A control for importing multiple files
 class MultiFileControl(UserControl):
