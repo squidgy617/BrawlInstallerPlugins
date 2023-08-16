@@ -200,6 +200,19 @@ TROPHY_GAME_ICONS = {
 	"Game and Watch" : 10
 }
 
+TROPHY_CATEGORIES = {
+	"Fighter" : 23,
+	"Fighter Related" : 24,
+	"Final Smash" : 25,
+	"Item" : 26, 
+	"Assist Trophy" : 27,
+	"Poke Ball" : 28,
+	"The Subspace Emissary" : 29,
+	"Enemy" : 30,
+	"Stage" : 31,
+	"Others" : 32
+}
+
 COSTUME_COLOR = {
 	"Red" : 0,
 	"Blue" : 1,
