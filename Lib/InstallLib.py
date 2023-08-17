@@ -384,11 +384,14 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								franchiseIconId = -1
 
 					# Patch Prompt
+					patches = []
 					if patchFolder:
-						patchDesc = ""
-						if File.Exists(patchFolder.FullName + '\\PatchDescription.txt'):
-							patchDesc = File.ReadAllText(patchFolder.FullName + '\\PatchDescription.txt')
-						installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch." + (("\n\nDescription: " + patchDesc + "\n\n") if patchDesc else "") + "Would you like to install it?\n(NOTE: Installed patches are not uninstalled when the character is uninstalled.)", "Install patch?")
+						for patchFile in Directory.GetFiles(patchFolder.FullName, "*.buildpatch"):
+							if File.Exists(patchFile.replace(".buildpatch", "-DESC.txt")):
+								patchDesc = File.ReadAllText(patchFile.replace(".buildpatch", "-DESC.txt"))
+							installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch: " + getFileInfo(patchFile).Name + (("\n\nDescription: " + patchDesc + "\n\n") if patchDesc else "") + "Would you like to install it?\n(NOTE: Installed patches are not uninstalled when the character is uninstalled.)", "Install patch?")
+							if installPatch:
+								patches.append(patchFile)
 
 					#endregion USER INPUT/PRELIMINARY CHECKS
 
@@ -894,9 +897,9 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					#region Patch
 
-					if patchFolder and installPatch:
+					if patchFolder and patches and len(patches) > 0:
 						newFighterIds = FighterIds(fighterId, cosmeticConfigId, slotConfigId, cssSlotConfigId)
-						for patch in Directory.GetFiles(patchFolder.FullName, "*.buildpatch"):
+						for patch in patches:
 							applyBuildPatch(patch, oldFighterIds, newFighterIds)
 
 					#endregion Patch
