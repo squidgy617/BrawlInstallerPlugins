@@ -909,7 +909,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 #region INSTALL COSTUME
 
-def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0, cosmeticsOnly=False):
+def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, bpImages, stockImages, costumeFiles, skipPositions=[], startingId=0, cosmeticsOnly=False, updateConfig=True):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -994,7 +994,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressBar.Update(progressCounter)
 
 
-			if cosmeticsOnly != True:
+			if cosmeticsOnly != True and costumeFiles and len(costumeFiles) > 0:
 				# Costume files
 				if fighterInfo:
 					fighterName = fighterInfo.fighterName
@@ -1010,7 +1010,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 			
-			if cosmeticsOnly != True:
+			if cosmeticsOnly != True and updateConfig:
 				# Ex Config
 				enableAllCostumes(fighterId)
 				addCssSlots(costumes, index, cssSlotConfigId)

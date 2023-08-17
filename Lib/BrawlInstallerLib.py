@@ -262,9 +262,9 @@ def validateTextBoxes(groupBox, allowBlank=False, excludedControls=[]):
 		return validationPassed
 
 # Validate a single text box is a valid hex ID
-def validateTextBox(textBox):
+def validateTextBox(textBox, allowBlank=False):
 		validationPassed = True
-		valid = hexId(textBox.Text)
+		valid = hexId(textBox.Text) or (textBox.Text == "" and allowBlank)
 		textBox.BackColor = Color.White if valid else Color.LightPink
 		if not valid:
 			validationPassed = False
@@ -3873,7 +3873,7 @@ def removeAltCharacter(cssSlotId):
 			return foundId
 
 # Remove entries to the CSS slot config
-def removeCssSlots(startIndex, endIndex, cssSlotConfigId):
+def removeCssSlots(startIndex, endIndex, cssSlotConfigId, updateConfig=True):
 		writeLog("Removing entries from CSS slot config for ID " + str(cssSlotConfigId))
 		fileOpened = False
 		if Directory.Exists(MainForm.BuildPath + '/pf/BrawlEx'):
@@ -3886,11 +3886,15 @@ def removeCssSlots(startIndex, endIndex, cssSlotConfigId):
 			# Remove an entry for each costume
 			i = startIndex - 1
 			costumeIds = []
-			while i < endIndex:
-				writeLog("i is " + str(i))
-				costumeIds.append(BrawlAPI.RootNode.Children[startIndex - 1].CostumeID)
-				BrawlAPI.RootNode.Children[startIndex - 1].Remove()
-				i += 1
+			if updateConfig:
+				while i < endIndex:
+					costumeIds.append(BrawlAPI.RootNode.Children[startIndex - 1].CostumeID)
+					BrawlAPI.RootNode.Children[startIndex - 1].Remove()
+					i += 1
+			else:
+				while i < endIndex:
+					costumeIds.append(BrawlAPI.RootNode.Children[i].CostumeID)
+					i += 1
 			BrawlAPI.SaveFile()
 			BrawlAPI.ForceCloseFile()
 		writeLog("Finished removing CSS slot config entries")

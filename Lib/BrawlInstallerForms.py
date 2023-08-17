@@ -89,6 +89,8 @@ class IdPicker(Form):
             self.idListBox.DataSource = FighterNameGenerators.slotIDList
         elif option == "cssSlot":
             self.idListBox.DataSource = FighterNameGenerators.cssSlotIDList
+        elif option == "masq":
+            self.idListBox.DataSource = MasqueradeNode.MasqueradeIDs
         elif option == "victoryTheme":
             self.idListBox.DataSource = getTracklistNodes('Results.tlst')
         elif option == "creditsTheme":
@@ -113,6 +115,8 @@ class IdPicker(Form):
             label.Text = "Slot ID:"
         elif option == "cssSlot":
             label.Text = "CSSSlot ID:"
+        elif option == "masq":
+            label.Text = "MASQ ID:"
         elif option == "fighter":
             label.Text = "Fighter ID:"
         elif option == "victoryTheme" or option == "creditsTheme":
@@ -139,8 +143,10 @@ class IdPicker(Form):
         self.Controls.Add(cancelButton)
 
     def idListBoxValueChanged(self, sender, args):
-        if not self.musicMode and not self.option == "custom":
+        if not self.musicMode and not self.option == "custom" and not self.option == "masq":
             self.idBox.Text = str(hexId(self.idListBox.SelectedItem.ID))
+        elif self.option == "masq":
+            self.idBox.Text = self.idListBox.SelectedItem[0 : 2]
         elif self.option == "custom":
             self.idBox.Text = str(hexId(self.idListBox.SelectedValue))
         else:
@@ -2384,7 +2390,7 @@ class CostumePrompt(Form):
         cssSlotConfigIdPanel.TabIndex = 3
         cssSlotConfigIdLabel = Label()
         cssSlotConfigIdLabel.Dock = DockStyle.Left
-        cssSlotConfigIdLabel.Text = "CSS Slot ID:"
+        cssSlotConfigIdLabel.Text = "CSS Slot ID:" if not Directory.Exists(MainForm.BuildPath + '\\pf\\info\\costumeslots') else "MASQ ID:"
         self.cssSlotConfigIdTextbox = TextBox()
         self.cssSlotConfigIdTextbox.Dock = DockStyle.Right
 
@@ -2414,15 +2420,31 @@ class CostumePrompt(Form):
         toolTip = ToolTip()
         toolTip.SetToolTip(fighterIdLabel, "Fighter ID in decimal (33) or hexadecimal (0x21) format")
         toolTip.SetToolTip(cosmeticIdLabel, "Cosmetic ID in decimal (33) or hexadecimal (0x21) format")
-        toolTip.SetToolTip(cssSlotConfigIdLabel, "CSS slot config ID in decimal (33) or hexadecimal (0x21) format")
+        toolTip.SetToolTip(cssSlotConfigIdLabel, ("CSS slot config " if not Directory.Exists(MainForm.BuildPath + '\\pf\\info\\costumeslots') else "MASQ ") + "ID in decimal (33) or hexadecimal (0x21) format")
         toolTip.SetToolTip(cspLabel, "CSP images for your costume")
         toolTip.SetToolTip(bpLabel, "BP images for your costume")
         toolTip.SetToolTip(stockLabel, "Stock icon images for your costume")
         toolTip.SetToolTip(costumeLabel, "Costume .pac files for your costume")
         
+        self.configPanel = Panel()
+        self.configPanel.TabIndex = 4
+        self.configPanel.Dock = DockStyle.Top
+        self.configPanel.Height = 32
+
+        self.configCheckbox = CheckBox()
+        self.configCheckbox.Text = "Update Config"
+        self.configCheckbox.Checked = True
+        self.configCheckbox.Height = 32
+        self.configCheckbox.Location = Point(16, 0)
+
+        toolTip.SetToolTip(self.configCheckbox, "Update CSS slot config/MASQ file during install/uninstall")
+
+        self.configPanel.Controls.Add(self.configCheckbox)
 
         # Add controls
         self.Controls.Add(installButton)
+        if not self.cosmeticsOnly:
+            self.Controls.Add(self.configPanel)
         self.Controls.Add(self.fileGroup)
         self.Controls.Add(self.fighterIdGroup)
 
@@ -2432,7 +2454,11 @@ class CostumePrompt(Form):
             self.fighterIdTextbox.Text = id
 
     def cssSlotIdButtonPressed(self, sender, args):
-        id = showIdPicker("cssSlot")
+        if Directory.Exists(MainForm.BuildPath + "\\pf\\info\\costumeslots"):
+            masq = True
+        else:
+            masq = False
+        id = showIdPicker("cssSlot" if not masq else "masq")
         if id:
             self.cssSlotConfigIdTextbox.Text = id
 
@@ -3767,7 +3793,7 @@ class CostumeForm(Form):
         self.dropDown.Anchor = AnchorStyles.Bottom
         self.dropDown.Width = 64
         self.dropDown.Location = Point(dropDownGroup.Width/2 - (self.dropDown.Width)/2, 32)
-        self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
+        self.dropDown.DropDownStyle = ComboBoxStyle.DropDown
         self.dropDown.DataSource = availableIds if len(availableIds) > 0 else ['00']
 
         dropDownGroup.Controls.Add(dropDownLabel)
@@ -3885,18 +3911,24 @@ class CostumeForm(Form):
         self.label.Text = "Costume %s" % (self.labelIndex + 1)
 
     def beforeButtonPressed(self, sender, args):
+        if not validateTextBox(self.dropDown, allowBlank=True):
+            return
         self.action = "insert"
         self.index += 1
         self.DialogResult = DialogResult.OK
         self.Close()
         
     def afterButtonPressed(self, sender, args):
+        if not validateTextBox(self.dropDown, allowBlank=True):
+            return
         self.action = "insert"
         self.index += 2
         self.DialogResult = DialogResult.OK
         self.Close()
 
     def replaceButtonPressed(self, sender, args):
+        if not validateTextBox(self.dropDown, allowBlank=True):
+            return
         self.action = "replace"
         self.index += 1
         self.DialogResult = DialogResult.OK
