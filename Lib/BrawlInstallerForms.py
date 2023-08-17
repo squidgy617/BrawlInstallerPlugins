@@ -4413,11 +4413,13 @@ class PackageCharacterForm(Form):
         self.patchGroupBox.Text = "Build Patch"
         self.patchGroupBox.Click += self.toggleGroupBox
 
-        self.patchControl = FileControl("Select a build patch to include", "BUILDPATCH files|*.buildpatch", "Patch")
+        self.patchControl = MultiFileObjectControl("Select build patches to include", "BUILDPATCH files|*.buildpatch", "Patches", Size(100, 60))
         self.patchControl.Location = Point(4, 16)
+        self.patchControl.listBox.SelectedValueChanged += self.patchFileChanged
 
-        self.patchDescriptionControl = LabeledTextBox("Description", multiline=True, size=Size(100, 60))
-        self.patchDescriptionControl.Location = Point(self.patchControl.Location.X, self.patchControl.Location.Y + 32)
+        self.patchDescriptionControl = LabeledTextBox("Description", multiline=True, size=Size(100, 80))
+        self.patchDescriptionControl.Location = Point(self.patchControl.Location.X + self.patchControl.Width - 45, self.patchControl.Location.Y)
+        self.patchDescriptionControl.textBox.TextChanged += self.patchDescriptionChanged
 
         self.patchGroupBox.Controls.Add(self.patchControl)
         self.patchGroupBox.Controls.Add(self.patchDescriptionControl)
@@ -4856,11 +4858,11 @@ class PackageCharacterForm(Form):
             File.WriteAllText(PACK_PATH + '\\README.txt', self.readmeControl.textBox.Text)
         for file in self.bonusControl.files:
             copyFile(file.FullName, PACK_PATH + '\\Bonus')
-        if self.patchControl.textBox.textBox.Text:
-            copyFile(self.patchControl.textBox.textBox.Text, PACK_PATH + '\\Patch')
-            if self.patchDescriptionControl.textBox.Text:
+        for file in self.patchControl.files:
+            copyFile(file.fileInfo.FullName, PACK_PATH + '\\Patch')
+            if file.description:
                 Directory.CreateDirectory(PACK_PATH + '\\Patch')
-                File.WriteAllText(PACK_PATH + '\\Patch\\PatchDescription.txt', self.patchDescriptionControl.textBox.Text)
+                File.WriteAllText(PACK_PATH + '\\Patch\\' + file.name.replace(".buildpatch", "-DESC.txt"), file.description)
         # Fighter settings
         fighterSettings = FighterSettings()
         if self.creditsIdControl.textBox.Text:
@@ -5125,10 +5127,14 @@ class PackageCharacterForm(Form):
                 if Directory.Exists(TEMP_PATH + '\\Bonus'):
                     self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
                 if Directory.Exists(TEMP_PATH + '\\Patch'):
-                    file = Directory.GetFiles(TEMP_PATH + '\\Patch', "*.buildpatch")
-                    self.patchControl.textBox.textBox.Text = file[0]
-                    if File.Exists(TEMP_PATH + '\\Patch\\PatchDescription.txt'):
-                        self.patchDescriptionControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\Patch\\PatchDescription.txt')
+                    files = Directory.GetFiles(TEMP_PATH + '\\Patch', "*.buildpatch")
+                    for file in files:
+                        fileInfo = getFileInfo(file)
+                        description = ""
+                        if File.Exists(TEMP_PATH + '\\Patch\\' + fileInfo.Name.replace('.buildpatch', '-DESC.txt')):
+                            description = File.ReadAllText(TEMP_PATH + '\\Patch\\' + fileInfo.Name.replace('.buildpatch', '-DESC.txt'))
+                        fileObject = FileObject(fileInfo.Name, fileInfo, description)
+                        self.patchControl.files.Add(fileObject)
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
@@ -5258,6 +5264,14 @@ class PackageCharacterForm(Form):
             self.zipFile = file
             self.DialogResult = DialogResult.Retry
             self.Close()
+
+    def patchDescriptionChanged(self, sender, args):
+        if self.patchControl.listBox.SelectedItem:
+            self.patchControl.listBox.SelectedItem.description = sender.Text
+
+    def patchFileChanged(self, sender, args):
+        if self.patchControl.listBox.SelectedItem:
+            self.patchDescriptionControl.textBox.Text = self.patchControl.listBox.SelectedItem.description
 
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -6330,6 +6344,46 @@ class MultiFileControl(UserControl):
                 for file in files:
                     self.files.Add(getFileInfo(file))
 
+# A control for importing multiple files with extra properties
+class MultiFileObjectControl(UserControl):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.files = BindingSource()
+            self.files.DataSource = []
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(0, 0)
+            self.label.Height = 16
+
+            self.listBox = ListBox()
+            self.listBox.Size = size
+            self.listBox.Location = Point(self.label.Location.X, self.label.Location.Y + 16)
+            self.listBox.HorizontalScrollbar = True
+            self.listBox.DataSource = self.files
+            self.listBox.DisplayMember = "name"
+            self.listBox.ValueMember = "fileInfo"
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
+            button.Click += self.buttonPressed
+
+            self.Controls.Add(self.label)
+            self.Controls.Add(self.listBox)
+            self.Controls.Add(button)
+
+        def buttonPressed(self, sender, args):
+            files = BrawlAPI.OpenMultiFileDialog(self.title, self.filter)
+            if files and len(files) > 0:
+                self.files.DataSource = []
+                for file in files:
+                    self.files.Add(FileObject(getFileInfo(file).Name, getFileInfo(file)))
+
 # A control for importing multiple filesets
 class MultiFileSetControl(UserControl):
         def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
@@ -6517,6 +6571,12 @@ class FileSet:
         source = BindingSource()
         source.DataSource = files
         self.files = source
+        self.description = description
+
+class FileObject:
+    def __init__(self, name, fileInfo, description=""):
+        self.name = name
+        self.fileInfo = fileInfo
         self.description = description
 
 class TabImageControl(UserControl):
