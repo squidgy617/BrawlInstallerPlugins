@@ -29,6 +29,7 @@ def promptCostumeInstall(cosmeticsOnly=False):
 			fighterId = hexId(form.fighterIdTextbox.Text).split('0x')[1].upper()
 			cosmeticId = int(hexId(form.cosmeticIdTextbox.Text).replace('0x',''), 16)
 			cssSlotConfigId = hexId(form.cssSlotConfigIdTextbox.Text).split('0x')[1].upper()
+			updateConfig = form.configCheckbox.Checked
 			images = []
 			positions = []
 			newPositions = []
@@ -99,12 +100,12 @@ def promptCostumeInstall(cosmeticsOnly=False):
 
 				if result == DialogResult.OK:
 					if form.dropDown.SelectedValue:
-						startingId = int(form.dropDown.SelectedValue)
+						startingId = int(form.dropDown.SelectedValue) if not form.dropDown.SelectedValue.startswith('0x') else int(form.dropDown.SelectedValue, 16)
 					else:
 						startingId = 0
 					if form.action == "replace":
-						uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions, skipMessage=True, cosmeticsOnly=cosmeticsOnly)
-					installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions, startingId, cosmeticsOnly=cosmeticsOnly)
+						uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions, skipMessage=True, cosmeticsOnly=cosmeticsOnly, updateConfig=updateConfig)
+					installCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, cspImages, bpImages, stockImages, costumeFiles, skipPositions, startingId, cosmeticsOnly=cosmeticsOnly, updateConfig=updateConfig)
 				form.Dispose()
 			else:
 				BrawlAPI.ShowMessage("Cosmetics for this fighter could not be found! Please try a different ID.", "Error")
@@ -132,6 +133,7 @@ def promptCostumeUninstall(cosmeticsOnly=False):
 			fighterId = hexId(form.fighterIdTextbox.Text).split('0x')[1].upper()
 			cosmeticId = int(hexId(form.cosmeticIdTextbox.Text).replace('0x',''), 16)
 			cssSlotConfigId = hexId(form.cssSlotConfigIdTextbox.Text).split('0x')[1].upper()
+			updateConfig = form.configCheckbox.Checked
 		else:
 			return
 		images = []
@@ -192,7 +194,7 @@ def promptCostumeUninstall(cosmeticsOnly=False):
 			result = form.ShowDialog(MainForm.Instance)
 
 			if result == DialogResult.OK:
-				uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions, cosmeticsOnly=cosmeticsOnly)
+				uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, form.index, skipPositions, cosmeticsOnly=cosmeticsOnly, updateConfig=updateConfig)
 		else:
 			BrawlAPI.ShowMessage("Cosmetics for this fighter could not be found! Please try a different ID.", "Error")
 	except Exception as e:
