@@ -6,7 +6,7 @@ from BrawlLib.CustomLists import *
 
 #region UNINSTALL COSTUME
 
-def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPositions=[], skipMessage=False, cosmeticsOnly=False):
+def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPositions=[], skipMessage=False, cosmeticsOnly=False, updateConfig=True):
 		try: 
 			# Get user settings
 			if File.Exists(MainForm.BuildPath + '/settings.ini'):
@@ -86,7 +86,7 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 
 			if cosmeticsOnly != True:
 				# Ex Config
-				costumeIds = removeCssSlots(indexes[0], indexes[1], cssSlotConfigId)
+				costumeIds = removeCssSlots(indexes[0], indexes[1], cssSlotConfigId, updateConfig=updateConfig)
 			progressCounter += 1
 			progressBar.Update(progressCounter)
 
