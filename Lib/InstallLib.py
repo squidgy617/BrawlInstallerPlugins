@@ -385,7 +385,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Patch Prompt
 					patches = []
-					if patchFolder:
+					if patchFolder and versionCheck(False):
 						for patchFile in Directory.GetFiles(patchFolder.FullName, "*.buildpatch"):
 							if File.Exists(patchFile.replace(".buildpatch", "-DESC.txt")):
 								patchDesc = File.ReadAllText(patchFile.replace(".buildpatch", "-DESC.txt"))
