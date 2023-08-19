@@ -6075,11 +6075,15 @@ class TrophyForm(Form):
         self.trophyIdBox = LabeledTextBox("Trophy ID")
         self.trophyIdBox.Location = Point(self.slotIdBox.Location.X, self.slotIdBox.Location.Y + 32)
 
+        self.thumbnailIdBox = LabeledTextBox("Thumbnail\nID")
+        self.thumbnailIdBox.Location = Point(self.trophyIdBox.Location.X, self.trophyIdBox.Location.Y + 32)
+
         self.idGroup.Controls.Add(self.slotIdBox)
         self.idGroup.Controls.Add(self.trophyIdBox)
+        self.idGroup.Controls.Add(self.thumbnailIdBox)
 
         self.trophyControl = TrophyControl(toggleable=False, showCategory=True)
-        self.trophyControl.Location = Point(self.idGroup.Location.X, self.idGroup.Location.Y + self.idGroup.Height)
+        self.trophyControl.Location = Point(self.idGroup.Location.X, self.idGroup.Location.Y + self.idGroup.Height + 16)
 
         installButton = Button()
         installButton.Text = "Install"

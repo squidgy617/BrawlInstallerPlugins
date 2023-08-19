@@ -2680,14 +2680,14 @@ def updateTrophyCode(slotId, trophyId, fighterName, remove=False):
 		writeLog("Finished update trophy code")
 
 # Add trophy to game
-def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, trophyId=-1):
+def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, trophyId=-1, forceAdd=False, categoryIndex=-1, thumbnailId=None):
 		writeLog("Adding trophy " + name + " to common3.pac")
 		# First check for existing trophy entry
 		nameIndex = -1
 		gameIndex = -1
 		descriptionIndex = -1
 		trophyExists = False
-		if trophyId != -1:
+		if trophyId != -1 and not forceAdd:
 			writeLog("Getting current trophy values")
 			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
 				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
@@ -2771,27 +2771,30 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 				if fileOpened:
 					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
-					# Get first available ID
-					i = 0
-					id = 631
-					while i < len(tyDataList.Children):
-						if tyDataList.Children[i].Id == id:
-							id += 1
-							i = 0
-						else:
-							i += 1
+					if not forceAdd:
+						# Get first available ID
+						i = 0
+						id = 631
+						while i < len(tyDataList.Children):
+							if tyDataList.Children[i].Id == id or tyDataList.Children[i].ThumbnailIndex == id:
+								id += 1
+								i = 0
+							else:
+								i += 1
+					else:
+						id = trophyId
 					trophyNode = TyDataListEntryNode()
 					trophyNode.Name = name
 					trophyNode.Id = id
 					trophyNode.BRRES = name
-					trophyNode.ThumbnailIndex = id
+					trophyNode.ThumbnailIndex = id if not thumbnailId else thumbnailId
 					trophyNode.GameIcon1 = gameIcon1
 					trophyNode.GameIcon2 = gameIcon2
 					trophyNode.NameIndex = nameIndex
 					trophyNode.GameIndex = gameIndex
 					trophyNode.DescriptionIndex = descriptionIndex
 					trophyNode.SeriesIndex = seriesIndex
-					trophyNode.CategoryIndex = 23
+					trophyNode.CategoryIndex = 23 if categoryIndex <= -1 else categoryIndex
 					trophyNode.Unknown0x34 = 1
 					trophyNode.Unknown0x38 = 1
 					trophyNode.Unknown0x40 = 1
@@ -4563,8 +4566,12 @@ def installCreditsTheme(file, slotId):
 		updateCreditsCode(slotId, creditsThemeId)
 
 # Install trophy
-def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse):
-		trophyIdHex = getSlotTrophyInfo(slotId)[1]
+def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse, trophyIdHex=None, thumbnailId=None):
+		forceAdd = False
+		if not trophyIdHex:
+			trophyIdHex = getSlotTrophyInfo(slotId)[1]
+		else:
+			forceAdd = True
 		returnedTrophyId = -1
 		if trophyIdHex:
 			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
@@ -4574,12 +4581,14 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings,
 			bresName = getFileInfo(brresPath).Name.replace('.brres','')
 			deleteTrophyModel(bresName)
 			importTrophyModel(brresPath)
-			returnedTrophyId = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt)
+			returnedTrophyId = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt, forceAdd=forceAdd, categoryIndex=trophySettings.categoryIndex, thumbnailId=thumbnailId)
 			if File.Exists(thumbnailPath):
-				removeTrophyThumbnail(returnedTrophyId)
-				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
-			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
-		if installToSse == "true":
+				thumbnailId = thumbnailId if thumbnailId else returnedTrophyId
+				removeTrophyThumbnail(thumbnailId)
+				importTrophyThumbnail(thumbnailPath, thumbnailId)
+			if slotId:
+				updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
+		if installToSse == "true" and slotId:
 			updateTrophySSE(slotId, hexId(returnedTrophyId).replace('0x', ''))
 		return returnedTrophyId if returnedTrophyId else trophyIdInt
 

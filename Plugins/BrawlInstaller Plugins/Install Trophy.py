@@ -50,6 +50,8 @@ def main():
 				trophySettings.seriesIndex = TROPHY_SERIES[form.trophyControl.trophySeriesControl.dropDown.SelectedItem]
 			else:
 				trophySettings.seriesIndex = 19
+			trophyIdHex = hexId(form.trophyIdBox.textBox.Text) if form.trophyIdBox.textBox.Text else None
+			thumbnailId = int(hexId(form.thumbnailIdBox.textBox.Text).replace('0x', ''), 16)
 			# Install trophy
 			try:
 				createLogFile()
@@ -58,7 +60,7 @@ def main():
 				if Directory.Exists(TEMP_PATH):
 					Directory.Delete(TEMP_PATH, 1)
 				createDirectory(TEMP_PATH)
-				trophyId = installTrophy(hexId(form.slotIdBox.textBox.Text).replace('0x', ''), form.trophyControl.trophyModelControl.textBox.textBox.Text, form.trophyControl.trophyImageControl.Images[0], fighterName, trophySettings, settings.installToSse)
+				trophyId = installTrophy(hexId(form.slotIdBox.textBox.Text).replace('0x', '') if form.slotIdBox.textBox.Text else "", form.trophyControl.trophyModelControl.textBox.textBox.Text, form.trophyControl.trophyImageControl.Images[0], fighterName, trophySettings, settings.installToSse, trophyIdHex=trophyIdHex, thumbnailId=thumbnailId)
 				BrawlAPI.ShowMessage("Trophy installed with ID " + str(trophyId), "Success")
 			except Exception as e:
 				writeLog("ERROR " + str(e))
