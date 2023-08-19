@@ -6099,6 +6099,12 @@ class TrophyForm(Form):
         cancelButton.Location = Point(installButton.Location.X + self.trophyControl.Width - cancelButton.Width, installButton.Location.Y)
         self.Controls.Add(installButton)
         self.Controls.Add(cancelButton)
+
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(self.slotIdBox.label, "Fighter slot ID in decimal (33) or hexadecimal (0x21) format. If blank, trophy will not be tied to a fighter and will be standalone.")
+        toolTip.SetToolTip(self.trophyIdBox.label, "Trophy ID in decimal (33) or hexadecimal (0x21) format. If blank, a trophy ID will be chosen automatically.")
+        toolTip.SetToolTip(self.thumbnailIdBox.label, "Thumbnail ID for the trophy in decimal (33) or hexadecimal (0x21) format. If blank, a thumbnail ID will be chosen automatically.")
     
     def installButtonPressed(self, sender, args):
         if not validateTextBoxes(self.idGroup, True):

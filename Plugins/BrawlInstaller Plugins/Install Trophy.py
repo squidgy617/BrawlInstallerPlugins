@@ -51,7 +51,8 @@ def main():
 			else:
 				trophySettings.seriesIndex = 19
 			trophyIdHex = hexId(form.trophyIdBox.textBox.Text) if form.trophyIdBox.textBox.Text else None
-			thumbnailId = int(hexId(form.thumbnailIdBox.textBox.Text).replace('0x', ''), 16)
+			thumbnailId = int(hexId(form.thumbnailIdBox.textBox.Text).replace('0x', ''), 16) if form.thumbnailIdBox.textBox.Text else None
+			slotId = hexId(form.slotIdBox.textBox.Text).replace('0x', '') if form.slotIdBox.textBox.Text else ""
 			# Install trophy
 			try:
 				createLogFile()
@@ -60,7 +61,9 @@ def main():
 				if Directory.Exists(TEMP_PATH):
 					Directory.Delete(TEMP_PATH, 1)
 				createDirectory(TEMP_PATH)
-				trophyId = installTrophy(hexId(form.slotIdBox.textBox.Text).replace('0x', '') if form.slotIdBox.textBox.Text else "", form.trophyControl.trophyModelControl.textBox.textBox.Text, form.trophyControl.trophyImageControl.Images[0], fighterName, trophySettings, settings.installToSse, trophyIdHex=trophyIdHex, thumbnailId=thumbnailId)
+				trophyId = installTrophy(slotId, form.trophyControl.trophyModelControl.textBox.textBox.Text, form.trophyControl.trophyImageControl.Images[0], fighterName, trophySettings, settings.installToSse, trophyIdHex=trophyIdHex, thumbnailId=thumbnailId)
+				if slotId:
+					buildGct()
 				BrawlAPI.ShowMessage("Trophy installed with ID " + str(trophyId), "Success")
 			except Exception as e:
 				writeLog("ERROR " + str(e))
