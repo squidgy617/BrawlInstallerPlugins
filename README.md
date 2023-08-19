@@ -14,6 +14,7 @@ If you find any bugs or issues with the plugins, **please check the FAQ below fi
 - Extract characters from a build as fully installable packages - either individually or en masse.
 - Installed characters playable in all modes, including support for [Subspace Emissary Ex](https://github.com/Sammi-Husky/BrawlEx/releases).
 - Automatic detection and handling of conflicts on fighter IDs, names, soundbanks, Effect.pac IDs, and more.
+- Tools to compare BrawlCrate-compatible files and apply changes from one file to another.
 - Numerous settings to support many different kinds of builds.
 - Tools to easily list IDs already in use in a build.
 - Automatic backup and restore features in case of unintended results.
@@ -69,6 +70,8 @@ The plugins create backups of your files during execution, however, I cannot gua
 - [Managing Costumes](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Costumes)
 - [Managing Music](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Music)
 - [Managing Stages](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Managing-Stages)
+- [Comparing and Patching](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Comparing-and-Patching)
+- [Build Patches](https://github.com/squidgy617/BrawlInstallerPlugins/wiki/Build-Patches)
 - [Newbie's Guide to the BrawlInstaller Plugins](https://docs.google.com/document/d/1RcAqzS9IHzQcrtHKspC7qbBB0he9_H69GB6BGLXduJw/edit?usp=sharing) (OUTDATED)
 
 # Character Packages
@@ -189,7 +192,8 @@ This tool was made possible by:
 - CaliKingz01, who provided the PSA for X to use as an example character package.
 - Shy, who created the cosmetics used for X.
 - JVIasterJ for creating the expanded REMIX sc_selcharacter.pac, as well as for bugtesting.
-- Chrisman and ilikepizza107 for bugtesting.
+- Chrisman for bugtesting.
+- ilikepizza07 for providing base files used to create the SSE build patch in the X template package, as well as for bugtesting.
 - Hatyaro, for helping with some coding challenges.
 - The Project+ team, for the advancements made to Brawl modding that made this all possible.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
