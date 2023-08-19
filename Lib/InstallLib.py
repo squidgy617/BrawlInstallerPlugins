@@ -246,7 +246,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									continueInstall = BrawlAPI.ShowYesNoPrompt(messageText, "Codes Found")
 						
 					# Check if soundbank is already in use
-					if soundbankFolder:
+					# Only update soundbank ID if it is an Ex soundbank ID
+					if soundbankFolder and int(fighterInfo.soundbankId) >= 331:
 						soundbankId = addLeadingZeros(str(hex(int(fighterInfo.soundbankId))).split('0x')[1].upper(), 3)
 						# Get soundbank name to check
 						modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
@@ -636,7 +637,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Soundbank
 
 					# Update soundbank ID if user set to do that
-					if newSoundbankId:
+					if newSoundbankId and soundbankFolder:
 						updateSoundbankId(getFileInfo(Directory.GetFiles(fighterFolder.FullName, "Fit" + fighterInfo.fighterName + ".pac")[0]), getFileInfo(settings.sawndReplaceExe), getFileInfo(settings.sfxChangeExe), str("%x" % fighterInfo.soundbankId).upper(), newSoundbankId, settings.addSevenToSoundbankIds)
 
 					# Move soundbank

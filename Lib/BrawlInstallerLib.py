@@ -1107,11 +1107,13 @@ def createBPs(cosmeticId, images, fiftyCC="true", startIndex=1):
 		newId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
 		# Create a BP file for each texture
 		for image in images:
-			outputPath = MainForm.BuildPath + '/pf/info/portrite/InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + '.brres'
+			outputName = 'InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3)
+			outputPath = MainForm.BuildPath + '/pf/info/portrite/' + outputName + '.brres'
 			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
 			createBackup(outputPath)
 			BrawlAPI.New[BRRESNode]()
-			importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
+			texture = importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
+			texture.Name = outputName
 			BrawlAPI.SaveFileAs(outputPath)
 			newId += 1
 		writeLog("Finished creating BPs")
@@ -3943,14 +3945,17 @@ def extractCSPs(cosmeticId):
 				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
 				if texFolder:
 					i = 1
+					j = 1
 					for child in texFolder.Children:
 						# Export each child to temp folder
 						writeLog("Exporting CSP " + child.Name)
 						exportPath = createDirectory(AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
-						child.Export(exportPath + '/' + child.Name + '.png')
+						child.Export(exportPath + '/' + addLeadingZeros(str(j), 4) + '.png')
+						j += 1
 						# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
 						if not child.SharesData:
 							i += 1
+							j = 1
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished exporting CSPs")
 
@@ -4022,16 +4027,19 @@ def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2
 				texNodeNames = []
 				cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
 				i = 1
+				j = 1
 				while newId <= cap:
 					if texFolder:
 						texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
 						if texNode:
 							texNodeNames.append(texNode.Name)
 							exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
-							texNode.Export(exportPath + '/' + texNode.Name + '.png')
+							texNode.Export(exportPath + '/' + addLeadingZeros(str(j), 4) + '.png')
+							j += 1
 							# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
 							if not texNode.SharesData:
 								i += 1
+								j = 1
 						else:
 							break
 						newId += 1
