@@ -6065,14 +6065,21 @@ class TrophyForm(Form):
         self.FormBorderStyle = FormBorderStyle.FixedSingle
         self.AutoSizeMode = AutoSizeMode.GrowAndShrink
 
+        self.idGroup = GroupBox()
+        self.idGroup.AutoSize = True
+        self.idGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
         self.slotIdBox = LabeledTextBox("Slot ID", "slot")
         self.slotIdBox.Location = Point(4, 16)
 
         self.trophyIdBox = LabeledTextBox("Trophy ID")
         self.trophyIdBox.Location = Point(self.slotIdBox.Location.X, self.slotIdBox.Location.Y + 32)
 
+        self.idGroup.Controls.Add(self.slotIdBox)
+        self.idGroup.Controls.Add(self.trophyIdBox)
+
         self.trophyControl = TrophyControl(toggleable=False, showCategory=True)
-        self.trophyControl.Location = Point(self.trophyIdBox.Location.X, self.trophyIdBox.Location.Y + 32)
+        self.trophyControl.Location = Point(self.idGroup.Location.X, self.idGroup.Location.Y + self.idGroup.Height)
 
         installButton = Button()
         installButton.Text = "Install"
@@ -6082,8 +6089,7 @@ class TrophyForm(Form):
         cancelButton.Text = "Cancel"
         cancelButton.Click += self.cancelButtonPressed
 
-        self.Controls.Add(self.slotIdBox)
-        self.Controls.Add(self.trophyIdBox)
+        self.Controls.Add(self.idGroup)
         self.Controls.Add(self.trophyControl)
         installButton.Location = Point(self.trophyControl.Location.X, self.trophyControl.Location.Y + self.trophyControl.Height + 32)
         cancelButton.Location = Point(installButton.Location.X + self.trophyControl.Width - cancelButton.Width, installButton.Location.Y)
@@ -6091,6 +6097,9 @@ class TrophyForm(Form):
         self.Controls.Add(cancelButton)
     
     def installButtonPressed(self, sender, args):
+        if not validateTextBoxes(self.idGroup, True):
+            BrawlAPI.ShowMessage("One or more fields contain invalid values. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
+            return
         self.DialogResult = DialogResult.OK
         self.Close()
 
@@ -6241,7 +6250,7 @@ class TrophyControl(UserControl):
                 gameIconPoint = Point(self.trophyCategoryControl.Location.X, self.trophyCategoryControl.Location.Y + 32)
 
             self.gameIcon1Control = LabeledDropDown("Game\nIcon 1", TROPHY_GAME_ICONS)
-            self.gameIcon1Control.Location = Point(self.trophyDescriptionControl.Location.X, self.trophyDescriptionControl.Location.Y + self.trophyDescriptionControl.Height)
+            self.gameIcon1Control.Location = gameIconPoint
             self.gameIcon1Control.dropDown.Enabled = not toggleable
 
             self.gameIcon2Control = LabeledDropDown("Game\nIcon 2", TROPHY_GAME_ICONS)

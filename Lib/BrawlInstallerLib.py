@@ -4565,6 +4565,7 @@ def installCreditsTheme(file, slotId):
 # Install trophy
 def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse):
 		trophyIdHex = getSlotTrophyInfo(slotId)[1]
+		returnedTrophyId = -1
 		if trophyIdHex:
 			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
 		else:
@@ -4580,6 +4581,7 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings,
 			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
 		if installToSse == "true":
 			updateTrophySSE(slotId, hexId(returnedTrophyId).replace('0x', ''))
+		return returnedTrophyId if returnedTrophyId else trophyIdInt
 
 # Assign trophy ID for existing trophies
 def assignTrophy(slotId, trophyId, fighterName, installToSse):
@@ -5251,6 +5253,7 @@ class TrophySettings:
 		gameName1 = ""
 		gameName2 = ""
 		seriesIndex = 0
+		categoryIndex = -1
 
 class InstallOption:
 		def __init__(self, folder, name="", description=""):
