@@ -58,6 +58,8 @@ def promptCostumeInstall(cosmeticsOnly=False):
 
 				# Get the costumes as indicated by stock icons
 				stocksChecked = False
+				if settings.singleStocks == "true":
+					stocksChecked = True
 				if settings.installStocksToCSS == "true" and not stocksChecked:
 					newPositions = checkStockIcons(cosmeticId, "Misc Data [90]", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 					stocksChecked = True
@@ -74,13 +76,14 @@ def promptCostumeInstall(cosmeticsOnly=False):
 					newPositions = checkStockIcons(cosmeticId, "Misc Data [40]", rootName="", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
 					stocksChecked = True
 
-				# Filter out costumes where stock and CSP color smash groups don't match			
-				i = 0
-				length = len(positions)
-				while i < length:
-					if positions[i] not in newPositions:
-						skipPositions.append(i)
-					i += 1
+				# Filter out costumes where stock and CSP color smash groups don't match
+				if not settings.singleStocks == "true":			
+					i = 0
+					length = len(positions)
+					while i < length:
+						if positions[i] not in newPositions:
+							skipPositions.append(i)
+						i += 1
 
 				# Get available IDs
 				usedIds = getUsedCostumeIds(cssSlotConfigId)
@@ -159,6 +162,8 @@ def promptCostumeUninstall(cosmeticsOnly=False):
 
 			# Get the costumes as indicated by stock icons
 			stocksChecked = False
+			if settings.singleStocks == "true":
+				stocksChecked = True
 			if settings.installStocksToCSS == "true" and not stocksChecked:
 				newPositions = checkStockIcons(cosmeticId, "Misc Data [90]", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 				stocksChecked = True
@@ -175,13 +180,14 @@ def promptCostumeUninstall(cosmeticsOnly=False):
 				newPositions = checkStockIcons(cosmeticId, "Misc Data [40]", rootName="", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
 				stocksChecked = True
 
-			# Filter out costumes where stock and CSP color smash groups don't match			
-			i = 0
-			length = len(positions)
-			while i < length:
-				if positions[i] not in newPositions:
-					skipPositions.append(i)
-				i += 1
+			# Filter out costumes where stock and CSP color smash groups don't match
+			if not settings.singleStocks == "true":			
+				i = 0
+				length = len(positions)
+				while i < length:
+					if positions[i] not in newPositions:
+						skipPositions.append(i)
+					i += 1
 
 			# Show the form
 			form = CostumeForm(images=images, skipPositions=skipPositions, remove=True, cosmeticsOnly=cosmeticsOnly)

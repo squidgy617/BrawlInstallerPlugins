@@ -559,24 +559,25 @@ def getVictoryThemeIDByFighterId(slotId):
 		return 0
 
 # Helper method to more easily copy files
-def copyFile(sourcePath, destinationPath):
+def copyFile(sourcePath, destinationPath, backup=True):
 		writeLog("Copying file " + sourcePath + " to " + destinationPath)
 		Directory.CreateDirectory(destinationPath)
-		if File.Exists(destinationPath + '/' + getFileInfo(sourcePath).Name):
+		if backup:
 			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
 		writeLog("Creating backup of file " + sourcePath)
-		fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
-		path = fullPath.replace(getFileInfo(sourcePath).Name, '')
-		Directory.CreateDirectory(path)
-		if File.Exists(sourcePath) and not File.Exists(fullPath):
-			File.Copy(sourcePath, fullPath)
-		# If the file doesn't exist in the build, it's an added file
-		elif not File.Exists(sourcePath):
-			File.AppendAllLines(BACKUP_PATH + '\\#AddedFiles.txt', [sourcePath.replace(MainForm.BuildPath, '')])
+		if MainForm.BuildPath in sourcePath:
+			fullPath = BACKUP_PATH + sourcePath.replace(MainForm.BuildPath, '')
+			path = fullPath.replace(getFileInfo(sourcePath).Name, '')
+			Directory.CreateDirectory(path)
+			if File.Exists(sourcePath) and not File.Exists(fullPath):
+				File.Copy(sourcePath, fullPath)
+			# If the file doesn't exist in the build, it's an added file
+			elif not File.Exists(sourcePath):
+				File.AppendAllLines(BACKUP_PATH + '\\#AddedFiles.txt', [sourcePath.replace(MainForm.BuildPath, '')])
 
 # Helper method to write a log
 def writeLog(message):
@@ -604,8 +605,7 @@ def openFile(filePath, backup=True):
 def copyRenameFile(sourcePath, newName, destinationPath):
 		writeLog("Attempting to copy file " + sourcePath + " to " + destinationPath + '/' + newName)
 		Directory.CreateDirectory(destinationPath)
-		if File.Exists(destinationPath + '/' + newName):
-			createBackup(destinationPath + '/' + newName)
+		createBackup(destinationPath + '/' + newName)
 		File.Copy(sourcePath, destinationPath + '/' + newName, True)
 
 # Helper method to more easily rename files
@@ -624,7 +624,7 @@ def boolText(boolVal):
 
 # Return the bool version of a text value
 def textBool(boolVal):
-		if boolVal == "true":
+		if boolVal == "true" or boolVal == "True":
 			return True
 		else:
 			return False
@@ -1107,15 +1107,33 @@ def createBPs(cosmeticId, images, fiftyCC="true", startIndex=1):
 		newId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
 		# Create a BP file for each texture
 		for image in images:
-			outputPath = MainForm.BuildPath + '/pf/info/portrite/InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + '.brres'
+			outputName = 'InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3)
+			outputPath = MainForm.BuildPath + '/pf/info/portrite/' + outputName + '.brres'
 			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
 			createBackup(outputPath)
 			BrawlAPI.New[BRRESNode]()
-			importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
+			texture = importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
+			texture.Name = outputName
 			BrawlAPI.SaveFileAs(outputPath)
 			newId += 1
 		writeLog("Finished creating BPs")
 		BrawlAPI.ForceCloseFile()
+
+# Get original IDs for fighter being installed
+def getOldConfigIds(directory):
+		fighterIds = FighterIds()
+		files = Directory.GetFiles(directory, "*.dat")
+		for file in files:
+			fileInfo = getFileInfo(file)
+			if fileInfo.Name.startswith("Fighter"):
+				fighterIds.fighterId = fileInfo.Name.replace("Fighter", "").replace(".dat", "")
+			elif fileInfo.Name.startswith("Slot"):
+				fighterIds.slotId = fileInfo.Name.replace("Slot", "").replace(".dat", "")
+			elif fileInfo.Name.startswith("CSSSlot"):
+				fighterIds.cssSlotid = fileInfo.Name.replace("CSSSlot", "").replace(".dat", "")
+			elif fileInfo.Name.startswith("Cosmetic"):
+				fighterIds.cosmeticId = fileInfo.Name.replace("Cosmetic", "").replace(".dat", "")
+		return fighterIds
 
 # Update and move EX config files
 def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-1, useKirbyHat=False, newSoundBankId="", victoryThemeId=0, kirbyHatFighterId=-1, cosmeticConfigId="", cssSlotConfigId="", slotConfigId=""):
@@ -1464,7 +1482,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 		writeLog("Replaced module contents")
 
 # Update the SSE module
-def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""):
+def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId="", doorId=""):
 		writeLog("Updating sora_adv_stage.rel for CSSSlot ID " + str(cssSlotId))
 		filePath = MainForm.BuildPath + '/pf/module/sora_adv_stage.rel'
 		if File.Exists(filePath):
@@ -1543,12 +1561,12 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 						# multiply by 4 because there are 4 bytes for each of these
 						position = 376 + (4 * (int(cssSlotId, 16) - int('2A', 16)))
 						editFile.seek(position)
-						if remove:
-							editFile.write(binascii.unhexlify('00000000'))
-						elif unlockStage == "start":
-							editFile.write(binascii.unhexlify('00000001'))
-						elif unlockStage == "end":
-							editFile.write(binascii.unhexlify('00000002'))
+						unlockHex = addLeadingZeros(hexId(doorId).replace('0x', ''), 8) if doorId\
+						else addLeadingZeros('0', 8) if remove\
+						else addLeadingZeros('1', 8) if unlockStage == "start"\
+						else addLeadingZeros('2', 8) if unlockStage == "end"\
+						else addLeadingZeros('0', 8)
+						editFile.write(binascii.unhexlify(unlockHex))
 						# Save the modified section bytes to a variable
 						editFile.seek(0)
 						sectionModified = editFile.read()
@@ -3927,14 +3945,17 @@ def extractCSPs(cosmeticId):
 				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
 				if texFolder:
 					i = 1
+					j = 1
 					for child in texFolder.Children:
 						# Export each child to temp folder
 						writeLog("Exporting CSP " + child.Name)
 						exportPath = createDirectory(AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
-						child.Export(exportPath + '/' + child.Name + '.png')
+						child.Export(exportPath + '/' + addLeadingZeros(str(j), 4) + '.png')
+						j += 1
 						# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
 						if not child.SharesData:
 							i += 1
+							j = 1
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished exporting CSPs")
 
@@ -4006,16 +4027,19 @@ def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2
 				texNodeNames = []
 				cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
 				i = 1
+				j = 1
 				while newId <= cap:
 					if texFolder:
 						texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
 						if texNode:
 							texNodeNames.append(texNode.Name)
 							exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
-							texNode.Export(exportPath + '/' + texNode.Name + '.png')
+							texNode.Export(exportPath + '/' + addLeadingZeros(str(j), 4) + '.png')
+							j += 1
 							# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
 							if not texNode.SharesData:
 								i += 1
+								j = 1
 						else:
 							break
 						newId += 1
@@ -4566,9 +4590,9 @@ def assignTrophy(slotId, trophyId, fighterName, installToSse):
 # General utility functions for the BrawlInstaller plugin suite
 
 # Unzip fighter zip file and store contents in temporary directory
-def unzipFile(filePath):
+def unzipFile(filePath, tempFolderName="temp"):
 		writeLog("Unzipping file " + filePath)
-		ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, "temp"))
+		ZipFile.ExtractToDirectory(filePath, Path.Combine(AppPath, tempFolderName))
 
 # Get info from supplied fighter and cosmetic IDs
 def getFighterInfo(fighterConfig, cosmeticConfig, slotConfig):
@@ -4968,6 +4992,7 @@ def getSettings():
 		settings.installStockIconsToResult = readValueFromKey(fileText, "installStockIconsToResult")
 		settings.installStocksToStockFaceTex = readValueFromKey(fileText, "installStocksToStockFaceTex")
 		settings.installStocksToSSS = readValueFromKey(fileText, "installStocksToSSS")
+		settings.singleStocks = readValueFromKey(fileText, "singleStocks")
 		settings.fiftyCostumeCode = readValueFromKey(fileText, "fiftyCostumeCode")
 		settings.installKirbyHats = readValueFromKey(fileText, "installKirbyHats")
 		settings.defaultKirbyHat = readValueFromKey(fileText, "defaultKirbyHat")
@@ -5013,6 +5038,7 @@ def getFighterSettings():
 					fighterSettings.throwReleasePoint.append(id)
 			fighterSettings.creditsThemeId = hexId(readValueFromKey(fileText, "creditsThemeId"))
 			fighterSettings.trophyId = hexId(readValueFromKey(fileText, "trophyId"))
+			fighterSettings.doorId = hexId(readValueFromKey(fileText, "doorId"))
 		writeLog("Reading fighter settings complete")
 		return fighterSettings
 
@@ -5168,6 +5194,7 @@ class Settings:
 		installStockIconsToResult = "true"
 		installStocksToStockFaceTex = "true"
 		installStocksToSSS = "false"
+		singleStocks = "false"
 		fiftyCostumeCode = "true"
 		installKirbyHats = "true"
 		defaultKirbyHat = "0x21"
@@ -5209,6 +5236,7 @@ class FighterSettings:
 		throwReleasePoint = []
 		creditsThemeId = ""
 		trophyId = ""
+		doorId = ""
 
 class TrophySettings:
 		trophyName = ""
@@ -5237,6 +5265,13 @@ class FighterInfo:
 			self.slotConfigId = slotConfigId
 			self.cosmeticConfigId = cosmeticConfigId
 			self.cssSlotConfigId = cssSlotConfigId
+
+class FighterIds:
+		def __init__(self, fighterId="", cosmeticId="", slotId="", cssSlotId=""):
+			self.fighterId = fighterId
+			self.cosmeticId = cosmeticId
+			self.slotId = slotId
+			self.cssSlotid = cssSlotId
 
 class FighterConfigInfo:
 		def __init__(self, fighterName, fighterId, soundbankId):

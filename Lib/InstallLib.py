@@ -87,6 +87,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					classicIntro = getDirectoryByName("ClassicIntro", fighterDir)
 					trophyFolder = getDirectoryByName("Trophy", fighterDir)
 					codeFolder = getDirectoryByName("Codes", fighterDir)
+					patchFolder = getDirectoryByName("Patch", fighterDir)
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -94,6 +95,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					fighterInfo = getFighterInfo(fighterConfig, cosmeticConfig, slotConfig)
 					effectId = getEffectId(fighterInfo.fighterName, AppPath + '/temp/Fighter')
 					fighterSettings = getFighterSettings()
+					oldFighterIds = getOldConfigIds(folder + '/EXConfigs')
 					# Get the fighter this one is cloned from
 					if moduleFolder:
 						clonedModuleName = getClonedModuleName(Directory.GetFiles(moduleFolder.FullName, "*.rel")[0])
@@ -244,7 +246,8 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									continueInstall = BrawlAPI.ShowYesNoPrompt(messageText, "Codes Found")
 						
 					# Check if soundbank is already in use
-					if soundbankFolder:
+					# Only update soundbank ID if it is an Ex soundbank ID
+					if soundbankFolder and int(fighterInfo.soundbankId) >= 331:
 						soundbankId = addLeadingZeros(str(hex(int(fighterInfo.soundbankId))).split('0x')[1].upper(), 3)
 						# Get soundbank name to check
 						modifier = 0 if settings.addSevenToSoundbankName == "false" else 7
@@ -380,12 +383,23 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									return
 							if not newFranchiseIconId:
 								franchiseIconId = -1
+
+					# Patch Prompt
+					patches = []
+					if patchFolder and versionCheck(False):
+						for patchFile in Directory.GetFiles(patchFolder.FullName, "*.buildpatch"):
+							if File.Exists(patchFile.replace(".buildpatch", "-DESC.txt")):
+								patchDesc = File.ReadAllText(patchFile.replace(".buildpatch", "-DESC.txt"))
+							installPatch = BrawlAPI.ShowYesNoPrompt("This fighter comes with a build patch: " + getFileInfo(patchFile).Name + (("\n\nDescription: " + patchDesc + "\n\n") if patchDesc else "") + "Would you like to install it?\n(NOTE: Installed patches are not uninstalled when the character is uninstalled.)", "Install patch?")
+							if installPatch:
+								patches.append(patchFile)
+
 					#endregion USER INPUT/PRELIMINARY CHECKS
 
 					# Set up progressbar
 					progressCounter = 0
 					progressBar = ProgressWindow(MainForm.Instance, "Installing Character...", "Installing Character", False)
-					progressBar.Begin(0, 19, progressCounter)
+					progressBar.Begin(0, 20, progressCounter)
 
 					#region SCSELCHARACTER
 
@@ -440,7 +454,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Install stock icons to info.pac
 					if stockIconFolder and settings.installStocksToInfo == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [30]", "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 					# Install franchise icon to info.pac
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						franchisIconFolderInfo = Directory.GetDirectories(franchiseIconFolder.FullName, "Black")
@@ -471,7 +485,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					# Have to install stocks after info.pac work is done, because info.pac contains extra textures and can't use the replace method like other stock locations can
 					# Install stock icons to sc_selcharacter
 					if stockIconFolder and settings.installStocksToCSS == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 						fileOpened = checkOpenFile("sc_selcharacter")
 						if fileOpened:
 							BrawlAPI.SaveFile()
@@ -523,7 +537,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Install stock icons to STGRESULT
 					if stockIconFolder and settings.installStockIconsToResult == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						modelFranchise = ""
@@ -552,12 +566,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					if stockIconFolder:
 						# StockFaceTex.brres - used for things like rotation mode
 						if settings.installStocksToStockFaceTex == "true":
-							installStockIcons(cosmeticId, stockIconFolder, "", "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
+							installStockIcons(cosmeticId, stockIconFolder, "", "", filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 							BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
 						# sc_selmap - used for SSS in vBrawl
 						if settings.installStocksToSSS == "true":
-							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [40]", "Misc Data [20]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
+							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [40]", "Misc Data [20]", filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
 							BrawlAPI.SaveFile()
 							BrawlAPI.ForceCloseFile()
 
@@ -623,7 +637,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					#region Soundbank
 
 					# Update soundbank ID if user set to do that
-					if newSoundbankId:
+					if newSoundbankId and soundbankFolder:
 						updateSoundbankId(getFileInfo(Directory.GetFiles(fighterFolder.FullName, "Fit" + fighterInfo.fighterName + ".pac")[0]), getFileInfo(settings.sawndReplaceExe), getFileInfo(settings.sfxChangeExe), str("%x" % fighterInfo.soundbankId).upper(), newSoundbankId, settings.addSevenToSoundbankIds)
 
 					# Move soundbank
@@ -774,7 +788,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Add character to SSE roster
 					if settings.installToSse == "true":
-						updateSseModule(cssSlotConfigId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId)
+						updateSseModule(cssSlotConfigId, settings.sseUnlockStage, baseCssSlotId=baseCssSlotId, doorId=fighterSettings.doorId)
 						if cssIconFolder:
 							iconFolders = Directory.GetDirectories(cssIconFolder.FullName, "vBrawl")
 							if iconFolders:
@@ -881,6 +895,15 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					progressBar.Update(progressCounter)
 
 					#endregion Code Edits
+
+					#region Patch
+
+					if patchFolder and patches and len(patches) > 0:
+						newFighterIds = FighterIds(fighterId, cosmeticConfigId, slotConfigId, cssSlotConfigId)
+						for patch in patches:
+							applyBuildPatch(patch, oldFighterIds, newFighterIds)
+
+					#endregion Patch
 
 					#region CSSRoster
 

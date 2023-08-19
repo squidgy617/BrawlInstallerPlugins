@@ -2,10 +2,16 @@
 # Library for forms used by BrawlInstaller
 
 from BrawlInstallerLib import *
+from PatchLib import *
 from BrawlLib.Internal.Windows.Controls import *
 from System.Windows.Forms import *
 from System.Drawing import *
 from BrawlLib.CustomLists import *
+from System.Windows.Forms.Control import PointToClient
+from System import IntPtr
+from BrawlCrate.UI import *
+from BrawlLib.SSBB.ResourceNodes import ResourceType
+from BrawlLib.SSBB import SupportedFilesHandler
 
 #region FUNCTIONS
 
@@ -2691,12 +2697,18 @@ class SettingsForm(Form):
         self.stockBattleCheckbox.Text = "Battle UI"
         self.stockBattleCheckbox.Location = Point(16, 64)
         self.stockBattleCheckbox.Width = 112
+
+        self.singleStockCheckbox = CheckBox()
+        self.singleStockCheckbox.Text = "Single Stock Icon"
+        self.singleStockCheckbox.Location = Point(128, 64)
+        self.singleStockCheckbox.Width = 112
         
         stockGroupBox.Controls.Add(self.stockCssCheckbox)
         stockGroupBox.Controls.Add(self.stockSssCheckbox)
         stockGroupBox.Controls.Add(self.stockResultCheckbox)
         stockGroupBox.Controls.Add(self.stockRotationCheckbox)
         stockGroupBox.Controls.Add(self.stockBattleCheckbox)
+        stockGroupBox.Controls.Add(self.singleStockCheckbox)
 
         # Other cosmetic install options
         self.portraitNameCheckBox = CheckBox()
@@ -3076,6 +3088,7 @@ class SettingsForm(Form):
         toolTip.SetToolTip(self.stockResultCheckbox, "Check this if your build uses stock icons on the match result screen. When checked, stock icons will be installed to STGRESULT.pac.") 
         toolTip.SetToolTip(self.stockRotationCheckbox, "Check this if your build uses stock icons in modes like Rotation mode. When checked, stock icons will be installed to StockFaceTex.brres.") 
         toolTip.SetToolTip(self.stockBattleCheckbox, "Check this if your build uses stock icons during matches. When checked, stock icons will be installed to info.pac.") 
+        toolTip.SetToolTip(self.singleStockCheckbox, "Check this to only install a single stock icon when a character is installed instead of installing all stock icons included with the character.")
         toolTip.SetToolTip(self.portraitNameCheckBox, "Check this if your build displays names on the portraits displayed on the character select screen.") 
         toolTip.SetToolTip(self.bpNameCheckbox, "Check this if your build displays names beneath the portraits used in a match.") 
         toolTip.SetToolTip(self.singlePlayerCheckBox, "Check this if you would like franchise icons and battle portrait names (if used) to be installed into single-player modes like Classic mode.") 
@@ -3123,6 +3136,7 @@ class SettingsForm(Form):
         self.stockResultCheckbox.Checked = textBool(self.settings.installStockIconsToResult)
         self.stockRotationCheckbox.Checked = textBool(self.settings.installStocksToStockFaceTex)
         self.stockBattleCheckbox.Checked = textBool(self.settings.installStocksToInfo)
+        self.singleStockCheckbox.Checked = textBool(self.settings.singleStocks)
         self.portraitNameCheckBox.Checked = textBool(self.settings.installPortraitNames)
         self.bpNameCheckbox.Checked = textBool(self.settings.installBPNames)
         self.singlePlayerCheckBox.Checked = textBool(self.settings.installSingleplayerCosmetics)
@@ -3159,6 +3173,7 @@ class SettingsForm(Form):
         settings.installStocksToInfo = "true"
         settings.installStockIconsToResult = "true"
         settings.installStocksToStockFaceTex = "true"
+        settings.singleStocks = "false"
         settings.fiftyCostumeCode = "true"
         settings.soundbankStyle = "hex"
         settings.addSevenToSoundbankName = "false"
@@ -3189,6 +3204,7 @@ class SettingsForm(Form):
         settings.installStocksToInfo = "false"
         settings.installStockIconsToResult = "false"
         settings.installStocksToStockFaceTex = "false"
+        settings.singleStocks = "false"
         settings.fiftyCostumeCode = "true"
         settings.soundbankStyle = "hex"
         settings.addSevenToSoundbankName = "false"
@@ -3302,6 +3318,7 @@ class SettingsForm(Form):
         settings.installStockIconsToResult = boolText(self.stockResultCheckbox.Checked)
         settings.installStocksToStockFaceTex = boolText(self.stockRotationCheckbox.Checked)
         settings.installStocksToInfo = boolText(self.stockBattleCheckbox.Checked)
+        settings.singleStocks = boolText(self.singleStockCheckbox.Checked)
         settings.installPortraitNames = boolText(self.portraitNameCheckBox.Checked)
         settings.installBPNames = boolText(self.bpNameCheckbox.Checked)
         settings.installSingleplayerCosmetics = boolText(self.singlePlayerCheckBox.Checked)
@@ -4374,7 +4391,7 @@ class PackageCharacterForm(Form):
         self.readmeGroupBox.Text = "README"
         self.readmeGroupBox.Click += self.toggleGroupBox
 
-        self.readmeControl = LabeledTextBox("Body", multiline=True, size=Size(500,80))
+        self.readmeControl = LabeledTextBox("Body", multiline=True, size=Size(300,80))
         self.readmeControl.Location = Point(4,16)
 
         self.readmeGroupBox.Controls.Add(self.readmeControl)
@@ -4389,6 +4406,23 @@ class PackageCharacterForm(Form):
         self.bonusControl.Location = Point(4, 16)
 
         self.bonusGroupBox.Controls.Add(self.bonusControl)
+
+        self.patchGroupBox = GroupBox()
+        self.patchGroupBox.AutoSize = True
+        self.patchGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.patchGroupBox.Text = "Build Patch"
+        self.patchGroupBox.Click += self.toggleGroupBox
+
+        self.patchControl = MultiFileObjectControl("Select build patches to include", "BUILDPATCH files|*.buildpatch", "Patches", Size(100, 60))
+        self.patchControl.Location = Point(4, 16)
+        self.patchControl.listBox.SelectedValueChanged += self.patchFileChanged
+
+        self.patchDescriptionControl = LabeledTextBox("Description", multiline=True, size=Size(100, 80))
+        self.patchDescriptionControl.Location = Point(self.patchControl.Location.X + self.patchControl.Width - 45, self.patchControl.Location.Y)
+        self.patchDescriptionControl.textBox.TextChanged += self.patchDescriptionChanged
+
+        self.patchGroupBox.Controls.Add(self.patchControl)
+        self.patchGroupBox.Controls.Add(self.patchDescriptionControl)
 
         # Fighter Files Groupbox
         self.fighterGroupBox = GroupBox()
@@ -4502,7 +4536,7 @@ class PackageCharacterForm(Form):
         self.throwRelease2Control = LabeledTextBox("Throw\nRelease 2")
         self.throwRelease2Control.Location = Point(self.throwRelease1Control.Location.X, self.throwRelease1Control.Location.Y + 32)
 
-        self.asmControl = MultiFileControl("Select your Gecko code ASM files", "ASM files|*.asm", "ASM Files")
+        self.asmControl = MultiFileControl("Select your Gecko code ASM files", "ASM files|*.asm", "ASM Files", Size(100, 60))
         self.asmControl.Location = Point(self.throwRelease2Control.Location.X + 16, self.throwRelease2Control.Location.Y + 32)
 
         # Fighter specific codes
@@ -4513,7 +4547,7 @@ class PackageCharacterForm(Form):
         self.lucarioGroupBox.Size = Size(128, 16)
         self.lucarioGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
         self.lucarioGroupBox.Text = "Lucario"
-        self.lucarioGroupBox.Location = Point(self.asmControl.Location.X - 16, self.asmControl.Location.Y + self.asmControl.Height + 32)
+        self.lucarioGroupBox.Location = Point(self.asmControl.Location.X - 16, self.asmControl.Location.Y + self.asmControl.listBox.Height + 42)
         self.lucarioGroupBox.Click += self.toggleGroupBox
 
         self.lucarioBoneControl = LabeledTextBox("Bone ID")
@@ -4580,6 +4614,17 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Controls.Add(self.jigglypuffGroupBox)
         self.codeGroupBox.Controls.Add(self.bowserGroupBox)
 
+        self.sseGroupBox = GroupBox()
+        self.sseGroupBox.AutoSize = True
+        self.sseGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        self.sseGroupBox.Text = "Subspace"
+        self.sseGroupBox.Click += self.toggleGroupBox
+
+        self.doorIdBox = LabeledTextBox("Door ID")
+        self.doorIdBox.Location = Point(4, 16)
+
+        self.sseGroupBox.Controls.Add(self.doorIdBox)
+
         self.trophyGroupBox = GroupBox()
         self.trophyGroupBox.AutoSize = True
         self.trophyGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -4639,6 +4684,7 @@ class PackageCharacterForm(Form):
         self.trophyGroupBox.Controls.Add(self.trophyImageControl)
 
         self.miscGroupBox.Controls.Add(self.codeGroupBox)
+        self.miscGroupBox.Controls.Add(self.sseGroupBox)
         self.miscGroupBox.Controls.Add(self.trophyGroupBox)
 
         self.openButton = Button()
@@ -4660,6 +4706,7 @@ class PackageCharacterForm(Form):
         self.Controls.Add(self.cosmeticsGroupBox)
         self.Controls.Add(self.readmeGroupBox)
         self.Controls.Add(self.bonusGroupBox)
+        self.Controls.Add(self.patchGroupBox)
         self.Controls.Add(self.fighterGroupBox)
         self.Controls.Add(self.miscGroupBox)
         self.Controls.Add(self.openButton)
@@ -4708,6 +4755,9 @@ class PackageCharacterForm(Form):
         toolTip.SetToolTip(self.franchiseIconImageControl.label[1], "Franchise icon with a transparent background.")
         toolTip.SetToolTip(self.franchiseModelControl.textBox.label, "Franchise icon model for results screen.")
         toolTip.SetToolTip(self.readmeGroupBox, "Text of README file if you wish to include one in your character package.")
+        toolTip.SetToolTip(self.bonusGroupBox, "Extra files for the user to install manually.")
+        toolTip.SetToolTip(self.patchGroupBox, "Add build patches to be installed with the fighter.")
+        toolTip.SetToolTip(self.patchDescriptionControl.label, "A description of what your patch does, which will be displayed to the user during installation.")
         toolTip.SetToolTip(self.pacFilesControl.label, "Fighter PAC files.")
         toolTip.SetToolTip(self.pacFilesControl.dropDown, "For packages with multiple PAC file options, select which PAC file set to edit.")
         toolTip.SetToolTip(self.pacFilesControl.nameBox.label, "The name for the selected PAC file set.")
@@ -4866,6 +4916,11 @@ class PackageCharacterForm(Form):
             File.WriteAllText(PACK_PATH + '\\README.txt', self.readmeControl.textBox.Text)
         for file in self.bonusControl.files:
             copyFile(file.FullName, PACK_PATH + '\\Bonus')
+        for file in self.patchControl.files:
+            copyFile(file.fileInfo.FullName, PACK_PATH + '\\Patch')
+            if file.description:
+                Directory.CreateDirectory(PACK_PATH + '\\Patch')
+                File.WriteAllText(PACK_PATH + '\\Patch\\' + file.name.replace(".buildpatch", "-DESC.txt"), file.description)
         # Fighter settings
         fighterSettings = FighterSettings()
         if self.creditsIdControl.textBox.Text:
@@ -4898,6 +4953,9 @@ class PackageCharacterForm(Form):
         # Bowser
         if self.bowserBoneControl.textBox.Text:
             fighterSettings.bowserBoneId = self.bowserBoneControl.textBox.Text
+        # SSE
+        if self.doorIdBox.textBox.Text:
+            fighterSettings.doorId = self.doorIdBox.textBox.Text
         attrs = vars(fighterSettings)
         writeString = '\n'.join("%s = %s" % item for item in attrs.items())
         if writeString:
@@ -4946,11 +5004,12 @@ class PackageCharacterForm(Form):
     def validate(self):
         validKirby = validateTextBoxes(self.kirbyHatGroupBox, True)
         validCodes = validateTextBoxes(self.codeGroupBox, True, [self.throwRelease1Control, self.throwRelease2Control])
+        validSse = validateTextBoxes(self.sseGroupBox, True)
         validThrowRelease1 = validateDecimal(self.throwRelease1Control.textBox, True)
         validThrowRelease2 = validateDecimal(self.throwRelease2Control.textBox, True)
-        if not validKirby or not validCodes or not validThrowRelease1 or not validThrowRelease2:
+        if not validKirby or not validCodes or not validThrowRelease1 or not validThrowRelease2 or not validSse:
             BrawlAPI.ShowMessage("Some fields were invalid. Please ensure all IDs use values in either hex (e.g. 0x21) or decimal (e.g. 33) format.", "Validation Failed")
-        return validCodes and validKirby and validThrowRelease1 and validThrowRelease2
+        return validCodes and validKirby and validThrowRelease1 and validThrowRelease2 and validSse
 
     def saveButtonPressed(self, sender, args):
         valid = self.validate()
@@ -5125,6 +5184,15 @@ class PackageCharacterForm(Form):
                     self.readmeControl.textBox.Text = File.ReadAllText(TEMP_PATH + '\\README.txt')
                 if Directory.Exists(TEMP_PATH + '\\Bonus'):
                     self.bonusControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Bonus'))
+                if Directory.Exists(TEMP_PATH + '\\Patch'):
+                    files = Directory.GetFiles(TEMP_PATH + '\\Patch', "*.buildpatch")
+                    for file in files:
+                        fileInfo = getFileInfo(file)
+                        description = ""
+                        if File.Exists(TEMP_PATH + '\\Patch\\' + fileInfo.Name.replace('.buildpatch', '-DESC.txt')):
+                            description = File.ReadAllText(TEMP_PATH + '\\Patch\\' + fileInfo.Name.replace('.buildpatch', '-DESC.txt'))
+                        fileObject = FileObject(fileInfo.Name, fileInfo, description)
+                        self.patchControl.files.Add(fileObject)
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
                     self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
@@ -5219,6 +5287,7 @@ class PackageCharacterForm(Form):
                     self.bowserBoneControl.textBox.Text = fighterSettings.bowserBoneId
                     if Directory.Exists(TEMP_PATH + '\\Codes'):
                         self.asmControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Codes', "*.asm"))
+                    self.doorIdBox.textBox.Text = fighterSettings.doorId
                 # Trophy Settings
                 if Directory.Exists(TEMP_PATH + '\\Trophy'):
                     trophySettings = getTrophySettings()
@@ -5264,6 +5333,14 @@ class PackageCharacterForm(Form):
         self.trophySeriesControl.dropDown.Enabled = sender.Checked
         self.trophyModelControl.Enabled = sender.Checked
         self.trophyImageControl.Enabled = sender.Checked
+
+    def patchDescriptionChanged(self, sender, args):
+        if self.patchControl.listBox.SelectedItem:
+            self.patchControl.listBox.SelectedItem.description = sender.Text
+
+    def patchFileChanged(self, sender, args):
+        if self.patchControl.listBox.SelectedItem:
+            self.patchDescriptionControl.textBox.Text = self.patchControl.listBox.SelectedItem.description
 
     def cspCostumeChanged(self, sender, args):
         if self.cspCostumeListBox.SelectedItem:
@@ -5520,7 +5597,8 @@ class PackageCharacterForm(Form):
         self.franchiseIconGroupBox.Location = Point(x + 16, self.portraitNameGroupBox.Location.Y + self.portraitNameGroupBox.Height + 4)
         self.readmeGroupBox.Location = Point(self.cosmeticsGroupBox.Location.X, self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height + 4)
         self.bonusGroupBox.Location = Point(self.readmeGroupBox.Location.X + self.readmeGroupBox.Width + 16, self.readmeGroupBox.Location.Y)
-        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width, self.bonusGroupBox.Location.X + self.bonusGroupBox.Width)
+        self.patchGroupBox.Location = Point(self.bonusGroupBox.Location.X + self.bonusGroupBox.Width + 16, self.bonusGroupBox.Location.Y)
+        x = max(self.cosmeticsGroupBox.Location.X + self.cosmeticsGroupBox.Width, self.readmeGroupBox.Location.X + self.readmeGroupBox.Width, self.bonusGroupBox.Location.X + self.bonusGroupBox.Width, self.patchGroupBox.Location.X + self.patchGroupBox.Width)
         self.fighterGroupBox.Location = Point(x + 16, self.cosmeticsGroupBox.Location.Y)
         self.mainFighterGroupBox.Location = Point(4, 16)
         self.kirbyHatGroupBox.Location = Point(self.mainFighterGroupBox.Location.X, self.mainFighterGroupBox.Location.Y + self.mainFighterGroupBox.Height + 4)
@@ -5530,7 +5608,8 @@ class PackageCharacterForm(Form):
         self.codeGroupBox.Location = Point(4, 16)
         self.jigglypuffGroupBox.Location = Point(self.lucarioGroupBox.Location.X, self.lucarioGroupBox.Location.Y + self.lucarioGroupBox.Height + 4)
         self.bowserGroupBox.Location = Point(self.jigglypuffGroupBox.Location.X, self.jigglypuffGroupBox.Location.Y + self.jigglypuffGroupBox.Height + 4)
-        self.trophyGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
+        self.sseGroupBox.Location = Point(self.codeGroupBox.Location.X, self.codeGroupBox.Location.Y + self.codeGroupBox.Height + 4)
+        self.trophyGroupBox.Location = Point(self.sseGroupBox.Location.X, self.sseGroupBox.Location.Y + self.sseGroupBox.Height + 4)
         y = max(self.cosmeticsGroupBox.Location.Y + self.cosmeticsGroupBox.Height, self.fighterGroupBox.Location.Y + self.fighterGroupBox.Height, self.miscGroupBox.Location.Y + self.miscGroupBox.Height, self.readmeGroupBox.Location.Y + self.readmeGroupBox.Height, self.bonusGroupBox.Location.Y + self.bonusGroupBox.Height)
         self.openButton.Location = Point(self.cosmeticsGroupBox.Location.X + 4, y + 4)
         self.cancelButton.Location = Point(self.miscGroupBox.Location.X + self.miscGroupBox.Width - self.saveButton.Width, self.openButton.Location.Y)
@@ -5538,6 +5617,508 @@ class PackageCharacterForm(Form):
         self.saveAsButton.Location = Point(self.saveButton.Location.X - self.saveButton.Width - 4, self.saveButton.Location.Y)
 
 #endregion PACKAGE CHARACTER FORM
+
+#region PATCHER FORM
+
+class ExTreeView(TreeView):
+        # Need this override just to prevent a WinForms bug: https://github.com/dotnet/winforms/issues/7063
+        def WndProc(self, m):
+            if (m.Msg == 0x0203):
+                info = self.HitTest(PointToClient(self, Cursor.Position))
+                if info.Location == TreeViewHitTestLocations.StateImage:
+                    m.Result = IntPtr.Zero
+                    return
+            TreeView.WndProc(self, m)
+
+class PatcherForm(Form):
+    def __init__(self, directory, mode="compare"):
+        # Form parameters
+        self.Text = 'File Differences' if mode == "compare" else "Patch Contents"
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.uncheckedNodes = []
+        self.changedNodes = []
+        self.action = ""
+
+        self.treeView = ExTreeView()
+        self.treeView.CheckBoxes = True
+        self.treeView.Width = 300
+        self.treeView.Height = 300
+        self.treeView.ImageList = Icons.ImageList
+        self.treeView.Location = Point(8, 8)
+        self.treeView.AfterSelect += self.selectedItemChanged
+        self.treeView.AfterCheck += self.checkChanged
+        self.treeView.BeginUpdate()
+        generateTreeView(directory, self.treeView)
+        self.treeView.EndUpdate()
+
+        self.nameLabel = Label()
+        self.nameLabel.Text = ""
+        self.nameLabel.Width = 180
+        self.nameLabel.Location = Point(8, 16)
+
+        self.typeLabel = Label()
+        self.typeLabel.Text = ""
+        self.typeLabel.Width = 180
+        self.typeLabel.Location = Point(self.nameLabel.Location.X, self.nameLabel.Location.Y + self.nameLabel.Height + 4)
+
+        self.actionLabel = Label()
+        self.actionLabel.Text = ""
+        self.actionLabel.Width = 180
+        self.actionLabel.Location = Point(self.typeLabel.Location.X, self.typeLabel.Location.Y + self.typeLabel.Height + 4)
+
+        self.forceAddCheckbox = CheckBox()
+        self.forceAddCheckbox.Text = "Force Add"
+        self.forceAddCheckbox.Location = Point(self.actionLabel.Location.X, self.actionLabel.Location.Y + self.actionLabel.Height + 4)
+        self.forceAddCheckbox.Click += self.forceAddClick
+
+        self.replaceCheckbox = CheckBox()
+        self.replaceCheckbox.Text = "Replace All Contents"
+        self.replaceCheckbox.Width = 150
+        self.replaceCheckbox.Location = Point(self.forceAddCheckbox.Location.X, self.forceAddCheckbox.Location.Y + self.forceAddCheckbox.Height + 4)
+        self.replaceCheckbox.Click += self.replaceClick
+
+        self.groupLabel = Label()
+        self.groupLabel.Text = ""
+        self.groupLabel.Width = 180
+        self.groupLabel.Location = Point(self.replaceCheckbox.Location.X, self.replaceCheckbox.Location.Y + self.replaceCheckbox.Height + 4)
+
+        self.preview = PictureBox()
+        self.preview.Image = None
+        self.preview.Size = Size(180, 90)
+        self.preview.SizeMode = PictureBoxSizeMode.Zoom
+        self.preview.Location = Point(self.groupLabel.Location.X, self.groupLabel.Location.Y + self.groupLabel.Height + 4)
+
+        infoBox = GroupBox()
+        infoBox.Text = "Node Info"
+        infoBox.Location = Point(self.treeView.Location.X + self.treeView.Width, self.treeView.Location.Y)
+        infoBox.MinimumSize = Size(180, self.treeView.Height)
+        infoBox.AutoSize = True
+        infoBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        infoBox.Controls.Add(self.nameLabel)
+        infoBox.Controls.Add(self.typeLabel)
+        infoBox.Controls.Add(self.actionLabel)
+        infoBox.Controls.Add(self.forceAddCheckbox)
+        infoBox.Controls.Add(self.replaceCheckbox)
+        infoBox.Controls.Add(self.groupLabel)
+        infoBox.Controls.Add(self.preview)
+
+        button = Button()
+        button.Text = "Apply to Base File" if mode == "compare" else "Apply Changes"
+        button.Width = 110
+        button.Location = Point(self.treeView.Location.X, self.treeView.Location.Y + self.treeView.Height + 4)
+        button.Click += self.buttonPressed
+
+        saveButton = Button()
+        saveButton.Text = "Save as..."
+        saveButton.Location = Point(button.Location.X + button.Width + 4, button.Location.Y)
+        saveButton.Visible = mode == "compare"
+        saveButton.Click += self.saveButtonPressed
+        
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(infoBox.Location.X + infoBox.Width - cancelButton.Width, button.Location.Y)
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(self.treeView)
+        self.Controls.Add(infoBox)
+        self.Controls.Add(button)
+        self.Controls.Add(saveButton)
+        self.Controls.Add(cancelButton)
+
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(self.nameLabel, "Name of the current node.")
+        toolTip.SetToolTip(self.typeLabel, "Type of the current node.")
+        toolTip.SetToolTip(self.actionLabel, "The change that was made to the current node between the two files." if mode == "compare" else "The change that was made to the current node when the patch was created.")
+        toolTip.SetToolTip(self.groupLabel, "This node was color smashed with other nodes, including the node listed.")
+        toolTip.SetToolTip(self.forceAddCheckbox, "Force the node to be added instead of replacing when applied to a file even if a matching node is found for replacement.")
+        toolTip.SetToolTip(self.replaceCheckbox, "If a match is found, the existing container, including all contents, will be replaced entirely with this one. Only do this if you want to completely override the existing container.")
+        toolTip.SetToolTip(button, "Apply all changes to the chosen base file." if mode == "compare" else "Apply all changes to the chosen file.")
+        toolTip.SetToolTip(saveButton, "Save changes into an external patch file.")
+        toolTip.SetToolTip(cancelButton, "Close the form.")
+
+    def selectedItemChanged(self, sender, args):
+        if self.treeView.SelectedNode:
+            self.nameLabel.Text = "Name: " + self.treeView.SelectedNode.Tag.name
+            self.typeLabel.Text = "Type: " + (self.treeView.SelectedNode.Tag.typeString if self.treeView.SelectedNode.Tag.fullType not in FOLDERS else "Folder")
+            self.actionLabel.Text = "Status: "
+            if self.treeView.SelectedNode.Tag.action in ["PARAM", "REPLACE", "FOLDER"]:
+                self.actionLabel.Text += "Modified"
+            elif self.treeView.SelectedNode.Tag.action == "REMOVE":
+                self.actionLabel.Text += "Removed"
+            elif self.treeView.SelectedNode.Tag.action == "ADD":
+                self.actionLabel.Text += "Added"
+            self.groupLabel.Text = "Color Smashed with " + self.treeView.SelectedNode.Tag.groupName if self.treeView.SelectedNode.Tag.groupName else ""
+            # Only show force add box for replace or add nodes
+            self.forceAddCheckbox.Checked = self.treeView.SelectedNode.Tag.forceAdd
+            if self.treeView.SelectedNode.Tag.action in ["REPLACE", "ADD"]:
+                self.forceAddCheckbox.Visible = True
+            else:
+                self.forceAddCheckbox.Visible = False
+            # Only show replace box for containers
+            self.replaceCheckbox.Checked = self.treeView.SelectedNode.Tag.disableContainer
+            if self.treeView.SelectedNode.Tag.action in ["PARAM"] and len(self.treeView.SelectedNode.Nodes) > 0:
+                self.replaceCheckbox.Visible = True
+            else:
+                self.replaceCheckbox.Visible = False
+            previewImage = self.treeView.SelectedNode.Tag.path.replace(".tex0", "") + ".png"
+            if File.Exists(previewImage):
+                self.preview.Image = createBitmap(previewImage)
+            else:
+                self.preview.Image = None
+        else:
+            self.nameLabel.Text = ""
+            self.typeLabel.Text = ""
+            self.actionLabel.Text = ""
+            self.groupLabel.Text = ""
+            self.forceAddCheckbox.Visible = False
+            self.preview.Image = None
+
+    def checkChanged(self, sender, args):
+        if args.Action != TreeViewAction.Unknown:
+            if args.Node.Nodes.Count > 0:
+                self.checkAllChildNodes(args.Node, args.Node.Checked)
+            if args.Node.Parent and args.Node.Checked:
+                self.checkAllParentNodes(args.Node, args.Node.Checked)
+
+    def forceAddClick(self, sender, args):
+        if self.treeView.SelectedNode and self.forceAddCheckbox.Checked != self.treeView.SelectedNode.Tag.forceAdd:
+            self.treeView.SelectedNode.Tag.forceAdd = self.forceAddCheckbox.Checked
+            self.changedNodes.append(self.treeView.SelectedNode.Tag)
+
+    def replaceClick(self, sender, args):
+        if self.treeView.SelectedNode and self.replaceCheckbox.Checked != self.treeView.SelectedNode.Tag.disableContainer:
+            self.treeView.SelectedNode.Tag.disableContainer = self.replaceCheckbox.Checked
+            self.changedNodes.append(self.treeView.SelectedNode.Tag)
+    
+    def buttonPressed(self, sender, args):
+        self.getNodeUpdates(self.treeView)
+        self.DialogResult = DialogResult.OK
+        self.action = "apply"
+        self.Close()
+
+    def saveButtonPressed(self, sender, args):
+        self.getNodeUpdates(self.treeView)
+        self.DialogResult = DialogResult.OK
+        self.action = "save"
+        self.Close()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
+    def checkAllParentNodes(self, treeNode, nodeChecked):
+            if treeNode.Parent:
+                treeNode.Parent.Checked = nodeChecked
+                if treeNode.Parent.Parent:
+                    self.checkAllParentNodes(treeNode.Parent, nodeChecked)
+
+    def checkAllChildNodes(self, treeNode, nodeChecked):
+            for node in treeNode.Nodes:
+                node.Checked = nodeChecked
+                if len(node.Nodes) > 0:
+                    self.checkAllChildNodes(node, nodeChecked)
+
+    def getNodeUpdates(self, node):
+            for updateNode in node.Nodes:
+                if not updateNode.Checked:
+                    self.uncheckedNodes.append(updateNode.Tag)
+                if node.Nodes.Count > 0:
+                    self.getNodeUpdates(updateNode)
+
+def generateTreeView(directory, node):
+        for folder in Directory.GetDirectories(directory):
+            patchNode = PatchNode(DirectoryInfo(folder).Name, folder)
+            actionChar = getActionChar(patchNode.action)
+            name = actionChar + " " + patchNode.name
+            newNode = node.Nodes.Add(name)
+            newNode.ImageIndex = getImageIndex(patchNode)
+            newNode.SelectedImageIndex = newNode.ImageIndex
+            newNode.Tag = patchNode
+            newNode.Checked = True
+            generateTreeView(folder, newNode)
+        for file in Directory.GetFiles(directory):
+            fileName = FileInfo(file).Name
+            if not fileName.endswith("$$I") and not fileName.endswith("$$S") and not fileName.endswith("$$P") and not fileName.endswith(".png"):
+                patchNode = PatchNode(FileInfo(file).Name, file)
+                # Skip params, as folders include them
+                if not patchNode.action in ["PARAM", "SETTINGS"]:
+                    actionChar = getActionChar(patchNode.action)
+                    name = actionChar + " " + patchNode.name
+                    newNode = node.Nodes.Add(name)
+                    tempNode = createNodeFromString(patchNode.type)
+                    newNode.ImageIndex = getImageIndex(patchNode)
+                    newNode.SelectedImageIndex = newNode.ImageIndex
+                    tempNode.Dispose()
+                    newNode.Tag = patchNode
+                    newNode.Checked = True
+                
+def getImageIndex(patchNode):
+        imageIndex = 0
+        if patchNode.groupName and patchNode.groupName != patchNode.name:
+            imageIndex = Icons.getImageIndex(ResourceType.SharedTEX0)
+        else:
+            tempNode = createNodeFromString(patchNode.type)
+            imageIndex = Icons.getImageIndex(tempNode.ResourceFileType)
+            tempNode.Dispose()
+        return imageIndex
+
+def getActionChar(action):
+        if action in ["PARAM", "REPLACE", "FOLDER"]:
+            actionChar = "~"
+        elif action == "REMOVE":
+            actionChar = "-"
+        elif action == "ADD":
+            actionChar = "+"
+        else:
+            actionChar = " "
+        return actionChar
+
+
+#endregion PATCHER FORM
+
+#region BUILDPATCH FORM
+
+class BuildPatchForm(Form):
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Create Build Patch'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.entries = BindingSource()
+        self.entries.DataSource = []
+
+        label = Label()
+        label.Text = "File Entries:"
+        label.Location = Point(4, 4)
+
+        self.listBox = ListBox()
+        self.listBox.Width = 120
+        self.listBox.Height = 240
+        self.listBox.Location = Point(label.Location.X, label.Location.Y + label.Height)
+        self.listBox.DataSource = self.entries
+        self.listBox.DisplayMember = "name"
+        self.listBox.ValueMember = "path"
+        self.listBox.SelectedValueChanged += self.selectedEntryChanged
+        
+        addButton = Button()
+        addButton.Text = "+"
+        addButton.Size = Size(16, 16)
+        addButton.Location = Point(self.listBox.Location.X + self.listBox.Width + 1, self.listBox.Location.Y)
+        addButton.Click += self.addButtonPressed
+
+        removeButton = Button()
+        removeButton.Text = "-"
+        removeButton.Size = Size(16, 16)
+        removeButton.Location = Point(addButton.Location.X, addButton.Location.Y + addButton.Height + 1)
+        removeButton.Click += self.removeButtonPressed
+
+        pathLabel = Label()
+        pathLabel.Width = 200
+        pathLabel.Height = 32
+        pathLabel.Text = "Search for the file at this location...\n(ex. '\\pf\\menu2\\sc_selcharacter.pac')"
+        pathLabel.Location = Point(addButton.Location.X + addButton.Width + 16, addButton.Location.Y)
+
+        self.pathBox = LabeledTextBox("Path")
+        self.pathBox.Location = Point(pathLabel.Location.X, pathLabel.Location.Y + pathLabel.Height)
+        self.pathBox.textBox.TextChanged += self.pathChanged
+        self.pathBox.Enabled = False
+
+        patchFileLabel = Label()
+        patchFileLabel.Width =200
+        patchFileLabel.Text = "If the file is found, apply this patch..."
+        patchFileLabel.Location = Point(self.pathBox.Location.X, self.pathBox.Location.Y + 32)
+
+        self.patchFileBox = FileControl("Select patch file", "FILEPATCH File|*.filepatch", "Patch File")
+        self.patchFileBox.Location = Point(patchFileLabel.Location.X, patchFileLabel.Location.Y + 32)
+        self.patchFileBox.button.Click += self.patchFileChanged
+        self.patchFileBox.Enabled = False
+
+        fileLabel = Label()
+        fileLabel.Width = 200
+        fileLabel.Text = "If file is not found or there's no patch, install this file..."
+        fileLabel.Location = Point(self.patchFileBox.Location.X, self.patchFileBox.Location.Y + 32)
+
+        self.fileBox = FileControl("Select associated file", SupportedFilesHandler.CompleteFilterEditableOnly, "File")
+        self.fileBox.Location = Point(fileLabel.Location.X, fileLabel.Location.Y + 32)
+        self.fileBox.button.Click += self.fileChanged
+        self.fileBox.Enabled = False
+
+        self.overwriteBox = CheckBox()
+        self.overwriteBox.Location = Point(self.fileBox.Location.X + 8, self.fileBox.Location.Y + 32)
+        self.overwriteBox.Width = 200
+        self.overwriteBox.Text = "Overwrite file if it exists"
+        self.overwriteBox.Enabled = False
+        self.overwriteBox.CheckedChanged += self.overwriteCheckChanged
+
+        self.fighterIdBox = CheckBox()
+        self.fighterIdBox.Location = Point(self.overwriteBox.Location.X, self.overwriteBox.Location.Y + self.overwriteBox.Height)
+        self.fighterIdBox.Width = 200
+        self.fighterIdBox.Text = "Update fighter IDs"
+        self.fighterIdBox.Enabled = False
+        self.fighterIdBox.CheckedChanged += self.fighterIdCheckChanged
+
+        openButton = Button()
+        openButton.Text = "Open"
+        openButton.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height + 4)
+        openButton.Click += self.openButtonPressed
+        
+        saveAsButton = Button()
+        saveAsButton.Text = "Save as..."
+        saveAsButton.Location = Point(openButton.Location.X + openButton.Width + 4, openButton.Location.Y)
+        saveAsButton.Click += self.saveAsButtonPressed
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Location = Point(self.fileBox.Location.X + self.fileBox.textBox.Width + self.fileBox.button.Width - cancelButton.Width, saveAsButton.Location.Y)
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(label)
+        self.Controls.Add(self.listBox)
+        self.Controls.Add(addButton)
+        self.Controls.Add(removeButton)
+        self.Controls.Add(pathLabel)
+        self.Controls.Add(self.pathBox)
+        self.Controls.Add(patchFileLabel)
+        self.Controls.Add(self.patchFileBox)
+        self.Controls.Add(fileLabel)
+        self.Controls.Add(self.fileBox)
+        self.Controls.Add(self.overwriteBox)
+        self.Controls.Add(self.fighterIdBox)
+        self.Controls.Add(openButton)
+        self.Controls.Add(saveAsButton)
+        self.Controls.Add(cancelButton)
+
+    def addButtonPressed(self, sender, args):
+        newEntry = BuildPatchFile()
+        self.entries.Add(newEntry)
+        self.enableControls()
+        self.listBox.SelectedIndex = len(self.entries) - 1
+
+    def removeButtonPressed(self, sender, args):
+        if len(self.entries) <= 1:
+            return
+        self.entries.Remove(self.listBox.SelectedItem)
+
+    def overwriteCheckChanged(self, sender, args):
+        if self.listBox.SelectedItem:
+            self.listBox.SelectedItem.overwriteFile = sender.Checked
+
+    def fighterIdCheckChanged(self, sender, args):
+        if self.listBox.SelectedItem:
+            self.listBox.SelectedItem.updateFighterIds = sender.Checked
+
+    def openButtonPressed(self, sender, args):
+        file = BrawlAPI.OpenFileDialog("Select the build patch to edit", "BUILDPATCH File|*.buildpatch")
+        if file and File.Exists(file):
+            if Directory.Exists(TEMP_PATH):
+                Directory.Delete(TEMP_PATH, True)
+            unzipFile(file)
+            if Directory.Exists(TEMP_PATH):
+                entries = []
+                self.entries.Clear()
+                for file in Directory.GetFiles(TEMP_PATH, "*.patchinfo"):
+                    newEntry = getPatchInfo(file)
+                    file = TEMP_PATH + '\\' + newEntry.fileName
+                    if File.Exists(file):
+                        newEntry.file = file
+                    file = TEMP_PATH + '\\' + newEntry.patchFileName
+                    if File.Exists(file):
+                        newEntry.patchFile = file
+                    self.entries.Add(newEntry)
+                    self.enableControls()
+
+    def saveAsButtonPressed(self, sender, args):
+        saveDialog = SaveFileDialog()
+        saveDialog.Filter = "BUILDPATCH File|*.buildpatch"
+        saveDialog.Title = "Save build patch file"
+        result = saveDialog.ShowDialog()
+        if result == DialogResult.OK and saveDialog.FileName:
+            savepath = TEMP_PATH.replace("temp", "tempSave")
+            filePath = saveDialog.FileName
+            saveDialog.Dispose()
+            if not Directory.Exists(savepath):
+                Directory.CreateDirectory(savepath)
+            i = 0
+            for entry in self.entries:
+                if (entry.file or entry.patchFile) and entry.path:
+                    # Write file info
+                    i += 1
+                    attrs = vars(entry)
+                    cleanattrs = {key: attrs[key] for key in attrs if key != "file" and key != "patchFile"}
+                    File.WriteAllText(savepath + '\\' + addLeadingZeros(str(i), 4) + entry.name + ".patchinfo", '\n'.join("%s = %s" % item for item in cleanattrs.items()))
+                    if entry.file and File.Exists(entry.file) and savepath not in entry.file:
+                        copyFile(entry.file, savepath, backup=False)
+                    if entry.patchFile and File.Exists(entry.patchFile) and TEMP_PATH not in entry.patchFile:
+                        copyFile(entry.patchFile, savepath, backup=False)
+            if Directory.Exists(savepath):
+                if File.Exists(filePath):
+                    File.Delete(filePath)
+                ZipFile.CreateFromDirectory(savepath, filePath)
+                Directory.Delete(savepath, 1)
+                BrawlAPI.ShowMessage("Build patch file created at " + filePath, "Success")
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        if Directory.Exists(TEMP_PATH):
+            Directory.Delete(TEMP_PATH, True)
+        self.Close()
+
+    def enableControls(self):
+        self.pathBox.Enabled = True
+        self.patchFileBox.Enabled = True
+        self.fileBox.Enabled = True
+        self.overwriteBox.Enabled = True
+        self.fighterIdBox.Enabled = True
+    
+    def selectedEntryChanged(self, sender, args):
+        if len(self.entries) > 0:
+            self.pathBox.textBox.Text = self.listBox.SelectedItem.path
+            self.patchFileBox.textBox.textBox.Text = self.listBox.SelectedItem.patchFile
+            self.fileBox.textBox.textBox.Text = self.listBox.SelectedItem.file
+            self.overwriteBox.Checked = self.listBox.SelectedItem.overwriteFile
+            self.fighterIdBox.Checked = self.listBox.SelectedItem.updateFighterIds
+
+    def pathChanged(self, sender, args):
+        self.listBox.SelectedItem.path = self.pathBox.textBox.Text
+
+    def patchFileChanged(self, sender, args):
+        file = self.patchFileBox.textBox.textBox.Text
+        self.listBox.SelectedItem.patchFile = file
+        if File.Exists(file):
+            fileInfo = getFileInfo(file)
+            fileName = fileInfo.Name.replace(fileInfo.Extension, "")
+            self.listBox.SelectedItem.patchFileName = fileInfo.Name
+            if self.listBox.SelectedItem.name == "New File":
+                self.listBox.SelectedItem.name = fileName
+
+    def fileChanged(self, sender, args):
+        file = self.fileBox.textBox.textBox.Text
+        self.listBox.SelectedItem.file = file
+        if File.Exists(file):
+            fileInfo = getFileInfo(file)
+            fileName = fileInfo.Name.replace(fileInfo.Extension, "")
+            self.listBox.SelectedItem.fileName = fileInfo.Name
+            if self.listBox.SelectedItem.name == "New File" or self.listBox.SelectedItem.name.endswith(".filepatch"):
+                self.listBox.SelectedItem.name = fileName
+            if MainForm.BuildPath in file and not self.listBox.SelectedItem.path:
+                self.pathBox.textBox.Text = file.replace(MainForm.BuildPath, "")
+
+#endregion BUILDPATCH FORM
 
 #region CLASSES AND CONTROLS
 
@@ -5637,13 +6218,13 @@ class FileControl(UserControl):
             self.textBox = LabeledTextBox(labelText)
             self.textBox.textBox.ReadOnly = True
 
-            button = Button()
-            button.Text = "Browse..."
-            button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
-            button.Click += self.buttonPressed
+            self.button = Button()
+            self.button.Text = "Browse..."
+            self.button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
+            self.button.Click += self.buttonPressed
 
             self.Controls.Add(self.textBox)
-            self.Controls.Add(button)
+            self.Controls.Add(self.button)
 
         def buttonPressed(self, sender, args):
             file = BrawlAPI.OpenFileDialog(self.title, self.filter)
@@ -5689,6 +6270,46 @@ class MultiFileControl(UserControl):
                 self.files.DataSource = []
                 for file in files:
                     self.files.Add(getFileInfo(file))
+
+# A control for importing multiple files with extra properties
+class MultiFileObjectControl(UserControl):
+        def __init__(self, title="Select your files", filter="PAC files|*.pac", labelText="Files", size=Size(100, 120)):
+            self.AutoSize = True
+            self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            self.title = title
+            self.filter = filter
+
+            self.files = BindingSource()
+            self.files.DataSource = []
+
+            self.label = Label()
+            self.label.Text = labelText + ":"
+            self.label.Location = Point(0, 0)
+            self.label.Height = 16
+
+            self.listBox = ListBox()
+            self.listBox.Size = size
+            self.listBox.Location = Point(self.label.Location.X, self.label.Location.Y + 16)
+            self.listBox.HorizontalScrollbar = True
+            self.listBox.DataSource = self.files
+            self.listBox.DisplayMember = "name"
+            self.listBox.ValueMember = "fileInfo"
+
+            button = Button()
+            button.Text = "Browse..."
+            button.Location = Point(self.listBox.Location.X, self.listBox.Location.Y + self.listBox.Height)
+            button.Click += self.buttonPressed
+
+            self.Controls.Add(self.label)
+            self.Controls.Add(self.listBox)
+            self.Controls.Add(button)
+
+        def buttonPressed(self, sender, args):
+            files = BrawlAPI.OpenMultiFileDialog(self.title, self.filter)
+            if files and len(files) > 0:
+                self.files.DataSource = []
+                for file in files:
+                    self.files.Add(FileObject(getFileInfo(file).Name, getFileInfo(file)))
 
 # A control for importing multiple filesets
 class MultiFileSetControl(UserControl):
@@ -5877,6 +6498,12 @@ class FileSet:
         source = BindingSource()
         source.DataSource = files
         self.files = source
+        self.description = description
+
+class FileObject:
+    def __init__(self, name, fileInfo, description=""):
+        self.name = name
+        self.fileInfo = fileInfo
         self.description = description
 
 class TabImageControl(UserControl):

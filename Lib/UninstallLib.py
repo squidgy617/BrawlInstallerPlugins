@@ -54,32 +54,33 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 
 			# Stock icons
 			# STGRESULT
-			if settings.installStockIconsToResult == "true":
-				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
-				fileOpened = checkOpenFile("STGRESULT")
-				if fileOpened:
+			if settings.singleStocks == "false":
+				if settings.installStockIconsToResult == "true":
+					subtractStockIcons(cosmeticId, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+					fileOpened = checkOpenFile("STGRESULT")
+					if fileOpened:
+						BrawlAPI.SaveFile()
+						BrawlAPI.ForceCloseFile()
+
+				# info.pac
+				if settings.installStocksToInfo == "true":
+					subtractStockIcons(cosmeticId, indexes[0], "Misc Data [30]", "Misc Data [30]", endIndex=indexes[1], rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
+					fileOpened = checkOpenFile("info")
+					if fileOpened:
+						BrawlAPI.SaveFile()
+						BrawlAPI.ForceCloseFile()
+
+				# StockFaceTex
+				if settings.installStocksToStockFaceTex == "true":
+					subtractStockIcons(cosmeticId, indexes[0], "", "", endIndex=indexes[1], filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
 					BrawlAPI.SaveFile()
 					BrawlAPI.ForceCloseFile()
 
-			# info.pac
-			if settings.installStocksToInfo == "true":
-				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [30]", "Misc Data [30]", endIndex=indexes[1], rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
-				fileOpened = checkOpenFile("info")
-				if fileOpened:
+				# sc_selmap
+				if settings.installStocksToSSS == "true":
+					subtractStockIcons(cosmeticId, indexes[0], "Misc Data [40]", "Misc Data [20]", endIndex=indexes[1], filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
 					BrawlAPI.SaveFile()
 					BrawlAPI.ForceCloseFile()
-
-			# StockFaceTex
-			if settings.installStocksToStockFaceTex == "true":
-				subtractStockIcons(cosmeticId, indexes[0], "", "", endIndex=indexes[1], filePath='/pf/menu/common/StockFaceTex.brres', fiftyCC=settings.fiftyCostumeCode)
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
-
-			# sc_selmap
-			if settings.installStocksToSSS == "true":
-				subtractStockIcons(cosmeticId, indexes[0], "Misc Data [40]", "Misc Data [20]", endIndex=indexes[1], filePath='/pf/menu2/sc_selmap.pac', fiftyCC=settings.fiftyCostumeCode)
-				BrawlAPI.SaveFile()
-				BrawlAPI.ForceCloseFile()
 			
 			progressCounter += 1
 			progressBar.Update(progressCounter)
