@@ -5847,10 +5847,12 @@ def generateTreeView(directory, node):
             generateTreeView(folder, newNode)
         for file in Directory.GetFiles(directory):
             fileName = FileInfo(file).Name
-            if not fileName.endswith("$$I") and not fileName.endswith("$$S") and not fileName.endswith("$$P") and not fileName.endswith(".png"):
+            # Don't include flagged files, except params that don't have a directory already
+            if (not fileName.endswith("$$I") and not fileName.endswith("$$S") and not fileName.endswith("$$P") and not fileName.endswith(".png"))\
+                or fileName.endswith("$$P") and not Directory.Exists(removeFlags(file)):
                 patchNode = PatchNode(FileInfo(file).Name, file)
-                # Skip params, as folders include them
-                if not patchNode.action in ["PARAM", "SETTINGS"]:
+                # Skip settings, as folders include them
+                if not patchNode.action in ["SETTINGS"]:
                     actionChar = getActionChar(patchNode.action)
                     name = actionChar + " " + patchNode.name
                     newNode = node.Nodes.Add(name)

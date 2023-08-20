@@ -71,10 +71,10 @@ class NodeInfo:
 class PatchNode:
 		def __init__(self, patchNodeName, path, parentNode=None):
 			self.containerIndex = int(patchNodeName.split('$$')[0])
-			self.name = str(HttpUtility.UrlDecode(patchNodeName.split('$$')[1].replace(".tex0", ""), Encoding.ASCII))
+			self.name = str(HttpUtility.UrlDecode(removeFlags(patchNodeName.split('$$')[1]), Encoding.ASCII))
 			# Get info for node
-			if File.Exists(path.replace(".tex0", "").replace("$$R", "") + '$$I'):
-				attributes = File.ReadAllLines(path.replace(".tex0", "").replace("$$R", "") + '$$I')
+			if File.Exists(removeFlags(path) + '$$I'):
+				attributes = File.ReadAllLines(removeFlags(path) + '$$I')
 				self.typeString = readValueFromKey(attributes, "nodeType")
 				self.action = readValueFromKey(attributes, "action")
 				self.groupName = readValueFromKey(attributes, "groupName")
@@ -337,16 +337,39 @@ def generateNodeInfo(nodeType, index, action, path, groupName="", forceAdd=False
 		attrs = vars(nodeInfo)
 		File.WriteAllText(path, '\n'.join("%s = %s" % item for item in attrs.items()))
 
+# Remove flags from a node filename or path
+def removeFlags(nodeString):
+		flags = [".tex0", "$$R", "$$I", "$$P", "$$S"]
+		for flag in flags:
+			nodeString = nodeString.replace(flag, "")
+		return nodeString
+
+# Apply settings file to a node if one exists
+def applyNodeSettings(node, path):
+	filePath = path + "$$S"
+	# If there's a settings file, apply the special settings
+	if File.Exists(filePath):
+		fileText = File.ReadAllLines(filePath)
+		fileType = readValueFromKey(fileText, "FileType")
+		if fileType:
+			node.FileType = ARCFileType[fileType]
+		node.FileIndex = int(readValueFromKey(fileText, "FileIndex"))
+		node.GroupID = int(readValueFromKey(fileText, "GroupID"))
+		node.RedirectIndex = int(readValueFromKey(fileText, "RedirectIndex"))
+		node.RedirectTarget = readValueFromKey(fileText, "RedirectTarget")
+	return node
+
 # Update patch data based on selected form options
 def updatePatch(form):
 		for removedNode in form.uncheckedNodes:
 			# Always delete info for unchecked nodes
-			if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
-				File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
-			if File.Exists(removedNode.path + "$$P"):
-				File.Delete(removedNode.path + "$$P")
-			if File.Exists(removedNode.path + "$$S"):
-				File.Delete(removedNode.path + "$$S")
+			flaglessPath = removeFlags(removedNode.path)
+			if File.Exists(flaglessPath + "$$I"):
+				File.Delete(flaglessPath + "$$I")
+			if File.Exists(flaglessPath + "$$P"):
+				File.Delete(flaglessPath + "$$P")
+			if File.Exists(flaglessPath + "$$S"):
+				File.Delete(flaglessPath + "$$S")
 			# Remove any files or folders for the node
 			if Directory.Exists(removedNode.path):
 				Directory.Delete(removedNode.path, True)
@@ -360,8 +383,9 @@ def updatePatch(form):
 					changedNode.action = "REPLACE"
 					if Directory.Exists(changedNode.path):
 						Directory.Delete(changedNode.path, True)
-					if File.Exists(changedNode.path.replace(".tex0", "") + "$$P"):
-						File.Move(changedNode.path.replace(".tex0", "") + "$$P", changedNode.path.replace(".tex0", ""))
+					flaglessPath = removeFlags(changedNode.path)
+					if File.Exists(flaglessPath + "$$P"):
+						File.Move(flaglessPath + "$$P", flaglessPath)
 				generateNodeInfo(changedNode.fullType, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
 
 # Export node for a patch and create directory if it can't be found
@@ -468,17 +492,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		if newNode:
 			processPatchFiles(directory, newNode, progressBar)
 		if newNode.GetType().IsSubclassOf(ARCEntryNode):
-			filePath = patchNode.path + "$$S"
-			# If there's a settings file, apply the special settings
-			if File.Exists(filePath):
-				fileText = File.ReadAllLines(filePath)
-				fileType = readValueFromKey(fileText, "FileType")
-				if fileType:
-					newNode.FileType = ARCFileType[fileType]
-				newNode.FileIndex = int(readValueFromKey(fileText, "FileIndex"))
-				newNode.GroupID = int(readValueFromKey(fileText, "GroupID"))
-				newNode.RedirectIndex = int(readValueFromKey(fileText, "RedirectIndex"))
-				newNode.RedirectTarget = readValueFromKey(fileText, "RedirectTarget")
+			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 	# Import any node files in the directory
@@ -503,10 +517,12 @@ def processPatchFiles(patchFolder, node, progressBar):
 				if patchNode.action == "PARAM":
 					writeLog("Updating params for " + foundNode.Name)
 					tempNode = createNodeFromString(patchNode.type)
+					name = foundNode.Name
 					node.AddChild(tempNode)
 					tempNode.Replace(patchFile)
 					copyNodeProperties(tempNode, foundNode)
 					tempNode.Remove()
+					foundNode.Name = name
 					uniquePropertyUpdate(foundNode)
 			# If a replace node can't be found, add it
 			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
