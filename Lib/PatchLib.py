@@ -19,6 +19,7 @@ CONTAINERS = [
 	"BrawlLib.SSBB.ResourceNodes.TyDataNode",
 	"BrawlLib.SSBB.ResourceNodes.TyDataListNode",
 	"BrawlLib.SSBB.ResourceNodes.GDORNode",
+	"BrawlLib.SSBB.ResourceNodes.GDBFNode",
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode",
 	"BrawlLib.SSBB.ResourceNodes.ItmFreqNode",
 	"BrawlLib.SSBB.ResourceNodes.ItmTableNode",
