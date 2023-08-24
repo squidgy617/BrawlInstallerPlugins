@@ -340,9 +340,13 @@ def generateNodeInfo(nodeType, index, action, path, groupName="", forceAdd=False
 
 # Remove flags from a node filename or path
 def removeFlags(nodeString):
-		flags = [".tex0", "$$R", "$$I", "$$P", "$$S"]
+		# Remove file extensions
+		nodeString = nodeString.replace(".tex0", "")
+		# Remove flags
+		flags = ["$$R", "$$I", "$$P", "$$S"]
 		for flag in flags:
-			nodeString = nodeString.replace(flag, "")
+			if nodeString.endswith(flag):
+				nodeString = "".join(nodeString.rsplit(flag, 1))
 		return nodeString
 
 # Apply settings file to a node if one exists
