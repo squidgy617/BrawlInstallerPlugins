@@ -28,7 +28,8 @@ CONTAINERS = [
 	"BrawlLib.SSBB.ResourceNodes.GMOVNode",
 	"BrawlLib.SSBB.ResourceNodes.GET1Node",
 	"BrawlLib.SSBB.ResourceNodes.GLK2Node",
-	"BrawlLib.SSBB.ResourceNodes.GNDVNode"
+	"BrawlLib.SSBB.ResourceNodes.GNDVNode",
+	"BrawlLib.SSBB.ResourceNodes.GEG1Node"
 ]
 FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
@@ -283,6 +284,19 @@ def getNodeGroupName(node):
 			groupName = node.Name
 		return groupName
 
+# Get NodePath for a node
+def getNodePath(node):
+		pathNodeNames = []
+		while node.Parent:
+			pathNodeNames.insert(0, getPatchNodeName(node))
+			node = node.Parent
+		nodePath = ""
+		i = 0
+		while i < len(pathNodeNames):
+			nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
+			i += 1
+		return nodePath
+
 # Get NodeObjects for all patch nodes in file
 def getNodeObjects(filePath, closeFile=True):
 		writeLog("Getting node objects for file " + filePath)
@@ -292,16 +306,7 @@ def getNodeObjects(filePath, closeFile=True):
 			#fileNodes = BrawlAPI.RootNode.GetChildrenRecursive()
 			fileNodes = getPatchNodes(BrawlAPI.RootNode)
 			for fileNode in fileNodes:
-				currentNode = fileNode
-				pathNodeNames = []
-				while currentNode.Parent:
-					pathNodeNames.insert(0, getPatchNodeName(currentNode))
-					currentNode = currentNode.Parent
-				nodePath = ""
-				i = 0
-				while i < len(pathNodeNames):
-					nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
-					i += 1
+				nodePath = getNodePath(fileNode)
 				fileNodeList.append(NodeObject(fileNode, fileNode.MD5Str(), nodePath))
 		if closeFile:
 			BrawlAPI.ForceCloseFile()
@@ -405,14 +410,22 @@ def exportPatchNode(nodeObject, add=False):
 			groupName = getNodeGroupName(nodeObject.node)
 			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
 			nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+			# Export image for preview if eligible
 			if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
 				nodeObject.node.Export(patchNodePath + ".png")
+			# Export parent nodes if they exist
+			if nodeObject.node.Parent and isContainer(nodeObject.node.Parent) and nodeObject.node.Parent != BrawlAPI.RootNode:
+				parentPath = getNodePath(nodeObject.node.Parent)
+				parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(nodeObject.node.Parent, "P")
+				if not File.Exists(parentFile):
+					parentObject = NodeObject(nodeObject.node.Parent, nodeObject.node.Parent.MD5Str(), parentPath)
+					exportPatchNode(parentObject)
 			# Export special settings for ARCEntry nodes
 			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
 				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
 				attrs = vars(arcEntry)
 				File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "S"), '\n'.join("%s = %s" % item for item in attrs.items()))
-		# Otherwise, create a flagged to indicate removal
+		# Otherwise, create a flag to indicate removal
 		else:
 			action = "REMOVE"
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "R")).Close()
