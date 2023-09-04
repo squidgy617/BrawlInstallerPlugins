@@ -414,12 +414,12 @@ def exportPatchNode(nodeObject, add=False):
 			if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
 				nodeObject.node.Export(patchNodePath + ".png")
 			# Export parent nodes if they exist
-			if nodeObject.node.Parent and isContainer(nodeObject.node.Parent) and nodeObject.node.Parent != BrawlAPI.RootNode:
-				parentPath = getNodePath(nodeObject.node.Parent)
-				parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(nodeObject.node.Parent, "P")
-				if not File.Exists(parentFile):
-					parentObject = NodeObject(nodeObject.node.Parent, nodeObject.node.Parent.MD5Str(), parentPath)
-					exportPatchNode(parentObject)
+			# if nodeObject.node.Parent and isContainer(nodeObject.node.Parent) and nodeObject.node.Parent != BrawlAPI.RootNode:
+			# 	parentPath = getNodePath(nodeObject.node.Parent)
+			# 	parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(nodeObject.node.Parent, "P")
+			# 	if not File.Exists(parentFile):
+			# 		parentObject = NodeObject(nodeObject.node.Parent, nodeObject.node.Parent.MD5Str(), parentPath)
+			# 		exportPatchNode(parentObject)
 			# Export special settings for ARCEntry nodes
 			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
 				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
