@@ -36,6 +36,10 @@ FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
 PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
+# MDL0GroupNode is blacklisted because it is handled by getGroupNodeTypeFromParent
+NODE_BLACKLIST = [ "BrawlLib.SSBB.ResourceNodes.MDL0GroupNode" ]
+# Nodes that should never have params exported - bones shouldn't because they should always be fully replaced
+NODE_NOPARAMS = [ "BrawlLib.SSBB.ResourceNodes.MDL0BoneNode" ]
 UNIQUE_PROPERTIES = [ "BoneIndex" ]
 
 # Temporary check to make sure the user has the necessary version to run the plugin
@@ -399,38 +403,41 @@ def updatePatch(form):
 				generateNodeInfo(changedNode.fullType, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
 
 # Export node for a patch and create directory if it can't be found
-def exportPatchNode(nodeObject, add=False):
+def exportPatchNode(nodeObject, add=False, recursive=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		action = ""
 		groupName = ""
 		# If it's a real node, export it
-		if nodeObject.node.MD5Str():
-			action = "ADD" if add else "PARAM" if isContainer(nodeObject.node) else ""
-			groupName = getNodeGroupName(nodeObject.node)
-			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
-			nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
-			# Export image for preview if eligible
-			if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
-				nodeObject.node.Export(patchNodePath + ".png")
+		if nodeObject.node.MD5Str() or recursive:
+			if nodeObject.node.MD5Str() and nodeObject.node.NodeType not in NODE_BLACKLIST:
+				action = "ADD" if add else "PARAM" if isContainer(nodeObject.node) else ""
+				groupName = getNodeGroupName(nodeObject.node)
+				patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
+				if not (isContainer(nodeObject.node) and nodeObject.node.NodeType in NODE_NOPARAMS):
+					nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+				# Export image for preview if eligible
+				if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
+					nodeObject.node.Export(patchNodePath + ".png")
+				# Export special settings for ARCEntry nodes
+				if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
+					arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
+					attrs = vars(arcEntry)
+					File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "S"), '\n'.join("%s = %s" % item for item in attrs.items()))
 			# Export parent nodes if they exist
-			# if nodeObject.node.Parent and isContainer(nodeObject.node.Parent) and nodeObject.node.Parent != BrawlAPI.RootNode:
-			# 	parentPath = getNodePath(nodeObject.node.Parent)
-			# 	parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(nodeObject.node.Parent, "P")
-			# 	if not File.Exists(parentFile):
-			# 		parentObject = NodeObject(nodeObject.node.Parent, nodeObject.node.Parent.MD5Str(), parentPath)
-			# 		exportPatchNode(parentObject)
-			# Export special settings for ARCEntry nodes
-			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
-				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
-				attrs = vars(arcEntry)
-				File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "S"), '\n'.join("%s = %s" % item for item in attrs.items()))
+			if nodeObject.node.Parent and isContainer(nodeObject.node.Parent) and nodeObject.node.Parent != BrawlAPI.RootNode:
+				parentPath = getNodePath(nodeObject.node.Parent)
+				parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(nodeObject.node.Parent, "P")
+				if not File.Exists(parentFile):
+					parentObject = NodeObject(nodeObject.node.Parent, nodeObject.node.Parent.MD5Str(), parentPath)
+					exportPatchNode(parentObject, recursive=True)
 		# Otherwise, create a flag to indicate removal
-		else:
+		elif not recursive:
 			action = "REMOVE"
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "R")).Close()
 		# No matter what, create an info node so we can gather all necessary info about it
-		generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
+		if nodeObject.node.NodeType not in NODE_BLACKLIST:
+			generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
 		writeLog("Exported patch node")
 
 # Create a patch file
