@@ -38,6 +38,8 @@ FOLDERS = [
 PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
 # MDL0GroupNode is blacklisted because it is handled by getGroupNodeTypeFromParent
 NODE_BLACKLIST = [ "BrawlLib.SSBB.ResourceNodes.MDL0GroupNode" ]
+# Nodes that should never have params exported - bones shouldn't because they should always be fully replaced
+NODE_NOPARAMS = [ "BrawlLib.SSBB.ResourceNodes.MDL0BoneNode" ]
 UNIQUE_PROPERTIES = [ "BoneIndex" ]
 
 # Temporary check to make sure the user has the necessary version to run the plugin
@@ -412,7 +414,8 @@ def exportPatchNode(nodeObject, add=False, recursive=False):
 				action = "ADD" if add else "PARAM" if isContainer(nodeObject.node) else ""
 				groupName = getNodeGroupName(nodeObject.node)
 				patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
-				nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+				if not (isContainer(nodeObject.node) and nodeObject.node.NodeType in NODE_NOPARAMS):
+					nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
 				# Export image for preview if eligible
 				if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
 					nodeObject.node.Export(patchNodePath + ".png")
