@@ -36,6 +36,7 @@ FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
 PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
+# MDL0GroupNode is blacklisted because it is handled by getGroupNodeTypeFromParent
 NODE_BLACKLIST = [ "BrawlLib.SSBB.ResourceNodes.MDL0GroupNode" ]
 UNIQUE_PROPERTIES = [ "BoneIndex" ]
 
