@@ -3970,10 +3970,10 @@ def extractCSSIcon(cosmeticId, folderName):
 			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
 			exportPath = createDirectory(AppPath + '/temp/CSSIcon/' + folderName)
 			if tex0Node:
-				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+				tex0Node.Export(exportPath + '/' + 'Icon.png')
 			if nameNode:
 				exportPath = createDirectory(exportPath + '/Name')
-				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+				nameNode.Export(exportPath + '/' + 'Name.png')
 		writeLog("Finished extracting CSS icon")
 
 # Extract CSS icon
@@ -3987,10 +3987,10 @@ def extractCSSIconSSE(cosmeticId):
 				nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
 				exportPath = createDirectory(AppPath + '/temp/CSSIcon/vBrawl')
 				if tex0Node:
-					tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+					tex0Node.Export(exportPath + '/' + 'Icon.png')
 				if nameNode:
 					exportPath = createDirectory(exportPath + '/Name')
-					nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+					nameNode.Export(exportPath + '/' + 'Name.png')
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting CSS icon")
 
@@ -4004,7 +4004,7 @@ def extractPortraitName(cosmeticId, folderName):
 			tex0Node = getChildByName(texFolder, "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId), 2) + '1')
 			if tex0Node:
 				exportPath = createDirectory(AppPath + '/temp/PortraitName/' + folderName)
-				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+				tex0Node.Export(exportPath + '/' + 'Name.png')
 		writeLog("Finished extracting portrait name")
 
 # Extract stock icons
@@ -4057,7 +4057,7 @@ def extractFranchiseIcon(franchiseIconId, filePath):
 			textureNode = getChildByName(texFolder, nodeName)
 			if textureNode:
 				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Black')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+				textureNode.Export(exportPath + '/' + 'FranchiseIcon.png')
 		writeLog("Finished extracting franchise icon")
 
 # Extract BP name
@@ -4074,7 +4074,7 @@ def extractBPName(cosmeticId, filePath, folderName):
 					textureNode = getChildByName(texFolder, nodeName)
 					if textureNode:
 						exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
-						textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+						textureNode.Export(exportPath + '/' + 'Name.png')
 		writeLog("Finished extracting BP name")
 
 # Extract Classic intro
@@ -4096,14 +4096,14 @@ def extractFranchiseIconResult(franchiseIconId):
 			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
 			if textureNode:
 				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Transparent')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+				textureNode.Export(exportPath + '/' + 'FranchiseIcon.png')
 			else:
 				# Extract 3D model
 				modelFolder = getChildByName(node, "3DModels(NW4R)")
 				mdl0Node = getChildByName(modelFolder, "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN")
 				if mdl0Node:
 					exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Model')
-					mdl0Node.Export(exportPath + '/' + mdl0Node.Name + '.mdl0')
+					mdl0Node.Export(exportPath + '/' + 'FranchiseIcon.mdl0')
 		writeLog("Finished extracting franchise icon")
 
 # Extract BPs
@@ -4149,7 +4149,7 @@ def extractReplayIcon(cosmeticId, replayIconStyle=""):
 					exportPath = createDirectory(AppPath + '/temp/ReplayIcon/' + replayIconStyle)
 				else:
 					exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+				textureNode.Export(exportPath + '/' + 'Replay.png')
 		writeLog("Finished extracting replay icon")
 
 # Extract soundbank
