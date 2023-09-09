@@ -4113,6 +4113,7 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
 		# Look for files matching naming scheme and extract them
+		i = 1
 		while ((newId <= (cosmeticId * 50) + 50) if fiftyCC == "true" else (newId <= cosmeticId + 10)):
 			if File.Exists(MainForm.BuildPath + '/pf/info/portrite/' + "InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres"):
 				bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
@@ -4125,7 +4126,8 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 							if texFolder.Children:
 								writeLog("Extracting texture " + texFolder.Children[0].Name)
 								exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
-								texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
+								texFolder.Children[0].Export(exportPath + '/' + addLeadingZeros(str(i), 4) + '.png')
+								i += 1
 								writeLog("Extracted texture")
 						BrawlAPI.ForceCloseFile()
 			else:
