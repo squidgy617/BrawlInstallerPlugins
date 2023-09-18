@@ -3570,6 +3570,7 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 			except XPathException as e:
 					xmlNodes = []
 			for node in xmlNodes:
+				existingNode = None
 				for childNode in node.SelectNodes("character"):
 					slotId = childNode.Attributes["slotID"].Value
 					if slotId == '0x' + fighterId:
