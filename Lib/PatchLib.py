@@ -405,6 +405,16 @@ def updatePatch(form):
 # Export node for a patch and create directory if it can't be found
 def exportPatchNode(nodeObject, add=False, recursive=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
+		# Only export if parent node was not already exported (e.g. a MDL0 was exported, meaning it wasn't a container in one of the files)
+		node = nodeObject.node
+		while node.Parent:
+			parentPath = getNodePath(node.Parent)
+			parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(node.Parent)
+			if File.Exists(parentFile):
+				writeLog("Parent node was already exported.")
+				return
+			node = node.Parent
+		# Create directory if it doesn't exist
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		action = ""
 		groupName = ""
