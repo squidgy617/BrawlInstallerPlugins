@@ -4437,8 +4437,7 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Text = "Main Fighter Files"
         self.mainFighterGroupBox.Click += self.toggleGroupBox
 
-        #self.pacFilesControl = MultiFileSetControl("Select your fighter pac files", labelText="PAC Files")
-        self.pacFilesControl = FileOptionControl("Select your fighter folder", labelText="Fighter Files", folder=True, topLabel=True)
+        self.pacFilesControl = FileOptionControl("Select your fighter folder", labelText="Fighter Folder", folder=True, topLabel=True)
         self.pacFilesControl.Location = Point(16, 32)
 
         self.exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
@@ -4759,10 +4758,10 @@ class PackageCharacterForm(Form):
         toolTip.SetToolTip(self.bonusGroupBox, "Extra files for the user to install manually.")
         toolTip.SetToolTip(self.patchGroupBox, "Add build patches to be installed with the fighter.")
         toolTip.SetToolTip(self.patchDescriptionControl.label, "A description of what your patch does, which will be displayed to the user during installation.")
-        toolTip.SetToolTip(self.pacFilesControl.textBox.label, "Fighter PAC files.")
-        toolTip.SetToolTip(self.pacFilesControl.dropDown, "For packages with multiple PAC file options, select which PAC file set to edit.")
-        toolTip.SetToolTip(self.pacFilesControl.nameBox.label, "The name for the selected PAC file set.")
-        toolTip.SetToolTip(self.pacFilesControl.descriptionBox.label, "The description for the selected PAC file set.")
+        toolTip.SetToolTip(self.pacFilesControl.textBox.label, "The location of the fighter directory, which contains the fighter PAC files.")
+        toolTip.SetToolTip(self.pacFilesControl.dropDown, "For packages with multiple fighter folder options, select which folder option edit.")
+        toolTip.SetToolTip(self.pacFilesControl.nameBox.label, "The name for the selected folder option.")
+        toolTip.SetToolTip(self.pacFilesControl.descriptionBox.label, "The description for the selected folder option.")
         toolTip.SetToolTip(self.exConfigsControl.label, "Fighter Ex config files.")
         toolTip.SetToolTip(self.moduleControl.textBox.label, "Fighter module file.")
         toolTip.SetToolTip(self.kirbyHatFilesControl.label, "Fighter Kirby hat files, if included.")
