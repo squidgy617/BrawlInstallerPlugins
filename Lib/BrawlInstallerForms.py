@@ -4437,14 +4437,15 @@ class PackageCharacterForm(Form):
         self.mainFighterGroupBox.Text = "Main Fighter Files"
         self.mainFighterGroupBox.Click += self.toggleGroupBox
 
-        self.pacFilesControl = MultiFileSetControl("Select your fighter pac files", labelText="PAC Files")
-        self.pacFilesControl.Location = Point(16, 16)
+        #self.pacFilesControl = MultiFileSetControl("Select your fighter pac files", labelText="PAC Files")
+        self.pacFilesControl = FileOptionControl("Select your fighter folder", labelText="Fighter Files", folder=True, topLabel=True)
+        self.pacFilesControl.Location = Point(16, 32)
 
         self.exConfigsControl = MultiFileControl("Select your fighter ex config files", "DAT files|*.dat", "Ex Configs")
-        self.exConfigsControl.Location = Point(self.pacFilesControl.Location.X + self.pacFilesControl.Width, self.pacFilesControl.Location.Y)
+        self.exConfigsControl.Location = Point(self.pacFilesControl.Location.X + self.pacFilesControl.Width + 32, self.pacFilesControl.Location.Y)
 
         self.moduleControl = FileControl("Select your fighter module file", "REL files|*.rel", "Module")
-        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 96)
+        self.moduleControl.Location = Point(self.pacFilesControl.Location.X, self.pacFilesControl.Location.Y + self.pacFilesControl.Height + 16)
         
         self.mainFighterGroupBox.Controls.Add(self.pacFilesControl)
         self.mainFighterGroupBox.Controls.Add(self.exConfigsControl)
@@ -4758,7 +4759,7 @@ class PackageCharacterForm(Form):
         toolTip.SetToolTip(self.bonusGroupBox, "Extra files for the user to install manually.")
         toolTip.SetToolTip(self.patchGroupBox, "Add build patches to be installed with the fighter.")
         toolTip.SetToolTip(self.patchDescriptionControl.label, "A description of what your patch does, which will be displayed to the user during installation.")
-        toolTip.SetToolTip(self.pacFilesControl.label, "Fighter PAC files.")
+        toolTip.SetToolTip(self.pacFilesControl.textBox.label, "Fighter PAC files.")
         toolTip.SetToolTip(self.pacFilesControl.dropDown, "For packages with multiple PAC file options, select which PAC file set to edit.")
         toolTip.SetToolTip(self.pacFilesControl.nameBox.label, "The name for the selected PAC file set.")
         toolTip.SetToolTip(self.pacFilesControl.descriptionBox.label, "The description for the selected PAC file set.")
@@ -4870,14 +4871,17 @@ class PackageCharacterForm(Form):
             copyRenameFile(self.franchiseIconImageControl.Images[1], 'Icon.png', PACK_PATH + '\\FranchiseIcons\\Transparent')
         if self.franchiseModelControl.textBox.textBox.Text:
             copyRenameFile(self.franchiseModelControl.textBox.textBox.Text, 'Model.mdl0', PACK_PATH + '\\FranchiseIcons\\Model')
-        for fileSet in self.pacFilesControl.fileSets:
-            fighterPath = (PACK_PATH + '\\Fighter') if fileSet == self.pacFilesControl.dropDown.Items[0] else (PACK_PATH + '\\Fighter\\#Options\\' + fileSet.name)
-            for file in fileSet.files:
-                copyFile(file.FullName, fighterPath)
-            if len(self.pacFilesControl.fileSets) > 1:
+        for installOption in self.pacFilesControl.installOptions:
+            fighterPath = (PACK_PATH + '\\Fighter') if installOption == self.pacFilesControl.dropDown.Items[0] else (PACK_PATH + '\\Fighter\\#Options\\' + installOption.name)
+            if installOption.folder:
+                for file in Directory.GetFiles(installOption.folder):
+                    copyFile(file, fighterPath)
+                for directory in Directory.GetDirectories(installOption.folder):
+                    copyDirectory(directory, fighterPath)
+            if len(self.pacFilesControl.installOptions) > 1:
                 writeString = ""
-                writeString += "name=" + fileSet.name
-                writeString += "\ndescription=" + fileSet.description
+                writeString += "name=" + installOption.name
+                writeString += "\ndescription=" + installOption.description
                 if writeString:
                     File.WriteAllText(fighterPath + '\\OptionSettings.txt', writeString)
         for file in self.exConfigsControl.files:
@@ -5195,13 +5199,15 @@ class PackageCharacterForm(Form):
                         self.patchControl.files.Add(fileObject)
                 # Fighter
                 if Directory.Exists(TEMP_PATH + '\\Fighter'):
-                    self.pacFilesControl.fileSets[0].files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\Fighter', "*.pac"))
+                    folder = TEMP_PATH + '\\Fighter'
+                    self.pacFilesControl.textBox.textBox.Text = folder
+                    self.pacFilesControl.installOptions[0].folder = folder
                     if File.Exists(TEMP_PATH + '\\Fighter\\OptionSettings.txt'):
                         optionSettings = File.ReadAllLines(TEMP_PATH + '\\Fighter\\OptionSettings.txt')
                         optionName = readValueFromKey(optionSettings, "name")
                         optionDescription = readValueFromKey(optionSettings, "description")
-                        self.pacFilesControl.fileSets[0].name = optionName
-                        self.pacFilesControl.fileSets[0].description = optionDescription
+                        self.pacFilesControl.installOptions[0].name = optionName
+                        self.pacFilesControl.installOptions[0].description = optionDescription
                     if Directory.Exists(TEMP_PATH + '\\Fighter\\#Options'):
                         i = 1
                         for directory in Directory.GetDirectories(TEMP_PATH + '\\Fighter\\#Options'):
@@ -5212,7 +5218,7 @@ class PackageCharacterForm(Form):
                             else:
                                 optionName = DirectoryInfo(directory).Name
                                 optionDescription = ""
-                            self.pacFilesControl.fileSets.Add(FileSet(optionName, getFileInfos(Directory.GetFiles(directory, "*.pac")), optionDescription))
+                            self.pacFilesControl.installOptions.Add(InstallOption(directory, optionName, optionDescription))
                 if Directory.Exists(TEMP_PATH + '\\EXConfigs'):
                     self.exConfigsControl.files.DataSource = getFileInfos(Directory.GetFiles(TEMP_PATH + '\\EXConfigs', "*.dat"))
                 if Directory.Exists(TEMP_PATH + '\\Module'):
@@ -6150,13 +6156,16 @@ class ImageObject:
 
 # A textbox with a label
 class LabeledTextBox(UserControl):
-        def __init__(self, labelText, idButtonType="", multiline=False, size=Size(100,120)):
+        def __init__(self, labelText, idButtonType="", multiline=False, size=Size(100,120), topLabel=False):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
             self.idButtonType = idButtonType
 
             self.textBox = TextBox()
-            self.textBox.Location = Point(64, 0)
+            if not topLabel:
+                self.textBox.Location = Point(64, 0)
+            else:
+                self.textBox.Location = Point(0, 16)
             if multiline:
                 self.textBox.Multiline = True
                 self.textBox.ScrollBars = ScrollBars.Vertical
@@ -6166,8 +6175,11 @@ class LabeledTextBox(UserControl):
 
             self.label = Label()
             self.label.Text = labelText + ":"
-            self.label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
-            self.label.TextAlign = ContentAlignment.TopRight
+            if not topLabel:
+                self.label.Location = Point(self.textBox.Location.X - self.textBox.Width, self.textBox.Location.Y)
+                self.label.TextAlign = ContentAlignment.TopRight
+            else:
+                self.label.Location = Point(self.textBox.Location.X, self.textBox.Location.Y - 16)
 
             idButton = Button()
             idButton.Text = "..."
@@ -6414,20 +6426,32 @@ class MultiFileSetControl(UserControl):
 
 # A control for importing a single file with a list of options
 class FileOptionControl(UserControl):
-        def __init__(self, title="Select your file", filter="PAC files|*.pac", labelText="File"):
+        def __init__(self, title="Select your file", filter="PAC files|*.pac", labelText="File", folder=False, topLabel=False):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
             self.title = title
             self.filter = filter
+            self.folder = folder
 
             self.installOptions = BindingSource()
             self.installOptions.DataSource = [InstallOption("", "Standard", "")]
 
-            self.textBox = LabeledTextBox(labelText)
+            self.textBox = LabeledTextBox(labelText, topLabel=topLabel)
             self.textBox.textBox.ReadOnly = True
 
+            button = Button()
+            button.Text = "Browse..."
+            if not topLabel:
+                button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
+            else:
+                button.Location = Point(self.textBox.Location.X, self.textBox.Location.Y + 48)
+            button.Click += self.buttonPressed
+
             self.dropDown = ComboBox()
-            self.dropDown.Location = Point(self.textBox.textBox.Location.X, self.textBox.textBox.Location.Y + 32)
+            if not topLabel:
+                self.dropDown.Location = Point(self.textBox.textBox.Location.X, self.textBox.textBox.Location.Y + 32)
+            else:
+                self.dropDown.Location = Point(button.Location.X, button.Location.Y + 32)
             self.dropDown.DropDownStyle = ComboBoxStyle.DropDownList
             self.dropDown.DataSource = self.installOptions
             self.dropDown.DisplayMember = "name"
@@ -6445,11 +6469,6 @@ class FileOptionControl(UserControl):
             removeButton.Size = Size(16,16)
             removeButton.Location = Point(addButton.Location.X + addButton.Width + 4, addButton.Location.Y)
             removeButton.Click += self.removeButtonPressed
-
-            button = Button()
-            button.Text = "Browse..."
-            button.Location = Point(self.textBox.Location.X + self.textBox.Width + 16, self.textBox.Location.Y)
-            button.Click += self.buttonPressed
 
             self.nameBox = LabeledTextBox("Name")
             self.nameBox.textBox.Text = self.installOptions[0].name
@@ -6470,7 +6489,10 @@ class FileOptionControl(UserControl):
             self.Controls.Add(self.descriptionBox)
 
         def buttonPressed(self, sender, args):
-            file = BrawlAPI.OpenFileDialog(self.title, self.filter)
+            if not self.folder:
+                file = BrawlAPI.OpenFileDialog(self.title, self.filter)
+            else:
+                file = BrawlAPI.OpenFolderDialog(self.title)
             if file:
                 self.textBox.textBox.Text = file
                 self.installOptions[self.dropDown.SelectedIndex].folder = file

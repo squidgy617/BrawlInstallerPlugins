@@ -58,12 +58,20 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 									#then delete options
 									if form.chosenFolder != directory:
 										filesToDelete = Directory.GetFiles(directory)
+										foldersToDelete = Directory.GetDirectories(directory)
 										i = 0
 										while i < len(filesToDelete):
 											File.Delete(filesToDelete[i])
 											i += 1
+										i = 0
+										while i < len(foldersToDelete):
+											if DirectoryInfo(foldersToDelete[i]).Name != "#Options":
+												Directory.Delete(foldersToDelete[i])
+											i += 1
 										for file in Directory.GetFiles(form.chosenFolder):
 											copyFile(file, directory)
+										for otherFolder in Directory.GetDirectories(form.chosenFolder):
+											copyDirectory(otherFolder, directory)
 									Directory.Delete(directory + '\\#Options', True)
 
 					# Get all subdirectories in the folder
@@ -88,6 +96,10 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 					trophyFolder = getDirectoryByName("Trophy", fighterDir)
 					codeFolder = getDirectoryByName("Codes", fighterDir)
 					patchFolder = getDirectoryByName("Patch", fighterDir)
+					# Check that package is valid
+					if not exConfigsFolder:
+						BrawlAPI.ShowMessage("EXConfigs folder not found. Please verify the package is a valid BrawlInstaller package.\nIf you created the package manually, try using the 'Package Character' plugin insetad.\nFighter installation will abort.", "Aborting Installation")
+						return
 					# Get fighter info
 					fighterConfig = Directory.GetFiles(folder + '/EXConfigs', "Fighter*.dat")[0]
 					cosmeticConfig = Directory.GetFiles(folder + '/EXConfigs', "Cosmetic*.dat")[0]
@@ -720,7 +732,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 							BrawlAPI.OpenFile(existingFighterConfig)
 							existingFighterConfigName = BrawlAPI.RootNode.FighterName
 							BrawlAPI.ForceCloseFile()
-						installFighterFiles(Directory.GetFiles(fighterFolder.FullName, "*.pac"), fighterInfo.fighterName, existingFighterConfigName, oldFighterName)
+						installFighterFiles(fighterFolder.FullName, fighterInfo.fighterName, existingFighterConfigName, oldFighterName)
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)

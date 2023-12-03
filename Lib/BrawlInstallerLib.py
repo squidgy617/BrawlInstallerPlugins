@@ -566,6 +566,16 @@ def copyFile(sourcePath, destinationPath, backup=True):
 			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
+# Helper method to more easily copy directories
+def copyDirectory(sourcePath, destinationPath, backup=True):
+		writeLog("Copying folder " + sourcePath + " to " + destinationPath)
+		newPath = Path.Combine(destinationPath, DirectoryInfo(sourcePath).Name)
+		Directory.CreateDirectory(newPath)
+		for file in Directory.GetFiles(sourcePath):
+			if backup:
+				createBackup(newPath + '/' + getFileInfo(file).Name)
+			File.Copy(file, newPath + '/' + getFileInfo(file).Name)
+
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
 		writeLog("Creating backup of file " + sourcePath)
@@ -1630,20 +1640,27 @@ def createNewcomerFile(cosmeticConfigId, iconImagePath):
 		writeLog("Finished creating newcomer file")
 
 # Move fighter files to fighter folder
-def moveFighterFiles(files, fighterName, originalFighterName=""):
+def moveFighterFiles(folder, fighterName, originalFighterName=""):
 		writeLog("Attempting to move fighter files")
-		for file in files:
-			file = getFileInfo(file)
-			# TODO: rename files based on fighter name?
-			if originalFighterName != "":
-				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
-			else:
-				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + file.Name
-			# Back up if already exists
-			createBackup(path)
-			getFileInfo(path).Directory.Create()
-			File.Copy(file.FullName, path, 1)
+		for file in Directory.GetFiles(folder):
+			moveFighterFile(file, originalFighterName, fighterName)
+		for directory in Directory.GetDirectories(folder):
+			for file in Directory.GetFiles(directory):
+				moveFighterFile(file, originalFighterName, fighterName, subfolder=DirectoryInfo(directory).Name)
 		writeLog("Finished moving fighter files")
+
+def moveFighterFile(file, originalFighterName, fighterName, subfolder=""):
+	file = getFileInfo(file)
+	# TODO: rename files based on fighter name?
+	subfolder = ('/' + subfolder + '/') if subfolder else ""
+	if originalFighterName != "":
+		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + subfolder + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
+	else:
+		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + subfolder + file.Name
+	# Back up if already exists
+	createBackup(path)
+	getFileInfo(path).Directory.Create()
+	File.Copy(file.FullName, path, 1)
 
 # Get unavailable costume IDs
 def getUsedCostumeIds(cssSlotConfigId):
@@ -2293,7 +2310,7 @@ def updateThrowRelease(fighterId, fighterName, values):
 				if line.StartsWith("ThrowReleaseTable"):
 					writeLog("Found throw release table at line " + str(i))
 					tableStart = i + 2
-				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+				if tableStart > 0 and i == tableStart + int(fighterId, 16) and len(line.strip()) > 0 and not line.startswith("SkipTable:"):
 					writeLog("Found matching EX fighter at position " + str(i))
 					fileText[i] = "\t" + values[0] + ",\t\t" + values[1] + endComma + "\t| # " + fighterName
 				i += 1
@@ -3336,6 +3353,10 @@ def deleteFighterFiles(internalName):
 			# First back everything up
 			for file in Directory.GetFiles(fighterDirectory[0]):
 				createBackup(file)
+				for directory in Directory.GetDirectories(fighterDirectory[0]):
+					for file in Directory.GetFiles(directory):
+						createBackup(file)
+					Directory.Delete(directory, True)
 			Directory.Delete(fighterDirectory[0], True)
 		writeLog("Delete fighter files complete")
 
@@ -4348,7 +4369,7 @@ def readThrowRelease(fighterId):
 				if line.StartsWith("ThrowReleaseTable"):
 					writeLog("Found throw release table at line " + str(i))
 					tableStart = i + 2
-				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+				if tableStart > 0 and i == tableStart + int(fighterId, 16) and len(line.strip()) > 0 and not line.startswith("SkipTable:"):
 					writeLog("Found matching EX fighter at position " + str(i))
 					value = line.split('|')[0]
 					returnValues.append(value.split(',')[0].strip())
@@ -4524,10 +4545,10 @@ def installFranchiseIconResult(franchiseIconId, image="", model=""):
 		importFranchiseIconResult(franchiseIconId, image, model)
 
 # Install fighter files
-def installFighterFiles(files, fighterName, oldFighterName="", changeFighterName=""):
+def installFighterFiles(folder, fighterName, oldFighterName="", changeFighterName=""):
 		if oldFighterName:
 			deleteFighterFiles(oldFighterName)
-		moveFighterFiles(files, fighterName, changeFighterName)
+		moveFighterFiles(folder, fighterName, changeFighterName)
 
 # Install module file
 def installModuleFile(file, directory, fighterId, fighterName, oldFighterName=""):
@@ -4901,25 +4922,25 @@ def getAllFighterInfo():
 
 			# Get fighter config info
 			fighterConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "*.dat"):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "Fighter*.dat"):
 				fighterConfigInfo.append(getfighterConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get slot config info
 			slotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "*.dat"):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot*.dat"):
 				slotConfigInfo.append(getSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get cosmetic config info
 			cosmeticConfigInfo = []
-			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "*.dat"):
+			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic*.dat"):
 				cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get CSS slot config info
 			cssSlotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', "*.dat"):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', "CSSSlot*.dat"):
 				cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
