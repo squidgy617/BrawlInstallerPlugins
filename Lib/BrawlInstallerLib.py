@@ -4280,10 +4280,15 @@ def extractFighterFiles(fighterName):
 		writeLog("Extracting fighter files")
 		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower()
 		if Directory.Exists(path):
-			for file in Directory.GetFiles(path, "*.pac"):
+			for file in Directory.GetFiles(path):
 				writeLog("Extracting file " + file)
 				exportPath = createDirectory(AppPath + '/temp/Fighter')
 				copyFile(file, exportPath)
+			for directory in Directory.GetDirectories(path):
+				exportPath = createDirectory(AppPath + '/temp/Fighter/' + DirectoryInfo(directory).Name)
+				for file in Directory.GetFiles(directory):
+					writeLog("Extracting file " + file)
+					copyFile(file, exportPath)
 		writeLog("Finished extracting fighter files")
 
 # Extract module file
