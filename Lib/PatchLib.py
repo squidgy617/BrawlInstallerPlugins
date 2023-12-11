@@ -515,6 +515,7 @@ def createPatch(cleanFile, alteredFile):
 # Process an individual patch file
 def processPatchFiles(patchFolder, node, progressBar):
 	writeLog("Processing patch files for " + node.Name)
+	newNode = None
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
 		patchNode = PatchNode(DirectoryInfo(directory).Name, directory, node)
@@ -574,6 +575,8 @@ def processPatchFiles(patchFolder, node, progressBar):
 			newNode.Replace(patchFile)
 			newNode.Name = patchNode.name
 			uniquePropertyUpdate(newNode)
+		if newNode and newNode.GetType().IsSubclassOf(ARCEntryNode):
+			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 
