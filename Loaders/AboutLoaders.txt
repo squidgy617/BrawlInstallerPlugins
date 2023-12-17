@@ -1,4 +1,0 @@
-﻿BrawlAPI Loaders
-
-Loaders, when enabled, are run whenever the program is booted.
-These can be used to add additional parsing, new right-click methods, and more.
