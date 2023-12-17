@@ -200,6 +200,19 @@ TROPHY_GAME_ICONS = {
 	"Game and Watch" : 10
 }
 
+TROPHY_CATEGORIES = {
+	"Fighter" : 23,
+	"Fighter Related" : 24,
+	"Final Smash" : 25,
+	"Item" : 26, 
+	"Assist Trophy" : 27,
+	"Poke Ball" : 28,
+	"The Subspace Emissary" : 29,
+	"Enemy" : 30,
+	"Stage" : 31,
+	"Others" : 32
+}
+
 COSTUME_COLOR = {
 	"Red" : 0,
 	"Blue" : 1,
@@ -2687,14 +2700,15 @@ def updateTrophyCode(slotId, trophyId, fighterName, remove=False):
 		writeLog("Finished update trophy code")
 
 # Add trophy to game
-def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, trophyId=-1):
+def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, description, seriesIndex, trophyId=-1, forceAdd=False, categoryIndex=-1, thumbnailId=None):
 		writeLog("Adding trophy " + name + " to common3.pac")
 		# First check for existing trophy entry
 		nameIndex = -1
 		gameIndex = -1
 		descriptionIndex = -1
+		trophyNode = None
 		trophyExists = False
-		if trophyId != -1:
+		if trophyId != -1 and not forceAdd:
 			writeLog("Getting current trophy values")
 			if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
 				fileOpened = openFile(MainForm.BuildPath + '/pf/system/common3.pac')
@@ -2778,27 +2792,40 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 				if fileOpened:
 					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
-					# Get first available ID
-					i = 0
-					id = 631
-					while i < len(tyDataList.Children):
-						if tyDataList.Children[i].Id == id:
-							id += 1
-							i = 0
-						else:
-							i += 1
+					if not forceAdd:
+						# Get first available ID
+						i = 0
+						id = 631
+						while i < len(tyDataList.Children):
+							if tyDataList.Children[i].Id == id or tyDataList.Children[i].ThumbnailIndex == id:
+								id += 1
+								i = 0
+							else:
+								i += 1
+					else:
+						id = trophyId
+					if forceAdd and not thumbnailId:
+						# Get first available thumbnail ID
+						i = 0
+						thumbnailId = 631
+						while i < len(tyDataList.Children):
+							if tyDataList.Children[i].ThumbnailIndex == thumbnailId or tyDataList.Children[i].ThumbnailIndex == thumbnailId:
+								thumbnailId += 1
+								i = 0
+							else:
+								i += 1
 					trophyNode = TyDataListEntryNode()
 					trophyNode.Name = name
 					trophyNode.Id = id
 					trophyNode.BRRES = name
-					trophyNode.ThumbnailIndex = id
+					trophyNode.ThumbnailIndex = id if not thumbnailId else thumbnailId
 					trophyNode.GameIcon1 = gameIcon1
 					trophyNode.GameIcon2 = gameIcon2
 					trophyNode.NameIndex = nameIndex
 					trophyNode.GameIndex = gameIndex
 					trophyNode.DescriptionIndex = descriptionIndex
 					trophyNode.SeriesIndex = seriesIndex
-					trophyNode.CategoryIndex = 23
+					trophyNode.CategoryIndex = 23 if categoryIndex <= -1 else categoryIndex
 					trophyNode.Unknown0x34 = 1
 					trophyNode.Unknown0x38 = 1
 					trophyNode.Unknown0x40 = 1
@@ -2808,14 +2835,13 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 					trophyNode.Unknown0x58 = 1.23
 					trophyNode.Unknown0x5C = 1.25
 					tyDataList.AddChild(trophyNode)
-					trophyId = id
 					# After adding our trophy, move the <null> trophy to the end of the list
 					nullNode = getChildByName(tyDataList, "<null>")
 					moveNodeToEnd(nullNode)
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished add trophy")
-		return trophyId
+		return trophyNode
 
 # Add trophy thumbnail
 def importTrophyThumbnail(imagePath, trophyId):
@@ -3733,7 +3759,7 @@ def deleteNewcomerFile(cosmeticConfigId):
 		writeLog("Finished delete SSE newcomer file")
 
 # Remove trophy
-def removeTrophy(trophyId):
+def removeTrophy(trophyId, trophyNodeToRemove=None):
 		writeLog("Removing trophy with ID " + str(trophyId))
 		nameIndex = -1
 		gameIndex = -1
@@ -3747,7 +3773,7 @@ def removeTrophy(trophyId):
 					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
 					for trophyNode in tyDataList.Children:
-						if trophyNode.Id == trophyId:
+						if trophyNode.Id == trophyId or (trophyNodeToRemove and trophyNode.Name == trophyNodeToRemove.Name):
 							nameIndex = trophyNode.NameIndex
 							gameIndex = trophyNode.GameIndex
 							descriptionIndex = trophyNode.DescriptionIndex
@@ -3857,8 +3883,18 @@ def uninstallTrophy(slotId, uninstallFromSse):
 			updateTrophyCode(slotId, hexId(trophyIdInt), "", True)
 		if bresName and trophyIdInt > 630:
 			deleteTrophyModel(bresName)
-		if uninstallFromSse and trophyIdInt > 630:
+		if uninstallFromSse == "true" and trophyIdInt > 630:
 			updateTrophySSE(slotId, hexId(trophyIdInt).replace('0x', ''), True)
+
+def uninstallTrophyGeneric(trophy, slotId="", uninstallFromSse="false"):
+		bresName = removeTrophy(-1, trophy)
+		removeTrophyThumbnail(trophy.ThumbnailIndex)
+		if bresName:
+			deleteTrophyModel(bresName)
+		if slotId:
+			updateTrophyCode(slotId, hexId(trophy.Id), "", True)
+			if uninstallFromSse == "true":
+				updateTrophySSE(slotId, hexId(trophy.Id).replace('0x', ''), True)
 
 # Remove an L-load code entry
 def removeAltCharacter(cssSlotId):
@@ -4588,8 +4624,13 @@ def installCreditsTheme(file, slotId):
 		updateCreditsCode(slotId, creditsThemeId)
 
 # Install trophy
-def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse):
-		trophyIdHex = getSlotTrophyInfo(slotId)[1]
+def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings, installToSse, trophyIdHex=None, thumbnailId=None):
+		forceAdd = False
+		if not trophyIdHex:
+			trophyIdHex = getSlotTrophyInfo(slotId)[1]
+		else:
+			forceAdd = True
+		returnedTrophyId = -1
 		if trophyIdHex:
 			trophyIdInt = int(trophyIdHex.replace('0x', ''), 16)
 		else:
@@ -4598,13 +4639,17 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings,
 			bresName = getFileInfo(brresPath).Name.replace('.brres','')
 			deleteTrophyModel(bresName)
 			importTrophyModel(brresPath)
-			returnedTrophyId = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt)
+			trophyNode = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt, forceAdd=forceAdd, categoryIndex=trophySettings.categoryIndex, thumbnailId=thumbnailId)
+			returnedTrophyId = trophyNode.Id
 			if File.Exists(thumbnailPath):
-				removeTrophyThumbnail(returnedTrophyId)
-				importTrophyThumbnail(thumbnailPath, returnedTrophyId)
-			updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
-		if installToSse == "true":
+				thumbnailId = thumbnailId if thumbnailId else trophyNode.ThumbnailIndex
+				removeTrophyThumbnail(thumbnailId)
+				importTrophyThumbnail(thumbnailPath, thumbnailId)
+			if slotId:
+				updateTrophyCode(slotId, hexId(returnedTrophyId), fighterName)
+		if installToSse == "true" and slotId:
 			updateTrophySSE(slotId, hexId(returnedTrophyId).replace('0x', ''))
+		return returnedTrophyId if returnedTrophyId else trophyIdInt
 
 # Assign trophy ID for existing trophies
 def assignTrophy(slotId, trophyId, fighterName, installToSse):
@@ -5276,6 +5321,7 @@ class TrophySettings:
 		gameName1 = ""
 		gameName2 = ""
 		seriesIndex = 0
+		categoryIndex = -1
 
 class InstallOption:
 		def __init__(self, folder, name="", description=""):
