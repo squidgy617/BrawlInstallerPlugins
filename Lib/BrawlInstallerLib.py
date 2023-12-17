@@ -579,6 +579,16 @@ def copyFile(sourcePath, destinationPath, backup=True):
 			createBackup(destinationPath + '/' + getFileInfo(sourcePath).Name)
 		File.Copy(sourcePath, destinationPath + '/' + getFileInfo(sourcePath).Name, True)
 
+# Helper method to more easily copy directories
+def copyDirectory(sourcePath, destinationPath, backup=True):
+		writeLog("Copying folder " + sourcePath + " to " + destinationPath)
+		newPath = Path.Combine(destinationPath, DirectoryInfo(sourcePath).Name)
+		Directory.CreateDirectory(newPath)
+		for file in Directory.GetFiles(sourcePath):
+			if backup:
+				createBackup(newPath + '/' + getFileInfo(file).Name)
+			File.Copy(file, newPath + '/' + getFileInfo(file).Name)
+
 # Helper method to create a backup of the provided file with correct folder structure
 def createBackup(sourcePath):
 		writeLog("Creating backup of file " + sourcePath)
@@ -1120,11 +1130,13 @@ def createBPs(cosmeticId, images, fiftyCC="true", startIndex=1):
 		newId = (cosmeticId * 50) + startIndex if fiftyCC == "true" else int(str(cosmeticId) + str(startIndex))
 		# Create a BP file for each texture
 		for image in images:
-			outputPath = MainForm.BuildPath + '/pf/info/portrite/InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + '.brres'
+			outputName = 'InfFace' + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3)
+			outputPath = MainForm.BuildPath + '/pf/info/portrite/' + outputName + '.brres'
 			# If the file exists already, make a backup (probably will never hit this because of the delete coming first on install but just in case)
 			createBackup(outputPath)
 			BrawlAPI.New[BRRESNode]()
-			importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
+			texture = importTexture(BrawlAPI.RootNode, image, WiiPixelFormat.CI8)
+			texture.Name = outputName
 			BrawlAPI.SaveFileAs(outputPath)
 			newId += 1
 		writeLog("Finished creating BPs")
@@ -1641,20 +1653,27 @@ def createNewcomerFile(cosmeticConfigId, iconImagePath):
 		writeLog("Finished creating newcomer file")
 
 # Move fighter files to fighter folder
-def moveFighterFiles(files, fighterName, originalFighterName=""):
+def moveFighterFiles(folder, fighterName, originalFighterName=""):
 		writeLog("Attempting to move fighter files")
-		for file in files:
-			file = getFileInfo(file)
-			# TODO: rename files based on fighter name?
-			if originalFighterName != "":
-				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
-			else:
-				path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + file.Name
-			# Back up if already exists
-			createBackup(path)
-			getFileInfo(path).Directory.Create()
-			File.Copy(file.FullName, path, 1)
+		for file in Directory.GetFiles(folder):
+			moveFighterFile(file, originalFighterName, fighterName)
+		for directory in Directory.GetDirectories(folder):
+			for file in Directory.GetFiles(directory):
+				moveFighterFile(file, originalFighterName, fighterName, subfolder=DirectoryInfo(directory).Name)
 		writeLog("Finished moving fighter files")
+
+def moveFighterFile(file, originalFighterName, fighterName, subfolder=""):
+	file = getFileInfo(file)
+	# TODO: rename files based on fighter name?
+	subfolder = ('/' + subfolder + '/') if subfolder else ""
+	if originalFighterName != "":
+		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower().replace(originalFighterName.lower(), fighterName) + '/' + subfolder + file.Name.lower().replace(originalFighterName.lower(), fighterName.lower())
+	else:
+		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower() + '/' + subfolder + file.Name
+	# Back up if already exists
+	createBackup(path)
+	getFileInfo(path).Directory.Create()
+	File.Copy(file.FullName, path, 1)
 
 # Get unavailable costume IDs
 def getUsedCostumeIds(cssSlotConfigId):
@@ -2103,6 +2122,7 @@ def addToCodeMenu(fighterName, fighterId, assemblyFunctionExe):
 			except XPathException as e:
 					xmlNodes = []
 			for node in xmlNodes:
+				existingNode = None
 				for childNode in node.SelectNodes("character"):
 					slotId = childNode.Attributes["slotID"].Value
 					if slotId == '0x' + fighterId:
@@ -2303,7 +2323,7 @@ def updateThrowRelease(fighterId, fighterName, values):
 				if line.StartsWith("ThrowReleaseTable"):
 					writeLog("Found throw release table at line " + str(i))
 					tableStart = i + 2
-				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+				if tableStart > 0 and i == tableStart + int(fighterId, 16) and len(line.strip()) > 0 and not line.startswith("SkipTable:"):
 					writeLog("Found matching EX fighter at position " + str(i))
 					fileText[i] = "\t" + values[0] + ",\t\t" + values[1] + endComma + "\t| # " + fighterName
 				i += 1
@@ -3349,6 +3369,10 @@ def deleteFighterFiles(internalName):
 			# First back everything up
 			for file in Directory.GetFiles(fighterDirectory[0]):
 				createBackup(file)
+				for directory in Directory.GetDirectories(fighterDirectory[0]):
+					for file in Directory.GetFiles(directory):
+						createBackup(file)
+					Directory.Delete(directory, True)
 			Directory.Delete(fighterDirectory[0], True)
 		writeLog("Delete fighter files complete")
 
@@ -3583,6 +3607,7 @@ def removeFromCodeMenu(fighterId, assemblyFunctionExe):
 			except XPathException as e:
 					xmlNodes = []
 			for node in xmlNodes:
+				existingNode = None
 				for childNode in node.SelectNodes("character"):
 					slotId = childNode.Attributes["slotID"].Value
 					if slotId == '0x' + fighterId:
@@ -3959,14 +3984,17 @@ def extractCSPs(cosmeticId):
 				texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
 				if texFolder:
 					i = 1
+					j = 1
 					for child in texFolder.Children:
 						# Export each child to temp folder
 						writeLog("Exporting CSP " + child.Name)
 						exportPath = createDirectory(AppPath + '/temp/CSPs/' + addLeadingZeros(str(i), 4))
-						child.Export(exportPath + '/' + child.Name + '.png')
+						child.Export(exportPath + '/' + addLeadingZeros(str(j), 4) + '.png')
+						j += 1
 						# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
 						if not child.SharesData:
 							i += 1
+							j = 1
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished exporting CSPs")
 
@@ -3981,10 +4009,10 @@ def extractCSSIcon(cosmeticId, folderName):
 			nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
 			exportPath = createDirectory(AppPath + '/temp/CSSIcon/' + folderName)
 			if tex0Node:
-				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+				tex0Node.Export(exportPath + '/' + 'Icon.png')
 			if nameNode:
 				exportPath = createDirectory(exportPath + '/Name')
-				nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+				nameNode.Export(exportPath + '/' + 'Name.png')
 		writeLog("Finished extracting CSS icon")
 
 # Extract CSS icon
@@ -3998,10 +4026,10 @@ def extractCSSIconSSE(cosmeticId):
 				nameNode = getChildByName(texFolder, "MenSelchrChrNmS." + addLeadingZeros(str(cosmeticId), 3))
 				exportPath = createDirectory(AppPath + '/temp/CSSIcon/vBrawl')
 				if tex0Node:
-					tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+					tex0Node.Export(exportPath + '/' + 'Icon.png')
 				if nameNode:
 					exportPath = createDirectory(exportPath + '/Name')
-					nameNode.Export(exportPath + '/' + nameNode.Name + '.png')
+					nameNode.Export(exportPath + '/' + 'Name.png')
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished extracting CSS icon")
 
@@ -4015,7 +4043,7 @@ def extractPortraitName(cosmeticId, folderName):
 			tex0Node = getChildByName(texFolder, "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId), 2) + '1')
 			if tex0Node:
 				exportPath = createDirectory(AppPath + '/temp/PortraitName/' + folderName)
-				tex0Node.Export(exportPath + '/' + tex0Node.Name + '.png')
+				tex0Node.Export(exportPath + '/' + 'Name.png')
 		writeLog("Finished extracting portrait name")
 
 # Extract stock icons
@@ -4038,16 +4066,19 @@ def extractStockIcons(cosmeticId, tex0BresName, rootName="", filePath='/pf/info2
 				texNodeNames = []
 				cap = ((cosmeticId * 50) + 50) if fiftyCC == "true" else int(str(cosmeticId) + "0") + 10
 				i = 1
+				j = 1
 				while newId <= cap:
 					if texFolder:
 						texNode = getChildByName(texFolder, "InfStc." + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3))
 						if texNode:
 							texNodeNames.append(texNode.Name)
 							exportPath = createDirectory(AppPath + '/temp/StockIcons/' + addLeadingZeros(str(i), 4))
-							texNode.Export(exportPath + '/' + texNode.Name + '.png')
+							texNode.Export(exportPath + '/' + addLeadingZeros(str(j), 4) + '.png')
+							j += 1
 							# If it doesn't share data, it is either the end of a color smash group, or standalone, so create a new folder
 							if not texNode.SharesData:
 								i += 1
+								j = 1
 						else:
 							break
 						newId += 1
@@ -4065,7 +4096,7 @@ def extractFranchiseIcon(franchiseIconId, filePath):
 			textureNode = getChildByName(texFolder, nodeName)
 			if textureNode:
 				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Black')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+				textureNode.Export(exportPath + '/' + 'FranchiseIcon.png')
 		writeLog("Finished extracting franchise icon")
 
 # Extract BP name
@@ -4082,7 +4113,7 @@ def extractBPName(cosmeticId, filePath, folderName):
 					textureNode = getChildByName(texFolder, nodeName)
 					if textureNode:
 						exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName + '/Name')
-						textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+						textureNode.Export(exportPath + '/' + 'Name.png')
 		writeLog("Finished extracting BP name")
 
 # Extract Classic intro
@@ -4104,14 +4135,14 @@ def extractFranchiseIconResult(franchiseIconId):
 			textureNode = getChildByName(texFolder, "MenSelchrMark." + addLeadingZeros(str(franchiseIconId), 2))
 			if textureNode:
 				exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Transparent')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+				textureNode.Export(exportPath + '/' + 'FranchiseIcon.png')
 			else:
 				# Extract 3D model
 				modelFolder = getChildByName(node, "3DModels(NW4R)")
 				mdl0Node = getChildByName(modelFolder, "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN")
 				if mdl0Node:
 					exportPath = createDirectory(AppPath + '/temp/FranchiseIcons/Model')
-					mdl0Node.Export(exportPath + '/' + mdl0Node.Name + '.mdl0')
+					mdl0Node.Export(exportPath + '/' + 'FranchiseIcon.mdl0')
 		writeLog("Finished extracting franchise icon")
 
 # Extract BPs
@@ -4121,6 +4152,7 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 		newId = (cosmeticId * 50) + 1 if fiftyCC == "true" else int(str(cosmeticId) + "1")
 		directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/info/portrite')
 		# Look for files matching naming scheme and extract them
+		i = 1
 		while ((newId <= (cosmeticId * 50) + 50) if fiftyCC == "true" else (newId <= cosmeticId + 10)):
 			if File.Exists(MainForm.BuildPath + '/pf/info/portrite/' + "InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres"):
 				bpFile = getFileByName("InfFace" + addLeadingZeros(str(newId), 4 if fiftyCC == "true" else 3) + ".brres", directory)
@@ -4133,7 +4165,8 @@ def extractBPs(cosmeticId, folderName, fiftyCC="true"):
 							if texFolder.Children:
 								writeLog("Extracting texture " + texFolder.Children[0].Name)
 								exportPath = createDirectory(AppPath + '/temp/BPs/' + folderName)
-								texFolder.Children[0].Export(exportPath + '/' + bpFile.Name.replace('.brres','') + '.png')
+								texFolder.Children[0].Export(exportPath + '/' + addLeadingZeros(str(i), 4) + '.png')
+								i += 1
 								writeLog("Extracted texture")
 						BrawlAPI.ForceCloseFile()
 			else:
@@ -4155,7 +4188,7 @@ def extractReplayIcon(cosmeticId, replayIconStyle=""):
 					exportPath = createDirectory(AppPath + '/temp/ReplayIcon/' + replayIconStyle)
 				else:
 					exportPath = createDirectory(AppPath + '/temp/ReplayIcon')
-				textureNode.Export(exportPath + '/' + textureNode.Name + '.png')
+				textureNode.Export(exportPath + '/' + 'Replay.png')
 		writeLog("Finished extracting replay icon")
 
 # Extract soundbank
@@ -4263,10 +4296,15 @@ def extractFighterFiles(fighterName):
 		writeLog("Extracting fighter files")
 		path = MainForm.BuildPath + '/pf/fighter/' + fighterName.lower()
 		if Directory.Exists(path):
-			for file in Directory.GetFiles(path, "*.pac"):
+			for file in Directory.GetFiles(path):
 				writeLog("Extracting file " + file)
 				exportPath = createDirectory(AppPath + '/temp/Fighter')
 				copyFile(file, exportPath)
+			for directory in Directory.GetDirectories(path):
+				exportPath = createDirectory(AppPath + '/temp/Fighter/' + DirectoryInfo(directory).Name)
+				for file in Directory.GetFiles(directory):
+					writeLog("Extracting file " + file)
+					copyFile(file, exportPath)
 		writeLog("Finished extracting fighter files")
 
 # Extract module file
@@ -4352,7 +4390,7 @@ def readThrowRelease(fighterId):
 				if line.StartsWith("ThrowReleaseTable"):
 					writeLog("Found throw release table at line " + str(i))
 					tableStart = i + 2
-				if tableStart > 0 and i == tableStart + int(fighterId, 16):
+				if tableStart > 0 and i == tableStart + int(fighterId, 16) and len(line.strip()) > 0 and not line.startswith("SkipTable:"):
 					writeLog("Found matching EX fighter at position " + str(i))
 					value = line.split('|')[0]
 					returnValues.append(value.split(',')[0].strip())
@@ -4528,10 +4566,10 @@ def installFranchiseIconResult(franchiseIconId, image="", model=""):
 		importFranchiseIconResult(franchiseIconId, image, model)
 
 # Install fighter files
-def installFighterFiles(files, fighterName, oldFighterName="", changeFighterName=""):
+def installFighterFiles(folder, fighterName, oldFighterName="", changeFighterName=""):
 		if oldFighterName:
 			deleteFighterFiles(oldFighterName)
-		moveFighterFiles(files, fighterName, changeFighterName)
+		moveFighterFiles(folder, fighterName, changeFighterName)
 
 # Install module file
 def installModuleFile(file, directory, fighterId, fighterName, oldFighterName=""):
@@ -4913,25 +4951,25 @@ def getAllFighterInfo():
 
 			# Get fighter config info
 			fighterConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "*.dat"):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/FighterConfig', "Fighter*.dat"):
 				fighterConfigInfo.append(getfighterConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get slot config info
 			slotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "*.dat"):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/SlotConfig', "Slot*.dat"):
 				slotConfigInfo.append(getSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get cosmetic config info
 			cosmeticConfigInfo = []
-			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "*.dat"):
+			for file in  Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CosmeticConfig', "Cosmetic*.dat"):
 				cosmeticConfigInfo.append(getCosmeticConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)
 			# Get CSS slot config info
 			cssSlotConfigInfo = []
-			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', "*.dat"):
+			for file in Directory.GetFiles(MainForm.BuildPath + '/pf/BrawlEx/CSSSlotConfig', "CSSSlot*.dat"):
 				cssSlotConfigInfo.append(getCssSlotConfigInfo(file))
 				progressCounter += 1
 				progressBar.Update(progressCounter)

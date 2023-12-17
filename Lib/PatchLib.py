@@ -19,21 +19,27 @@ CONTAINERS = [
 	"BrawlLib.SSBB.ResourceNodes.TyDataNode",
 	"BrawlLib.SSBB.ResourceNodes.TyDataListNode",
 	"BrawlLib.SSBB.ResourceNodes.GDORNode",
+	"BrawlLib.SSBB.ResourceNodes.GDBFNode",
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode",
-	"BrawlLib.SSBB.ResourceNodes.ItmFreqNode",
-	"BrawlLib.SSBB.ResourceNodes.ItmTableNode",
-	"BrawlLib.SSBB.ResourceNodes.ItmTableGroupNode",
+	# "BrawlLib.SSBB.ResourceNodes.ItmFreqNode",
+	# "BrawlLib.SSBB.ResourceNodes.ItmTableNode",
+	# "BrawlLib.SSBB.ResourceNodes.ItmTableGroupNode",
 	"BrawlLib.SSBB.ResourceNodes.GIB2Node",
 	"BrawlLib.SSBB.ResourceNodes.GMOVNode",
 	"BrawlLib.SSBB.ResourceNodes.GET1Node",
 	"BrawlLib.SSBB.ResourceNodes.GLK2Node",
-	"BrawlLib.SSBB.ResourceNodes.GNDVNode"
+	"BrawlLib.SSBB.ResourceNodes.GNDVNode",
+	"BrawlLib.SSBB.ResourceNodes.GEG1Node"
 ]
 FOLDERS = [
 	"BrawlLib.SSBB.ResourceNodes.BRESGroupNode",
 	"BrawlLib.SSBB.ResourceNodes.MDL0GroupNode"
 ]
 PARAM_BLACKLIST = [ "FileType", "FileIndex", "GroupID", "RedirectIndex", "RedirectTarget" ]
+# MDL0GroupNode is blacklisted because it is handled by getGroupNodeTypeFromParent
+NODE_BLACKLIST = [ "BrawlLib.SSBB.ResourceNodes.MDL0GroupNode" ]
+# Nodes that should never have params exported - bones shouldn't because they should always be fully replaced
+NODE_NOPARAMS = [ "BrawlLib.SSBB.ResourceNodes.MDL0BoneNode" ]
 UNIQUE_PROPERTIES = [ "BoneIndex" ]
 
 # Temporary check to make sure the user has the necessary version to run the plugin
@@ -71,10 +77,10 @@ class NodeInfo:
 class PatchNode:
 		def __init__(self, patchNodeName, path, parentNode=None):
 			self.containerIndex = int(patchNodeName.split('$$')[0])
-			self.name = str(HttpUtility.UrlDecode(patchNodeName.split('$$')[1].replace(".tex0", ""), Encoding.ASCII))
+			self.name = str(HttpUtility.UrlDecode(removeFlags(patchNodeName.split('$$')[1]), Encoding.ASCII))
 			# Get info for node
-			if File.Exists(path.replace(".tex0", "").replace("$$R", "") + '$$I'):
-				attributes = File.ReadAllLines(path.replace(".tex0", "").replace("$$R", "") + '$$I')
+			if File.Exists(removeFlags(path) + '$$I'):
+				attributes = File.ReadAllLines(removeFlags(path) + '$$I')
 				self.typeString = readValueFromKey(attributes, "nodeType")
 				self.action = readValueFromKey(attributes, "action")
 				self.groupName = readValueFromKey(attributes, "groupName")
@@ -282,6 +288,19 @@ def getNodeGroupName(node):
 			groupName = node.Name
 		return groupName
 
+# Get NodePath for a node
+def getNodePath(node):
+		pathNodeNames = []
+		while node.Parent:
+			pathNodeNames.insert(0, getPatchNodeName(node))
+			node = node.Parent
+		nodePath = ""
+		i = 0
+		while i < len(pathNodeNames):
+			nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
+			i += 1
+		return nodePath
+
 # Get NodeObjects for all patch nodes in file
 def getNodeObjects(filePath, closeFile=True):
 		writeLog("Getting node objects for file " + filePath)
@@ -291,16 +310,7 @@ def getNodeObjects(filePath, closeFile=True):
 			#fileNodes = BrawlAPI.RootNode.GetChildrenRecursive()
 			fileNodes = getPatchNodes(BrawlAPI.RootNode)
 			for fileNode in fileNodes:
-				currentNode = fileNode
-				pathNodeNames = []
-				while currentNode.Parent:
-					pathNodeNames.insert(0, getPatchNodeName(currentNode))
-					currentNode = currentNode.Parent
-				nodePath = ""
-				i = 0
-				while i < len(pathNodeNames):
-					nodePath += pathNodeNames[i] + '\\' if i < len(pathNodeNames) - 1 else ''
-					i += 1
+				nodePath = getNodePath(fileNode)
 				fileNodeList.append(NodeObject(fileNode, fileNode.MD5Str(), nodePath))
 		if closeFile:
 			BrawlAPI.ForceCloseFile()
@@ -337,16 +347,43 @@ def generateNodeInfo(nodeType, index, action, path, groupName="", forceAdd=False
 		attrs = vars(nodeInfo)
 		File.WriteAllText(path, '\n'.join("%s = %s" % item for item in attrs.items()))
 
+# Remove flags from a node filename or path
+def removeFlags(nodeString):
+		# Remove file extensions
+		nodeString = nodeString.replace(".tex0", "")
+		# Remove flags
+		flags = ["$$R", "$$I", "$$P", "$$S"]
+		for flag in flags:
+			if nodeString.endswith(flag):
+				nodeString = "".join(nodeString.rsplit(flag, 1))
+		return nodeString
+
+# Apply settings file to a node if one exists
+def applyNodeSettings(node, path):
+	filePath = path + "$$S"
+	# If there's a settings file, apply the special settings
+	if File.Exists(filePath):
+		fileText = File.ReadAllLines(filePath)
+		fileType = readValueFromKey(fileText, "FileType")
+		if fileType:
+			node.FileType = ARCFileType[fileType]
+		node.FileIndex = int(readValueFromKey(fileText, "FileIndex"))
+		node.GroupID = int(readValueFromKey(fileText, "GroupID"))
+		node.RedirectIndex = int(readValueFromKey(fileText, "RedirectIndex"))
+		node.RedirectTarget = readValueFromKey(fileText, "RedirectTarget")
+	return node
+
 # Update patch data based on selected form options
 def updatePatch(form):
 		for removedNode in form.uncheckedNodes:
 			# Always delete info for unchecked nodes
-			if File.Exists(removedNode.path.replace(".tex0", "") + "$$I"):
-				File.Delete(removedNode.path.replace(".tex0", "") + "$$I")
-			if File.Exists(removedNode.path + "$$P"):
-				File.Delete(removedNode.path + "$$P")
-			if File.Exists(removedNode.path + "$$S"):
-				File.Delete(removedNode.path + "$$S")
+			flaglessPath = removeFlags(removedNode.path)
+			if File.Exists(flaglessPath + "$$I"):
+				File.Delete(flaglessPath + "$$I")
+			if File.Exists(flaglessPath + "$$P"):
+				File.Delete(flaglessPath + "$$P")
+			if File.Exists(flaglessPath + "$$S"):
+				File.Delete(flaglessPath + "$$S")
 			# Remove any files or folders for the node
 			if Directory.Exists(removedNode.path):
 				Directory.Delete(removedNode.path, True)
@@ -360,35 +397,57 @@ def updatePatch(form):
 					changedNode.action = "REPLACE"
 					if Directory.Exists(changedNode.path):
 						Directory.Delete(changedNode.path, True)
-					if File.Exists(changedNode.path.replace(".tex0", "") + "$$P"):
-						File.Move(changedNode.path.replace(".tex0", "") + "$$P", changedNode.path.replace(".tex0", ""))
+					flaglessPath = removeFlags(changedNode.path)
+					if File.Exists(flaglessPath + "$$P"):
+						File.Move(flaglessPath + "$$P", flaglessPath)
 				generateNodeInfo(changedNode.fullType, changedNode.index, changedNode.action, changedNode.path + "$$I", changedNode.groupName, changedNode.forceAdd)
 
 # Export node for a patch and create directory if it can't be found
-def exportPatchNode(nodeObject, add=False):
+def exportPatchNode(nodeObject, add=False, recursive=False):
 		writeLog("Exporting patch node " + nodeObject.node.TreePathAbsolute)
+		# Only export if parent node was not already exported (e.g. a MDL0 was exported, meaning it wasn't a container in one of the files)
+		node = nodeObject.node
+		while node.Parent:
+			parentPath = getNodePath(node.Parent)
+			parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(node.Parent)
+			if File.Exists(parentFile):
+				writeLog("Parent node was already exported.")
+				return
+			node = node.Parent
+		# Create directory if it doesn't exist
 		createDirectory(TEMP_PATH + '\\' + nodeObject.patchNodePath)
 		action = ""
 		groupName = ""
 		# If it's a real node, export it
-		if nodeObject.node.MD5Str():
-			action = "ADD" if add else "PARAM" if isContainer(nodeObject.node) else ""
-			groupName = getNodeGroupName(nodeObject.node)
-			patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
-			nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
-			if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
-				nodeObject.node.Export(patchNodePath + ".png")
-			# Export special settings for ARCEntry nodes
-			if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
-				arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
-				attrs = vars(arcEntry)
-				File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "S"), '\n'.join("%s = %s" % item for item in attrs.items()))
-		# Otherwise, create a flagged to indicate removal
-		else:
+		if nodeObject.node.MD5Str() or recursive:
+			if nodeObject.node.MD5Str() and nodeObject.node.NodeType not in NODE_BLACKLIST:
+				action = "ADD" if add else "PARAM" if isContainer(nodeObject.node) else ""
+				groupName = getNodeGroupName(nodeObject.node)
+				patchNodePath = TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "P" if isContainer(nodeObject.node) else "")
+				if not (isContainer(nodeObject.node) and nodeObject.node.NodeType in NODE_NOPARAMS):
+					nodeObject.node.Export(patchNodePath + (".tex0" if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" else ""))
+				# Export image for preview if eligible
+				if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node":
+					nodeObject.node.Export(patchNodePath + ".png")
+				# Export special settings for ARCEntry nodes
+				if nodeObject.node.GetType().IsSubclassOf(ARCEntryNode):
+					arcEntry = ARCEntry(nodeObject.node.FileType, nodeObject.node.FileIndex, nodeObject.node.GroupID, nodeObject.node.RedirectIndex, nodeObject.node.RedirectTarget)
+					attrs = vars(arcEntry)
+					File.WriteAllText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "S"), '\n'.join("%s = %s" % item for item in attrs.items()))
+			# Export parent nodes if they exist
+			if nodeObject.node.Parent and isContainer(nodeObject.node.Parent) and nodeObject.node.Parent != BrawlAPI.RootNode:
+				parentPath = getNodePath(nodeObject.node.Parent)
+				parentFile = TEMP_PATH + '\\' + parentPath + '\\' + getPatchNodeName(nodeObject.node.Parent, "P")
+				if not File.Exists(parentFile):
+					parentObject = NodeObject(nodeObject.node.Parent, nodeObject.node.Parent.MD5Str(), parentPath)
+					exportPatchNode(parentObject, recursive=True)
+		# Otherwise, create a flag to indicate removal
+		elif not recursive:
 			action = "REMOVE"
 			File.CreateText(TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "R")).Close()
 		# No matter what, create an info node so we can gather all necessary info about it
-		generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
+		if nodeObject.node.NodeType not in NODE_BLACKLIST:
+			generateNodeInfo(nodeObject.node.NodeType, getPatchNodeIndex(nodeObject.node), action, TEMP_PATH + '\\' + nodeObject.patchNodePath + '\\' + getPatchNodeName(nodeObject.node, "I"), groupName)
 		writeLog("Exported patch node")
 
 # Create a patch file
@@ -456,6 +515,7 @@ def createPatch(cleanFile, alteredFile):
 # Process an individual patch file
 def processPatchFiles(patchFolder, node, progressBar):
 	writeLog("Processing patch files for " + node.Name)
+	newNode = None
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
 		patchNode = PatchNode(DirectoryInfo(directory).Name, directory, node)
@@ -468,17 +528,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 		if newNode:
 			processPatchFiles(directory, newNode, progressBar)
 		if newNode.GetType().IsSubclassOf(ARCEntryNode):
-			filePath = patchNode.path + "$$S"
-			# If there's a settings file, apply the special settings
-			if File.Exists(filePath):
-				fileText = File.ReadAllLines(filePath)
-				fileType = readValueFromKey(fileText, "FileType")
-				if fileType:
-					newNode.FileType = ARCFileType[fileType]
-				newNode.FileIndex = int(readValueFromKey(fileText, "FileIndex"))
-				newNode.GroupID = int(readValueFromKey(fileText, "GroupID"))
-				newNode.RedirectIndex = int(readValueFromKey(fileText, "RedirectIndex"))
-				newNode.RedirectTarget = readValueFromKey(fileText, "RedirectTarget")
+			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 	# Import any node files in the directory
@@ -503,10 +553,12 @@ def processPatchFiles(patchFolder, node, progressBar):
 				if patchNode.action == "PARAM":
 					writeLog("Updating params for " + foundNode.Name)
 					tempNode = createNodeFromString(patchNode.type)
+					name = foundNode.Name
 					node.AddChild(tempNode)
 					tempNode.Replace(patchFile)
 					copyNodeProperties(tempNode, foundNode)
 					tempNode.Remove()
+					foundNode.Name = name
 					uniquePropertyUpdate(foundNode)
 			# If a replace node can't be found, add it
 			elif patchNode.action == "REPLACE" or patchNode.action == "ADD":
@@ -523,6 +575,8 @@ def processPatchFiles(patchFolder, node, progressBar):
 			newNode.Replace(patchFile)
 			newNode.Name = patchNode.name
 			uniquePropertyUpdate(newNode)
+		if newNode and newNode.GetType().IsSubclassOf(ARCEntryNode):
+			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
 

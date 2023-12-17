@@ -157,6 +157,8 @@ def promptCostumeUninstall(cosmeticsOnly=False):
 				else:
 					costumeSet = True
 				i += 1
+
+			newPositions = positions
 					
 			BrawlAPI.ForceCloseFile()
 
