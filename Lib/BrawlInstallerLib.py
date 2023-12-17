@@ -3749,7 +3749,7 @@ def deleteNewcomerFile(cosmeticConfigId):
 		writeLog("Finished delete SSE newcomer file")
 
 # Remove trophy
-def removeTrophy(trophyId):
+def removeTrophy(trophyId, trophyNodeToRemove=None):
 		writeLog("Removing trophy with ID " + str(trophyId))
 		nameIndex = -1
 		gameIndex = -1
@@ -3763,7 +3763,7 @@ def removeTrophy(trophyId):
 					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
 					for trophyNode in tyDataList.Children:
-						if trophyNode.Id == trophyId:
+						if trophyNode.Id == trophyId or trophyNode.Name == trophyNodeToRemove.Name:
 							nameIndex = trophyNode.NameIndex
 							gameIndex = trophyNode.GameIndex
 							descriptionIndex = trophyNode.DescriptionIndex
@@ -3873,8 +3873,18 @@ def uninstallTrophy(slotId, uninstallFromSse):
 			updateTrophyCode(slotId, hexId(trophyIdInt), "", True)
 		if bresName and trophyIdInt > 630:
 			deleteTrophyModel(bresName)
-		if uninstallFromSse and trophyIdInt > 630:
+		if uninstallFromSse == "true" and trophyIdInt > 630:
 			updateTrophySSE(slotId, hexId(trophyIdInt).replace('0x', ''), True)
+
+def uninstallTrophyGeneric(trophy, slotId="", uninstallFromSse="false"):
+		bresName = removeTrophy(-1, trophy)
+		removeTrophyThumbnail(trophy.ThumbnailIndex)
+		if bresName:
+			deleteTrophyModel(bresName)
+		if slotId:
+			updateTrophyCode(slotId, hexId(trophy.Id), "", True)
+			if uninstallFromSse == "true":
+				updateTrophySSE(slotId, hexId(trophy.Id).replace('0x', ''), True)
 
 # Remove an L-load code entry
 def removeAltCharacter(cssSlotId):

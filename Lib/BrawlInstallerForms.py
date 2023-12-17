@@ -25,8 +25,21 @@ def showIdForm(title="Enter ID", buttonText="Select", idType="fighter", labelTex
         form.Dispose()
         return id
 
+# General function to show node picker
+def showNodePicker(nodeType="trophy", customList=[]):
+        form = IdPicker(nodeType, customList)
+        node = None
+        result = form.ShowDialog(MainForm.Instance)
+        if result == DialogResult.OK:
+            node = form.idListBox.SelectedItem
+        form.Dispose()
+        return node
+
 # General function to show ID picker
 def showIdPicker(idType="fighter", customList=[]):
+        if "Image" in idType:
+            id = showImageIdPicker(idType.replace('Image',''))
+            return id
         form = IdPicker(idType, customList)
         id = ""
         result = form.ShowDialog(MainForm.Instance)
@@ -36,14 +49,16 @@ def showIdPicker(idType="fighter", customList=[]):
         return id
 
 # General function to show image ID picker
-# imageTypes: cosmetic, franchise
+# imageTypes: cosmetic, franchise, trophy
 def showImageIdPicker(imageType="cosmetic"):
         id = ""
         if imageType == "cosmetic":
             imageNodes = getCosmeticNodes()
         elif imageType == "franchise":
             imageNodes = getFranchiseIconNodes()
-        labelText = "Cosmetic ID:" if imageType == "cosmetic" else "Icon ID:"
+        elif imageType == "trophy":
+            imageNodes = getTrophyThumbnailNodes()
+        labelText = "Cosmetic ID:" if imageType == "cosmetic" else "Icon ID:" if imageType == "franchise" else "Thumbnail ID:"
         form = ImageIdPicker(imageNodes, labelText)
         result = form.ShowDialog(MainForm.Instance)
         if result == DialogResult.OK:
@@ -64,6 +79,20 @@ def getTracklistNodes(tracklist):
                 songNodes.append(node)
             BrawlAPI.ForceCloseFile()
     return songNodes
+
+def getTrophyNodes():
+    trophyNodes = []
+    if File.Exists(MainForm.BuildPath + '/pf/system/common3.pac'):
+        opened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/system/common3.pac')
+        if opened:
+            tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
+            if tyDataNode:
+                tyDataList = getChildByName(tyDataNode, "tyDataList")
+                if tyDataList:
+                    for node in tyDataList.Children:
+                        trophyNodes.append(node)
+            BrawlAPI.ForceCloseFile()
+    return trophyNodes
 
 class IdPicker(Form):
 
@@ -101,6 +130,8 @@ class IdPicker(Form):
             self.idListBox.DataSource = getTracklistNodes('Results.tlst')
         elif option == "creditsTheme":
             self.idListBox.DataSource = getTracklistNodes('Credits.tlst')
+        elif option == "trophy":
+            self.idListBox.DataSource = getTrophyNodes()
         elif option == "custom":
             self.idListBox.DataSource = customList
         else:
@@ -127,6 +158,8 @@ class IdPicker(Form):
             label.Text = "Fighter ID:"
         elif option == "victoryTheme" or option == "creditsTheme":
             label.Text = "Song ID:"
+        elif option == "trophy":
+            label.Text = "Trophy ID:"
         else:
             label.Text = "ID:"
         label.TextAlign = ContentAlignment.TopRight
@@ -149,10 +182,12 @@ class IdPicker(Form):
         self.Controls.Add(cancelButton)
 
     def idListBoxValueChanged(self, sender, args):
-        if not self.musicMode and not self.option == "custom" and not self.option == "masq":
+        if not self.musicMode and not self.option == "custom" and not self.option == "masq" and not self.option == "trophy":
             self.idBox.Text = str(hexId(self.idListBox.SelectedItem.ID))
         elif self.option == "masq":
             self.idBox.Text = self.idListBox.SelectedItem[0 : 2]
+        elif self.option == "trophy":
+            self.idBox.Text = str(self.idListBox.SelectedItem.Id)
         elif self.option == "custom":
             self.idBox.Text = str(hexId(self.idListBox.SelectedValue))
         else:
@@ -258,6 +293,20 @@ def getFranchiseIconNodes():
             BrawlAPI.ForceCloseFile()
     return imageNodes
 
+def getTrophyThumbnailNodes():
+    imageNodes = []
+    if File.Exists(MainForm.BuildPath + '/pf/menu/collection/Figure.brres'):
+        opened = BrawlAPI.OpenFile(MainForm.BuildPath + '/pf/menu/collection/Figure.brres')
+        if opened:
+            texFolder = getChildByName(BrawlAPI.RootNode, "Textures(NW4R)")
+            if texFolder:
+                for node in texFolder.Children:
+                    if node.Name.startswith('MenCollDisply01.'):
+                        imageNode = ImageNode(node.Name, Bitmap(node.GetImage(0)))
+                        imageNodes.append(imageNode)
+            BrawlAPI.ForceCloseFile()
+    return imageNodes
+
 class ImageIdPicker(Form):
 
     def __init__(self, imageNodes, labelText="Cosmetic ID:"):
@@ -315,7 +364,7 @@ class ImageIdPicker(Form):
         self.Controls.Add(cancelButton)
 
     def imageListBoxValueChanged(self, sender, args):
-        self.idBox.Text = str(int(self.imageListBox.SelectedItem.name.replace('MenSelchrFaceB', '').replace("MenSelchrMark.", "")))
+        self.idBox.Text = str(int(self.imageListBox.SelectedItem.name.replace('MenSelchrFaceB', '').replace("MenSelchrMark.", "").replace('MenCollDisply01.', '')))
         self.imageBox.Image = self.imageListBox.SelectedItem.image
 
     def okButtonPressed(self, sender, args):
@@ -3684,7 +3733,7 @@ class CharacterForm(Form):
 #region SINGLE ID FORM
 
 class IdEntryForm(Form):
-    # idTypes: fighter, cosmetic, slot, cssSlot, cosmeticImage, franchiseImage
+    # idTypes: fighter, cosmetic, slot, cssSlot, cosmeticImage, franchiseImage, trophyImage
     def __init__(self, title="Enter ID", buttonText="Select", idType="fighter", labelText = "Fighter ID:", customList=[]):
         # Form parameters
         self.Text = title
@@ -6060,6 +6109,65 @@ class BuildPatchForm(Form):
 
 #region TROPHY FORM
 
+class UninstallTrophyForm(Form):
+    def __init__(self):
+        # Form parameters
+        self.Text = 'Uninstall Trophy'
+        self.StartPosition = FormStartPosition.CenterParent
+        self.ShowIcon = False
+        self.AutoSize = True
+        self.MinimizeBox = False
+        self.MaximizeBox = False
+        self.FormBorderStyle = FormBorderStyle.FixedSingle
+        self.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.idGroup = GroupBox()
+        self.idGroup.AutoSize = True
+        self.idGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+
+        self.slotIdBox = LabeledTextBox("Slot ID", "slot")
+        self.slotIdBox.Location = Point(4, 16)
+
+        self.trophyBox = LabeledTextBox("Trophy", nodeButtonType="trophy")
+        self.trophyBox.Location = Point(self.slotIdBox.Location.X, self.slotIdBox.Location.Y + 32)
+        self.trophyBox.textBox.ReadOnly = True
+
+        self.idGroup.Controls.Add(self.slotIdBox)
+        self.idGroup.Controls.Add(self.trophyBox)
+
+        uninstallButton = Button()
+        uninstallButton.Text = "Uninstall"
+        uninstallButton.Click += self.uninstallButtonPressed
+
+        cancelButton = Button()
+        cancelButton.Text = "Cancel"
+        cancelButton.Click += self.cancelButtonPressed
+
+        self.Controls.Add(self.idGroup)
+        uninstallButton.Location = Point(self.idGroup.Location.X, self.idGroup.Location.Y + self.idGroup.Height + 32)
+        cancelButton.Location = Point(uninstallButton.Location.X + self.idGroup.Width - cancelButton.Width, uninstallButton.Location.Y)
+        self.Controls.Add(uninstallButton)
+        self.Controls.Add(cancelButton)
+
+        # Tooltips
+        toolTip = ToolTip()
+        toolTip.SetToolTip(self.slotIdBox.label, "Fighter slot ID in decimal (33) or hexadecimal (0x21) format. If blank, trophy will not be removed from a fighter.")
+        toolTip.SetToolTip(self.trophyBox.label, "Trophy to remove. Select with ID picker.")
+    
+    def uninstallButtonPressed(self, sender, args):
+        if self.trophyBox.textBox.Text == "":
+            BrawlAPI.ShowMessage("No trophy selected.", "Validation Error")
+            return
+        if not validateTextBox(self.slotIdBox.textBox, True):
+            BrawlAPI.ShowMessage("Slot ID contains an invalid value. Please ensure all IDs are in either decimal (e.g. 33) or hexadecimal (e.g. 0x21) format.", "Validation Error")
+            return
+        self.DialogResult = DialogResult.OK
+        self.Close()
+
+    def cancelButtonPressed(self, sender, args):
+        self.DialogResult = DialogResult.Cancel
+        self.Close()
+
 class TrophyForm(Form):
     def __init__(self):
         # Form parameters
@@ -6079,10 +6187,10 @@ class TrophyForm(Form):
         self.slotIdBox = LabeledTextBox("Slot ID", "slot")
         self.slotIdBox.Location = Point(4, 16)
 
-        self.trophyIdBox = LabeledTextBox("Trophy ID")
+        self.trophyIdBox = LabeledTextBox("Trophy ID", "trophy")
         self.trophyIdBox.Location = Point(self.slotIdBox.Location.X, self.slotIdBox.Location.Y + 32)
 
-        self.thumbnailIdBox = LabeledTextBox("Thumbnail\nID")
+        self.thumbnailIdBox = LabeledTextBox("Thumbnail\nID", "trophyImage")
         self.thumbnailIdBox.Location = Point(self.trophyIdBox.Location.X, self.trophyIdBox.Location.Y + 32)
 
         self.idGroup.Controls.Add(self.slotIdBox)
@@ -6154,10 +6262,12 @@ class ImageObject:
 
 # A textbox with a label
 class LabeledTextBox(UserControl):
-        def __init__(self, labelText, idButtonType="", multiline=False, size=Size(100,120), topLabel=False):
+        def __init__(self, labelText, idButtonType="", multiline=False, size=Size(100,120), topLabel=False, nodeButtonType=""):
             self.AutoSize = True
             self.AutoSizeMode = AutoSizeMode.GrowAndShrink
             self.idButtonType = idButtonType
+            self.nodeButtonType = nodeButtonType
+            self.selectedNode = None
 
             self.textBox = TextBox()
             if not topLabel:
@@ -6186,16 +6296,24 @@ class LabeledTextBox(UserControl):
             idButton.Cursor = Cursors.Default
             idButton.Click += self.idButtonPressed
 
-            if self.idButtonType:
+            if self.idButtonType or self.nodeButtonType:
                 self.textBox.Controls.Add(idButton)
 
             self.Controls.Add(self.textBox)
             self.Controls.Add(self.label)
 
         def idButtonPressed(self, sender, args):
-            id = showIdPicker(self.idButtonType)
+            id = ""
+            node = None
+            if self.idButtonType:
+                id = showIdPicker(self.idButtonType)
+            elif self.nodeButtonType:
+                node = showNodePicker(self.nodeButtonType)
             if id:
                 self.textBox.Text = id
+            elif node:
+                self.textBox.Text = node.Name
+                self.selectedNode = node
 
 # A dropdown with a label
 class LabeledDropDown(UserControl):
