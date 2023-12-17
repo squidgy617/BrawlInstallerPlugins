@@ -2706,6 +2706,7 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 		nameIndex = -1
 		gameIndex = -1
 		descriptionIndex = -1
+		trophyNode = None
 		trophyExists = False
 		if trophyId != -1 and not forceAdd:
 			writeLog("Getting current trophy values")
@@ -2803,6 +2804,16 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 								i += 1
 					else:
 						id = trophyId
+					if forceAdd and not thumbnailId:
+						# Get first available thumbnail ID
+						i = 0
+						thumbnailId = 631
+						while i < len(tyDataList.Children):
+							if tyDataList.Children[i].ThumbnailIndex == thumbnailId or tyDataList.Children[i].ThumbnailIndex == thumbnailId:
+								thumbnailId += 1
+								i = 0
+							else:
+								i += 1
 					trophyNode = TyDataListEntryNode()
 					trophyNode.Name = name
 					trophyNode.Id = id
@@ -2824,14 +2835,13 @@ def addTrophy(name, gameIcon1, gameIcon2, trophyName, gameName1, gameName2, desc
 					trophyNode.Unknown0x58 = 1.23
 					trophyNode.Unknown0x5C = 1.25
 					tyDataList.AddChild(trophyNode)
-					trophyId = id
 					# After adding our trophy, move the <null> trophy to the end of the list
 					nullNode = getChildByName(tyDataList, "<null>")
 					moveNodeToEnd(nullNode)
 				BrawlAPI.SaveFile()
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished add trophy")
-		return trophyId
+		return trophyNode
 
 # Add trophy thumbnail
 def importTrophyThumbnail(imagePath, trophyId):
@@ -3763,7 +3773,7 @@ def removeTrophy(trophyId, trophyNodeToRemove=None):
 					tyDataNode = getChildByName(BrawlAPI.RootNode, "Misc Data [0]")
 					tyDataList = getChildByName(tyDataNode, "tyDataList")
 					for trophyNode in tyDataList.Children:
-						if trophyNode.Id == trophyId or trophyNode.Name == trophyNodeToRemove.Name:
+						if trophyNode.Id == trophyId or (trophyNodeToRemove and trophyNode.Name == trophyNodeToRemove.Name):
 							nameIndex = trophyNode.NameIndex
 							gameIndex = trophyNode.GameIndex
 							descriptionIndex = trophyNode.DescriptionIndex
@@ -4629,9 +4639,10 @@ def installTrophy(slotId, brresPath, thumbnailPath, fighterName, trophySettings,
 			bresName = getFileInfo(brresPath).Name.replace('.brres','')
 			deleteTrophyModel(bresName)
 			importTrophyModel(brresPath)
-			returnedTrophyId = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt, forceAdd=forceAdd, categoryIndex=trophySettings.categoryIndex, thumbnailId=thumbnailId)
+			trophyNode = addTrophy(bresName, trophySettings.gameIcon1, trophySettings.gameIcon2, trophySettings.trophyName, trophySettings.gameName1, trophySettings.gameName2, trophySettings.description, trophySettings.seriesIndex, trophyIdInt, forceAdd=forceAdd, categoryIndex=trophySettings.categoryIndex, thumbnailId=thumbnailId)
+			returnedTrophyId = trophyNode.Id
 			if File.Exists(thumbnailPath):
-				thumbnailId = thumbnailId if thumbnailId else returnedTrophyId
+				thumbnailId = thumbnailId if thumbnailId else trophyNode.ThumbnailIndex
 				removeTrophyThumbnail(thumbnailId)
 				importTrophyThumbnail(thumbnailPath, thumbnailId)
 			if slotId:
