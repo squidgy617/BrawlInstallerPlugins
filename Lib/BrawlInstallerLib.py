@@ -1412,7 +1412,12 @@ def importFranchiseIconResult(franchiseIconId, image="", model=""):
 			clr0Node = CLR0Node()
 			clr0Node.Name = "InfResultMark" + addLeadingZeros(str(franchiseIconId), 2) + "_TopN"
 			colorFolder.AddChild(clr0Node)
-			clr0Node.Replace(RESOURCE_PATH + '/InfResultMark01_TopN.clr0')
+			# Try to find an existing CLR0
+			matches = getChildrenByPrefix(colorFolder, 'InfResultMark')
+			if len(matches) > 0:
+				clr0Node.Replace(matches[0])
+			else:
+				clr0Node.Replace(RESOURCE_PATH + '/InfResultMark01_TopN.clr0')
 			writeLog("Finished importing franchise icon")
 
 # Update the fighter module file
