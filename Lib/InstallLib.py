@@ -1052,6 +1052,7 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 
 			if Directory.Exists(AppPath + '/temp'):
 				Directory.Delete(AppPath + '/temp', 1)
+			archiveBackup()
 				
 			progressCounter += 1
 			progressBar.Update(progressCounter)

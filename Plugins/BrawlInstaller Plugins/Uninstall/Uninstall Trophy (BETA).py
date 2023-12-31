@@ -34,6 +34,7 @@ def main():
 				uninstallTrophyGeneric(trophy, slotId, settings.installToSse)
 				if slotId:
 					buildGct()
+				archiveBackup()
 				BrawlAPI.ShowMessage("Trophy uninstalled.", "Success")
 			except Exception as e:
 				writeLog("ERROR " + str(e))

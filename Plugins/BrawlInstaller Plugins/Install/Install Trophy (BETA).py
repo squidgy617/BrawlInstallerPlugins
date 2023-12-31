@@ -64,6 +64,7 @@ def main():
 				trophyId = installTrophy(slotId, form.trophyControl.trophyModelControl.textBox.textBox.Text, form.trophyControl.trophyImageControl.Images[0], fighterName, trophySettings, settings.installToSse, trophyIdHex=trophyIdHex, thumbnailId=thumbnailId)
 				if slotId:
 					buildGct()
+				archiveBackup()
 				BrawlAPI.ShowMessage("Trophy installed with ID " + str(trophyId), "Success")
 			except Exception as e:
 				writeLog("ERROR " + str(e))
