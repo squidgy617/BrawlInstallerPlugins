@@ -1307,7 +1307,7 @@ def importCSSIconName(cosmeticId, nameImagePath):
 			writeLog("Finished importing CSS icon name")
 				
 # Import name for character select portrait
-def importPortraitName(cosmeticId, file):
+def importPortraitName(cosmeticId, file, costumeNames="false", fiftyCC="false"):
 		writeLog("Importing portrait name with cosmetic ID " + str(cosmeticId))
 		# If sc_selcharacter is not already opened, open it
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
@@ -1315,8 +1315,16 @@ def importPortraitName(cosmeticId, file):
 			# Import name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
 			newNode = importTexture(node, file, WiiPixelFormat.I4)
-			newNode.Name = "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId), 2) + '1'
-			frameIndex = int(str(cosmeticId) + "1")
+			# Get modifier
+			if costumeNames == "true" and fiftyCC == "false":
+				modifier = 10
+			elif costumeNames == "true" and fiftyCC == "true":
+				modifier = 50
+			else:
+				modifier = 0
+			# Set name
+			newNode.Name = "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId + modifier), 2) + '1'
+			frameIndex = int(str(cosmeticId + modifier) + "1")
 			addToPat0(node, "MenSelchrCname4_TopN__0", "Card010", newNode.Name, newNode.Name, frameIndex, frameCountOffset=10, overrideFrameCount=2561)
 			addToPat0(node, "MenSelchrCname4_TopN__0", "Card011", newNode.Name, newNode.Name, frameIndex, frameCountOffset=10, overrideFrameCount=2561)	
 			writeLog("Finished importing portrait name")
@@ -3228,7 +3236,7 @@ def removeCSSIconName(cosmeticId):
 		writeLog("Remove CSS icon name finished")
 
 # Remove portrait name
-def removePortraitName(cosmeticId):
+def removePortraitName(cosmeticId, costumeNames="false", fiftyCC="false"):
 		writeLog("Remove portrait name for cosmetic ID " + str(cosmeticId))
 		# If sc_selcharacter is not already opened, open it
 		fileOpened = openFile(MainForm.BuildPath + '/pf/menu2/sc_selcharacter.pac')
@@ -3236,7 +3244,14 @@ def removePortraitName(cosmeticId):
 			# Remove name
 			node = getChildByName(BrawlAPI.RootNode, "Misc Data [30]")
 			texFolder = getChildByName(node, "Textures(NW4R)")
-			nodeName = "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId), 3) + '1'
+			# Get modifier
+			if costumeNames == "true" and fiftyCC == "false":
+				modifier = 10
+			elif costumeNames == "true" and fiftyCC == "true":
+				modifier = 50
+			else:
+				modifier = 0
+			nodeName = "MenSelchrChrNm." + addLeadingZeros(str(cosmeticId + modifier), 3) + '1'
 			textureNode = getChildByName(texFolder, nodeName)
 			if textureNode:
 				textureNode.Remove(True)
@@ -4571,9 +4586,9 @@ def installCSSIconName(cosmeticId, nameImagePath):
 		importCSSIconName(cosmeticId, nameImagePath)
 
 # Install portrait name
-def installPortraitName(cosmeticId, file):
-		removePortraitName(cosmeticId)
-		importPortraitName(cosmeticId, file)
+def installPortraitName(cosmeticId, file, costumeNames="false", fiftyCC="false"):
+		removePortraitName(cosmeticId, costumeNames="false", fiftyCC="false")
+		importPortraitName(cosmeticId, file, costumeNames="false", fiftyCC="false")
 
 # Install franchise icon into CSS or info
 def installFranchiseIcon(franchiseIconId, image, filePath, size=0):
@@ -5092,6 +5107,7 @@ def getSettings():
 		settings.installTrophies = readValueFromKey(fileText, "installTrophies")
 		settings.customStageLists = readValueFromKey(fileText, "customStageLists").replace('{buildPath}', MainForm.BuildPath)
 		settings.installCSSIconNames = readValueFromKey(fileText, "installCSSIconNames")
+		settings.costumeNames = readValueFromKey(fileText, "costumeNames")
 		writeLog("Reading settings complete")
 		return settings
 
@@ -5305,6 +5321,7 @@ class Settings:
 						customStageLists += ","
 				i += 1
 		installCSSIconNames = "true"
+		costumeNames = "false"
 
 class FighterSettings:
 		lucarioBoneId = ""

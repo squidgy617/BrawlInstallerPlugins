@@ -115,7 +115,7 @@ def main():
 			removeCSSIcon(cosmeticId)
 			# Uninstall CSS portrait name
 			if settings.installPortraitNames:
-				removePortraitName(cosmeticId)
+				removePortraitName(cosmeticId, settings.costumeNames, settings.fiftyCostumeCode)
 			# Uninstall stock icons from sc_selcharacter
 			if settings.installStocksToCSS == "true":
 				removeStockIcons(cosmeticId, "Misc Data [90]", "", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)

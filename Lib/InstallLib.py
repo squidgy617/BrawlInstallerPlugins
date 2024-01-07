@@ -442,7 +442,7 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 						nameFolders = Directory.GetDirectories(portraitNameFolder.FullName, settings.portraitNameStyle)
 						if nameFolders:
 							if len(Directory.GetFiles(nameFolders[0], "*.png")) > 0:
-								installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0])
+								installPortraitName(cosmeticId, Directory.GetFiles(nameFolders[0], "*.png")[0], settings.costumeNames, settings.fiftyCostumeCode)
 						else:
 							BrawlAPI.ShowMessage("Could not find portrait name in a format that matches your preferences. Portrait name installation will be skipped. Please install a portrait name manually.", "Portrait Name Not Found")
 					# Install franchise icon to sc_selcharacter

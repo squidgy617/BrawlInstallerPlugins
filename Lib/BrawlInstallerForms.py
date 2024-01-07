@@ -2612,6 +2612,13 @@ class SettingsForm(Form):
         self.fiftyCCCheck = CheckBox()
         self.fiftyCCCheck.Text = "50CC"
         self.fiftyCCCheck.Location = Point(112, 16)
+        self.fiftyCCCheck.Width = 70
+
+        # Costume names
+        self.costumeNameCheck = CheckBox()
+        self.costumeNameCheck.Text = "Costume Names"
+        self.costumeNameCheck.Location = Point(self.fiftyCCCheck.Width + 112, 16)
+        self.costumeNameCheck.Width = 120
 
         # CSS Icon Style
         cssIconGroup = GroupBox()
@@ -2793,6 +2800,7 @@ class SettingsForm(Form):
 
         cosmeticGroupBox.Controls.Add(self.rspCheck)
         cosmeticGroupBox.Controls.Add(self.fiftyCCCheck)
+        cosmeticGroupBox.Controls.Add(self.costumeNameCheck)
         cosmeticGroupBox.Controls.Add(cssIconGroup)
         cosmeticGroupBox.Controls.Add(bpGroup)
         cosmeticGroupBox.Controls.Add(nameGroup)
@@ -2849,7 +2857,7 @@ class SettingsForm(Form):
 
         # Configuration settings group
         configGroupBox = GroupBox()
-        configGroupBox.Location = Point(264,0)
+        configGroupBox.Location = Point(cosmeticGroupBox.Width + 120,0)
         configGroupBox.Text = "Configuration Settings"
         configGroupBox.AutoSize = True
         configGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -3116,6 +3124,7 @@ class SettingsForm(Form):
         toolTip = ToolTip()
         toolTip.SetToolTip(self.rspCheck, "Whether or not your build uses RSP (result-screen portrait) loading. For most builds, this should be unchecked.")
         toolTip.SetToolTip(self.fiftyCCCheck, "Whether or not your build uses 50CC (fifty-costume code) naming conventions. If your build is P+Ex or allows 50 costumes, this should be checked.")
+        toolTip.SetToolTip(self.costumeNameCheck, "Whether or not your build uses per-costume names. If your build allows costumes to display a different name from the base character, this should be checked.")
         toolTip.SetToolTip(cssIconGroup, "The style of character select screen icons used in your build.")
         toolTip.SetToolTip(self.pPlusRadioButton, "Select this if your build uses P+ style icons. These are diamond shaped icons featured in Project+ and P+Ex.")
         toolTip.SetToolTip(self.remixRadioButton, "Select this if your build uses PMEX REMIX style icons. These are hexagonal icons featured PMEX REMIX.")
@@ -3168,6 +3177,7 @@ class SettingsForm(Form):
     def initializeControls(self):
         self.rspCheck.Checked = textBool(self.settings.rspLoading)
         self.fiftyCCCheck.Checked = textBool(self.settings.fiftyCostumeCode)
+        self.costumeNameCheck.Checked = textBool(self.settings.costumeNames)
         self.pPlusRadioButton.Checked = self.settings.cssIconStyle == "P+"
         self.vBrawlRadioButton.Checked = self.settings.cssIconStyle == "vBrawl"
         self.PMRadioButton.Checked = self.settings.cssIconStyle == "PM"
@@ -3213,6 +3223,7 @@ class SettingsForm(Form):
         settings = Settings()
         settings.rspLoading = "false"
         settings.cssIconStyle = "P+"
+        settings.costumeNames = "false"
         settings.bpStyle = "vBrawl"
         settings.installPortraitNames = "false"
         settings.portraitNameStyle = "vBrawl"
@@ -3244,6 +3255,7 @@ class SettingsForm(Form):
         settings = Settings()
         settings.rspLoading = "true"
         settings.cssIconStyle = "REMIX"
+        settings.costumeNames = "false"
         settings.bpStyle = "REMIX"
         settings.installPortraitNames = "true"
         settings.portraitNameStyle = "REMIX"
@@ -3340,6 +3352,7 @@ class SettingsForm(Form):
         settings = Settings()
         settings.rspLoading = boolText(self.rspCheck.Checked)
         settings.fiftyCostumeCode = boolText(self.fiftyCCCheck.Checked)
+        settings.costumeNames = boolText(self.costumeNameCheck.Checked)
         if self.pPlusRadioButton.Checked:
             settings.cssIconStyle = "P+"
         elif self.vBrawlRadioButton.Checked:
