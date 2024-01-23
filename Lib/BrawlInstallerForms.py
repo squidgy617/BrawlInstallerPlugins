@@ -2117,7 +2117,7 @@ class StageEditor(Form):
 
     def altDropDownChanged(self, sender, args):
         self.altNamePictureBox.Image = Bitmap(self.altDropDown.SelectedValue)
-        if self.altDropDown.SelectedItem.name != self.cosmetics.altName.name:
+        if self.cosmetics.altName and self.altDropDown.SelectedItem.name != self.cosmetics.altName.name:
             self.newAltName = self.altDropDown.SelectedItem.name
         elif not self.cosmetics.altName:
             self.newAltName = self.altDropDown.SelectedItem.name
