@@ -360,6 +360,7 @@ def removeFlags(nodeString):
 
 # Apply settings file to a node if one exists
 def applyNodeSettings(node, path):
+	writeLog("Applying node settings found at " + path + " to " + node.Name)
 	filePath = path + "$$S"
 	# If there's a settings file, apply the special settings
 	if File.Exists(filePath):
@@ -531,6 +532,7 @@ def processPatchFiles(patchFolder, node, progressBar):
 			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
+	newNode = None
 	# Import any node files in the directory
 	for patchFile in Directory.GetFiles(patchFolder):
 		if patchFile.replace(".tex0", "").endswith("$$S") or patchFile.replace(".tex0", "").endswith("$$I") or patchFile.endswith(".png"):
