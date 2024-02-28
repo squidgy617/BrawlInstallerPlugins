@@ -1198,7 +1198,7 @@ def modifyExConfigs(files, cosmeticId, fighterId, fighterName, franchiseIconId=-
 						if kirbySoundbank:
 							BrawlAPI.RootNode.KirbySoundBank = kirbySoundbank
 				else:
-					BrawlAPI.RootNode.KirbyLoadType = FCFGNode.KirbyLoadFlags.None
+					BrawlAPI.RootNode.KirbyLoadType = FCFGNode.KirbyLoadFlags["None"]
 					BrawlAPI.RootNode.HasKirbyHat = 0
 				if newSoundBankId != "":
 					BrawlAPI.RootNode.SoundBank = int(newSoundBankId, 16)
@@ -6256,7 +6256,7 @@ def updateStageParams(stageId, stageParamList):
 				BrawlAPI.RootNode.SoundBank = stageParam.soundBank
 				BrawlAPI.RootNode.EffectBank = stageParam.effectBank
 				if new:
-					BrawlAPI.RootNode.SubstageVarianceType = VariantType.None
+					BrawlAPI.RootNode.SubstageVarianceType = VariantType["None"]
 				BrawlAPI.SaveFileAs(MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.aslEntry.Name + '.param')
 				BrawlAPI.ForceCloseFile()
 		writeLog("Finished updating stage params")

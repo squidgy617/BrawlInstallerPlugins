@@ -2696,7 +2696,7 @@ class SettingsForm(Form):
 
         # Replay Icon Style
         replayGroup = GroupBox()
-        replayGroup.Location = Point(nameGroup.Location.X, nameGroup.Location.Y + nameGroup.Height/2 + 16)
+        replayGroup.Location = Point(nameGroup.Location.X, nameGroup.Location.Y + nameGroup.Height//2 + 16)
         replayGroup.Text = "Replay Icon Style"
         replayGroup.AutoSize = True
         replayGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
@@ -2719,7 +2719,7 @@ class SettingsForm(Form):
         stockGroupBox = GroupBox()
         stockGroupBox.AutoSize = True
         stockGroupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink
-        stockGroupBox.Location = Point(replayGroup.Location.X, replayGroup.Location.Y + replayGroup.Height/2 + 16)
+        stockGroupBox.Location = Point(replayGroup.Location.X, replayGroup.Location.Y + replayGroup.Height//2 + 16)
         stockGroupBox.Text = "Stock Icon Install Locations"
 
         self.stockCssCheckbox = CheckBox()
