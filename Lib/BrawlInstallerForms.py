@@ -3851,14 +3851,14 @@ class CostumeForm(Form):
         dropDownLabel = Label()
         dropDownLabel.Anchor = AnchorStyles.Bottom
         dropDownLabel.TextAlign = ContentAlignment.MiddleCenter
-        dropDownLabel.Location = Point(dropDownGroup.Width/2 - (dropDownLabel.Width)/2, 16)
+        dropDownLabel.Location = Point(dropDownGroup.Width//2 - (dropDownLabel.Width)//2, 16)
         dropDownLabel.Text = "Starting ID"
         dropDownLabel.Height = 16
 
         self.dropDown = ComboBox()
         self.dropDown.Anchor = AnchorStyles.Bottom
         self.dropDown.Width = 64
-        self.dropDown.Location = Point(dropDownGroup.Width/2 - (self.dropDown.Width)/2, 32)
+        self.dropDown.Location = Point(dropDownGroup.Width//2 - (self.dropDown.Width)//2, 32)
         self.dropDown.DropDownStyle = ComboBoxStyle.DropDown
         self.dropDown.DataSource = availableIds if len(availableIds) > 0 else ['00']
 

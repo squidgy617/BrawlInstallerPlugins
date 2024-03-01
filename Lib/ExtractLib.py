@@ -196,7 +196,7 @@ def extractCharacter(fighterId, destination, fighterInfo=0, slotId="", cosmeticC
 
 			# Extract trophy stuff
 			trophyId = extractTrophy(slotId)
-			if trophyId <= 630:
+			if trophyId and trophyId <= 630:
 				fighterSettings.trophyId = str(hexId(trophyId))
 
 			progressCounter += 1

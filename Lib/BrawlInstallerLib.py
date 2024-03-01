@@ -454,10 +454,10 @@ def addToPat0(parentNode, pat0NodeName, pat0texNodeName, name, texture, frameInd
 			pat0texEntryNode = getChildByFrameIndex(pat0texNode, frameIndex, False)
 			pat0texEntryNode.Palette = palette
 		sortChildrenByFrameIndex(pat0texNode)
-		if overrideFrameCount > pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset:
+		if overrideFrameCount > int(pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex) + frameCountOffset:
 			pat0Node.FrameCount = overrideFrameCount
 		elif frameCountOffset != 0:
-			pat0Node.FrameCount = pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset
+			pat0Node.FrameCount = int(pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex) + frameCountOffset
 		writeLog("PAT0 entry added successfully")
 		return pat0texEntryNode
 
@@ -470,10 +470,10 @@ def removeFromPat0(parentNode, pat0NodeName, pat0texNodeName, name, frameCountOf
 		pat0texEntryNode = getChildByName(pat0texNode, name)
 		if pat0texEntryNode:
 			pat0texEntryNode.Remove()
-		if overrideFrameCount > pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset:
+		if overrideFrameCount > int(pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex) + frameCountOffset:
 			pat0Node.FrameCount = overrideFrameCount
 		elif frameCountOffset != 0:
-			pat0Node.FrameCount = pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex + frameCountOffset
+			pat0Node.FrameCount = int(pat0texNode.Children[len(pat0texNode.Children) - 1].FrameIndex) + frameCountOffset
 		writeLog("PAT0 entry removed successfully")
 
 # Get value of key from settings
@@ -1433,7 +1433,7 @@ def updateModule(file, directory, fighterId, fighterName):
 			node.Export(directory.FullName + "/Section [8]")
 			sectionFile = directory.FullName + "/Section [8]"
 			with open(sectionFile,  mode='r+b') as readFile:
-				data = str(binascii.hexlify(readFile.read(3)))
+				data = str(binascii.hexlify(readFile.read(3)).decode("ascii"))
 				readFile.close()
 		# Ex modules only have 8 sections, so any with more is a different type of module
 		if node and data == '000000':
@@ -1499,7 +1499,7 @@ def editModule(fighterId, moduleFile, sectionFile, offsets):
 			editFile.close()
 		# Read the module file
 		with open(moduleFile.FullName,  mode='r+b') as file:
-			data = str(file.read())
+			data = file.read()
 			file.close()
 		# Where the module file matches the section, replace it with our modified section values
 		updatedData = data.replace(section, sectionModified)
@@ -1532,13 +1532,13 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 						# First read the unmodified section file into a variable
 						section = editFile.read()
 						editFile.seek(0)
-						fighterCount = 2 + int(binascii.hexlify(editFile.read(1)), 16)
+						fighterCount = 2 + int(binascii.hexlify(editFile.read(1)).decode("ascii"), 16)
 						editFile.seek(2)
 						i = 2
 						# Add character only if they are not a sub-character
 						if not baseCssSlotId:
 							while i < 128:
-								value = int(binascii.hexlify(editFile.read(1)), 16)
+								value = int(binascii.hexlify(editFile.read(1)).decode("ascii"), 16)
 								# If we find a match, update it
 								if value == int(cssSlotId, 16):
 									writeLog("Match found at offset " + str(i))
@@ -1553,7 +1553,7 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 										editFile.write(movedValues)
 										# Update the counter
 										editFile.seek(0)
-										currentValue = int(binascii.hexlify(editFile.read(1)), 16)
+										currentValue = int(binascii.hexlify(editFile.read(1)).decode("ascii"), 16)
 										writeLog("Updating fighter count to " + str(currentValue - 1))
 										editFile.seek(0)
 										editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue - 1), 2)))
@@ -1568,7 +1568,7 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 								editFile.write(binascii.unhexlify(cssSlotId))
 								# Update the counter
 								editFile.seek(0)
-								currentValue = int(binascii.hexlify(editFile.read(1)), 16)
+								currentValue = int(binascii.hexlify(editFile.read(1)).decode("ascii"), 16)
 								writeLog("Updating fighter count to " + str(currentValue + 1))
 								editFile.seek(0)
 								editFile.write(binascii.unhexlify(addLeadingZeros("%x" % (currentValue + 1), 2)))
@@ -1601,7 +1601,7 @@ def updateSseModule(cssSlotId, unlockStage="end", remove=False, baseCssSlotId=""
 						editFile.close()
 					# Read the module file
 					with open(moduleFile.FullName,  mode='r+b') as file:
-						data = str(file.read())
+						data = file.read()
 						file.close()
 					# Where the module file matches the section, replace it with our modified section values
 					updatedData = data.replace(section, sectionModified)
@@ -2898,7 +2898,7 @@ def updateTrophySSE(slotId, trophyId, remove=False):
 						editFile.close()
 					# Read the module file
 					with open(moduleFile.FullName,  mode='r+b') as file:
-						data = str(file.read())
+						data = file.read()
 						file.close()
 					# Where the module file matches the section, replace it with our modified section values
 					updatedData = data.replace(section, sectionModified)
