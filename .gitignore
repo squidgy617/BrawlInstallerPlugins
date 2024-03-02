@@ -1,3 +1,4 @@
 *.ini
 fighter_info.txt
 .env
+Lib/Python
