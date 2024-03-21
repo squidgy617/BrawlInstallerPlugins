@@ -5906,9 +5906,12 @@ def getStageCosmetics(cosmeticId):
 							gameLogoList.append(ImageNode(child.Name, child.GetImage(0)))
 					# Stats image
 					statsTextureName = getTextureByFrameIndex(anmTexPatFolder, "MenSelmapPreview", "pasted__stnamelogoM_stats", int(cosmeticId, 16), getNearest=False)
-					texNode = getChildByName(texFolder, statsTextureName)
-					if texNode:
-						statsImage = Bitmap(texNode.GetImage(0))
+					if statsTextureName:
+						texNode = getChildByName(texFolder, statsTextureName)
+						if texNode:
+							statsImage = Bitmap(texNode.GetImage(0))
+						else:
+							statsImage = ""
 					else:
 						statsImage = ""
 			BrawlAPI.ForceCloseFile()
@@ -5932,13 +5935,15 @@ def getTextureByFrameIndex(patFolder, pat0Name, entryName, frameIndex, getNeares
 		writeLog("Getting textures for pat0 entry with frame index " + str(frameIndex))
 		pat0 = getChildByName(patFolder, pat0Name)
 		if pat0:
-			pat0Entry = getChildByName(pat0, entryName).Children[0]
-			if pat0Entry:
-				frame = getChildByFrameIndex(pat0Entry, frameIndex, getNearest=getNearest)
-				# Don't get placeholder/default cosmetics
-				if frame != False and not frame.Texture.endswith('00'):
-					textureName = frame.Texture
-					return textureName
+			pat0Tex = getChildByName(pat0, entryName)
+			if pat0Tex and pat0Tex.Children and len(pat0Tex.Children) > 0:
+				pat0Entry = pat0Tex.Children[0]
+				if pat0Entry:
+					frame = getChildByFrameIndex(pat0Entry, frameIndex, getNearest=getNearest)
+					# Don't get placeholder/default cosmetics
+					if frame != False and not frame.Texture.endswith('00'):
+						textureName = frame.Texture
+						return textureName
 		return 0
 
 # Get a pat0 entry by frame index
