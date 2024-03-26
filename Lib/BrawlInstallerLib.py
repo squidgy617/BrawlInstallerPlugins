@@ -5953,7 +5953,7 @@ def getPat0ByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
 		if pat0:
 			pat0Tex = getChildByName(pat0, entryName)
 			if pat0Tex and pat0Tex.Children and len(pat0Tex.Children) > 0:
-				pat0Entry = getChildByName(pat0, entryName).Children[0]
+				pat0Entry = pat0Tex.Children[0]
 				if pat0Entry:
 					frame = getChildByFrameIndex(pat0Entry, frameIndex, False)
 					if frame:
