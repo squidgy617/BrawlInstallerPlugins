@@ -5951,11 +5951,13 @@ def getPat0ByFrameIndex(patFolder, pat0Name, entryName, frameIndex):
 		writeLog("Getting pat0 entry with frame index " + str(frameIndex))
 		pat0 = getChildByName(patFolder, pat0Name)
 		if pat0:
-			pat0Entry = getChildByName(pat0, entryName).Children[0]
-			if pat0Entry:
-				frame = getChildByFrameIndex(pat0Entry, frameIndex, False)
-				if frame:
-					return frame
+			pat0Tex = getChildByName(pat0, entryName)
+			if pat0Tex and pat0Tex.Children and len(pat0Tex.Children) > 0:
+				pat0Entry = getChildByName(pat0, entryName).Children[0]
+				if pat0Entry:
+					frame = getChildByFrameIndex(pat0Entry, frameIndex, False)
+					if frame:
+						return frame
 		return 0
 
 # Get the ASLEntry nodes for all stage alts for a single stage slot
