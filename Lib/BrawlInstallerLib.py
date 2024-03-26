@@ -6320,7 +6320,10 @@ def removeStageEntry(stageParams, deleteParam=True, forceDelete=False):
 		removeSoundbank = False
 		reviewedFiles = []
 		for stageParam in stageParams:
-			messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
+			if stageParam.aslEntry:
+				messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
+			else:
+				messageText = ""
 			if (stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName) or forceDelete or stageParam.pacFile:
 				pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
 				if File.Exists(pacFile) and pacFile not in reviewedFiles:
