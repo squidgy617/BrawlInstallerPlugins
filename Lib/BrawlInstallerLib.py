@@ -6214,7 +6214,8 @@ def removeStageCosmetics(cosmeticId, fileName='/pf/menu2/sc_selmap.pac', removeF
 								pat0Entry.Remove()
 						for nodeName in removeTexNodes:
 							texNode = getChildByName(texFolder, nodeName)
-							texNode.Remove(True)
+							if texNode:
+								texNode.Remove(True)
 		writeLog("Finished removing cosmetics")
 
 # Update stage slot
