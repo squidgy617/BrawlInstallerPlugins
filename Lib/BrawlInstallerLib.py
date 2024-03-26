@@ -6320,48 +6320,46 @@ def removeStageEntry(stageParams, deleteParam=True, forceDelete=False):
 		removeSoundbank = False
 		reviewedFiles = []
 		for stageParam in stageParams:
-			if stageParam.aslEntry:
+			if stageParam and stageParam.aslEntry:
 				messageText = "Would you like to remove the following file from " + stageParam.aslEntry.Name + "?:\n"
-			else:
-				messageText = ""
-			if (stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName) or forceDelete or stageParam.pacFile:
-				pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
-				if File.Exists(pacFile) and pacFile not in reviewedFiles:
-					removePac = BrawlAPI.ShowYesNoPrompt(messageText + "STG" + stageParam.originalPacName + ".pac", title)
-					reviewedFiles.append(pacFile)
-				elif pacFile in reviewedFiles:
-					removePac = False
-			if (stageParam.originalModule and stageParam.originalModule != stageParam.module) or forceDelete or stageParam.moduleFile:
-				moduleFile = MainForm.BuildPath + '/pf/module/' + stageParam.originalModule
-				if File.Exists(moduleFile) and moduleFile not in reviewedFiles:
-					removeModule = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalModule, title)
-					reviewedFiles.append(moduleFile)
-				elif moduleFile in reviewedFiles:
-					removeModule = False
-			if (stageParam.originalSoundBank and stageParam.originalSoundBank != stageParam.soundBank) or forceDelete or stageParam.soundBankFile:
-				directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
-				files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
-				if len(files) > 0:
-					if files[0].FullName not in reviewedFiles:
-						removeSoundbank = BrawlAPI.ShowYesNoPrompt(messageText + files[0].Name, title)
-						reviewedFiles.append(files[0].FullName)
-					elif files[0].FullName in reviewedFiles:
+				if (stageParam.originalPacName and stageParam.originalPacName != stageParam.pacName) or forceDelete or stageParam.pacFile:
+					pacFile = MainForm.BuildPath + '/pf/stage/melee/' + "STG" + stageParam.originalPacName + ".pac"
+					if File.Exists(pacFile) and pacFile not in reviewedFiles:
+						removePac = BrawlAPI.ShowYesNoPrompt(messageText + "STG" + stageParam.originalPacName + ".pac", title)
+						reviewedFiles.append(pacFile)
+					elif pacFile in reviewedFiles:
+						removePac = False
+				if (stageParam.originalModule and stageParam.originalModule != stageParam.module) or forceDelete or stageParam.moduleFile:
+					moduleFile = MainForm.BuildPath + '/pf/module/' + stageParam.originalModule
+					if File.Exists(moduleFile) and moduleFile not in reviewedFiles:
+						removeModule = BrawlAPI.ShowYesNoPrompt(messageText + stageParam.originalModule, title)
+						reviewedFiles.append(moduleFile)
+					elif moduleFile in reviewedFiles:
+						removeModule = False
+				if (stageParam.originalSoundBank and stageParam.originalSoundBank != stageParam.soundBank) or forceDelete or stageParam.soundBankFile:
+					directory = Directory.CreateDirectory(MainForm.BuildPath + '/pf/sfx')
+					files = directory.GetFiles(addLeadingZeros(str(hexId(stageParam.originalSoundBank)).replace('0x',''), 3) + "*.sawnd")
+					if len(files) > 0:
+						if files[0].FullName not in reviewedFiles:
+							removeSoundbank = BrawlAPI.ShowYesNoPrompt(messageText + files[0].Name, title)
+							reviewedFiles.append(files[0].FullName)
+						elif files[0].FullName in reviewedFiles:
+							removeSoundbank = False
+					else:
 						removeSoundbank = False
-				else:
-					removeSoundbank = False
-			if removePac:
-				File.Delete(pacFile)
-			if removeModule:
-				File.Delete(moduleFile)
-			if removeTracklist:
-				File.Delete(tracklistFile)
-			if removeSoundbank:
-				File.Delete(files[0].FullName)
-			if deleteParam:
-				if stageParam.originalName:
-					paramFile = MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + ".param"
-					if File.Exists(paramFile):
-						File.Delete(paramFile)
+				if removePac:
+					File.Delete(pacFile)
+				if removeModule:
+					File.Delete(moduleFile)
+				if removeTracklist:
+					File.Delete(tracklistFile)
+				if removeSoundbank:
+					File.Delete(files[0].FullName)
+				if deleteParam:
+					if stageParam.originalName:
+						paramFile = MainForm.BuildPath + '/pf/stage/stageinfo/' + stageParam.originalName + ".param"
+						if File.Exists(paramFile):
+							File.Delete(paramFile)
 		writeLog("Finished removing stage entries")
 
 
