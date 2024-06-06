@@ -613,10 +613,6 @@ def processPatchFiles(patchFolder, node, progressBar):
 			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
-	# Rebuild BRRES to fix issues with color smashed nodes
-	if sharedData and node and node.Parent and node.Parent.NodeType == "BrawlLib.SSBB.ResourceNodes.BRRESNode":
-		node.Parent.Rebuild()
-		node.Parent.IsDirty = True
 
 # Apply a patch to a file
 def applyPatch(file, patchFolder=TEMP_PATH):
