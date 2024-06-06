@@ -288,6 +288,18 @@ def getNodeGroupName(node):
 			groupName = node.Name
 		return groupName
 
+# Get root node of a color smash group
+def getNodeGroupRoot(nodeObject, nodeList):
+		groupRoot = nodeObject
+		if nodeObject.node.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and nodeObject.node.SharesData:
+			currentNode = nodeObject
+			while (nodeList.index(currentNode) + 1) < len(nodeList):
+				currentNode = nodeList[nodeList.index(currentNode) + 1]
+				if not currentNode.node.SharesData:
+					break
+			groupRoot = currentNode
+		return groupRoot
+
 # Get NodePath for a node
 def getNodePath(node):
 		pathNodeNames = []
@@ -478,7 +490,8 @@ def createPatch(cleanFile, alteredFile):
 						removeNode = cleanFileNode
 						matchFound = True
 						# If we've found a match, but MD5s do NOT match, this is an altered node and should be exported
-						if alteredFileNode.md5 != cleanFileNode.md5:
+						# If the node is color smashed, use the root of the color smash group to determine if altered
+						if alteredFileNode.md5 != cleanFileNode.md5 or getNodeGroupRoot(alteredFileNode, alteredFileNodes).md5 != getNodeGroupRoot(cleanFileNode, cleanFileNodes).md5:
 							exportPatchNode(alteredFileNode)
 						break
 				# If we never found a match for a node in the altered file, it's a brand new node, and should be exported
@@ -517,6 +530,7 @@ def createPatch(cleanFile, alteredFile):
 def processPatchFiles(patchFolder, node, progressBar):
 	writeLog("Processing patch files for " + node.Name)
 	newNode = None
+	sharedData = False
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
 		patchNode = PatchNode(DirectoryInfo(directory).Name, directory, node)
@@ -544,11 +558,24 @@ def processPatchFiles(patchFolder, node, progressBar):
 		# Handle each node file based on the defined action
 		if patchNode.action in [ "REPLACE", "REMOVE", "PARAM", "ADD" ] and not patchNode.forceAdd:
 			foundNode = findNodeToPatch(node, patchNode)
+			changedNode = None
+			# If the node is part of a color smash group, set up color smashing first
+			if patchNode.groupName != "" and foundNode:
+				sharedData = True
+				node.RemoveChild(foundNode)
+				foundNode = createNodeFromString(patchNode.type)
+				foundNode.Name = patchNode.name
+				node.InsertChild(foundNode, patchNode.containerIndex)
+				if patchNode.groupName != patchNode.name:
+					foundNode.SharesData = True
 			if foundNode:
 				if patchNode.action == "REPLACE" or patchNode.action == "ADD":
 					writeLog("Replacing " + foundNode.Name)
 					foundNode.Replace(patchFile)
+					node.RemoveChild(foundNode)
+					node.InsertChild(foundNode, patchNode.containerIndex)
 					uniquePropertyUpdate(foundNode)
+					changedNode = foundNode
 				if patchNode.action == "REMOVE":
 					writeLog("Removing " + foundNode.Name)
 					foundNode.Remove()
@@ -570,6 +597,11 @@ def processPatchFiles(patchFolder, node, progressBar):
 				newNode.Replace(patchFile)
 				newNode.Name = patchNode.name
 				uniquePropertyUpdate(newNode)
+				changedNode = newNode
+			# If the node was placed in the middle of a color smash group, move it
+			if patchNode.groupName == "" and changedNode and changedNode.NodeType == "BrawlLib.SSBB.ResourceNodes.TEX0Node" and changedNode.PrevSibling():
+				while changedNode.PrevSibling() and changedNode.PrevSibling().SharesData:
+					changedNode.MoveUp()
 		elif patchNode.forceAdd:
 			writeLog("Adding " + patchNode.name)
 			newNode = createNodeFromString(patchNode.type)
@@ -581,6 +613,10 @@ def processPatchFiles(patchFolder, node, progressBar):
 			applyNodeSettings(newNode, patchNode.path)
 		progressBar.CurrentValue += 1
 		progressBar.Update()
+	# Rebuild BRRES to fix issues with color smashed nodes
+	if sharedData and node and node.Parent and node.Parent.NodeType == "BrawlLib.SSBB.ResourceNodes.BRRESNode":
+		node.Parent.Rebuild()
+		node.Parent.IsDirty = True
 
 # Apply a patch to a file
 def applyPatch(file, patchFolder=TEMP_PATH):
