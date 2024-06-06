@@ -530,7 +530,6 @@ def createPatch(cleanFile, alteredFile):
 def processPatchFiles(patchFolder, node, progressBar):
 	writeLog("Processing patch files for " + node.Name)
 	newNode = None
-	sharedData = False
 	# Drill down into any directories in the patch
 	for directory in Directory.GetDirectories(patchFolder):
 		patchNode = PatchNode(DirectoryInfo(directory).Name, directory, node)
@@ -561,7 +560,6 @@ def processPatchFiles(patchFolder, node, progressBar):
 			changedNode = None
 			# If the node is part of a color smash group, set up color smashing first
 			if patchNode.groupName != "" and foundNode:
-				sharedData = True
 				node.RemoveChild(foundNode)
 				foundNode = createNodeFromString(patchNode.type)
 				foundNode.Name = patchNode.name
