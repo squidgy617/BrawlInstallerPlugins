@@ -64,7 +64,9 @@ def promptCostumeInstall(cosmeticsOnly=False):
 					newPositions = checkStockIcons(cosmeticId, "Misc Data [90]", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 					stocksChecked = True
 				if settings.installStockIconsToResult == "true" and not stocksChecked:
-					newPositions = checkStockIcons(cosmeticId, "Misc Data [120]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+					stgResultFiles = Directory.GetFiles(MainForm.BuildPath + "/pf/stage/melee", "STGRESULT*.pac")	# Find all files starting with STGRESULT
+					for stgResultFile in stgResultFiles:										# for each one we find...
+						newPositions = checkStockIcons(cosmeticId, "Misc Data [120]", rootName="2", filePath=stgResultFile.Replace(MainForm.BuildPath, ""), fiftyCC=settings.fiftyCostumeCode) # install STCs
 					stocksChecked = True
 				if settings.installStocksToInfo == "true" and not stocksChecked:
 					newPositions = checkStockIcons(cosmeticId, "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
@@ -170,7 +172,9 @@ def promptCostumeUninstall(cosmeticsOnly=False):
 				newPositions = checkStockIcons(cosmeticId, "Misc Data [90]", rootName="", filePath='/pf/menu2/sc_selcharacter.pac', fiftyCC=settings.fiftyCostumeCode)
 				stocksChecked = True
 			if settings.installStockIconsToResult == "true" and not stocksChecked:
-				newPositions = checkStockIcons(cosmeticId, "Misc Data [120]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
+				stgResultFiles = Directory.GetFiles(MainForm.BuildPath + "/pf/stage/melee", "STGRESULT*.pac")	# Find all files starting with STGRESULT
+				for stgResultFile in stgResultFiles:										# for each one we find...
+					newPositions = checkStockIcons(cosmeticId, "Misc Data [120]", rootName="2", filePath=stgResultFile.Replace(MainForm.BuildPath, ""), fiftyCC=settings.fiftyCostumeCode) # install STCs
 				stocksChecked = True
 			if settings.installStocksToInfo == "true" and not stocksChecked:
 				newPositions = checkStockIcons(cosmeticId, "Misc Data [30]", rootName="", filePath='/pf/info2/info.pac', fiftyCC=settings.fiftyCostumeCode)
