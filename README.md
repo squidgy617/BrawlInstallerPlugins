@@ -184,6 +184,7 @@ For your SSE CSS, you can either follow the steps outlined in [this guide](https
 # Credits
 This tool was made possible by:
 - Soopercool101, Kryal, BlackJax96, and libertyernie for BrawlLib, BrawlBox, and BrawlCrate. Extra thanks to Soopercool101 for making additions to BrawlCrate to support features needed for the BrawlInstaller plugins.
+- [ilikepizza107](https://github.com/ilikepizza107) for contributing to the repository, providing base files used to create the SSE build patch in the X template package, as well as for bugtesting.
 - markymawk, for their basic guide to writing plug-ins and for their plug-ins which served as a great learning resource, as well as their stage and music managing guides for Project+ which were a valuable resource.
 - Kapedani, for providing files and assistance with Subspace Emissary Ex implementation.
 - QuickLava and codes, for the various tools they created that these plugins are able to interact with.
@@ -192,7 +193,6 @@ This tool was made possible by:
 - Shy, who created the cosmetics used for X.
 - JVIasterJ for creating the expanded REMIX sc_selcharacter.pac, as well as for bugtesting.
 - Chrisman for bugtesting.
-- ilikepizza07 for providing base files used to create the SSE build patch in the X template package, as well as for bugtesting.
 - Hatyaro, for helping with some coding challenges.
 - The Project+ team, for the advancements made to Brawl modding that made this all possible.
 - Project+ EX and all the documentation provided and linked within KingJigglypuff's [P+Ex Release Document](https://docs.google.com/document/d/1mAoVGymOkL3FwiMxfEt1V24qxnAWiO8I66G3zlU0ij8/edit?usp=sharing). Learning these processes thoroughly was necessary for creating these plugins.
