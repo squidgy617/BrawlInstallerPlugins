@@ -549,7 +549,9 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 
 					# Install stock icons to STGRESULT
 					if stockIconFolder and settings.installStockIconsToResult == "true":
-						installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))
+						stgResultFiles = Directory.GetFiles(MainForm.BuildPath + "/pf/stage/melee", "STGRESULT*.pac")	# Find all files starting with STGRESULT
+						for stgResultFile in stgResultFiles:									# for each one we find...
+							installStockIcons(cosmeticId, stockIconFolder, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath=stgResultFile.Replace(MainForm.BuildPath, ""), fiftyCC=settings.fiftyCostumeCode, firstOnly=textBool(settings.singleStocks))	# install STCs
 					# Install franchise icon to STGRESULT
 					if franchiseIconFolder and doInstallFranchiseIcon:
 						modelFranchise = ""
@@ -564,10 +566,12 @@ def installCharacter(fighterId="", cosmeticId=0, franchiseIconId=-1, auto=False,
 								textureFranchise = Directory.GetFiles(franchisIconFolderResult[0], "*.png")[0]
 						if modelFranchise or textureFranchise:
 							installFranchiseIconResult(franchiseIconId, textureFranchise, modelFranchise)
-					fileOpened = checkOpenFile("STGRESULT")
-					if fileOpened:
-						BrawlAPI.SaveFile()
-						BrawlAPI.ForceCloseFile()
+							stgResultFiles = Directory.GetFiles(MainForm.BuildPath + "/pf/stage/melee", "STGRESULT*.pac")	# Find all files starting with STGRESULT
+							for stgResultFile in stgResultFiles:	# Check and save the opened STGRESULT files
+								fileOpened = checkOpenFile("STGRESULT")
+								if fileOpened:
+									BrawlAPI.SaveFile()
+									BrawlAPI.ForceCloseFile()
 
 					progressCounter += 1
 					progressBar.Update(progressCounter)
@@ -1007,11 +1011,13 @@ def installCostume(cosmeticId, fighterId, cssSlotConfigId, position, cspImages, 
 
 			# STGRESULT
 			if settings.installStockIconsToResult == "true":
-				addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
-				fileOpened = checkOpenFile("STGRESULT")
-				if fileOpened:
-					BrawlAPI.SaveFile()
-					BrawlAPI.ForceCloseFile()
+				stgResultFiles = Directory.GetFiles(MainForm.BuildPath + "/pf/stage/melee", "STGRESULT*.pac") # Find all files starting with STGRESULT
+				for stgResultFile in stgResultFiles:														  # for each one we find...
+					addStockIcons(cosmeticId, stockImages, index, "Misc Data [120]", "Misc Data [110]", rootName="2", filePath=stgResultFile.Replace(MainForm.BuildPath, ""), fiftyCC=settings.fiftyCostumeCode)
+					fileOpened = checkOpenFile("STGRESULT")
+					if fileOpened:
+						BrawlAPI.SaveFile()
+						BrawlAPI.ForceCloseFile()
 
 			# StockFaceTex
 			if settings.installStocksToStockFaceTex == "true":
