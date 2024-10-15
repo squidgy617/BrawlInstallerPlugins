@@ -122,7 +122,7 @@ This usually means one of two things - one, your build is not configured to use 
     
 If you're using a PMEX REMIX build, you can download [this sc_selcharacter.pac](https://www.mediafire.com/file/ob7dxyfpnbubawf/sc_selcharacter.pac/file) created by <b>JVIasterJ</b> to your build's `pf/menu2` folder, overwriting the existing file within, before installing any characters. This adds 12 extra slots to the CSS. Once you've done this, any added characters will use the new slots.
 
-For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://www.mediafire.com/file/b509fjbg3l3buqj/Expanded_SSE_CSS.zip/file). This expanded CSS supports up to 72 slots.
+For your SSE CSS, you can either follow the steps outlined in [this guide](https://docs.google.com/document/d/1bwzccf8lhwVu3ZAv8oLBXM3qSXODmbu1kqIv7obosto/edit) (see sections Altering the Number of CSS Icons per Row and Editing the Subspace CSS Animation) or you can download a very basic expanded SSE CSS [here](https://gamebanana.com/mods/548830). This expanded CSS supports up to 72 slots.
 </details>
 
 <details>
