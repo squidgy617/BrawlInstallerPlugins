@@ -56,11 +56,13 @@ def uninstallCostume(cosmeticId, fighterId, cssSlotConfigId, position, skipPosit
 			# STGRESULT
 			if settings.singleStocks == "false":
 				if settings.installStockIconsToResult == "true":
-					subtractStockIcons(cosmeticId, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath='/pf/stage/melee/STGRESULT.pac', fiftyCC=settings.fiftyCostumeCode)
-					fileOpened = checkOpenFile("STGRESULT")
-					if fileOpened:
-						BrawlAPI.SaveFile()
-						BrawlAPI.ForceCloseFile()
+					stgResultFiles = Directory.GetFiles(MainForm.BuildPath +"/pf/stage/melee", "STGRESULT*.pac")	# Find all files starting with STGRESULT
+					for stgResultFile in stgResultFiles:										# for each one we find...
+						subtractStockIcons(cosmeticId, indexes[0], "Misc Data [120]", "Misc Data [110]", endIndex=indexes[1], rootName="2", filePath=stgResultFile.Replace(MainForm.BuildPath, ""), fiftyCC=settings.fiftyCostumeCode)
+						fileOpened = checkOpenFile("STGRESULT")
+						if fileOpened:
+							BrawlAPI.SaveFile()
+							BrawlAPI.ForceCloseFile()
 
 				# info.pac
 				if settings.installStocksToInfo == "true":
