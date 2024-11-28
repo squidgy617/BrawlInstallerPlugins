@@ -1436,7 +1436,7 @@ class StageList(Form):
             for file in files:
                 usedStageIds.append(getFileInfo(file).Name.replace('.asl',''))
         # Get first available
-        stageId = 1
+        stageId = 64 # start at 64/0x40 because that is first custom stage slot
         while hexId(stageId).replace('0x','') in usedStageIds:
             stageId += 1
         # Compile cosmetic IDs
