@@ -1,3 +1,5 @@
+## This repo is no longer being maintained. Please get the new version of BrawlInstaller [here](https://github.com/squidgy617/BrawlInstaller).
+
 # BrawlInstaller Plugins
 
 [**DEMO VIDEO**](https://youtu.be/V6-cjuVhC80) (from an older version)
